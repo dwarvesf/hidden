@@ -21,7 +21,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        let mainAppIdentifier = "com.dwarvesv.hidden"
+        let mainAppIdentifier = "com.dwarvesv.minimalbar"
         let runningApps = NSWorkspace.shared.runningApplications
         let isRunning = !runningApps.filter { $0.bundleIdentifier == mainAppIdentifier }.isEmpty
         
@@ -35,10 +35,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             var components = path.pathComponents
             components.removeLast(3)
             components.append("MacOS")
-            components.append("Hidden") //main app name
+            components.append("Minimal Bar") //main app name
             let _ = NSString.path(withComponents: components)
             
-            NSWorkspace.shared.launchApplication("Hidden")
+            NSWorkspace.shared.launchApplication("Minimal Bar")
         }
         else {
             self.terminate()

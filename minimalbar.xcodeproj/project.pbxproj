@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9220587E2212A7C0008A8B03 /* LauncherApplication.app in Copy Files */ = {isa = PBXBuildFile; fileRef = 92C5054E21FEC03B0084719A /* LauncherApplication.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		929113F521F9D04100173149 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929113F421F9D04100173149 /* AppDelegate.swift */; };
 		929113F721F9D04100173149 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929113F621F9D04100173149 /* ViewController.swift */; };
 		929113F921F9D04200173149 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 929113F821F9D04200173149 /* Assets.xcassets */; };
@@ -15,7 +16,6 @@
 		92C5055321FEC03C0084719A /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C5055221FEC03C0084719A /* ViewController.swift */; };
 		92C5055521FEC03C0084719A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 92C5055421FEC03C0084719A /* Assets.xcassets */; };
 		92C5055821FEC03C0084719A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 92C5055621FEC03C0084719A /* Main.storyboard */; };
-		92C5057C21FEC1A20084719A /* LauncherApplication.app in Copy Files */ = {isa = PBXBuildFile; fileRef = 92C5054E21FEC03B0084719A /* LauncherApplication.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		92C5057F21FEC24C0084719A /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92C5057E21FEC24C0084719A /* ServiceManagement.framework */; };
 		92C5058121FEC2590084719A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92C5058021FEC2590084719A /* Cocoa.framework */; };
 		92C97B88220032ED0007559C /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B87220032ED0007559C /* Util.swift */; };
@@ -23,18 +23,10 @@
 		92C97B8D220058740007559C /* NSView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B8C220058740007559C /* NSView+Extension.swift */; };
 		92C97B8F220147FE0007559C /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B8E220147FE0007559C /* Constant.swift */; };
 		92C97B9122018C1F0007559C /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B9022018C1F0007559C /* StatusBarController.swift */; };
-		92D2122121FEE06000C92FF4 /* LauncherApplication.app in Resources */ = {isa = PBXBuildFile; fileRef = 92C5054E21FEC03B0084719A /* LauncherApplication.app */; };
 		92D2122221FEE06600C92FF4 /* LauncherApplication.app in Sources */ = {isa = PBXBuildFile; fileRef = 92C5054E21FEC03B0084719A /* LauncherApplication.app */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		921AE25821FEC46D0064B64E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 929113E921F9D04100173149 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 92C5054D21FEC03B0084719A;
-			remoteInfo = LauncherApplication;
-		};
 		9291140421F9D04200173149 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 929113E921F9D04100173149 /* Project object */;
@@ -72,7 +64,7 @@
 			dstPath = Contents/Library/LoginItems;
 			dstSubfolderSpec = 1;
 			files = (
-				92C5057C21FEC1A20084719A /* LauncherApplication.app in Copy Files */,
+				9220587E2212A7C0008A8B03 /* LauncherApplication.app in Copy Files */,
 			);
 			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -81,14 +73,14 @@
 
 /* Begin PBXFileReference section */
 		9220587D22127050008A8B03 /* Hidden.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Hidden.entitlements; path = Hidden/Hidden.entitlements; sourceTree = "<group>"; };
-		929113F121F9D04100173149 /* Hidden.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hidden.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		929113F121F9D04100173149 /* Minimal Bar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Minimal Bar.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		929113F421F9D04100173149 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		929113F621F9D04100173149 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		929113F821F9D04200173149 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		929113FB21F9D04200173149 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		929113FD21F9D04200173149 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		9291140321F9D04200173149 /* hiddenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hiddenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9291140E21F9D04200173149 /* hiddenUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hiddenUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9291140321F9D04200173149 /* minimalbarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = minimalbarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9291140E21F9D04200173149 /* minimalbarUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = minimalbarUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		92C5054E21FEC03B0084719A /* LauncherApplication.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LauncherApplication.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		92C5055021FEC03C0084719A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		92C5055221FEC03C0084719A /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -187,9 +179,9 @@
 		929113F221F9D04100173149 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				929113F121F9D04100173149 /* Hidden.app */,
-				9291140321F9D04200173149 /* hiddenTests.xctest */,
-				9291140E21F9D04200173149 /* hiddenUITests.xctest */,
+				929113F121F9D04100173149 /* Minimal Bar.app */,
+				9291140321F9D04200173149 /* minimalbarTests.xctest */,
+				9291140E21F9D04200173149 /* minimalbarUITests.xctest */,
 				92C5054E21FEC03B0084719A /* LauncherApplication.app */,
 				92C5055F21FEC03C0084719A /* LauncherApplicationTests.xctest */,
 				92C5056A21FEC03C0084719A /* LauncherApplicationUITests.xctest */,
@@ -245,9 +237,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		929113F021F9D04100173149 /* Hidden */ = {
+		929113F021F9D04100173149 /* Minimal Bar */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "Hidden" */;
+			buildConfigurationList = 9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "Minimal Bar" */;
 			buildPhases = (
 				929113ED21F9D04100173149 /* Sources */,
 				929113EE21F9D04100173149 /* Frameworks */,
@@ -257,16 +249,15 @@
 			buildRules = (
 			);
 			dependencies = (
-				921AE25921FEC46D0064B64E /* PBXTargetDependency */,
 			);
-			name = Hidden;
+			name = "Minimal Bar";
 			productName = vanillaClone;
-			productReference = 929113F121F9D04100173149 /* Hidden.app */;
+			productReference = 929113F121F9D04100173149 /* Minimal Bar.app */;
 			productType = "com.apple.product-type.application";
 		};
-		9291140221F9D04200173149 /* hiddenTests */ = {
+		9291140221F9D04200173149 /* minimalbarTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9291141A21F9D04200173149 /* Build configuration list for PBXNativeTarget "hiddenTests" */;
+			buildConfigurationList = 9291141A21F9D04200173149 /* Build configuration list for PBXNativeTarget "minimalbarTests" */;
 			buildPhases = (
 				929113FF21F9D04200173149 /* Sources */,
 				9291140021F9D04200173149 /* Frameworks */,
@@ -277,14 +268,14 @@
 			dependencies = (
 				9291140521F9D04200173149 /* PBXTargetDependency */,
 			);
-			name = hiddenTests;
+			name = minimalbarTests;
 			productName = vanillaCloneTests;
-			productReference = 9291140321F9D04200173149 /* hiddenTests.xctest */;
+			productReference = 9291140321F9D04200173149 /* minimalbarTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		9291140D21F9D04200173149 /* hiddenUITests */ = {
+		9291140D21F9D04200173149 /* minimalbarUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9291141D21F9D04200173149 /* Build configuration list for PBXNativeTarget "hiddenUITests" */;
+			buildConfigurationList = 9291141D21F9D04200173149 /* Build configuration list for PBXNativeTarget "minimalbarUITests" */;
 			buildPhases = (
 				9291140A21F9D04200173149 /* Sources */,
 				9291140B21F9D04200173149 /* Frameworks */,
@@ -295,9 +286,9 @@
 			dependencies = (
 				9291141021F9D04200173149 /* PBXTargetDependency */,
 			);
-			name = hiddenUITests;
+			name = minimalbarUITests;
 			productName = vanillaCloneUITests;
-			productReference = 9291140E21F9D04200173149 /* hiddenUITests.xctest */;
+			productReference = 9291140E21F9D04200173149 /* minimalbarUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		92C5054D21FEC03B0084719A /* LauncherApplication */ = {
@@ -392,7 +383,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 929113EC21F9D04100173149 /* Build configuration list for PBXProject "hidden" */;
+			buildConfigurationList = 929113EC21F9D04100173149 /* Build configuration list for PBXProject "minimalbar" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -405,9 +396,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				929113F021F9D04100173149 /* Hidden */,
-				9291140221F9D04200173149 /* hiddenTests */,
-				9291140D21F9D04200173149 /* hiddenUITests */,
+				929113F021F9D04100173149 /* Minimal Bar */,
+				9291140221F9D04200173149 /* minimalbarTests */,
+				9291140D21F9D04200173149 /* minimalbarUITests */,
 				92C5054D21FEC03B0084719A /* LauncherApplication */,
 				92C5055E21FEC03C0084719A /* LauncherApplicationTests */,
 				92C5056921FEC03C0084719A /* LauncherApplicationUITests */,
@@ -420,7 +411,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				92D2122121FEE06000C92FF4 /* LauncherApplication.app in Resources */,
 				929113F921F9D04200173149 /* Assets.xcassets in Resources */,
 				929113FC21F9D04200173149 /* Main.storyboard in Resources */,
 			);
@@ -521,19 +511,14 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		921AE25921FEC46D0064B64E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 92C5054D21FEC03B0084719A /* LauncherApplication */;
-			targetProxy = 921AE25821FEC46D0064B64E /* PBXContainerItemProxy */;
-		};
 		9291140521F9D04200173149 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 929113F021F9D04100173149 /* Hidden */;
+			target = 929113F021F9D04100173149 /* Minimal Bar */;
 			targetProxy = 9291140421F9D04200173149 /* PBXContainerItemProxy */;
 		};
 		9291141021F9D04200173149 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 929113F021F9D04100173149 /* Hidden */;
+			target = 929113F021F9D04100173149 /* Minimal Bar */;
 			targetProxy = 9291140F21F9D04200173149 /* PBXContainerItemProxy */;
 		};
 		92C5056121FEC03C0084719A /* PBXTargetDependency */ = {
@@ -688,18 +673,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hidden/Hidden.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "3rd Party Mac Developer Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = H9JHL8U9QK;
+				DEVELOPMENT_TEAM = W777S7V8TN;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.hidden;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "MinimalBar Appstore";
 				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
@@ -709,18 +694,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hidden/Hidden.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "3rd Party Mac Developer Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = H9JHL8U9QK;
+				DEVELOPMENT_TEAM = W777S7V8TN;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.hidden;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "MinimalBar Appstore";
 				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
@@ -741,7 +726,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.vanillaCloneTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/hidden.app/Contents/MacOS/hidden";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/minimalbar.app/Contents/MacOS/minimalbar";
 			};
 			name = Debug;
 		};
@@ -761,7 +746,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.vanillaCloneTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/hidden.app/Contents/MacOS/hidden";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/minimalbar.app/Contents/MacOS/minimalbar";
 			};
 			name = Release;
 		};
@@ -809,9 +794,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = LauncherApplication/LauncherApplication.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = H9JHL8U9QK;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = LauncherApplication/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -830,10 +815,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = LauncherApplication/LauncherApplication.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "3rd Party Mac Developer Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = H9JHL8U9QK;
+				DEVELOPMENT_TEAM = W777S7V8TN;
 				INFOPLIST_FILE = LauncherApplication/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -841,7 +826,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.LauncherApplication;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "MinimalBar Laucher Appstore";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 4.2;
 			};
@@ -928,7 +913,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		929113EC21F9D04100173149 /* Build configuration list for PBXProject "hidden" */ = {
+		929113EC21F9D04100173149 /* Build configuration list for PBXProject "minimalbar" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9291141521F9D04200173149 /* Debug */,
@@ -937,7 +922,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "Hidden" */ = {
+		9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "Minimal Bar" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9291141821F9D04200173149 /* Debug */,
@@ -946,7 +931,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9291141A21F9D04200173149 /* Build configuration list for PBXNativeTarget "hiddenTests" */ = {
+		9291141A21F9D04200173149 /* Build configuration list for PBXNativeTarget "minimalbarTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9291141B21F9D04200173149 /* Debug */,
@@ -955,7 +940,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9291141D21F9D04200173149 /* Build configuration list for PBXNativeTarget "hiddenUITests" */ = {
+		9291141D21F9D04200173149 /* Build configuration list for PBXNativeTarget "minimalbarUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9291141E21F9D04200173149 /* Debug */,

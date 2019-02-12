@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "929113F021F9D04100173149"
-               BuildableName = "Hidden.app"
-               BlueprintName = "Hidden"
-               ReferencedContainer = "container:hidden.xcodeproj">
+               BlueprintIdentifier = "92C5054D21FEC03B0084719A"
+               BuildableName = "LauncherApplication.app"
+               BlueprintName = "LauncherApplication"
+               ReferencedContainer = "container:minimalbar.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,37 +32,37 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9291140221F9D04200173149"
-               BuildableName = "hiddenTests.xctest"
-               BlueprintName = "hiddenTests"
-               ReferencedContainer = "container:hidden.xcodeproj">
+               BlueprintIdentifier = "92C5055E21FEC03C0084719A"
+               BuildableName = "LauncherApplicationTests.xctest"
+               BlueprintName = "LauncherApplicationTests"
+               ReferencedContainer = "container:minimalbar.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9291140D21F9D04200173149"
-               BuildableName = "hiddenUITests.xctest"
-               BlueprintName = "hiddenUITests"
-               ReferencedContainer = "container:hidden.xcodeproj">
+               BlueprintIdentifier = "92C5056921FEC03C0084719A"
+               BuildableName = "LauncherApplicationUITests.xctest"
+               BlueprintName = "LauncherApplicationUITests"
+               ReferencedContainer = "container:minimalbar.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "929113F021F9D04100173149"
-            BuildableName = "Hidden.app"
-            BlueprintName = "Hidden"
-            ReferencedContainer = "container:hidden.xcodeproj">
+            BlueprintIdentifier = "92C5054D21FEC03B0084719A"
+            BuildableName = "LauncherApplication.app"
+            BlueprintName = "LauncherApplication"
+            ReferencedContainer = "container:minimalbar.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -75,10 +75,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "929113F021F9D04100173149"
-            BuildableName = "Hidden.app"
-            BlueprintName = "Hidden"
-            ReferencedContainer = "container:hidden.xcodeproj">
+            BlueprintIdentifier = "92C5054D21FEC03B0084719A"
+            BuildableName = "LauncherApplication.app"
+            BlueprintName = "LauncherApplication"
+            ReferencedContainer = "container:minimalbar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -94,10 +94,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "929113F021F9D04100173149"
-            BuildableName = "Hidden.app"
-            BlueprintName = "Hidden"
-            ReferencedContainer = "container:hidden.xcodeproj">
+            BlueprintIdentifier = "92C5054D21FEC03B0084719A"
+            BuildableName = "LauncherApplication.app"
+            BlueprintName = "LauncherApplication"
+            ReferencedContainer = "container:minimalbar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
