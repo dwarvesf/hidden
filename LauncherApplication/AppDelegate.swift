@@ -35,10 +35,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             var components = path.pathComponents
             components.removeLast(3)
             components.append("MacOS")
-            components.append("Minimal Bar") //main app name
+            components.append("Hidden Bar") //main app name
             let _ = NSString.path(withComponents: components)
             
-            NSWorkspace.shared.launchApplication("Minimal Bar")
+            NSWorkspace.shared.launchApplication("Hidden Bar")
         }
         else {
             self.terminate()
