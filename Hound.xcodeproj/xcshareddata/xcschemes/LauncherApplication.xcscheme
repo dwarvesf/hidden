@@ -17,7 +17,7 @@
                BlueprintIdentifier = "92C5054D21FEC03B0084719A"
                BuildableName = "LauncherApplication.app"
                BlueprintName = "LauncherApplication"
-               ReferencedContainer = "container:hiddenbar.xcodeproj">
+               ReferencedContainer = "container:Hound.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -35,7 +35,7 @@
                BlueprintIdentifier = "92C5055E21FEC03C0084719A"
                BuildableName = "LauncherApplicationTests.xctest"
                BlueprintName = "LauncherApplicationTests"
-               ReferencedContainer = "container:hiddenbar.xcodeproj">
+               ReferencedContainer = "container:Hound.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
@@ -45,7 +45,7 @@
                BlueprintIdentifier = "92C5056921FEC03C0084719A"
                BuildableName = "LauncherApplicationUITests.xctest"
                BlueprintName = "LauncherApplicationUITests"
-               ReferencedContainer = "container:hiddenbar.xcodeproj">
+               ReferencedContainer = "container:Hound.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,7 +55,7 @@
             BlueprintIdentifier = "92C5054D21FEC03B0084719A"
             BuildableName = "LauncherApplication.app"
             BlueprintName = "LauncherApplication"
-            ReferencedContainer = "container:hiddenbar.xcodeproj">
+            ReferencedContainer = "container:Hound.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -78,7 +78,7 @@
             BlueprintIdentifier = "92C5054D21FEC03B0084719A"
             BuildableName = "LauncherApplication.app"
             BlueprintName = "LauncherApplication"
-            ReferencedContainer = "container:hiddenbar.xcodeproj">
+            ReferencedContainer = "container:Hound.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -97,7 +97,7 @@
             BlueprintIdentifier = "92C5054D21FEC03B0084719A"
             BuildableName = "LauncherApplication.app"
             BlueprintName = "LauncherApplication"
-            ReferencedContainer = "container:hiddenbar.xcodeproj">
+            ReferencedContainer = "container:Hound.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

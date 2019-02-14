@@ -73,14 +73,14 @@
 
 /* Begin PBXFileReference section */
 		9220587D22127050008A8B03 /* Hidden.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Hidden.entitlements; path = Hidden/Hidden.entitlements; sourceTree = "<group>"; };
-		929113F121F9D04100173149 /* Hidden Bar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hidden Bar.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		929113F121F9D04100173149 /* Hound.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hound.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		929113F421F9D04100173149 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		929113F621F9D04100173149 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		929113F821F9D04200173149 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		929113FB21F9D04200173149 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		929113FD21F9D04200173149 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		9291140321F9D04200173149 /* hiddenbarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hiddenbarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9291140E21F9D04200173149 /* hiddenbarUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hiddenbarUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9291140321F9D04200173149 /* houndTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = houndTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9291140E21F9D04200173149 /* houndUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = houndUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		92C5054E21FEC03B0084719A /* LauncherApplication.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LauncherApplication.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		92C5055021FEC03C0084719A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		92C5055221FEC03C0084719A /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -179,9 +179,9 @@
 		929113F221F9D04100173149 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				929113F121F9D04100173149 /* Hidden Bar.app */,
-				9291140321F9D04200173149 /* hiddenbarTests.xctest */,
-				9291140E21F9D04200173149 /* hiddenbarUITests.xctest */,
+				929113F121F9D04100173149 /* Hound.app */,
+				9291140321F9D04200173149 /* houndTests.xctest */,
+				9291140E21F9D04200173149 /* houndUITests.xctest */,
 				92C5054E21FEC03B0084719A /* LauncherApplication.app */,
 				92C5055F21FEC03C0084719A /* LauncherApplicationTests.xctest */,
 				92C5056A21FEC03C0084719A /* LauncherApplicationUITests.xctest */,
@@ -237,9 +237,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		929113F021F9D04100173149 /* Hidden Bar */ = {
+		929113F021F9D04100173149 /* Hound */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "Hidden Bar" */;
+			buildConfigurationList = 9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "Hound" */;
 			buildPhases = (
 				929113ED21F9D04100173149 /* Sources */,
 				929113EE21F9D04100173149 /* Frameworks */,
@@ -250,14 +250,14 @@
 			);
 			dependencies = (
 			);
-			name = "Hidden Bar";
+			name = Hound;
 			productName = vanillaClone;
-			productReference = 929113F121F9D04100173149 /* Hidden Bar.app */;
+			productReference = 929113F121F9D04100173149 /* Hound.app */;
 			productType = "com.apple.product-type.application";
 		};
-		9291140221F9D04200173149 /* hiddenbarTests */ = {
+		9291140221F9D04200173149 /* houndTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9291141A21F9D04200173149 /* Build configuration list for PBXNativeTarget "hiddenbarTests" */;
+			buildConfigurationList = 9291141A21F9D04200173149 /* Build configuration list for PBXNativeTarget "houndTests" */;
 			buildPhases = (
 				929113FF21F9D04200173149 /* Sources */,
 				9291140021F9D04200173149 /* Frameworks */,
@@ -268,14 +268,14 @@
 			dependencies = (
 				9291140521F9D04200173149 /* PBXTargetDependency */,
 			);
-			name = hiddenbarTests;
+			name = houndTests;
 			productName = vanillaCloneTests;
-			productReference = 9291140321F9D04200173149 /* hiddenbarTests.xctest */;
+			productReference = 9291140321F9D04200173149 /* houndTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		9291140D21F9D04200173149 /* hiddenbarUITests */ = {
+		9291140D21F9D04200173149 /* houndUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9291141D21F9D04200173149 /* Build configuration list for PBXNativeTarget "hiddenbarUITests" */;
+			buildConfigurationList = 9291141D21F9D04200173149 /* Build configuration list for PBXNativeTarget "houndUITests" */;
 			buildPhases = (
 				9291140A21F9D04200173149 /* Sources */,
 				9291140B21F9D04200173149 /* Frameworks */,
@@ -286,9 +286,9 @@
 			dependencies = (
 				9291141021F9D04200173149 /* PBXTargetDependency */,
 			);
-			name = hiddenbarUITests;
+			name = houndUITests;
 			productName = vanillaCloneUITests;
-			productReference = 9291140E21F9D04200173149 /* hiddenbarUITests.xctest */;
+			productReference = 9291140E21F9D04200173149 /* houndUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		92C5054D21FEC03B0084719A /* LauncherApplication */ = {
@@ -383,7 +383,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 929113EC21F9D04100173149 /* Build configuration list for PBXProject "hiddenbar" */;
+			buildConfigurationList = 929113EC21F9D04100173149 /* Build configuration list for PBXProject "Hound" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -396,9 +396,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				929113F021F9D04100173149 /* Hidden Bar */,
-				9291140221F9D04200173149 /* hiddenbarTests */,
-				9291140D21F9D04200173149 /* hiddenbarUITests */,
+				929113F021F9D04100173149 /* Hound */,
+				9291140221F9D04200173149 /* houndTests */,
+				9291140D21F9D04200173149 /* houndUITests */,
 				92C5054D21FEC03B0084719A /* LauncherApplication */,
 				92C5055E21FEC03C0084719A /* LauncherApplicationTests */,
 				92C5056921FEC03C0084719A /* LauncherApplicationUITests */,
@@ -513,12 +513,12 @@
 /* Begin PBXTargetDependency section */
 		9291140521F9D04200173149 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 929113F021F9D04100173149 /* Hidden Bar */;
+			target = 929113F021F9D04100173149 /* Hound */;
 			targetProxy = 9291140421F9D04200173149 /* PBXContainerItemProxy */;
 		};
 		9291141021F9D04200173149 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 929113F021F9D04100173149 /* Hidden Bar */;
+			target = 929113F021F9D04100173149 /* Hound */;
 			targetProxy = 9291140F21F9D04200173149 /* PBXContainerItemProxy */;
 		};
 		92C5056121FEC03C0084719A /* PBXTargetDependency */ = {
@@ -726,7 +726,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.vanillaCloneTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/hiddenbar.app/Contents/MacOS/hiddenbar";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hound.temp_caseinsensitive_rename.app/Contents/MacOS/Hound.temp_caseinsensitive_rename";
 			};
 			name = Debug;
 		};
@@ -746,7 +746,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.vanillaCloneTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/hiddenbar.app/Contents/MacOS/hiddenbar";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hound.temp_caseinsensitive_rename.app/Contents/MacOS/Hound.temp_caseinsensitive_rename";
 			};
 			name = Release;
 		};
@@ -913,7 +913,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		929113EC21F9D04100173149 /* Build configuration list for PBXProject "hiddenbar" */ = {
+		929113EC21F9D04100173149 /* Build configuration list for PBXProject "Hound" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9291141521F9D04200173149 /* Debug */,
@@ -922,7 +922,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "Hidden Bar" */ = {
+		9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "Hound" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9291141821F9D04200173149 /* Debug */,
@@ -931,7 +931,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9291141A21F9D04200173149 /* Build configuration list for PBXNativeTarget "hiddenbarTests" */ = {
+		9291141A21F9D04200173149 /* Build configuration list for PBXNativeTarget "houndTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9291141B21F9D04200173149 /* Debug */,
@@ -940,7 +940,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9291141D21F9D04200173149 /* Build configuration list for PBXNativeTarget "hiddenbarUITests" */ = {
+		9291141D21F9D04200173149 /* Build configuration list for PBXNativeTarget "houndUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9291141E21F9D04200173149 /* Debug */,

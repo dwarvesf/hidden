@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "929113F021F9D04100173149"
-               BuildableName = "Hidden Bar.app"
-               BlueprintName = "Hidden Bar"
-               ReferencedContainer = "container:hiddenbar.xcodeproj">
+               BuildableName = "Hound.app"
+               BlueprintName = "Hound"
+               ReferencedContainer = "container:Hound.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "9291140221F9D04200173149"
-               BuildableName = "hiddenbarTests.xctest"
-               BlueprintName = "hiddenbarTests"
-               ReferencedContainer = "container:hiddenbar.xcodeproj">
+               BuildableName = "houndTests.xctest"
+               BlueprintName = "houndTests"
+               ReferencedContainer = "container:Hound.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
@@ -43,9 +43,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "9291140D21F9D04200173149"
-               BuildableName = "hiddenbarUITests.xctest"
-               BlueprintName = "hiddenbarUITests"
-               ReferencedContainer = "container:hiddenbar.xcodeproj">
+               BuildableName = "houndUITests.xctest"
+               BlueprintName = "houndUITests"
+               ReferencedContainer = "container:Hound.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -53,9 +53,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "929113F021F9D04100173149"
-            BuildableName = "Hidden Bar.app"
-            BlueprintName = "Hidden Bar"
-            ReferencedContainer = "container:hiddenbar.xcodeproj">
+            BuildableName = "Hound.app"
+            BlueprintName = "Hound"
+            ReferencedContainer = "container:Hound.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -76,9 +76,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "929113F021F9D04100173149"
-            BuildableName = "Hidden Bar.app"
-            BlueprintName = "Hidden Bar"
-            ReferencedContainer = "container:hiddenbar.xcodeproj">
+            BuildableName = "Hound.app"
+            BlueprintName = "Hound"
+            ReferencedContainer = "container:Hound.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -95,9 +95,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "929113F021F9D04100173149"
-            BuildableName = "Hidden Bar.app"
-            BlueprintName = "Hidden Bar"
-            ReferencedContainer = "container:hiddenbar.xcodeproj">
+            BuildableName = "Hound.app"
+            BlueprintName = "Hound"
+            ReferencedContainer = "container:Hound.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
