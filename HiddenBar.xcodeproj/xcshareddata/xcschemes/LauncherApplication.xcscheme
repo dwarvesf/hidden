@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "929113F021F9D04100173149"
-               BuildableName = "Hound.app"
-               BlueprintName = "Hound"
-               ReferencedContainer = "container:Hound.xcodeproj">
+               BlueprintIdentifier = "92C5054D21FEC03B0084719A"
+               BuildableName = "LauncherApplication.app"
+               BlueprintName = "LauncherApplication"
+               ReferencedContainer = "container:HiddenBar.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,30 +32,30 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9291140221F9D04200173149"
-               BuildableName = "houndTests.xctest"
-               BlueprintName = "houndTests"
-               ReferencedContainer = "container:Hound.xcodeproj">
+               BlueprintIdentifier = "92C5055E21FEC03C0084719A"
+               BuildableName = "LauncherApplicationTests.xctest"
+               BlueprintName = "LauncherApplicationTests"
+               ReferencedContainer = "container:HiddenBar.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9291140D21F9D04200173149"
-               BuildableName = "houndUITests.xctest"
-               BlueprintName = "houndUITests"
-               ReferencedContainer = "container:Hound.xcodeproj">
+               BlueprintIdentifier = "92C5056921FEC03C0084719A"
+               BuildableName = "LauncherApplicationUITests.xctest"
+               BlueprintName = "LauncherApplicationUITests"
+               ReferencedContainer = "container:HiddenBar.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "929113F021F9D04100173149"
-            BuildableName = "Hound.app"
-            BlueprintName = "Hound"
-            ReferencedContainer = "container:Hound.xcodeproj">
+            BlueprintIdentifier = "92C5054D21FEC03B0084719A"
+            BuildableName = "LauncherApplication.app"
+            BlueprintName = "LauncherApplication"
+            ReferencedContainer = "container:HiddenBar.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -75,10 +75,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "929113F021F9D04100173149"
-            BuildableName = "Hound.app"
-            BlueprintName = "Hound"
-            ReferencedContainer = "container:Hound.xcodeproj">
+            BlueprintIdentifier = "92C5054D21FEC03B0084719A"
+            BuildableName = "LauncherApplication.app"
+            BlueprintName = "LauncherApplication"
+            ReferencedContainer = "container:HiddenBar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -94,10 +94,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "929113F021F9D04100173149"
-            BuildableName = "Hound.app"
-            BlueprintName = "Hound"
-            ReferencedContainer = "container:Hound.xcodeproj">
+            BlueprintIdentifier = "92C5054D21FEC03B0084719A"
+            BuildableName = "LauncherApplication.app"
+            BlueprintName = "LauncherApplication"
+            ReferencedContainer = "container:HiddenBar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
