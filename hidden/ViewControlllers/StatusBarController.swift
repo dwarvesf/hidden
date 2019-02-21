@@ -45,9 +45,9 @@ class StatusBarController{
         let names = infoList.map { dict in
             return dict["kCGWindowOwnerName"] as? String
             }.filter({ (name) -> Bool in
-                name == "vanillaClone"
+                name == App_Name
             })
-        return names.count == 3
+        return names.count >= 3
     }
     
     func isValidPosition() -> Bool {
