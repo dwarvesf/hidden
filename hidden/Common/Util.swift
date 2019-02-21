@@ -100,6 +100,26 @@ class Util {
         return getShowPreferences() ? .on : .off
     }
     
+    static func isMenuOpened() -> Bool {
+        let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
+        let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))
+        let infoList = windowsListInfo as! [[String:Any]]
+        let names = infoList.map { dict in
+            return dict["kCGWindowOwnerName"] as? String
+            }.filter({ (name) -> Bool in
+                name == App_Name
+            })
+        return names.count >= 2
+    }
+    
+    static func showPrefWindow() {
+        let main = NSStoryboard(name : "Main", bundle: nil).instantiateController(withIdentifier: "MainWindow") as! NSWindowController
+        
+        let mainVc = NSStoryboard(name:"Main", bundle: nil).instantiateController(withIdentifier: "prefVC") as! ViewController
+        main.window?.contentViewController = mainVc
+        main.window?.makeKeyAndOrderFront(nil)
+    }
+    
     static func toggleDockIcon(_ state: Bool) -> Bool {
         var result: Bool
         if state {

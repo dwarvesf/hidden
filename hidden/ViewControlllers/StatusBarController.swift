@@ -13,7 +13,6 @@ import ServiceManagement
 class StatusBarController{
     
     var isToggle = true
-    var main: NSWindowController!
     
     let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
     let seprateStatusBar = NSStatusBar.system.statusItem(withLength:10)
@@ -40,18 +39,6 @@ class StatusBarController{
         if Util.getShowPreferences() {
             openPreferenceViewControllerIfNeeded(nil)
         }
-    }
-    
-    func isMenuOpened() -> Bool {
-        let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
-        let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))
-        let infoList = windowsListInfo as! [[String:Any]]
-        let names = infoList.map { dict in
-            return dict["kCGWindowOwnerName"] as? String
-            }.filter({ (name) -> Bool in
-                name == App_Name
-            })
-        return names.count >= 3
     }
     
     func isValidPosition() -> Bool {
@@ -142,13 +129,9 @@ class StatusBarController{
     
     @objc func openPreferenceViewControllerIfNeeded(_ sender: Any?) {
         
-        if(!isMenuOpened())
+        if(!Util.isMenuOpened())
         {
-            main = NSStoryboard(name : "Main", bundle: nil).instantiateController(withIdentifier: "MainWindow") as? NSWindowController
-            
-            let mainVc = NSStoryboard(name:"Main", bundle: nil).instantiateController(withIdentifier: "prefVC") as! ViewController
-            main.window?.contentViewController = mainVc
-            main.window?.makeKeyAndOrderFront(nil)
+          Util.showPrefWindow()
         }
         
         Util.bringToFront(window: NSApp.mainWindow)
