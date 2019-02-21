@@ -36,9 +36,34 @@ class StatusBarController{
                         button.addSubview(btnDot!)
         }
         
+
         if Util.getShowPreferences() {
             openPreferenceViewControllerIfNeeded(nil)
         }
+
+       checkCollapseWhenOpen()
+    }
+    
+    private func checkCollapseWhenOpen(){
+        if(Util.getIsCollapse())
+        {
+            if(isToggle && isValidPosition())
+            {
+                setupCollapseMenuBar()
+            }
+        }
+    }
+    
+    func isMenuOpened() -> Bool {
+        let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
+        let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))
+        let infoList = windowsListInfo as! [[String:Any]]
+        let names = infoList.map { dict in
+            return dict["kCGWindowOwnerName"] as? String
+            }.filter({ (name) -> Bool in
+                name == App_Name
+            })
+        return names.count >= 3
     }
     
     func isValidPosition() -> Bool {
@@ -81,6 +106,7 @@ class StatusBarController{
     
     private func expandMenubar()
     {
+        Util.setIsCollapse(false)
         seprateStatusBar.length = 10
         isToggle = !isToggle
         if let button = expandCollapseStatusBar.button {
@@ -107,6 +133,7 @@ class StatusBarController{
     }
     
     private func setupCollapseMenuBar(){
+        Util.setIsCollapse(true)
         seprateStatusBar.length = 10000
         isToggle = !isToggle
         if let button = expandCollapseStatusBar.button {

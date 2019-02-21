@@ -37,10 +37,22 @@ class Util {
         
     }
     
+    static func getIsCollapse()->Bool{
+        let savedValue = UserDefaults.standard.bool(forKey: IS_COLLAPSE)
+        return savedValue
+    }
+    
+    static func setIsCollapse(_ isCollapse:Bool){
+        UserDefaults.standard.set(isCollapse, forKey: IS_COLLAPSE)
+        
+    }
+    
     static func getIsAutoStart()->Bool{
         let savedValue = UserDefaults.standard.bool(forKey: IS_AUTO_START)
         return savedValue
     }
+    
+    
     
     static func getStateAutoStart() -> NSControl.StateValue{
         if(getIsAutoStart())

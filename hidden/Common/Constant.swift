@@ -13,7 +13,7 @@ let IS_AUTO_HIDE = "isAutoHide"
 let IS_KEEP_IN_DOCK = "isKeepInDock"
 let IS_SHOW_PREFERENCES = "isShowPreferences"
 let App_Name = Util.getAppName()
-
+let IS_COLLAPSE = "isCollapse"
 extension Notification.Name {
     static let killLauncher = Notification.Name("killLauncher")
 }

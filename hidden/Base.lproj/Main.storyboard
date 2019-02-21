@@ -724,7 +724,7 @@
                                         <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="RGE-Xv-zm5">
                                             <rect key="frame" x="118" y="33" width="364" height="51"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                            <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" title="On your Mac's menu bar, hold 'Command' and drags icons   between sections to configure Hound. " id="k7C-e5-6a0">
+                                            <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" title="On your Mac's menu bar, hold 'Command' and drags icons   between sections to configure Hidden Bar. " id="k7C-e5-6a0">
                                                 <font key="font" metaFont="system"/>
                                                 <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
