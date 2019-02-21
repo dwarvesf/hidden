@@ -36,6 +36,10 @@ class StatusBarController{
                         btnDot?.action = #selector(statusBarButtonClicked(_:))
                         button.addSubview(btnDot!)
         }
+        
+        if Util.getShowPreferences() {
+            openPreferenceViewControllerIfNeeded(nil)
+        }
     }
     
     func isMenuOpened() -> Bool {

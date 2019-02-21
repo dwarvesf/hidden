@@ -11,6 +11,7 @@ import Foundation
 let IS_AUTO_START = "isAutoStart"
 let IS_AUTO_HIDE = "isAutoHide"
 let IS_KEEP_IN_DOCK = "isKeepInDock"
+let IS_SHOW_PREFERENCES = "isShowPreferences"
 let App_Name = Util.getAppName()
 
 extension Notification.Name {

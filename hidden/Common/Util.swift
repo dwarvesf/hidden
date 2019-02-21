@@ -79,12 +79,25 @@ class Util {
         return savedValue
     }
     
-    static func getStateKeepInDock() -> NSControl.StateValue{
+    static func getStateKeepInDock() -> NSControl.StateValue {
         if(getIsKeepInDock())
         {
             return .on
         }
         return .off
+    }
+    
+    static func getShowPreferences() -> Bool {
+        UserDefaults.standard.register(defaults: [IS_SHOW_PREFERENCES : true])
+        return UserDefaults.standard.bool(forKey: IS_SHOW_PREFERENCES)
+    }
+    
+    static func setShowPreferences(_ isShowPreferences: Bool) {
+        UserDefaults.standard.set(isShowPreferences, forKey: IS_SHOW_PREFERENCES)
+    }
+    
+    static func getStateShowPreferences() -> NSControl.StateValue {
+        return getShowPreferences() ? .on : .off
     }
     
     static func toggleDockIcon(_ state: Bool) -> Bool {
