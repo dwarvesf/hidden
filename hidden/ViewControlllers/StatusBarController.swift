@@ -54,18 +54,6 @@ class StatusBarController{
         }
     }
     
-    func isMenuOpened() -> Bool {
-        let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
-        let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))
-        let infoList = windowsListInfo as! [[String:Any]]
-        let names = infoList.map { dict in
-            return dict["kCGWindowOwnerName"] as? String
-            }.filter({ (name) -> Bool in
-                name == App_Name
-            })
-        return names.count >= 3
-    }
-    
     func isValidPosition() -> Bool {
         return Float((expandCollapseStatusBar.button?.getOrigin!.x)!) > Float((seprateStatusBar.button?.getOrigin!.x)!)
     }
@@ -155,12 +143,6 @@ class StatusBarController{
     }
     
     @objc func openPreferenceViewControllerIfNeeded(_ sender: Any?) {
-        
-        if(!Util.isMenuOpened())
-        {
-          Util.showPrefWindow()
-        }
-        
-        Util.bringToFront(window: NSApp.mainWindow)
+        Util.showPrefWindow()
     }
 }

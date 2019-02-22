@@ -27,12 +27,9 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
     
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if(!Util.isMenuOpened())
-        {
-            Util.showPrefWindow()
-        }
+        // Handle open preferences window
+        Util.showPrefWindow()
         
-        Util.bringToFront(window: NSApp.mainWindow)
         return true
     }
     
