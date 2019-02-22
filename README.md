@@ -18,7 +18,7 @@ Hidden lets you hide menu bar items to give your Mac a cleaner look.
 ##  How To Use
 
 <p align="center">
-	<img  src="https://im.ezgif.com/tmp/ezgif-1-438706bc0976.gif">
+	<img  src="pictures/giftutorial.gif">
 </p>
 
 ## ⚙️ Install
