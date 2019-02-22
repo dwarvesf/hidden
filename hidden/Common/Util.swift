@@ -125,11 +125,8 @@ class Util {
     }
     
     static func showPrefWindow() {
-        let main = NSStoryboard(name : "Main", bundle: nil).instantiateController(withIdentifier: "MainWindow") as! NSWindowController
-        
-        let mainVc = NSStoryboard(name:"Main", bundle: nil).instantiateController(withIdentifier: "prefVC") as! ViewController
-        main.window?.contentViewController = mainVc
-        main.window?.makeKeyAndOrderFront(nil)
+        let prefWindow = PreferencesWindowController.shared.window!
+        Util.bringToFront(window: prefWindow)
     }
     
     static func toggleDockIcon(_ state: Bool) -> Bool {
