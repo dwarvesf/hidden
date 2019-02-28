@@ -34,7 +34,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             components.append(App_Name) //main app name
             let newPath = NSString.path(withComponents: components)
             NSWorkspace.shared.launchApplication(newPath)
-            
         }
         else {
             self.terminate()
