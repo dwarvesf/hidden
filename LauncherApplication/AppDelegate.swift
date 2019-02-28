@@ -9,10 +9,6 @@
 import Cocoa
 
 
-extension Notification.Name {
-    static let killLauncher = Notification.Name("killLauncher")
-}
-
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     
@@ -35,10 +31,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             var components = path.pathComponents
             components.removeLast(3)
             components.append("MacOS")
-            components.append("Hidden Bar") //main app name
-            let _ = NSString.path(withComponents: components)
-            
-            NSWorkspace.shared.launchApplication("Hidden Bar")
+            components.append(App_Name) //main app name
+            let newPath = NSString.path(withComponents: components)
+            NSWorkspace.shared.launchApplication(newPath)
         }
         else {
             self.terminate()

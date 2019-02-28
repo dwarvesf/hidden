@@ -26,5 +26,12 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         let _ = Util.toggleDockIcon(Util.getIsKeepInDock())
     }
     
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // Handle open preferences window
+        Util.showPrefWindow()
+        
+        return true
+    }
+    
    
 }

@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3CD1E39A221E8F2100294DA5 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B8E220147FE0007559C /* Constant.swift */; };
+		3CD1E39C221E915D00294DA5 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B87220032ED0007559C /* Util.swift */; };
+		3CF14C82221FA49D0083D42B /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */; };
+		3CF14C83221FA7860083D42B /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */; };
 		9220587E2212A7C0008A8B03 /* LauncherApplication.app in Copy Files */ = {isa = PBXBuildFile; fileRef = 92C5054E21FEC03B0084719A /* LauncherApplication.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		929113F521F9D04100173149 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929113F421F9D04100173149 /* AppDelegate.swift */; };
 		929113F721F9D04100173149 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929113F621F9D04100173149 /* ViewController.swift */; };
@@ -41,8 +45,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindowController.swift; sourceTree = "<group>"; };
 		9220587D22127050008A8B03 /* Hidden.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Hidden.entitlements; path = Hidden/Hidden.entitlements; sourceTree = "<group>"; };
-		929113F121F9D04100173149 /* HiddenBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HiddenBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		929113F121F9D04100173149 /* Hidden Bar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hidden Bar.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		929113F421F9D04100173149 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		929113F621F9D04100173149 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		929113F821F9D04200173149 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -89,6 +94,7 @@
 			children = (
 				92C97B9022018C1F0007559C /* StatusBarController.swift */,
 				929113F621F9D04100173149 /* ViewController.swift */,
+				3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */,
 			);
 			path = ViewControlllers;
 			sourceTree = "<group>";
@@ -116,7 +122,7 @@
 		929113F221F9D04100173149 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				929113F121F9D04100173149 /* HiddenBar.app */,
+				929113F121F9D04100173149 /* Hidden Bar.app */,
 				92C5054E21FEC03B0084719A /* LauncherApplication.app */,
 			);
 			name = Products;
@@ -170,9 +176,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		929113F021F9D04100173149 /* HiddenBar */ = {
+		929113F021F9D04100173149 /* Hidden Bar */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "HiddenBar" */;
+			buildConfigurationList = 9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "Hidden Bar" */;
 			buildPhases = (
 				929113ED21F9D04100173149 /* Sources */,
 				929113EE21F9D04100173149 /* Frameworks */,
@@ -183,9 +189,9 @@
 			);
 			dependencies = (
 			);
-			name = HiddenBar;
+			name = "Hidden Bar";
 			productName = vanillaClone;
-			productReference = 929113F121F9D04100173149 /* HiddenBar.app */;
+			productReference = 929113F121F9D04100173149 /* Hidden Bar.app */;
 			productType = "com.apple.product-type.application";
 		};
 		92C5054D21FEC03B0084719A /* LauncherApplication */ = {
@@ -228,7 +234,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 929113EC21F9D04100173149 /* Build configuration list for PBXProject "HiddenBar" */;
+			buildConfigurationList = 929113EC21F9D04100173149 /* Build configuration list for PBXProject "Hidden Bar" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -241,7 +247,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				929113F021F9D04100173149 /* HiddenBar */,
+				929113F021F9D04100173149 /* Hidden Bar */,
 				92C5054D21FEC03B0084719A /* LauncherApplication */,
 			);
 		};
@@ -279,6 +285,7 @@
 				929113F721F9D04100173149 /* ViewController.swift in Sources */,
 				929113F521F9D04100173149 /* AppDelegate.swift in Sources */,
 				92C97B88220032ED0007559C /* Util.swift in Sources */,
+				3CF14C82221FA49D0083D42B /* PreferencesWindowController.swift in Sources */,
 				92C97B8B220049D20007559C /* NSBarButtonItem+Extension.swift in Sources */,
 				92C97B8D220058740007559C /* NSView+Extension.swift in Sources */,
 			);
@@ -290,6 +297,9 @@
 			files = (
 				92C5055321FEC03C0084719A /* ViewController.swift in Sources */,
 				92C5055121FEC03C0084719A /* AppDelegate.swift in Sources */,
+				3CF14C83221FA7860083D42B /* PreferencesWindowController.swift in Sources */,
+				3CD1E39A221E8F2100294DA5 /* Constant.swift in Sources */,
+				3CD1E39C221E915D00294DA5 /* Util.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,6 +454,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -465,6 +476,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -486,6 +498,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.LauncherApplication;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -508,6 +521,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.LauncherApplication;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -519,7 +533,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		929113EC21F9D04100173149 /* Build configuration list for PBXProject "HiddenBar" */ = {
+		929113EC21F9D04100173149 /* Build configuration list for PBXProject "Hidden Bar" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9291141521F9D04200173149 /* Debug */,
@@ -528,7 +542,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "HiddenBar" */ = {
+		9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "Hidden Bar" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9291141821F9D04200173149 /* Debug */,

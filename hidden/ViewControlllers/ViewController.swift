@@ -14,9 +14,10 @@ class ViewController: NSViewController {
     @IBOutlet weak var imageViewTop: NSImageView!
     
     @IBOutlet weak var checkBoxAutoHide: NSButton!
-   
     @IBOutlet weak var checkBoxKeepInDock: NSButton!
     @IBOutlet weak var checkBoxLogin: NSButton!
+    @IBOutlet weak var checkBoxShowPreferences: NSButton!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setUpView()
@@ -27,6 +28,7 @@ class ViewController: NSViewController {
         checkBoxLogin.state = Util.getStateAutoStart()
         checkBoxAutoHide.state = Util.getStateAutoHide()
         checkBoxKeepInDock.state = Util.getStateKeepInDock()
+        checkBoxShowPreferences.state = Util.getStateShowPreferences()
     }
 
     override var representedObject: Any? {
@@ -77,5 +79,15 @@ class ViewController: NSViewController {
         }
     }
     
+    @IBAction func showPreferencesChanged(_ sender: NSButton) {
+        switch sender.state {
+        case .on:
+            Util.setShowPreferences(true)
+        case .off:
+            Util.setShowPreferences(false)
+        default:
+            break
+        }
+    }
 }
 

@@ -10,13 +10,8 @@ import AppKit
 import Foundation
 import ServiceManagement
 
-extension Notification.Name {
-    static let killLauncher = Notification.Name("killLauncher")
-}
-
 
 class Util {
-
     
     static func setUpAutoStart(isAutoStart:Bool)
     {
@@ -37,10 +32,22 @@ class Util {
         
     }
     
+    static func getIsCollapse()->Bool{
+        let savedValue = UserDefaults.standard.bool(forKey: IS_COLLAPSE)
+        return savedValue
+    }
+    
+    static func setIsCollapse(_ isCollapse:Bool){
+        UserDefaults.standard.set(isCollapse, forKey: IS_COLLAPSE)
+        
+    }
+    
     static func getIsAutoStart()->Bool{
         let savedValue = UserDefaults.standard.bool(forKey: IS_AUTO_START)
         return savedValue
     }
+    
+    
     
     static func getStateAutoStart() -> NSControl.StateValue{
         if(getIsAutoStart())
@@ -79,12 +86,42 @@ class Util {
         return savedValue
     }
     
-    static func getStateKeepInDock() -> NSControl.StateValue{
+    static func getStateKeepInDock() -> NSControl.StateValue {
         if(getIsKeepInDock())
         {
             return .on
         }
         return .off
+    }
+    
+    static func getShowPreferences() -> Bool {
+        UserDefaults.standard.register(defaults: [IS_SHOW_PREFERENCES : true])
+        return UserDefaults.standard.bool(forKey: IS_SHOW_PREFERENCES)
+    }
+    
+    static func setShowPreferences(_ isShowPreferences: Bool) {
+        UserDefaults.standard.set(isShowPreferences, forKey: IS_SHOW_PREFERENCES)
+    }
+    
+    static func getStateShowPreferences() -> NSControl.StateValue {
+        return getShowPreferences() ? .on : .off
+    }
+    
+    static func isMenuOpened() -> Bool {
+        let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
+        let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))
+        let infoList = windowsListInfo as! [[String:Any]]
+        let names = infoList.map { dict in
+            return dict["kCGWindowOwnerName"] as? String
+            }.filter({ (name) -> Bool in
+                name == App_Name
+            })
+        return names.count >= 2
+    }
+    
+    static func showPrefWindow() {
+        let prefWindow = PreferencesWindowController.shared.window!
+        Util.bringToFront(window: prefWindow)
     }
     
     static func toggleDockIcon(_ state: Bool) -> Bool {

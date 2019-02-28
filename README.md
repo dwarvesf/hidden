@@ -12,19 +12,31 @@
 	</a>
 </p>
 
-## 🚀 Hidden
-Hidden lets you hide menu bar items to give your Mac a cleaner look.
+## Hidden Bar
+Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
-## ⚙️ Install
+## Install
 
-Manual:
+[![AppStore](/img/appstore.png)](https://itunes.apple.com/app/hidden-bar/id1452453066)
 
-1. [Download](https://github.com/dwarvesf/hidden/releases/latest), open, and drag the app to the Applications folder.
-2. Open Hidden and drag the icon in your menu bar (hold CMD) to the right so it is between some other icons.
+#### Manual download
+
+- [Download latest version](https://github.com/dwarvesf/hidden/releases/latest)
+- Open and drag the app to the Applications folder.
+- Launch Hidden and drag the icon in your menu bar (hold CMD) to the right so it is between some other icons.
 
 ## Usage
+
 * `⌘` + drag to move the Hidden icons around in the menu bar.
 * Click the Arrow icon to hide menu bar items.
 
+<p align="center">
+	<img src="img/tutorial.gif">
+</p>
+
 ## Requirements
 macOS version >= 10.13 
+
+## Contribution
+
+If you 

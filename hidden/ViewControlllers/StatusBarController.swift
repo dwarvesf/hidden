@@ -13,7 +13,6 @@ import ServiceManagement
 class StatusBarController{
     
     var isToggle = true
-    var main: NSWindowController!
     
     let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
     let seprateStatusBar = NSStatusBar.system.statusItem(withLength:10)
@@ -36,18 +35,23 @@ class StatusBarController{
                         btnDot?.action = #selector(statusBarButtonClicked(_:))
                         button.addSubview(btnDot!)
         }
+        
+
+        if Util.getShowPreferences() {
+            openPreferenceViewControllerIfNeeded(nil)
+        }
+
+       checkCollapseWhenOpen()
     }
     
-    func isMenuOpened() -> Bool {
-        let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
-        let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))
-        let infoList = windowsListInfo as! [[String:Any]]
-        let names = infoList.map { dict in
-            return dict["kCGWindowOwnerName"] as? String
-            }.filter({ (name) -> Bool in
-                name == "vanillaClone"
-            })
-        return names.count == 3
+    private func checkCollapseWhenOpen(){
+        if(Util.getIsCollapse())
+        {
+            if(isToggle && isValidPosition())
+            {
+                setupCollapseMenuBar()
+            }
+        }
     }
     
     func isValidPosition() -> Bool {
@@ -90,6 +94,7 @@ class StatusBarController{
     
     private func expandMenubar()
     {
+        Util.setIsCollapse(false)
         seprateStatusBar.length = 10
         isToggle = !isToggle
         if let button = expandCollapseStatusBar.button {
@@ -116,6 +121,7 @@ class StatusBarController{
     }
     
     private func setupCollapseMenuBar(){
+        Util.setIsCollapse(true)
         seprateStatusBar.length = 10000
         isToggle = !isToggle
         if let button = expandCollapseStatusBar.button {
@@ -137,16 +143,6 @@ class StatusBarController{
     }
     
     @objc func openPreferenceViewControllerIfNeeded(_ sender: Any?) {
-        
-        if(!isMenuOpened())
-        {
-            main = NSStoryboard(name : "Main", bundle: nil).instantiateController(withIdentifier: "MainWindow") as? NSWindowController
-            
-            let mainVc = NSStoryboard(name:"Main", bundle: nil).instantiateController(withIdentifier: "prefVC") as! ViewController
-            main.window?.contentViewController = mainVc
-            main.window?.makeKeyAndOrderFront(nil)
-        }
-        
-        Util.bringToFront(window: NSApp.mainWindow)
+        Util.showPrefWindow()
     }
 }
