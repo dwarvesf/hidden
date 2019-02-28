@@ -12,11 +12,6 @@ import ServiceManagement
 
 
 class Util {
-    static func getAppName() -> String {
-        let path = Bundle.main.bundlePath as NSString
-        let product = path.lastPathComponent
-        return product.replacingOccurrences(of: ".app", with: "")
-    }
     
     static func setUpAutoStart(isAutoStart:Bool)
     {
