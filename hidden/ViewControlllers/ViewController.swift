@@ -10,6 +10,7 @@ import Cocoa
 
 class ViewController: NSViewController {
 
+    @IBOutlet weak var checkBoxKeepLastState: NSButton!
     @IBOutlet weak var textFieldTitle: NSTextField!
     @IBOutlet weak var imageViewTop: NSImageView!
     
@@ -29,6 +30,7 @@ class ViewController: NSViewController {
         checkBoxAutoHide.state = Util.getStateAutoHide()
         checkBoxKeepInDock.state = Util.getStateKeepInDock()
         checkBoxShowPreferences.state = Util.getStateShowPreferences()
+        checkBoxKeepLastState.state = Util.getStateKeepLastState()
     }
 
     override var representedObject: Any? {
@@ -79,12 +81,24 @@ class ViewController: NSViewController {
         }
     }
     
+
     @IBAction func showPreferencesChanged(_ sender: NSButton) {
         switch sender.state {
         case .on:
             Util.setShowPreferences(true)
         case .off:
             Util.setShowPreferences(false)
+        default:
+            break
+        }
+    }
+    
+    @IBAction func onLastKeepAppStateChange(_ sender: NSButton) {
+        switch sender.state {
+        case .on:
+            Util.setKeepLastState(true)
+        case .off:
+            Util.setKeepLastState(false)
         default:
             break
         }
