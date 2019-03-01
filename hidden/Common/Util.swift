@@ -107,6 +107,21 @@ class Util {
         return getShowPreferences() ? .on : .off
     }
     
+    
+    static func getKeepLastState() -> Bool {
+        let savedValue = UserDefaults.standard.bool(forKey: IS_KEEP_LAST_STATE)
+        return savedValue
+    }
+    
+    static func setKeepLastState(_ isKeepLastState: Bool) {
+        UserDefaults.standard.set(isKeepLastState, forKey: IS_KEEP_LAST_STATE)
+    }
+    
+    static func getStateKeepLastState() -> NSControl.StateValue {
+        return getKeepLastState() ? .on : .off
+    }
+    
+    
     static func isMenuOpened() -> Bool {
         let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
         let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))

@@ -45,7 +45,7 @@ class StatusBarController{
     }
     
     private func checkCollapseWhenOpen(){
-        if(Util.getIsCollapse())
+        if(Util.getIsCollapse() && Util.getKeepLastState())
         {
             if(isToggle && isValidPosition())
             {

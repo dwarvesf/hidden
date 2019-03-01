@@ -35,8 +35,8 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 </p>
 
 ## Requirements
-macOS version >= 10.13 
+macOS version >= 10.13
 
-## Contribution
+## License
 
-If you 
+MIT &copy; [Dwarves Foundation](https://github.com/dwarvesf)
