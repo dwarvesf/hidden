@@ -22,18 +22,18 @@ class StatusBarController{
     
     func initView(){
         
-        appMenu = setupMenuUI()
         
         if let button = seprateStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_line"))
         }
         
+        appMenu = setupMenuUI()
+        seprateStatusBar.menu = appMenu
+        
         if let button = expandCollapseStatusBar.button {
                         button.image = NSImage(named:NSImage.Name("ic_collapse"))
-                        btnDot = NSStatusBarButton.collapseBarButtonItem()
-                        btnDot?.target = self
-                        btnDot?.action = #selector(statusBarButtonClicked(_:))
-                        button.addSubview(btnDot!)
+                        button.target = self
+                        button.action = #selector(expandCollapseIfNeeded(_:))
         }
         
 
@@ -58,30 +58,7 @@ class StatusBarController{
         return Float((expandCollapseStatusBar.button?.getOrigin!.x)!) > Float((seprateStatusBar.button?.getOrigin!.x)!)
     }
     
-    @objc func statusBarButtonClicked(_ sender: NSStatusBarButton) {
-        let event = NSApp.currentEvent!
-        
-        if event.type == NSEvent.EventType.rightMouseUp {
-            openAppMenu()
-        } else {
-            expandCollapseIfNeeded()
-        }
-    }
-    
-    private func openAppMenu()
-    {
-        if (appMenu != nil)
-        {
-            expandCollapseStatusBar.menu = appMenu //set the menu
-            
-            let p = NSPoint(x: 0,
-                            y: (expandCollapseStatusBar.statusBar?.thickness)!)
-            self.appMenu!.popUp(positioning: self.appMenu!.item(at: 0), at:p , in: btnDot)
-            
-        }
-    }
-    
-    @objc func expandCollapseIfNeeded() {
+    @objc func expandCollapseIfNeeded(_ sender: NSStatusBarButton) {
         if(isValidPosition())
         {
             if isToggle == false {
