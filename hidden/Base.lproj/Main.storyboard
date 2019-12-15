@@ -724,7 +724,7 @@
                                         <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="RGE-Xv-zm5">
                                             <rect key="frame" x="118" y="33" width="364" height="51"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                            <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" title="On your Mac's menu bar, hold 'Command' and drags icons   between sections to configure Hidden Bar. " id="k7C-e5-6a0">
+                                            <textFieldCell key="cell" alignment="center" title="In your Mac's menu bar, hold ⌘ and drag icons between sections to configure Hidden Bar." id="k7C-e5-6a0">
                                                 <font key="font" metaFont="system"/>
                                                 <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -748,7 +748,7 @@
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gj1-Ms-4No">
                                 <rect key="frame" x="73" y="134" width="308" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="check" title="Automatically hide icon after five seconds" bezelStyle="regularSquare" imagePosition="left" inset="2" id="kg8-rW-srh">
+                                <buttonCell key="cell" type="check" title="Automatically hide icons after five seconds" bezelStyle="regularSquare" imagePosition="left" inset="2" id="kg8-rW-srh">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -770,7 +770,7 @@
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gWT-L1-Xdf">
                                 <rect key="frame" x="73" y="58" width="292" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="check" title="Show  preferences on launch" bezelStyle="regularSquare" imagePosition="left" inset="2" id="hCh-Ue-NgH">
+                                <buttonCell key="cell" type="check" title="Show preferences on launch" bezelStyle="regularSquare" imagePosition="left" inset="2" id="hCh-Ue-NgH">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
