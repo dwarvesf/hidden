@@ -53,6 +53,7 @@ class StatusBarController{
         {
             setupCollapseMenuBar()
         }
+        autoCollapseIfNeeded()
     }
     
     private func isValidPosition() -> Bool {
@@ -82,10 +83,9 @@ class StatusBarController{
     }
     
     private func autoCollapseIfNeeded() {
-        let isExpanded = Util.getIsCollapse()
         let isAutoHide = Util.getIsAutoHide()
 
-        if isExpanded || isAutoHide == false {return}
+        if isAutoHide == false {return}
         
         startTimerToAutoHide()
     }
