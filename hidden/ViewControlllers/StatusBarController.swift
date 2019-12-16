@@ -85,7 +85,7 @@ class StatusBarController{
         let isExpanded = Util.getIsCollapse()
         let isAutoHide = Util.getIsAutoHide()
 
-        if isExpanded == false || isAutoHide == false {return}
+        if isExpanded || isAutoHide == false {return}
         
         startTimerToAutoHide()
     }
