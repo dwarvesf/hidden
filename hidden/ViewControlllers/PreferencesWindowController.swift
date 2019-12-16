@@ -17,9 +17,8 @@ class PreferencesWindowController: NSWindowController {
     }
     
     static let shared: PreferencesWindowController = {
-        let storyboard = NSStoryboard(name:"Main", bundle: nil)
-        let controller = storyboard.instantiateController(withIdentifier: "MainWindow")
-        return controller as! PreferencesWindowController
+        let vc = NSStoryboard(name:"Main", bundle: nil).instantiateController(withIdentifier: "MainWindow") as! PreferencesWindowController
+        return vc
     }()
 
 }

@@ -10,6 +10,7 @@ import Cocoa
 
 class ViewController: NSViewController {
 
+    //MARK: - Outlets
     @IBOutlet weak var checkBoxKeepLastState: NSButton!
     @IBOutlet weak var textFieldTitle: NSTextField!
     @IBOutlet weak var imageViewTop: NSImageView!
@@ -19,12 +20,14 @@ class ViewController: NSViewController {
     @IBOutlet weak var checkBoxLogin: NSButton!
     @IBOutlet weak var checkBoxShowPreferences: NSButton!
     
+    
+    //MARK: - VC Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setUpView()
+        setupUI()
     }
     
-    private func setUpView(){
+    private func setupUI(){
         imageViewTop.image = NSImage(named:NSImage.Name("banner"))
         checkBoxLogin.state = Util.getStateAutoStart()
         checkBoxAutoHide.state = Util.getStateAutoHide()
@@ -40,13 +43,14 @@ class ViewController: NSViewController {
     }
 
 
+    //MARK: - Actions
     @IBAction func loginCheckChanged(_ sender: NSButton) {
         switch sender.state {
         case .on:
-            autoStart(true)
+            self.autoStart(true)
             
         case .off:
-             autoStart(false)
+            self.autoStart(false)
         default:
             break
         }
@@ -58,26 +62,26 @@ class ViewController: NSViewController {
     }
     
     @IBAction func autoHideCheckChanged(_ sender: NSButton) {
-                switch sender.state {
-                case .on:
-                        Util.setIsAutoHide(true)
-                case .off:
-                     Util.setIsAutoHide(false)
-                default:
-                    print("")
-                }
+        switch sender.state {
+        case .on:
+            Util.setIsAutoHide(true)
+        case .off:
+            Util.setIsAutoHide(false)
+        default:
+            print("")
+        }
     }
- 
+    
     @IBAction func keepInDockCheckChanged(_ sender: NSButton) {
         switch sender.state {
-            case .on:
-                Util.setIsKeepInDock(true)
-                let _ = Util.toggleDockIcon(true)
-            case .off:
-                Util.setIsKeepInDock(false)
-                let _ = Util.toggleDockIcon(false)
-            default:
-                print("")
+        case .on:
+            Util.setIsKeepInDock(true)
+            let _ = Util.toggleDockIcon(true)
+        case .off:
+            Util.setIsKeepInDock(false)
+            let _ = Util.toggleDockIcon(false)
+        default:
+            print("")
         }
     }
     
