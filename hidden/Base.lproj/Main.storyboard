@@ -722,10 +722,10 @@
                                             </constraints>
                                             <imageCell key="cell" refusesFirstResponder="YES" alignment="left" id="kFd-Cj-ig9"/>
                                         </imageView>
-                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="RGE-Xv-zm5">
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="RGE-Xv-zm5">
                                             <rect key="frame" x="118" y="44" width="364" height="64"/>
-                                            <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" title="On your Mac's menu bar, hold 'Command' and drags icons   between sections to configure Hidden Bar. " id="k7C-e5-6a0">
-                                                <font key="font" metaFont="system"/>
+                                            <textFieldCell key="cell" alignment="center" title="In your Mac's menu bar, hold ⌘ and drag icons between sections to configure Hidden Bar." id="k7C-e5-6a0">
+                                                <font key="font" metaFont="message"/>
                                                 <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
@@ -749,17 +749,17 @@
                                         <rect key="frame" x="-2" y="94" width="203" height="18"/>
                                         <buttonCell key="cell" type="check" title="Start Hidden Bar when I log in" bezelStyle="regularSquare" imagePosition="left" inset="2" id="W1G-55-zGo">
                                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                            <font key="font" metaFont="system"/>
+                                            <font key="font" metaFont="message"/>
                                         </buttonCell>
                                         <connections>
                                             <action selector="loginCheckChanged:" target="XfG-lQ-9wD" id="eIA-5O-8kT"/>
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gj1-Ms-4No">
-                                        <rect key="frame" x="-2" y="70" width="275" height="18"/>
-                                        <buttonCell key="cell" type="check" title="Automatically hide icon after five seconds" bezelStyle="regularSquare" imagePosition="left" inset="2" id="kg8-rW-srh">
+                                        <rect key="frame" x="-2" y="70" width="282" height="18"/>
+                                        <buttonCell key="cell" type="check" title="Automatically hide icons after five seconds" bezelStyle="regularSquare" imagePosition="left" inset="2" id="kg8-rW-srh">
                                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                            <font key="font" metaFont="system"/>
+                                            <font key="font" metaFont="message"/>
                                         </buttonCell>
                                         <connections>
                                             <action selector="autoHideCheckChanged:" target="XfG-lQ-9wD" id="rDJ-0S-Fu3"/>
@@ -769,17 +769,17 @@
                                         <rect key="frame" x="-2" y="46" width="130" height="18"/>
                                         <buttonCell key="cell" type="check" title="Keep icon in dock" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cUd-D7-0WY">
                                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                            <font key="font" metaFont="system"/>
+                                            <font key="font" metaFont="message"/>
                                         </buttonCell>
                                         <connections>
                                             <action selector="keepInDockCheckChanged:" target="XfG-lQ-9wD" id="d5c-HS-XAJ"/>
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gWT-L1-Xdf">
-                                        <rect key="frame" x="-2" y="22" width="198" height="18"/>
-                                        <buttonCell key="cell" type="check" title="Show  preferences on launch" bezelStyle="regularSquare" imagePosition="left" inset="2" id="hCh-Ue-NgH">
+                                        <rect key="frame" x="-2" y="22" width="194" height="18"/>
+                                        <buttonCell key="cell" type="check" title="Show Preferences on launch" bezelStyle="regularSquare" imagePosition="left" inset="2" id="hCh-Ue-NgH">
                                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                            <font key="font" metaFont="system"/>
+                                            <font key="font" metaFont="message"/>
                                         </buttonCell>
                                         <connections>
                                             <action selector="showPreferencesChanged:" target="XfG-lQ-9wD" id="UYB-yR-xTM"/>
@@ -789,7 +789,7 @@
                                         <rect key="frame" x="-2" y="-2" width="139" height="18"/>
                                         <buttonCell key="cell" type="check" title="Keep last app state" bezelStyle="regularSquare" imagePosition="left" inset="2" id="31D-vN-XSA">
                                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                            <font key="font" metaFont="system"/>
+                                            <font key="font" metaFont="message"/>
                                         </buttonCell>
                                         <connections>
                                             <action selector="onLastKeepAppStateChange:" target="XfG-lQ-9wD" id="dE2-Vi-5ST"/>
