@@ -12,13 +12,16 @@ import ServiceManagement
 
 class StatusBarController{
     
-    var isToggle = true
+    //MARK: - Variables
+    private var isToggle = true
+    private let numberOfSecondForAutoHiden: Double = 5
+    private var timer:Timer? = nil
     
-    let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
-    let seprateStatusBar = NSStatusBar.system.statusItem(withLength:10)
-    var btnDot: NSStatusBarButton? = nil
-    var appMenu:NSMenu? = nil
-    var timer:Timer? = nil
+    //MARK: - BarItems
+    private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
+    private let seprateStatusBar = NSStatusBar.system.statusItem(withLength:10)
+    private var appMenu:NSMenu? = nil
+    
     
     func initView(){
         
@@ -38,23 +41,21 @@ class StatusBarController{
         
 
         if Util.getShowPreferences() {
-            openPreferenceViewControllerIfNeeded(nil)
+            openPreferenceViewControllerIfNeeded()
         }
 
-       checkCollapseWhenOpen()
+       collapseBarWhenReopenAppIfNeeded()
     }
     
-    private func checkCollapseWhenOpen(){
-        if(Util.getIsCollapse() && Util.getKeepLastState())
+    private func collapseBarWhenReopenAppIfNeeded() {
+        
+        if(Util.getIsCollapse() && Util.getKeepLastState() && self.isToggle && self.isValidPosition())
         {
-            if(isToggle && isValidPosition())
-            {
-                setupCollapseMenuBar()
-            }
+            setupCollapseMenuBar()
         }
     }
     
-    func isValidPosition() -> Bool {
+    private func isValidPosition() -> Bool {
         return Float((expandCollapseStatusBar.button?.getOrigin!.x)!) > Float((seprateStatusBar.button?.getOrigin!.x)!)
     }
     
@@ -77,17 +78,23 @@ class StatusBarController{
         if let button = expandCollapseStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_collapse"))
         }
-        if(Util.getIsAutoHide())
-        {
-            startTimerToAutoHide()
-        }
+        autoCollapseIfNeeded()
     }
     
-    private func startTimerToAutoHide(){
+    private func autoCollapseIfNeeded() {
+        let isExpanded = Util.getIsCollapse()
+        let isAutoHide = Util.getIsAutoHide()
+
+        if isExpanded == false || isAutoHide == false {return}
+        
+        startTimerToAutoHide()
+    }
+    
+    private func startTimerToAutoHide() {
         
         timer?.invalidate()
         
-        timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { [weak self] (timer) in
+        timer = Timer.scheduledTimer(withTimeInterval: numberOfSecondForAutoHiden, repeats: false) { [weak self] (timer) in
             guard let strongSelf = self else{return}
             if(strongSelf.isToggle && strongSelf.isValidPosition())
             {
@@ -97,20 +104,19 @@ class StatusBarController{
         
     }
     
-    private func setupCollapseMenuBar(){
+    private func setupCollapseMenuBar() {
         Util.setIsCollapse(true)
         seprateStatusBar.length = 10000
         isToggle = !isToggle
         if let button = expandCollapseStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_expand"))
         }
-        
     }
     
-    private func setupMenuUI()-> NSMenu {
+    private func setupMenuUI() -> NSMenu {
         let menu = NSMenu()
         
-        menu.addItem(NSMenuItem(title: "Preferences...", action: #selector(openPreferenceViewControllerIfNeeded(_:)), keyEquivalent: "P"))
+        menu.addItem(NSMenuItem(title: "Preferences...", action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: "P"))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         
@@ -119,7 +125,7 @@ class StatusBarController{
         return menu
     }
     
-    @objc func openPreferenceViewControllerIfNeeded(_ sender: Any?) {
+    @objc func openPreferenceViewControllerIfNeeded() {
         Util.showPrefWindow()
     }
 }

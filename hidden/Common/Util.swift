@@ -32,7 +32,7 @@ class Util {
         
     }
     
-    static func getIsCollapse()->Bool{
+    static func getIsCollapse() -> Bool{
         let savedValue = UserDefaults.standard.bool(forKey: IS_COLLAPSE)
         return savedValue
     }
@@ -42,7 +42,7 @@ class Util {
         
     }
     
-    static func getIsAutoStart()->Bool{
+    static func getIsAutoStart() -> Bool{
         let savedValue = UserDefaults.standard.bool(forKey: IS_AUTO_START)
         return savedValue
     }
@@ -63,8 +63,8 @@ class Util {
     }
     
     static func getIsAutoHide()->Bool{
-        let savedValue = UserDefaults.standard.bool(forKey: IS_AUTO_HIDE)
-        return savedValue
+        let isAutoHide = UserDefaults.standard.bool(forKey: IS_AUTO_HIDE)
+        return isAutoHide
     }
     
     static func getStateAutoHide() -> NSControl.StateValue{
@@ -80,7 +80,7 @@ class Util {
         
     }
     
-    static func getIsKeepInDock()->Bool{
+    static func getIsKeepInDock() -> Bool{
         UserDefaults.standard.register(defaults: [IS_KEEP_IN_DOCK : true])
         let savedValue = UserDefaults.standard.bool(forKey: IS_KEEP_IN_DOCK)
         return savedValue
