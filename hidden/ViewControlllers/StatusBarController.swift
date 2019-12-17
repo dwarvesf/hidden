@@ -13,8 +13,6 @@ import ServiceManagement
 class StatusBarController{
     
     //MARK: - Variables
-    private var isToggle = true
-    private let numberOfSecondForAutoHiden: Double = 5
     private var timer:Timer? = nil
     
     //MARK: - BarItems
@@ -34,22 +32,23 @@ class StatusBarController{
         seprateStatusBar.menu = appMenu
         
         if let button = expandCollapseStatusBar.button {
-                        button.image = NSImage(named:NSImage.Name("ic_collapse"))
-                        button.target = self
-                        button.action = #selector(expandCollapseIfNeeded(_:))
+            button.image = NSImage(named:NSImage.Name("ic_collapse"))
+            button.target = self
+            button.action = #selector(expandCollapseIfNeeded(_:))
         }
         
-
+        
         if Util.getShowPreferences() {
             openPreferenceViewControllerIfNeeded()
         }
-
-       collapseBarWhenReopenAppIfNeeded()
+        
+        collapseBarWhenReopenAppIfNeeded()
+        autoCollapseIfNeeded()
     }
     
     private func collapseBarWhenReopenAppIfNeeded() {
         
-        if(Util.getIsCollapse() && Util.getKeepLastState() && self.isToggle && self.isValidPosition())
+        if(Util.getIsCollapse() && Util.getKeepLastState() && self.isValidPosition())
         {
             setupCollapseMenuBar()
         }
@@ -62,7 +61,7 @@ class StatusBarController{
     @objc func expandCollapseIfNeeded(_ sender: NSStatusBarButton) {
         if(isValidPosition())
         {
-            if isToggle == false {
+            if seprateStatusBar.length != 10.0 {
                 expandMenubar()
             }else {
                 setupCollapseMenuBar()
@@ -74,7 +73,6 @@ class StatusBarController{
     {
         Util.setIsCollapse(false)
         seprateStatusBar.length = 10
-        isToggle = !isToggle
         if let button = expandCollapseStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_collapse"))
         }
@@ -82,32 +80,30 @@ class StatusBarController{
     }
     
     private func autoCollapseIfNeeded() {
-        let isExpanded = Util.getIsCollapse()
         let isAutoHide = Util.getIsAutoHide()
-
-        if isExpanded || isAutoHide == false {return}
+        
+        if isAutoHide == false {return}
         
         startTimerToAutoHide()
     }
     
     private func startTimerToAutoHide() {
-        
-        timer?.invalidate()
-        
-        timer = Timer.scheduledTimer(withTimeInterval: numberOfSecondForAutoHiden, repeats: false) { [weak self] (timer) in
-            guard let strongSelf = self else{return}
-            if(strongSelf.isToggle && strongSelf.isValidPosition())
-            {
-                strongSelf.setupCollapseMenuBar()
+        DispatchQueue.main.async {
+            self.timer?.invalidate()
+            
+            self.timer = Timer.scheduledTimer(withTimeInterval: Util.numberOfSecondForAutoHide, repeats: false) { [weak self] (timer) in
+                guard let strongSelf = self else{return}
+                if strongSelf.isValidPosition()
+                {
+                    strongSelf.setupCollapseMenuBar()
+                }
             }
         }
-        
     }
     
     private func setupCollapseMenuBar() {
         Util.setIsCollapse(true)
         seprateStatusBar.length = 10000
-        isToggle = !isToggle
         if let button = expandCollapseStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_expand"))
         }

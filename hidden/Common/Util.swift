@@ -13,6 +13,26 @@ import ServiceManagement
 
 class Util {
     
+    static var numberOfSecondForAutoHide: Double {
+        get {
+            let numberOfSeconds = UserDefaults.standard.double(forKey: Notification.Name.numberOfSecondForAutoHide)
+            
+            //For very first time, set it equal 10
+            if numberOfSeconds == 0.0 {
+                let defaultValue = 10.0
+                UserDefaults.standard.set(defaultValue, forKey: Notification.Name.numberOfSecondForAutoHide)
+                UserDefaults.standard.synchronize()
+                return defaultValue
+            }
+            
+            return numberOfSeconds
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: Notification.Name.numberOfSecondForAutoHide)
+            UserDefaults.standard.synchronize()
+        }
+    }
+    
     static func setUpAutoStart(isAutoStart:Bool)
     {
         let launcherAppId = "com.dwarvesv.LauncherApplication"
