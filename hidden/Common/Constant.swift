@@ -18,4 +18,5 @@ let IS_COLLAPSE = "isCollapse"
 
 extension Notification.Name {
     static let killLauncher = Notification.Name("killLauncher")
+    static let numberOfSecondForAutoHide = "NUMBER_OF_SECOND_FOR_AUTO_HIDE"
 }

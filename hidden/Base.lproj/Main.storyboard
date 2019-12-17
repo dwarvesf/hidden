@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="15505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15702"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15505"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -706,26 +706,28 @@
             <objects>
                 <viewController storyboardIdentifier="prefVC" showSeguePresentationStyle="single" id="XfG-lQ-9wD" customClass="ViewController" customModule="Hidden_Bar" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" wantsLayer="YES" id="m2S-Jp-Qdl">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="481"/>
+                        <rect key="frame" x="0.0" y="0.0" width="569" height="481"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <box autoresizesSubviews="NO" boxType="custom" borderType="none" title="Box" translatesAutoresizingMaskIntoConstraints="NO" id="Jjd-1G-63n">
-                                <rect key="frame" x="0.0" y="184" width="600" height="297"/>
+                                <rect key="frame" x="0.0" y="195" width="569" height="286"/>
                                 <view key="contentView" id="TZd-5p-NFL">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="297"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="569" height="286"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ZE5-y9-i8b">
-                                            <rect key="frame" x="20" y="130" width="560" height="147"/>
+                                            <rect key="frame" x="20" y="119" width="529" height="147"/>
                                             <constraints>
                                                 <constraint firstAttribute="height" constant="147" id="aZi-hy-l77"/>
                                             </constraints>
-                                            <imageCell key="cell" refusesFirstResponder="YES" alignment="left" id="kFd-Cj-ig9"/>
+                                            <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="banner" id="kFd-Cj-ig9"/>
                                         </imageView>
-                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="RGE-Xv-zm5">
-                                            <rect key="frame" x="118" y="44" width="364" height="64"/>
-                                            <textFieldCell key="cell" alignment="center" title="In your Mac's menu bar, hold ⌘ and drag icons between sections to configure Hidden Bar." id="k7C-e5-6a0">
-                                                <font key="font" metaFont="message"/>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="RGE-Xv-zm5">
+                                            <rect key="frame" x="137" y="44" width="295" height="53"/>
+                                            <textFieldCell key="cell" alignment="center" id="k7C-e5-6a0">
+                                                <font key="font" metaFont="system"/>
+                                                <string key="title">In your Mac's menu bar, hold ⌘ and drag icons 
+between sections to configure Hidden Bar.</string>
                                                 <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
@@ -743,58 +745,96 @@
                                 <color key="fillColor" name="quaternaryLabelColor" catalog="System" colorSpace="catalog"/>
                             </box>
                             <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="10" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="do4-pv-o3U">
-                                <rect key="frame" x="20" y="16" width="560" height="110"/>
+                                <rect key="frame" x="20" y="16" width="529" height="121"/>
                                 <subviews>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cbR-Jv-adm">
-                                        <rect key="frame" x="-2" y="94" width="203" height="18"/>
+                                        <rect key="frame" x="-2" y="105" width="203" height="18"/>
                                         <buttonCell key="cell" type="check" title="Start Hidden Bar when I log in" bezelStyle="regularSquare" imagePosition="left" inset="2" id="W1G-55-zGo">
                                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                            <font key="font" metaFont="message"/>
+                                            <font key="font" metaFont="system"/>
                                         </buttonCell>
                                         <connections>
                                             <action selector="loginCheckChanged:" target="XfG-lQ-9wD" id="eIA-5O-8kT"/>
                                         </connections>
                                     </button>
-                                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gj1-Ms-4No">
-                                        <rect key="frame" x="-2" y="70" width="282" height="18"/>
-                                        <buttonCell key="cell" type="check" title="Automatically hide icons after five seconds" bezelStyle="regularSquare" imagePosition="left" inset="2" id="kg8-rW-srh">
-                                            <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                            <font key="font" metaFont="message"/>
-                                        </buttonCell>
-                                        <connections>
-                                            <action selector="autoHideCheckChanged:" target="XfG-lQ-9wD" id="rDJ-0S-Fu3"/>
-                                        </connections>
-                                    </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="6Dz-il-Lwp">
-                                        <rect key="frame" x="-2" y="46" width="130" height="18"/>
+                                        <rect key="frame" x="-2" y="81" width="130" height="18"/>
                                         <buttonCell key="cell" type="check" title="Keep icon in dock" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cUd-D7-0WY">
                                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                            <font key="font" metaFont="message"/>
+                                            <font key="font" metaFont="system"/>
                                         </buttonCell>
                                         <connections>
                                             <action selector="keepInDockCheckChanged:" target="XfG-lQ-9wD" id="d5c-HS-XAJ"/>
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gWT-L1-Xdf">
-                                        <rect key="frame" x="-2" y="22" width="194" height="18"/>
-                                        <buttonCell key="cell" type="check" title="Show Preferences on launch" bezelStyle="regularSquare" imagePosition="left" inset="2" id="hCh-Ue-NgH">
+                                        <rect key="frame" x="-2" y="57" width="194" height="18"/>
+                                        <buttonCell key="cell" type="check" title="Show preferences on launch" bezelStyle="regularSquare" imagePosition="left" inset="2" id="hCh-Ue-NgH">
                                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                            <font key="font" metaFont="message"/>
+                                            <font key="font" metaFont="system"/>
                                         </buttonCell>
                                         <connections>
                                             <action selector="showPreferencesChanged:" target="XfG-lQ-9wD" id="UYB-yR-xTM"/>
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="3rx-g0-xcM">
-                                        <rect key="frame" x="-2" y="-2" width="139" height="18"/>
+                                        <rect key="frame" x="-2" y="33" width="139" height="18"/>
                                         <buttonCell key="cell" type="check" title="Keep last app state" bezelStyle="regularSquare" imagePosition="left" inset="2" id="31D-vN-XSA">
                                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                            <font key="font" metaFont="message"/>
+                                            <font key="font" metaFont="system"/>
                                         </buttonCell>
                                         <connections>
                                             <action selector="onLastKeepAppStateChange:" target="XfG-lQ-9wD" id="dE2-Vi-5ST"/>
                                         </connections>
                                     </button>
+                                    <stackView distribution="fill" orientation="horizontal" alignment="top" spacing="2" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bf8-qr-hjT">
+                                        <rect key="frame" x="0.0" y="0.0" width="304" height="25"/>
+                                        <subviews>
+                                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gj1-Ms-4No">
+                                                <rect key="frame" x="-2" y="3" width="202" height="24"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="20" id="Pg4-Eh-1V3"/>
+                                                </constraints>
+                                                <buttonCell key="cell" type="check" title="Automatically hide icon after: " bezelStyle="regularSquare" imagePosition="left" inset="2" id="kg8-rW-srh">
+                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                    <font key="font" metaFont="system"/>
+                                                </buttonCell>
+                                                <connections>
+                                                    <action selector="autoHideCheckChanged:" target="XfG-lQ-9wD" id="rDJ-0S-Fu3"/>
+                                                </connections>
+                                            </button>
+                                            <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="T6r-65-Oor">
+                                                <rect key="frame" x="198" y="1" width="109" height="25"/>
+                                                <popUpButtonCell key="cell" type="push" title="5 seconds" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="bzS-lm-JvT" id="SPt-Y3-pjj">
+                                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                    <font key="font" metaFont="system"/>
+                                                    <menu key="menu" id="EWA-5U-Jd0">
+                                                        <items>
+                                                            <menuItem title="5 seconds" state="on" id="bzS-lm-JvT"/>
+                                                            <menuItem title="10 seconds" id="z2X-nw-vxX"/>
+                                                            <menuItem title="15 seconds" id="rdn-Xm-fZD"/>
+                                                            <menuItem title="30 seconds" id="Ch6-Z2-LyX"/>
+                                                            <menuItem title="1 minute" id="Zkr-Xd-Ffh"/>
+                                                        </items>
+                                                    </menu>
+                                                </popUpButtonCell>
+                                                <connections>
+                                                    <action selector="timePopupDidSelected:" target="XfG-lQ-9wD" id="QZW-Kn-uet"/>
+                                                </connections>
+                                            </popUpButton>
+                                        </subviews>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="25" id="dVP-Ed-gEx"/>
+                                        </constraints>
+                                        <visibilityPriorities>
+                                            <integer value="1000"/>
+                                            <integer value="1000"/>
+                                        </visibilityPriorities>
+                                        <customSpacing>
+                                            <real value="3.4028234663852886e+38"/>
+                                            <real value="3.4028234663852886e+38"/>
+                                        </customSpacing>
+                                    </stackView>
                                 </subviews>
                                 <visibilityPriorities>
                                     <integer value="1000"/>
@@ -812,7 +852,7 @@
                                 </customSpacing>
                             </stackView>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aZz-jM-wCs">
-                                <rect key="frame" x="18" y="142" width="91" height="26"/>
+                                <rect key="frame" x="18" y="153" width="91" height="26"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Settings" id="1Is-Ut-a9h">
                                     <font key="font" metaFont="systemBold" size="22"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -840,11 +880,15 @@
                         <outlet property="checkBoxShowPreferences" destination="gWT-L1-Xdf" id="sC8-cw-Fmh"/>
                         <outlet property="imageViewTop" destination="ZE5-y9-i8b" id="wNv-Wx-ILV"/>
                         <outlet property="textFieldTitle" destination="RGE-Xv-zm5" id="v43-3R-PwU"/>
+                        <outlet property="timePopup" destination="T6r-65-Oor" id="E7R-qd-xOq"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="75" y="759.5"/>
+            <point key="canvasLocation" x="59.5" y="759.5"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="banner" width="524" height="136.5"/>
+    </resources>
 </document>
