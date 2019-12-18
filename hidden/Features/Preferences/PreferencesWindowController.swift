@@ -10,14 +10,30 @@ import Cocoa
 
 class PreferencesWindowController: NSWindowController {
     
+    enum MenuSegment: Int {
+        case general
+        case about
+    }
+    
     static let shared: PreferencesWindowController = {
         let wc = NSStoryboard(name:"Main", bundle: nil).instantiateController(withIdentifier: "MainWindow") as! PreferencesWindowController
         return wc
     }()
     
+    private var menuSegment: MenuSegment = .general {
+        didSet {
+            updateVC()
+        }
+    }
+    
+    private let preferencesVC = NSStoryboard(name: "Main", bundle: nil).instantiateController(withIdentifier: "prefVC") as! PreferencesViewController
+    
+    private let aboutVC = NSStoryboard(name: "Main", bundle: nil).instantiateController(withIdentifier: "aboutVC") as! NSViewController
+    
     override func windowDidLoad() {
         super.windowDidLoad()
         setupUI()
+        updateVC()
     }
     
     private func setupUI() {
@@ -37,6 +53,20 @@ class PreferencesWindowController: NSWindowController {
         super.flagsChanged(with: event)
         if let vc = self.contentViewController as? PreferencesViewController, vc.listening {
             vc.updateModiferFlags(event)
+        }
+    }
+    
+    @IBAction func switchSegment(_ sender: NSSegmentedControl) {
+        guard let segment = MenuSegment(rawValue: sender.indexOfSelectedItem) else {return}
+        menuSegment = segment
+    }
+    
+    private func updateVC() {
+        switch menuSegment {
+        case .general:
+            self.window?.contentViewController = preferencesVC
+        case .about:
+            self.window?.contentViewController = aboutVC
         }
     }
     

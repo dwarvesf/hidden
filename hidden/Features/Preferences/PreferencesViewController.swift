@@ -195,6 +195,10 @@ class PreferencesViewController: NSViewController {
     // Set the shortcut button to show the keys to press
     private func updateKeybindButton(_ globalKeybindPreference : GlobalKeybindPreferences) {
         btnShortcut.title = globalKeybindPreference.description
+
+        if globalKeybindPreference.description.isEmpty {
+            unregister(nil)
+        }
     }
     
     // If a keybind is set, allow users to clear it by enabling the clear button.
