@@ -991,6 +991,6 @@ between sections to configure Hidden Bar.</string>
         </scene>
     </scenes>
     <resources>
-        <image name="banner" width="524" height="136.5"/>
+        <image name="banner" width="512" height="136.5"/>
     </resources>
 </document>
