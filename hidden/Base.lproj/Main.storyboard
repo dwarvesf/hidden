@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="14868" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15702"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14868"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -685,10 +685,36 @@
         <scene sceneID="R2V-B0-nI4">
             <objects>
                 <windowController storyboardIdentifier="MainWindow" showSeguePresentationStyle="single" id="B8D-0N-5wS" customClass="PreferencesWindowController" customModule="Hidden_Bar" customModuleProvider="target" sceneMemberID="viewController">
-                    <window key="window" title="Hidden Bar" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA">
-                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
+                    <window key="window" title="Hidden Bar" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" titlebarAppearsTransparent="YES" titleVisibility="hidden" id="IQv-IB-iLA">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" fullSizeContentView="YES"/>
                         <rect key="contentRect" x="196" y="240" width="450" height="270"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
+                        <toolbar key="toolbar" implicitIdentifier="6C3CDFB4-60B8-471F-B2F9-9F4089613564" autosavesConfiguration="NO" allowsUserCustomization="NO" showsBaselineSeparator="NO" displayMode="iconAndLabel" sizeMode="regular" id="Euo-iX-SUi">
+                            <allowedToolbarItems>
+                                <toolbarItem implicitItemIdentifier="NSToolbarShowColorsItem" id="JdW-lP-TAv"/>
+                                <toolbarItem implicitItemIdentifier="NSToolbarShowFontsItem" id="oEk-6C-9tD"/>
+                                <toolbarItem implicitItemIdentifier="NSToolbarPrintItem" id="liv-vU-Rkf"/>
+                                <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="emG-vi-fCJ"/>
+                                <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="qzk-Ao-BuT"/>
+                                <toolbarItem implicitItemIdentifier="CF4B1D84-29EE-4328-A09B-E8E8CC186C33" label="title" paletteLabel="title" sizingBehavior="auto" id="HIF-Fa-4OU">
+                                    <nil key="toolTip"/>
+                                    <textField key="view" horizontalHuggingPriority="251" verticalHuggingPriority="750" id="4b2-FQ-d1F">
+                                        <rect key="frame" x="0.0" y="14" width="81" height="16"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <textFieldCell key="cell" lineBreakMode="clipping" title="Preferences" id="6MV-cI-RSo">
+                                            <font key="font" metaFont="systemBold"/>
+                                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                        </textFieldCell>
+                                    </textField>
+                                </toolbarItem>
+                            </allowedToolbarItems>
+                            <defaultToolbarItems>
+                                <toolbarItem reference="qzk-Ao-BuT"/>
+                                <toolbarItem reference="HIF-Fa-4OU"/>
+                                <toolbarItem reference="qzk-Ao-BuT"/>
+                            </defaultToolbarItems>
+                        </toolbar>
                         <connections>
                             <outlet property="delegate" destination="B8D-0N-5wS" id="98r-iN-zZc"/>
                         </connections>
@@ -710,20 +736,20 @@
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <box autoresizesSubviews="NO" boxType="custom" borderType="none" title="Box" translatesAutoresizingMaskIntoConstraints="NO" id="Jjd-1G-63n">
-                                <rect key="frame" x="0.0" y="191" width="600" height="290"/>
+                                <rect key="frame" x="0.0" y="203" width="600" height="278"/>
                                 <view key="contentView" id="TZd-5p-NFL">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="290"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="278"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ZE5-y9-i8b">
-                                            <rect key="frame" x="20" y="123" width="560" height="147"/>
+                                            <rect key="frame" x="20" y="91" width="560" height="147"/>
                                             <constraints>
                                                 <constraint firstAttribute="height" constant="147" id="aZi-hy-l77"/>
                                             </constraints>
                                             <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="banner" id="kFd-Cj-ig9"/>
                                         </imageView>
                                         <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="RGE-Xv-zm5">
-                                            <rect key="frame" x="153" y="44" width="295" height="57"/>
+                                            <rect key="frame" x="153" y="8" width="295" height="61"/>
                                             <textFieldCell key="cell" alignment="center" id="k7C-e5-6a0">
                                                 <font key="font" metaFont="system"/>
                                                 <string key="title">In your Mac's menu bar, hold ⌘ and drag icons 
@@ -735,9 +761,9 @@ between sections to configure Hidden Bar.</string>
                                     </subviews>
                                     <constraints>
                                         <constraint firstItem="RGE-Xv-zm5" firstAttribute="centerX" secondItem="TZd-5p-NFL" secondAttribute="centerX" id="0YR-Ph-sDI"/>
-                                        <constraint firstAttribute="bottom" secondItem="RGE-Xv-zm5" secondAttribute="bottom" constant="44" id="BvJ-gy-2qG"/>
+                                        <constraint firstAttribute="bottom" secondItem="RGE-Xv-zm5" secondAttribute="bottom" constant="8" id="BvJ-gy-2qG"/>
                                         <constraint firstItem="ZE5-y9-i8b" firstAttribute="leading" secondItem="TZd-5p-NFL" secondAttribute="leading" constant="20" id="IAn-7K-HFZ"/>
-                                        <constraint firstItem="ZE5-y9-i8b" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="20" id="JZE-pj-Lxm"/>
+                                        <constraint firstItem="ZE5-y9-i8b" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="40" id="JZE-pj-Lxm"/>
                                         <constraint firstItem="RGE-Xv-zm5" firstAttribute="top" secondItem="ZE5-y9-i8b" secondAttribute="bottom" constant="22" id="PTc-jH-uwR"/>
                                         <constraint firstAttribute="trailing" secondItem="ZE5-y9-i8b" secondAttribute="trailing" constant="20" id="Sw1-lS-hmE"/>
                                     </constraints>
@@ -745,7 +771,7 @@ between sections to configure Hidden Bar.</string>
                                 <color key="fillColor" name="quaternaryLabelColor" catalog="System" colorSpace="catalog"/>
                             </box>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aZz-jM-wCs">
-                                <rect key="frame" x="18" y="149" width="91" height="26"/>
+                                <rect key="frame" x="18" y="161" width="91" height="26"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Settings" id="1Is-Ut-a9h">
                                     <font key="font" metaFont="systemBold" size="22"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -941,7 +967,7 @@ between sections to configure Hidden Bar.</string>
                             <constraint firstItem="Jjd-1G-63n" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" id="Z5l-HH-7S3"/>
                             <constraint firstAttribute="bottom" secondItem="I1C-Eb-1or" secondAttribute="bottom" constant="20" id="eLg-ja-xQU"/>
                             <constraint firstItem="I1C-Eb-1or" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="16" id="k8p-4H-39t"/>
-                            <constraint firstItem="I1C-Eb-1or" firstAttribute="top" secondItem="aZz-jM-wCs" secondAttribute="bottom" constant="8" id="qzh-10-c0O"/>
+                            <constraint firstItem="I1C-Eb-1or" firstAttribute="top" secondItem="aZz-jM-wCs" secondAttribute="bottom" constant="20" id="qzh-10-c0O"/>
                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="aZz-jM-wCs" secondAttribute="trailing" constant="16" id="rDs-9g-QDn"/>
                             <constraint firstItem="Jjd-1G-63n" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" id="u0t-af-QUs"/>
                         </constraints>
@@ -961,7 +987,7 @@ between sections to configure Hidden Bar.</string>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="59" y="759.5"/>
+            <point key="canvasLocation" x="74" y="812"/>
         </scene>
     </scenes>
     <resources>

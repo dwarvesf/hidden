@@ -23,9 +23,7 @@ class PreferencesWindowController: NSWindowController {
     private func setupUI() {
         window?.title = "Preferences"
         window?.backgroundColor = NSColor(named: "WindowBgColor")
-        window?.styleMask = [.titled, .closable, .miniaturizable]
-        window?.titlebarAppearsTransparent = true
-        window?.titleVisibility = .visible
+        window?.standardWindowButton(.zoomButton)?.isHidden = true
     }
     
     override func keyDown(with event: NSEvent) {
