@@ -6,12 +6,44 @@
     },
     {
       "idiom" : "universal",
+      "scale" : "1x",
+      "locale" : "en"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "1x",
+      "locale" : "zh-Hans"
+    },
+    {
+      "idiom" : "universal",
       "filename" : "banner.png",
+      "scale" : "2x"
+    },
+    {
+      "locale" : "en",
+      "idiom" : "universal",
+      "filename" : "banner-1.png",
+      "scale" : "2x"
+    },
+    {
+      "locale" : "zh-Hans",
+      "idiom" : "universal",
+      "filename" : "banner-zhcn.png",
       "scale" : "2x"
     },
     {
       "idiom" : "universal",
       "scale" : "3x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x",
+      "locale" : "en"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x",
+      "locale" : "zh-Hans"
     }
   ],
   "info" : {
@@ -19,6 +51,7 @@
     "author" : "xcode"
   },
   "properties" : {
-    "template-rendering-intent" : "template"
+    "template-rendering-intent" : "template",
+    "localizable" : true
   }
 }
