@@ -3,7 +3,7 @@
 //  vanillaClone
 //
 //  Created by Thanh Nguyen on 1/29/19.
-//  Copyright © 2019 Thanh Nguyen. All rights reserved.
+//  Copyright © 2019 Dwarves Foundation. All rights reserved.
 //
 
 import AppKit
@@ -21,7 +21,6 @@ class Util {
             if numberOfSeconds == 0.0 {
                 let defaultValue = 10.0
                 UserDefaults.standard.set(defaultValue, forKey: Notification.Name.numberOfSecondForAutoHide)
-                UserDefaults.standard.synchronize()
                 return defaultValue
             }
             
@@ -29,7 +28,6 @@ class Util {
         }
         set {
             UserDefaults.standard.set(newValue, forKey: Notification.Name.numberOfSecondForAutoHide)
-            UserDefaults.standard.synchronize()
         }
     }
     
@@ -42,7 +40,7 @@ class Util {
         SMLoginItemSetEnabled(launcherAppId as CFString, isAutoStart)
         
         if isRunning {
-            DistributedNotificationCenter.default().post(name: .killLauncher,
+            DistributedNotificationCenter.default().post(name: Notification.Name("killLauncher"),
                                                          object: Bundle.main.bundleIdentifier!)
         }
     }
