@@ -17,7 +17,7 @@ class StatusBarController{
     
     //MARK: - BarItems
     private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
-    private let seprateStatusBar = NSStatusBar.system.statusItem(withLength:10)
+    private let seprateStatusBar = NSStatusBar.system.statusItem(withLength:20)
     private var appMenu:NSMenu? = nil
     
     
@@ -61,7 +61,7 @@ class StatusBarController{
     @objc func expandCollapseIfNeeded(_ sender: NSStatusBarButton?) {
         if(isValidPosition())
         {
-            if seprateStatusBar.length != 10.0 {
+            if seprateStatusBar.length != 20.0 {
                 expandMenubar()
             }else {
                 setupCollapseMenuBar()
@@ -72,7 +72,7 @@ class StatusBarController{
     private func expandMenubar()
     {
         Util.setIsCollapse(false)
-        seprateStatusBar.length = 10
+        seprateStatusBar.length = 20
         if let button = expandCollapseStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_collapse"))
         }
