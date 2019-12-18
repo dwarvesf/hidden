@@ -3,7 +3,7 @@
 //  vanillaClone
 //
 //  Created by Thanh Nguyen on 1/30/19.
-//  Copyright © 2019 Thanh Nguyen. All rights reserved.
+//  Copyright © 2019 Dwarves Foundation. All rights reserved.
 //
 
 import Cocoa
@@ -58,7 +58,7 @@ class StatusBarController{
         return Float((expandCollapseStatusBar.button?.getOrigin!.x)!) > Float((seprateStatusBar.button?.getOrigin!.x)!)
     }
     
-    @objc func expandCollapseIfNeeded(_ sender: NSStatusBarButton) {
+    @objc func expandCollapseIfNeeded(_ sender: NSStatusBarButton?) {
         if(isValidPosition())
         {
             if seprateStatusBar.length != 10.0 {

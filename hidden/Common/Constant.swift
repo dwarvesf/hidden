@@ -3,7 +3,7 @@
 //  vanillaClone
 //
 //  Created by Thanh Nguyen on 1/30/19.
-//  Copyright © 2019 Thanh Nguyen. All rights reserved.
+//  Copyright © 2019 Dwarves Foundation. All rights reserved.
 //
 
 import Foundation
@@ -17,6 +17,5 @@ let App_Name = "Hidden Bar"
 let IS_COLLAPSE = "isCollapse"
 
 extension Notification.Name {
-    static let killLauncher = Notification.Name("killLauncher")
     static let numberOfSecondForAutoHide = "NUMBER_OF_SECOND_FOR_AUTO_HIDE"
 }
