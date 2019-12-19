@@ -689,7 +689,7 @@
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" fullSizeContentView="YES"/>
                         <rect key="contentRect" x="196" y="240" width="450" height="270"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
-                        <toolbar key="toolbar" implicitIdentifier="47B2E2C2-82B2-4C57-9EBF-6C8AE0786C9B" autosavesConfiguration="NO" displayMode="labelOnly" sizeMode="regular" id="iQ4-lw-FIM">
+                        <toolbar key="toolbar" implicitIdentifier="47B2E2C2-82B2-4C57-9EBF-6C8AE0786C9B" autosavesConfiguration="NO" allowsUserCustomization="NO" displayMode="labelOnly" sizeMode="regular" id="iQ4-lw-FIM">
                             <allowedToolbarItems>
                                 <toolbarItem implicitItemIdentifier="NSToolbarShowColorsItem" id="F4y-kl-D2f"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarShowFontsItem" id="f59-7u-RLJ"/>
@@ -710,7 +710,7 @@
                                 <toolbarItem implicitItemIdentifier="F7DA19CF-BC58-47E1-8140-D04939EE4CA7" label="Custom View" paletteLabel="Custom View" sizingBehavior="auto" id="NIO-JJ-pjq">
                                     <nil key="toolTip"/>
                                     <segmentedControl key="view" verticalHuggingPriority="750" id="wAJ-zO-0Lg">
-                                        <rect key="frame" x="0.0" y="14" width="144" height="23"/>
+                                        <rect key="frame" x="0.0" y="14" width="145" height="23"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                         <segmentedCell key="cell" borderStyle="border" alignment="left" segmentDistribution="fillEqually" style="texturedSquare" trackingMode="selectOne" id="B2x-1Q-Aei">
                                             <font key="font" metaFont="system"/>
