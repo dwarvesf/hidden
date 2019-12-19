@@ -3,7 +3,7 @@
 //  vanillaClone
 //
 //  Created by Thanh Nguyen on 1/29/19.
-//  Copyright © 2019 Thanh Nguyen. All rights reserved.
+//  Copyright © 2019 Dwarves Foundation. All rights reserved.
 //
 
 import AppKit
@@ -12,6 +12,24 @@ import ServiceManagement
 
 
 class Util {
+    
+    static var numberOfSecondForAutoHide: Double {
+        get {
+            let numberOfSeconds = UserDefaults.standard.double(forKey: Notification.Name.numberOfSecondForAutoHide)
+            
+            //For very first time, set it equal 10
+            if numberOfSeconds == 0.0 {
+                let defaultValue = 10.0
+                UserDefaults.standard.set(defaultValue, forKey: Notification.Name.numberOfSecondForAutoHide)
+                return defaultValue
+            }
+            
+            return numberOfSeconds
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: Notification.Name.numberOfSecondForAutoHide)
+        }
+    }
     
     static func setUpAutoStart(isAutoStart:Bool)
     {
@@ -22,7 +40,7 @@ class Util {
         SMLoginItemSetEnabled(launcherAppId as CFString, isAutoStart)
         
         if isRunning {
-            DistributedNotificationCenter.default().post(name: .killLauncher,
+            DistributedNotificationCenter.default().post(name: Notification.Name("killLauncher"),
                                                          object: Bundle.main.bundleIdentifier!)
         }
     }
@@ -32,7 +50,7 @@ class Util {
         
     }
     
-    static func getIsCollapse()->Bool{
+    static func getIsCollapse() -> Bool{
         let savedValue = UserDefaults.standard.bool(forKey: IS_COLLAPSE)
         return savedValue
     }
@@ -42,7 +60,7 @@ class Util {
         
     }
     
-    static func getIsAutoStart()->Bool{
+    static func getIsAutoStart() -> Bool{
         let savedValue = UserDefaults.standard.bool(forKey: IS_AUTO_START)
         return savedValue
     }
@@ -63,8 +81,8 @@ class Util {
     }
     
     static func getIsAutoHide()->Bool{
-        let savedValue = UserDefaults.standard.bool(forKey: IS_AUTO_HIDE)
-        return savedValue
+        let isAutoHide = UserDefaults.standard.bool(forKey: IS_AUTO_HIDE)
+        return isAutoHide
     }
     
     static func getStateAutoHide() -> NSControl.StateValue{
@@ -80,7 +98,7 @@ class Util {
         
     }
     
-    static func getIsKeepInDock()->Bool{
+    static func getIsKeepInDock() -> Bool{
         UserDefaults.standard.register(defaults: [IS_KEEP_IN_DOCK : true])
         let savedValue = UserDefaults.standard.bool(forKey: IS_KEEP_IN_DOCK)
         return savedValue

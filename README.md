@@ -15,7 +15,13 @@
 ## Hidden Bar
 Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
-## Install
+<p align="center">
+	<img width="500" src="img/screen1.png">
+	<img width="500" src="img/screen2.png">
+</p>
+
+
+## 🚀 Install
 
 [![AppStore](/img/appstore.png)](https://itunes.apple.com/app/hidden-bar/id1452453066)
 
@@ -25,7 +31,7 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 - Open and drag the app to the Applications folder.
 - Launch Hidden and drag the icon in your menu bar (hold CMD) to the right so it is between some other icons.
 
-## Usage
+## 🕹 Usage
 
 * `⌘` + drag to move the Hidden icons around in the menu bar.
 * Click the Arrow icon to hide menu bar items.
@@ -33,6 +39,13 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 <p align="center">
 	<img src="img/tutorial.gif">
 </p>
+
+## ✨<a href="https://github.com/dwarvesf/hidden/graphs/contributors">Contributors</a>
+
+This project exists thanks to all the people who contribute. Thank you guys so much 👏
+[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/0)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/0)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/1)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/1)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/2)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/2)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/3)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/3)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/4)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/4)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/5)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/5)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/6)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/6)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/7)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/7)
+
+Please read [this](CONTRIBUTING.md) before you make a contribution.
 
 ## Requirements
 macOS version >= 10.13

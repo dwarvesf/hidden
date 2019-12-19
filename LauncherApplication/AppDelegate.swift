@@ -3,7 +3,7 @@
 //  LauncherApplication
 //
 //  Created by Thanh Nguyen on 1/28/19.
-//  Copyright © 2019 Thanh Nguyen. All rights reserved.
+//  Copyright © 2019 Dwarves Foundation. All rights reserved.
 //
 
 import Cocoa
@@ -24,14 +24,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if !isRunning {
             DistributedNotificationCenter.default().addObserver(self,
                                                                 selector: #selector(self.terminate),
-                                                                name: .killLauncher,
+                                                                name: Notification.Name("killLauncher"),
                                                                 object: mainAppIdentifier)
             
             let path = Bundle.main.bundlePath as NSString
             var components = path.pathComponents
             components.removeLast(3)
             components.append("MacOS")
-            components.append(App_Name) //main app name
+            let appName = "Hidden Bar"
+            components.append(appName) //main app name
             let newPath = NSString.path(withComponents: components)
             NSWorkspace.shared.launchApplication(newPath)
         }

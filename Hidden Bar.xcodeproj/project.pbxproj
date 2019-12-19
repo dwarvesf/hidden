@@ -3,17 +3,22 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3CD1E39A221E8F2100294DA5 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B8E220147FE0007559C /* Constant.swift */; };
-		3CD1E39C221E915D00294DA5 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B87220032ED0007559C /* Util.swift */; };
+		0842CDFB23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0842CDFA23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift */; };
+		08A5F85A23AA007A00981CA5 /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F85923AA007A00981CA5 /* PreferencesViewController.swift */; };
+		08A5F85C23AA013100981CA5 /* SelectedSecond.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F85B23AA013100981CA5 /* SelectedSecond.swift */; };
+		08A5F85F23AA01EE00981CA5 /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 08A5F85E23AA01EE00981CA5 /* HotKey */; };
+		08A5F86123AA085B00981CA5 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F86023AA085B00981CA5 /* Preferences.swift */; };
+		08A5F86423AA09F300981CA5 /* UserDefault+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F86323AA09F300981CA5 /* UserDefault+Extension.swift */; };
+		08C20FDE23AABDD10035D978 /* HyperlinkTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C20FDD23AABDD10035D978 /* HyperlinkTextField.swift */; };
+		08C20FE023AB44E60035D978 /* Bundle+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */; };
+		08C20FE223AB452C0035D978 /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C20FE123AB452C0035D978 /* AboutViewController.swift */; };
 		3CF14C82221FA49D0083D42B /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */; };
-		3CF14C83221FA7860083D42B /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */; };
 		9220587E2212A7C0008A8B03 /* LauncherApplication.app in Copy Files */ = {isa = PBXBuildFile; fileRef = 92C5054E21FEC03B0084719A /* LauncherApplication.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		929113F521F9D04100173149 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929113F421F9D04100173149 /* AppDelegate.swift */; };
-		929113F721F9D04100173149 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929113F621F9D04100173149 /* ViewController.swift */; };
 		929113F921F9D04200173149 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 929113F821F9D04200173149 /* Assets.xcassets */; };
 		929113FC21F9D04200173149 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 929113FA21F9D04200173149 /* Main.storyboard */; };
 		92C5055121FEC03C0084719A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C5055021FEC03C0084719A /* AppDelegate.swift */; };
@@ -45,11 +50,18 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0842CDFA23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalKeybindingPreferences.swift; sourceTree = "<group>"; };
+		08A5F85923AA007A00981CA5 /* PreferencesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
+		08A5F85B23AA013100981CA5 /* SelectedSecond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedSecond.swift; sourceTree = "<group>"; };
+		08A5F86023AA085B00981CA5 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
+		08A5F86323AA09F300981CA5 /* UserDefault+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefault+Extension.swift"; sourceTree = "<group>"; };
+		08C20FDD23AABDD10035D978 /* HyperlinkTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HyperlinkTextField.swift; sourceTree = "<group>"; };
+		08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extension.swift"; sourceTree = "<group>"; };
+		08C20FE123AB452C0035D978 /* AboutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutViewController.swift; sourceTree = "<group>"; };
 		3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindowController.swift; sourceTree = "<group>"; };
 		9220587D22127050008A8B03 /* Hidden.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Hidden.entitlements; path = Hidden/Hidden.entitlements; sourceTree = "<group>"; };
 		929113F121F9D04100173149 /* Hidden Bar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hidden Bar.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		929113F421F9D04100173149 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		929113F621F9D04100173149 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		929113F821F9D04200173149 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		929113FB21F9D04200173149 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		929113FD21F9D04200173149 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -67,6 +79,7 @@
 		92C97B8C220058740007559C /* NSView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+Extension.swift"; sourceTree = "<group>"; };
 		92C97B8E220147FE0007559C /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 		92C97B9022018C1F0007559C /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		B350A2CC23AAFB47003A04AC /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +87,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				08A5F85F23AA01EE00981CA5 /* HotKey in Frameworks */,
 				92C5058121FEC2590084719A /* Cocoa.framework in Frameworks */,
 				92C5057F21FEC24C0084719A /* ServiceManagement.framework in Frameworks */,
 			);
@@ -89,14 +103,57 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		9267D3202201A46F00EFFCE2 /* ViewControlllers */ = {
+		0842CDF923A9FDB900D14BD4 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				0842CDFA23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift */,
+				08A5F85B23AA013100981CA5 /* SelectedSecond.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		0842CDFC23A9FF6D00D14BD4 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				08C20FDC23AABC440035D978 /* About */,
+				0842CDFE23A9FF7C00D14BD4 /* Preferences */,
+				0842CDFD23A9FF7500D14BD4 /* StatusBar */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		0842CDFD23A9FF7500D14BD4 /* StatusBar */ = {
 			isa = PBXGroup;
 			children = (
 				92C97B9022018C1F0007559C /* StatusBarController.swift */,
-				929113F621F9D04100173149 /* ViewController.swift */,
+			);
+			path = StatusBar;
+			sourceTree = "<group>";
+		};
+		0842CDFE23A9FF7C00D14BD4 /* Preferences */ = {
+			isa = PBXGroup;
+			children = (
+				08A5F85923AA007A00981CA5 /* PreferencesViewController.swift */,
 				3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */,
 			);
-			path = ViewControlllers;
+			path = Preferences;
+			sourceTree = "<group>";
+		};
+		08A5F86223AA09D900981CA5 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				08A5F86323AA09F300981CA5 /* UserDefault+Extension.swift */,
+				08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		08C20FDC23AABC440035D978 /* About */ = {
+			isa = PBXGroup;
+			children = (
+				08C20FE123AB452C0035D978 /* AboutViewController.swift */,
+			);
+			path = About;
 			sourceTree = "<group>";
 		};
 		9267D3212201A49200EFFCE2 /* Common */ = {
@@ -104,6 +161,7 @@
 			children = (
 				92C97B87220032ED0007559C /* Util.swift */,
 				92C97B8E220147FE0007559C /* Constant.swift */,
+				08A5F86023AA085B00981CA5 /* Preferences.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -131,8 +189,10 @@
 		929113F321F9D04100173149 /* hidden */ = {
 			isa = PBXGroup;
 			children = (
+				08A5F86223AA09D900981CA5 /* Extensions */,
+				0842CDFC23A9FF6D00D14BD4 /* Features */,
+				0842CDF923A9FDB900D14BD4 /* Models */,
 				9267D3212201A49200EFFCE2 /* Common */,
-				9267D3202201A46F00EFFCE2 /* ViewControlllers */,
 				92C97B89220049B30007559C /* Views */,
 				929113F421F9D04100173149 /* AppDelegate.swift */,
 				929113F821F9D04200173149 /* Assets.xcassets */,
@@ -169,6 +229,7 @@
 			children = (
 				92C97B8A220049D10007559C /* NSBarButtonItem+Extension.swift */,
 				92C97B8C220058740007559C /* NSView+Extension.swift */,
+				08C20FDD23AABDD10035D978 /* HyperlinkTextField.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -190,6 +251,9 @@
 			dependencies = (
 			);
 			name = "Hidden Bar";
+			packageProductDependencies = (
+				08A5F85E23AA01EE00981CA5 /* HotKey */,
+			);
 			productName = vanillaClone;
 			productReference = 929113F121F9D04100173149 /* Hidden Bar.app */;
 			productType = "com.apple.product-type.application";
@@ -219,7 +283,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 1010;
 				LastUpgradeCheck = 1010;
-				ORGANIZATIONNAME = "Thanh Nguyen";
+				ORGANIZATIONNAME = "Dwarves Foundation";
 				TargetAttributes = {
 					929113F021F9D04100173149 = {
 						CreatedOnToolsVersion = 10.1;
@@ -241,8 +305,12 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 929113E821F9D04100173149;
+			packageReferences = (
+				08A5F85D23AA01EE00981CA5 /* XCRemoteSwiftPackageReference "HotKey" */,
+			);
 			productRefGroup = 929113F221F9D04100173149 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -280,14 +348,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				92C97B8F220147FE0007559C /* Constant.swift in Sources */,
+				08C20FE023AB44E60035D978 /* Bundle+Extension.swift in Sources */,
+				08A5F85C23AA013100981CA5 /* SelectedSecond.swift in Sources */,
+				08A5F86123AA085B00981CA5 /* Preferences.swift in Sources */,
 				92C97B9122018C1F0007559C /* StatusBarController.swift in Sources */,
 				92D2122221FEE06600C92FF4 /* LauncherApplication.app in Sources */,
-				929113F721F9D04100173149 /* ViewController.swift in Sources */,
 				929113F521F9D04100173149 /* AppDelegate.swift in Sources */,
+				08C20FDE23AABDD10035D978 /* HyperlinkTextField.swift in Sources */,
 				92C97B88220032ED0007559C /* Util.swift in Sources */,
+				08A5F85A23AA007A00981CA5 /* PreferencesViewController.swift in Sources */,
 				3CF14C82221FA49D0083D42B /* PreferencesWindowController.swift in Sources */,
 				92C97B8B220049D20007559C /* NSBarButtonItem+Extension.swift in Sources */,
 				92C97B8D220058740007559C /* NSView+Extension.swift in Sources */,
+				0842CDFB23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift in Sources */,
+				08C20FE223AB452C0035D978 /* AboutViewController.swift in Sources */,
+				08A5F86423AA09F300981CA5 /* UserDefault+Extension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -297,9 +372,6 @@
 			files = (
 				92C5055321FEC03C0084719A /* ViewController.swift in Sources */,
 				92C5055121FEC03C0084719A /* AppDelegate.swift in Sources */,
-				3CF14C83221FA7860083D42B /* PreferencesWindowController.swift in Sources */,
-				3CD1E39A221E8F2100294DA5 /* Constant.swift in Sources */,
-				3CD1E39C221E915D00294DA5 /* Util.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,6 +382,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				929113FB21F9D04200173149 /* Base */,
+				B350A2CC23AAFB47003A04AC /* zh-Hans */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -329,6 +402,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -390,6 +464,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -455,6 +530,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -477,6 +553,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -561,6 +638,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		08A5F85D23AA01EE00981CA5 /* XCRemoteSwiftPackageReference "HotKey" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/soffes/HotKey/";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		08A5F85E23AA01EE00981CA5 /* HotKey */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 08A5F85D23AA01EE00981CA5 /* XCRemoteSwiftPackageReference "HotKey" */;
+			productName = HotKey;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 929113E921F9D04100173149 /* Project object */;
 }
