@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="14868" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15702"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14868"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -1049,14 +1049,42 @@ between sections to configure Hidden Bar.</string>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="vlT-cT-cRT">
+                                            <rect key="frame" x="47" y="131" width="82" height="28"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="78" id="352-Kc-X6J"/>
+                                                <constraint firstAttribute="height" constant="28" id="9fR-gq-8Q7"/>
+                                            </constraints>
+                                            <textFieldCell key="cell" lineBreakMode="clipping" title="Hidden" id="cXt-8R-PHo">
+                                                <font key="font" metaFont="systemMedium" size="24"/>
+                                                <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="U3K-oK-4ET">
+                                            <rect key="frame" x="239" y="131" width="78" height="28"/>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="28" id="KIQ-nq-0e8"/>
+                                                <constraint firstAttribute="width" constant="74" id="Lfx-BC-lL3"/>
+                                            </constraints>
+                                            <textFieldCell key="cell" lineBreakMode="clipping" title="Shown" id="iyS-g5-5mk">
+                                                <font key="font" metaFont="systemMedium" size="24"/>
+                                                <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
                                     </subviews>
                                     <constraints>
                                         <constraint firstItem="RGE-Xv-zm5" firstAttribute="centerX" secondItem="TZd-5p-NFL" secondAttribute="centerX" id="0YR-Ph-sDI"/>
+                                        <constraint firstItem="vlT-cT-cRT" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="119" id="BdC-yO-RZC"/>
                                         <constraint firstAttribute="bottom" secondItem="RGE-Xv-zm5" secondAttribute="bottom" constant="8" id="BvJ-gy-2qG"/>
                                         <constraint firstItem="ZE5-y9-i8b" firstAttribute="leading" secondItem="TZd-5p-NFL" secondAttribute="leading" constant="20" id="IAn-7K-HFZ"/>
                                         <constraint firstItem="ZE5-y9-i8b" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="40" id="JZE-pj-Lxm"/>
+                                        <constraint firstItem="vlT-cT-cRT" firstAttribute="leading" secondItem="TZd-5p-NFL" secondAttribute="leading" constant="49" id="Owf-CP-dZy"/>
                                         <constraint firstItem="RGE-Xv-zm5" firstAttribute="top" secondItem="ZE5-y9-i8b" secondAttribute="bottom" constant="22" id="PTc-jH-uwR"/>
                                         <constraint firstAttribute="trailing" secondItem="ZE5-y9-i8b" secondAttribute="trailing" constant="20" id="Sw1-lS-hmE"/>
+                                        <constraint firstAttribute="trailing" secondItem="U3K-oK-4ET" secondAttribute="trailing" constant="285" id="VJe-5e-or5"/>
+                                        <constraint firstItem="U3K-oK-4ET" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="119" id="wkN-ou-lsT"/>
                                     </constraints>
                                 </view>
                                 <color key="fillColor" name="quaternaryLabelColor" catalog="System" colorSpace="catalog"/>
