@@ -44,6 +44,11 @@ class PreferencesViewController: NSViewController {
         loadHotkey()
     }
     
+    static func initWithStoryboard() -> PreferencesViewController {
+        let vc = NSStoryboard(name:"Main", bundle: nil).instantiateController(withIdentifier: "prefVC") as! PreferencesViewController
+        return vc
+    }
+    
     //MARK: - Actions
     @IBAction func loginCheckChanged(_ sender: NSButton) {
         switch sender.state {
