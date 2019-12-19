@@ -16,8 +16,8 @@
 Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
 <p align="center">
-	<img width="500" src="img/screen1.png">
-	<img width="500" src="img/screen2.png">
+	<img width="400" src="img/screen1.png">
+	<img width="400" src="img/screen2.png">
 </p>
 
 
