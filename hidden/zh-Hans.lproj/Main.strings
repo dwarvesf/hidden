@@ -20,6 +20,9 @@
 /* Class = "NSMenuItem"; title = "Transformations"; ObjectID = "2oI-Rn-ZJC"; */
 "2oI-Rn-ZJC.title" = "Transformations";
 
+/* Class = "NSTextFieldCell"; title = "Hidden Bar"; ObjectID = "2xp-Ht-xa6"; */
+"2xp-Ht-xa6.title" = "Hidden Bar";
+
 /* Class = "NSButtonCell"; title = "Keep last app state"; ObjectID = "31D-vN-XSA"; */
 "31D-vN-XSA.title" = "保留上一次使用应用时的状态";
 
@@ -53,9 +56,6 @@
 /* Class = "NSMenuItem"; title = "About Hidden Bar"; ObjectID = "5kV-Vb-QxS"; */
 "5kV-Vb-QxS.title" = "About Hidden Bar";
 
-/* Class = "NSTextFieldCell"; title = "Preferences"; ObjectID = "6MV-cI-RSo"; */
-"6MV-cI-RSo.title" = "偏好设置";
-
 /* Class = "NSMenuItem"; title = "Redo"; ObjectID = "6dh-zS-Vam"; */
 "6dh-zS-Vam.title" = "Redo";
 
@@ -73,6 +73,12 @@
 
 /* Class = "NSMenu"; title = "Main Menu"; ObjectID = "AYu-sK-qS6"; */
 "AYu-sK-qS6.title" = "Main Menu";
+
+/* Class = "NSSegmentedCell"; B2x-1Q-Aei.ibShadowedLabels[0] = "General"; ObjectID = "B2x-1Q-Aei"; */
+"B2x-1Q-Aei.ibShadowedLabels[0]" = "通用设置";
+
+/* Class = "NSSegmentedCell"; B2x-1Q-Aei.ibShadowedLabels[1] = "About"; ObjectID = "B2x-1Q-Aei"; */
+"B2x-1Q-Aei.ibShadowedLabels[1]" = "关于我们";
 
 /* Class = "NSMenuItem"; title = "Preferences…"; ObjectID = "BOF-NM-1cW"; */
 "BOF-NM-1cW.title" = "Preferences…";
@@ -128,12 +134,6 @@
 /* Class = "NSMenuItem"; title = "Show Spelling and Grammar"; ObjectID = "HFo-cy-zxI"; */
 "HFo-cy-zxI.title" = "Show Spelling and Grammar";
 
-/* Class = "NSToolbarItem"; label = "title"; ObjectID = "HIF-Fa-4OU"; */
-"HIF-Fa-4OU.label" = "title";
-
-/* Class = "NSToolbarItem"; paletteLabel = "title"; ObjectID = "HIF-Fa-4OU"; */
-"HIF-Fa-4OU.paletteLabel" = "title";
-
 /* Class = "NSTextFieldCell"; title = "Global Shortcut"; ObjectID = "HJP-Lf-rxm"; */
 "HJP-Lf-rxm.title" = "全局快捷键";
 
@@ -176,8 +176,20 @@
 /* Class = "NSMenuItem"; title = "\tLeft to Right"; ObjectID = "Lbh-J2-qVU"; */
 "Lbh-J2-qVU.title" = "\tLeft to Right";
 
+/* Class = "NSToolbarItem"; label = "Custom View"; ObjectID = "ML6-W4-U8X"; */
+"ML6-W4-U8X.label" = "Custom View";
+
+/* Class = "NSToolbarItem"; paletteLabel = "Custom View"; ObjectID = "ML6-W4-U8X"; */
+"ML6-W4-U8X.paletteLabel" = "Custom View";
+
 /* Class = "NSMenuItem"; title = "Copy Ruler"; ObjectID = "MkV-Pr-PK5"; */
 "MkV-Pr-PK5.title" = "Copy Ruler";
+
+/* Class = "NSToolbarItem"; label = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
+"NIO-JJ-pjq.label" = "Custom View";
+
+/* Class = "NSToolbarItem"; paletteLabel = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
+"NIO-JJ-pjq.paletteLabel" = "Custom View";
 
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
 "NMo-om-nkz.title" = "Services";
@@ -221,6 +233,9 @@
 /* Class = "NSMenuItem"; title = "Jump to Selection"; ObjectID = "S0p-oC-mLd"; */
 "S0p-oC-mLd.title" = "Jump to Selection";
 
+/* Class = "NSTextFieldCell"; title = "Follow us on Twitter"; ObjectID = "Tba-C7-Zr8"; */
+"Tba-C7-Zr8.title" = "在推特上关注我们";
+
 /* Class = "NSMenu"; title = "Window"; ObjectID = "Td7-aD-5lo"; */
 "Td7-aD-5lo.title" = "Window";
 
@@ -250,6 +265,12 @@
 
 /* Class = "NSMenuItem"; title = "Paste and Match Style"; ObjectID = "WeT-3V-zwk"; */
 "WeT-3V-zwk.title" = "Paste and Match Style";
+
+/* Class = "NSTextFieldCell"; title = "Menu bar cleaner"; ObjectID = "X4W-sr-Z32"; */
+"X4W-sr-Z32.title" = "菜单栏管理器";
+
+/* Class = "NSTextFieldCell"; title = "Know more about us"; ObjectID = "Xb1-xM-sYy"; */
+"Xb1-xM-sYy.title" = "了解更多";
 
 /* Class = "NSMenuItem"; title = "Find…"; ObjectID = "Xz5-n4-O0W"; */
 "Xz5-n4-O0W.title" = "Find…";
@@ -283,6 +304,9 @@
 
 /* Class = "NSMenuItem"; title = "Use Default"; ObjectID = "agt-UL-0e3"; */
 "agt-UL-0e3.title" = "Use Default";
+
+/* Class = "NSBox"; title = "Box"; ObjectID = "bFi-aV-ejJ"; */
+"bFi-aV-ejJ.title" = "Box";
 
 /* Class = "NSMenuItem"; title = "Show Colors"; ObjectID = "bgn-CT-cEk"; */
 "bgn-CT-cEk.title" = "Show Colors";
@@ -401,6 +425,9 @@
 /* Class = "NSMenuItem"; title = "Smart Dashes"; ObjectID = "rgM-f4-ycn"; */
 "rgM-f4-ycn.title" = "Smart Dashes";
 
+/* Class = "NSTextFieldCell"; title = "Email us"; ObjectID = "sRr-sO-uV0"; */
+"sRr-sO-uV0.title" = "通过电子邮件联系我们";
+
 /* Class = "NSMenuItem"; title = "Show Toolbar"; ObjectID = "snW-S8-Cw5"; */
 "snW-S8-Cw5.title" = "Show Toolbar";
 
@@ -454,3 +481,12 @@
 
 /* Class = "NSMenuItem"; title = "Show Substitutions"; ObjectID = "z6F-FW-3nz"; */
 "z6F-FW-3nz.title" = "Show Substitutions";
+
+/* Class = "NSTextFieldCell"; title = "General"; ObjectID = "zAf-vj-OOZ"; */
+"zAf-vj-OOZ.title" = "通用设置";
+
+/* Class = "NSTextFieldCell"; title = "This app is fully open source"; ObjectID = "6si-3e-Hzw"; */
+"6si-3e-Hzw.title" = "此应用完全开源";
+
+/* Class = "NSTextFieldCell"; title = "Version 1.3"; ObjectID = "J6Q-eY-HJw"; */
+"J6Q-eY-HJw.title" = "版本 1.3";
