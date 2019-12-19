@@ -26,9 +26,9 @@ class PreferencesWindowController: NSWindowController {
         }
     }
     
-    private let preferencesVC = NSStoryboard(name: "Main", bundle: nil).instantiateController(withIdentifier: "prefVC") as! PreferencesViewController
+    private let preferencesVC = PreferencesViewController.initWithStoryboard()
     
-    private let aboutVC = NSStoryboard(name: "Main", bundle: nil).instantiateController(withIdentifier: "aboutVC") as! NSViewController
+    private let aboutVC = AboutViewController.initWithStoryboard()
     
     override func windowDidLoad() {
         super.windowDidLoad()
