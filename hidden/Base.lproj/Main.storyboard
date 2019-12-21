@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="14868" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14868"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -801,7 +800,7 @@
                                                         <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="J6Q-eY-HJw">
                                                             <rect key="frame" x="-2" y="0.0" width="53" height="17"/>
                                                             <textFieldCell key="cell" lineBreakMode="clipping" title="Version" id="4Au-5A-dYq">
-                                                                <font key="font" metaFont="system" size="14"/>
+                                                                <font key="font" metaFont="menu" size="14"/>
                                                                 <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
@@ -1130,7 +1129,7 @@ between sections to configure Hidden Bar.</string>
                                                     <font key="font" metaFont="system"/>
                                                 </buttonCell>
                                                 <connections>
-                                                    <action selector="showPreferencesChanged:" target="XfG-lQ-9wD" id="UYB-yR-xTM"/>
+                                                    <action selector="showPreferencesCheckChanged:" target="XfG-lQ-9wD" id="UYB-yR-xTM"/>
                                                 </connections>
                                             </button>
                                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="3rx-g0-xcM">

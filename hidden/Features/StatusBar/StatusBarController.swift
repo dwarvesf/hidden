@@ -127,7 +127,9 @@ class StatusBarController{
     }
     
     private func exitEditPermHide() {
-        permHideStatusBar?.length = 10000
+        if Util.getEnablePermHide() {
+            permHideStatusBar?.length = 10000
+        }
     }
     
     private func setupMenuUI() -> NSMenu {
@@ -147,6 +149,14 @@ class StatusBarController{
         editPermHide()
         window.windowClosedHandler {
             self.exitEditPermHide()
+        }
+    }
+    
+    func setPermHideEnabled(_ permHideEnabled: Bool) {
+        if permHideEnabled {
+            permHideStatusBar?.length = 20
+        } else {
+            permHideStatusBar?.length = 0
         }
     }
 }

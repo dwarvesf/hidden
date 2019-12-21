@@ -186,4 +186,10 @@ class Util {
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
+    
+    static func permHideChanged() {
+        let delegate = NSApplication.shared.delegate as! AppDelegate
+        let statusBarController = delegate.statusBarController
+        statusBarController.setPermHideEnabled(getEnablePermHide())
+    }
 }
