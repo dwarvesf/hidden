@@ -38,6 +38,9 @@ class StatusBarController{
             button.action = #selector(expandCollapseIfNeeded(_:))
         }
         
+        setUpPermHideStatusBarIfNeeded()
+        
+        self.exitEditPermHide()
         
         if Util.getShowPreferences() {
             openPreferenceViewControllerIfNeeded()
@@ -45,10 +48,6 @@ class StatusBarController{
         
         collapseBarWhenReopenAppIfNeeded()
         autoCollapseIfNeeded()
-        
-        setUpPermHideStatusBarIfNeeded()
-        
-        exitEditPermHide()
     }
     
     private func setUpPermHideStatusBarIfNeeded() {
