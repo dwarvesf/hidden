@@ -33,6 +33,7 @@
 		92C97B8F220147FE0007559C /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B8E220147FE0007559C /* Constant.swift */; };
 		92C97B9122018C1F0007559C /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B9022018C1F0007559C /* StatusBarController.swift */; };
 		92D2122221FEE06600C92FF4 /* LauncherApplication.app in Sources */ = {isa = PBXBuildFile; fileRef = 92C5054E21FEC03B0084719A /* LauncherApplication.app */; };
+		B3CF690723AE0C8D00643963 /* PreferencesWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3CF690623AE0C8D00643963 /* PreferencesWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -80,6 +81,7 @@
 		92C97B8E220147FE0007559C /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 		92C97B9022018C1F0007559C /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		B350A2CC23AAFB47003A04AC /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
+		B3CF690623AE0C8D00643963 /* PreferencesWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +137,7 @@
 			children = (
 				08A5F85923AA007A00981CA5 /* PreferencesViewController.swift */,
 				3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */,
+				B3CF690623AE0C8D00643963 /* PreferencesWindow.swift */,
 			);
 			path = Preferences;
 			sourceTree = "<group>";
@@ -358,6 +361,7 @@
 				92C97B88220032ED0007559C /* Util.swift in Sources */,
 				08A5F85A23AA007A00981CA5 /* PreferencesViewController.swift in Sources */,
 				3CF14C82221FA49D0083D42B /* PreferencesWindowController.swift in Sources */,
+				B3CF690723AE0C8D00643963 /* PreferencesWindow.swift in Sources */,
 				92C97B8B220049D20007559C /* NSBarButtonItem+Extension.swift in Sources */,
 				92C97B8D220058740007559C /* NSView+Extension.swift in Sources */,
 				0842CDFB23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift in Sources */,
@@ -523,7 +527,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = W777S7V8TN;
+				DEVELOPMENT_TEAM = VGURA84Q2L;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -546,7 +550,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = W777S7V8TN;
+				DEVELOPMENT_TEAM = VGURA84Q2L;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -569,7 +573,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = W777S7V8TN;
+				DEVELOPMENT_TEAM = VGURA84Q2L;
 				INFOPLIST_FILE = LauncherApplication/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -592,7 +596,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = W777S7V8TN;
+				DEVELOPMENT_TEAM = VGURA84Q2L;
 				INFOPLIST_FILE = LauncherApplication/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

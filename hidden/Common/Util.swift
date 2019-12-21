@@ -152,9 +152,10 @@ class Util {
         return names.count >= 2
     }
     
-    static func showPrefWindow() {
+    static func showPrefWindow() -> NSWindow {
         let prefWindow = PreferencesWindowController.shared.window!
         Util.bringToFront(window: prefWindow)
+        return prefWindow
     }
     
     static func toggleDockIcon(_ state: Bool) -> Bool {
