@@ -236,6 +236,9 @@
 /* Class = "NSMenuItem"; title = "Jump to Selection"; ObjectID = "S0p-oC-mLd"; */
 "S0p-oC-mLd.title" = "Jump to Selection";
 
+/* Class = "NSButtonCell"; title = "Enable permanent hiding"; ObjectID = "T2I-Fd-Ciu"; */
+"T2I-Fd-Ciu.title" = "启用图标保持隐藏功能";
+
 /* Class = "NSTextFieldCell"; title = "Follow us on Twitter"; ObjectID = "Tba-C7-Zr8"; */
 "Tba-C7-Zr8.title" = "在推特上关注我们";
 
@@ -415,6 +418,9 @@
 
 /* Class = "NSMenu"; title = "Open Recent"; ObjectID = "oas-Oc-fiZ"; */
 "oas-Oc-fiZ.title" = "Open Recent";
+
+/* Class = "NSTextFieldCell"; title = "TODO: Animations showing how to use permanent hiding"; ObjectID = "obo-wA-r2W"; */
+"obo-wA-r2W.title" = "TODO: Animations showing how to use permanent hiding";
 
 /* Class = "NSMenuItem"; title = "Loosen"; ObjectID = "ogc-rX-tC1"; */
 "ogc-rX-tC1.title" = "Loosen";
