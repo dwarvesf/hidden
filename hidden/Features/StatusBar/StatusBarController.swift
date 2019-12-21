@@ -18,7 +18,7 @@ class StatusBarController{
     //MARK: - BarItems
     private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
     private let seprateStatusBar = NSStatusBar.system.statusItem(withLength:20)
-    private let permHideStatusBar = NSStatusBar.system.statusItem(withLength:20)
+    private var permHideStatusBar : NSStatusItem? = nil
     private var appMenu:NSMenu? = nil
     
     
@@ -46,8 +46,18 @@ class StatusBarController{
         collapseBarWhenReopenAppIfNeeded()
         autoCollapseIfNeeded()
         
-        permHideStatusBar.image = NSImage(named: NSImage.Name("ic_dot"))
+        setUpPermHideStatusBarIfNeeded()
+        
         exitEditPermHide()
+    }
+    
+    private func setUpPermHideStatusBarIfNeeded() {
+        if Util.getEnablePermHide() {
+            permHideStatusBar = NSStatusBar.system.statusItem(withLength: 20)
+            if let button = permHideStatusBar?.button {
+                button.image = NSImage(named: NSImage.Name("ic_dot"))
+            }
+        }
     }
     
     private func collapseBarWhenReopenAppIfNeeded() {
@@ -114,11 +124,11 @@ class StatusBarController{
     }
     
     private func editPermHide() {
-        permHideStatusBar.length = 20
+        permHideStatusBar?.length = 20
     }
     
     private func exitEditPermHide() {
-        permHideStatusBar.length = 10000
+        permHideStatusBar?.length = 10000
     }
     
     private func setupMenuUI() -> NSMenu {

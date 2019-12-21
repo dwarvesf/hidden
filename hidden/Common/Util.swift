@@ -140,6 +140,19 @@ class Util {
     }
     
     
+    static func getEnablePermHide() -> Bool {
+        return UserDefaults.standard.bool(forKey: IS_PERM_HIDE_ENABLED)
+    }
+    
+    static func setEnablePermHide(_ isPermHideEnabled: Bool) {
+        UserDefaults.standard.set(isPermHideEnabled, forKey: IS_PERM_HIDE_ENABLED)
+    }
+    
+    static func getStateEnablePermHide() -> NSControl.StateValue {
+        return getEnablePermHide() ? .on : .off
+    }
+    
+    
     static func isMenuOpened() -> Bool {
         let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
         let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))

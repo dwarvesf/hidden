@@ -15,6 +15,7 @@ let IS_SHOW_PREFERENCES = "isShowPreferences"
 let IS_KEEP_LAST_STATE = "isKeepLastState"
 let App_Name = "Hidden Bar"
 let IS_COLLAPSE = "isCollapse"
+let IS_PERM_HIDE_ENABLED = "isPermHideEnabled"
 
 extension Notification.Name {
     static let numberOfSecondForAutoHide = "NUMBER_OF_SECOND_FOR_AUTO_HIDE"
