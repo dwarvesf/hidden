@@ -75,7 +75,7 @@ class PreferencesViewController: NSViewController {
         case .off:
             Util.setIsAutoHide(false)
         default:
-            print("")
+            break
         }
     }
     
@@ -87,14 +87,14 @@ class PreferencesViewController: NSViewController {
         case .off:
             Util.setIsKeepInDock(false)
             let _ = Util.toggleDockIcon(false)
-            Util.showPrefWindow()
+            let _ = Util.showPrefWindow()
         default:
-            print("")
+            break
         }
     }
     
     
-    @IBAction func showPreferencesChanged(_ sender: NSButton) {
+    @IBAction func showPreferencesCheckChanged(_ sender: NSButton) {
         switch sender.state {
         case .on:
             Util.setShowPreferences(true)
@@ -120,8 +120,10 @@ class PreferencesViewController: NSViewController {
         switch sender.state {
         case .on:
             Util.setEnablePermHide(true)
+            Util.permHideChanged()
         case .off:
             Util.setEnablePermHide(false)
+            Util.permHideChanged()
         default:
             break
         }
@@ -152,6 +154,8 @@ class PreferencesViewController: NSViewController {
         // Remove globalkey from userdefault
         Preferences.GlobalKey = nil
     }
+    
+    // MARK: - Private methods
     
     public func updateGlobalShortcut(_ event: NSEvent) {
         self.listening = false
