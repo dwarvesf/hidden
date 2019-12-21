@@ -21,6 +21,7 @@ class PreferencesViewController: NSViewController {
     @IBOutlet weak var checkBoxKeepInDock: NSButton!
     @IBOutlet weak var checkBoxLogin: NSButton!
     @IBOutlet weak var checkBoxShowPreferences: NSButton!
+    @IBOutlet weak var checkBoxEnablePermHide: NSButton!
     
     @IBOutlet weak var timePopup: NSPopUpButton!
     
@@ -114,6 +115,18 @@ class PreferencesViewController: NSViewController {
         }
     }
     
+    @IBAction func enablePermHideChange(_ sender: NSButton) {
+        switch sender.state {
+        case .on:
+            Util.setEnablePermHide(true)
+        case .off:
+            Util.setEnablePermHide(false)
+        default:
+            break
+        }
+    }
+    
+    
     @IBAction func timePopupDidSelected(_ sender: NSPopUpButton) {
         let selectedIndex = sender.indexOfSelectedItem
         if let selectedInSecond = SelectedSecond(rawValue: selectedIndex)?.toSeconds() {
@@ -187,6 +200,7 @@ class PreferencesViewController: NSViewController {
         checkBoxKeepInDock.state = Util.getStateKeepInDock()
         checkBoxShowPreferences.state = Util.getStateShowPreferences()
         checkBoxKeepLastState.state = Util.getStateKeepLastState()
+        checkBoxEnablePermHide.state = Util.getStateEnablePermHide()
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Util.numberOfSecondForAutoHide))
     }
     
