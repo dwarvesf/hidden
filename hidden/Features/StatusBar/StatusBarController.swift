@@ -127,7 +127,14 @@ class StatusBarController{
     }
     
     private func exitEditPermHide() {
-        if Util.getEnablePermHide() {
+        
+        var permHideIsOnLeftOfSeperator : Bool {
+            let dotX = Float((permHideStatusBar?.button?.getOrigin?.x)!)
+            let lineX = Float((seprateStatusBar.button?.getOrigin?.x)!)
+            return dotX < lineX
+        }
+        
+        if Util.getEnablePermHide() && permHideIsOnLeftOfSeperator {
             permHideStatusBar?.length = 10000
         }
     }
