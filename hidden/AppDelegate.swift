@@ -28,7 +28,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        Util.setUpAutoStart(isAutoStart: Util.getIsAutoStart())
+        Util.setUpAutoStart(isAutoStart: Util.isAutoStart)
         statusBarController.initView()
         setupHotKey()
     }
@@ -39,7 +39,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
     
     func applicationWillBecomeActive(_ notification: Notification) {
-        let _ = Util.toggleDockIcon(Util.getIsKeepInDock())
+        let _ = Util.toggleDockIcon(Util.isKeepInDock)
     }
     
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
