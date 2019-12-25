@@ -152,8 +152,8 @@ class StatusBarController{
     @objc func openPreferenceViewControllerIfNeeded() {
         let window = Util.showPrefWindow() as! PreferencesWindow
         editPermHide()
-        window.windowClosedHandler {
-            self.exitEditPermHide()
+        window.windowClosedHandler { [weak self] in
+            self?.exitEditPermHide()
         }
     }
     
