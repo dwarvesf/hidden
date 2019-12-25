@@ -80,7 +80,7 @@
 		92C97B8C220058740007559C /* NSView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+Extension.swift"; sourceTree = "<group>"; };
 		92C97B8E220147FE0007559C /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 		92C97B9022018C1F0007559C /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
-		B350A2CC23AAFB47003A04AC /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
+		B38D4BB323B34E11000826EB /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 		B3CF690623AE0C8D00643963 /* PreferencesWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -386,7 +386,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				929113FB21F9D04200173149 /* Base */,
-				B350A2CC23AAFB47003A04AC /* zh-Hans */,
+				B38D4BB323B34E11000826EB /* zh-Hans */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
