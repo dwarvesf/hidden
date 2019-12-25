@@ -53,9 +53,7 @@ class StatusBarController{
     private func setUpPermHideStatusBarIfNeeded() {
         if Util.isPermHideEnabled {
             permHideStatusBar = NSStatusBar.system.statusItem(withLength: 20)
-            if let button = permHideStatusBar?.button {
-                button.image = NSImage(named: NSImage.Name("ic_dot"))
-            }
+            permHideStatusBar?.button?.image = NSImage(named: NSImage.Name("ic_dot"))
         }
     }
     
