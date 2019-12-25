@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="14868" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
+        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14868"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -1353,30 +1354,78 @@ between sections to configure Hidden Bar.</string>
             <objects>
                 <viewController id="fCu-5c-KZc" sceneMemberID="viewController">
                     <view key="view" id="zUG-Zl-wyV">
-                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <rect key="frame" x="0.0" y="0.0" width="400" height="250"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ktz-Ni-9pF">
-                                <rect key="frame" x="32" y="142" width="387" height="17"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="TODO: Animations showing how to use permanent hiding" id="obo-wA-r2W">
-                                    <font key="font" metaFont="systemSemibold" size="14"/>
+                            <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="fng-YQ-09U">
+                                <rect key="frame" x="0.0" y="50" width="400" height="200"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="400" id="1v3-pM-oXK"/>
+                                    <constraint firstAttribute="height" constant="200" id="aAs-vr-cTC"/>
+                                </constraints>
+                                <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="PermHideGuide" id="OyA-nd-hDj"/>
+                            </imageView>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="fvL-Cu-TTf">
+                                <rect key="frame" x="120" y="129" width="52" height="16"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" title="Hidden" id="KFA-hQ-Fs5">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="lNZ-jM-LHA">
+                                <rect key="frame" x="193" y="129" width="49" height="16"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" title="Shown" id="bN7-PB-oo2">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yM0-Et-ibm">
+                                <rect key="frame" x="18" y="121" width="84" height="32"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" id="4P4-kw-pgX">
+                                    <font key="font" metaFont="system"/>
+                                    <string key="title">Permanently
+Hidden</string>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="woX-hs-D13">
+                                <rect key="frame" x="73" y="20" width="254" height="32"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" id="hMl-G6-ZQh">
+                                    <font key="font" metaFont="system"/>
+                                    <string key="title">Permenant Hidden icons will not show up
+even if you click on the arrow button</string>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="Ktz-Ni-9pF" firstAttribute="centerY" secondItem="zUG-Zl-wyV" secondAttribute="centerY" id="DaI-Jg-nlX"/>
-                            <constraint firstItem="Ktz-Ni-9pF" firstAttribute="centerX" secondItem="zUG-Zl-wyV" secondAttribute="centerX" id="MGl-Z9-9Rz"/>
+                            <constraint firstItem="woX-hs-D13" firstAttribute="centerX" secondItem="zUG-Zl-wyV" secondAttribute="centerX" id="0UD-Kc-cyh"/>
+                            <constraint firstItem="fvL-Cu-TTf" firstAttribute="top" secondItem="zUG-Zl-wyV" secondAttribute="top" constant="105" id="Mak-mF-xNP"/>
+                            <constraint firstItem="fvL-Cu-TTf" firstAttribute="centerY" secondItem="yM0-Et-ibm" secondAttribute="centerY" id="U1j-wS-Rru"/>
+                            <constraint firstItem="yM0-Et-ibm" firstAttribute="leading" secondItem="zUG-Zl-wyV" secondAttribute="leading" constant="20" id="UEH-me-nGp"/>
+                            <constraint firstAttribute="bottom" secondItem="woX-hs-D13" secondAttribute="bottom" constant="20" id="WNg-Il-uia"/>
+                            <constraint firstItem="lNZ-jM-LHA" firstAttribute="leading" secondItem="zUG-Zl-wyV" secondAttribute="leading" constant="195" id="awt-Lp-40V"/>
+                            <constraint firstAttribute="bottom" secondItem="fng-YQ-09U" secondAttribute="bottom" constant="50" id="fqb-Lv-KRI"/>
+                            <constraint firstItem="fng-YQ-09U" firstAttribute="top" secondItem="zUG-Zl-wyV" secondAttribute="top" id="g0B-fa-1Bb"/>
+                            <constraint firstItem="fng-YQ-09U" firstAttribute="leading" secondItem="zUG-Zl-wyV" secondAttribute="leading" id="hPq-P0-ZOn"/>
+                            <constraint firstItem="lNZ-jM-LHA" firstAttribute="centerY" secondItem="yM0-Et-ibm" secondAttribute="centerY" id="k9j-cx-Zks"/>
+                            <constraint firstItem="fvL-Cu-TTf" firstAttribute="leading" secondItem="zUG-Zl-wyV" secondAttribute="leading" constant="122" id="oeW-Dx-qEN"/>
+                            <constraint firstAttribute="trailing" secondItem="fng-YQ-09U" secondAttribute="trailing" id="xdG-ae-aqj"/>
+                            <constraint firstItem="lNZ-jM-LHA" firstAttribute="top" secondItem="zUG-Zl-wyV" secondAttribute="top" constant="105" id="xt0-hq-jrC"/>
                         </constraints>
                     </view>
                 </viewController>
                 <customObject id="IEl-D4-o1Z" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-295" y="1408"/>
+            <point key="canvasLocation" x="-295" y="1499"/>
         </scene>
     </scenes>
     <resources>
+        <image name="PermHideGuide" width="768" height="512"/>
         <image name="banner" width="512" height="136.5"/>
         <image name="ic_logo" width="1024" height="1024"/>
         <image name="ico_compass" width="372" height="384"/>

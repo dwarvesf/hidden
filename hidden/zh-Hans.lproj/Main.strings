@@ -47,6 +47,9 @@
 /* Class = "NSMenuItem"; title = "Enter Full Screen"; ObjectID = "4J7-dP-txa"; */
 "4J7-dP-txa.title" = "Enter Full Screen";
 
+/* Class = "NSTextFieldCell"; title = "Permanently\nHidden"; ObjectID = "4P4-kw-pgX"; */
+"4P4-kw-pgX.title" = "持续隐藏";
+
 /* Class = "NSMenuItem"; title = "Quit Hidden Bar"; ObjectID = "4sb-4s-VLi"; */
 "4sb-4s-VLi.title" = "Quit Hidden Bar";
 
@@ -163,6 +166,9 @@
 
 /* Class = "NSBox"; title = "Box"; ObjectID = "Jjd-1G-63n"; */
 "Jjd-1G-63n.title" = "Box";
+
+/* Class = "NSTextFieldCell"; title = "Hidden"; ObjectID = "KFA-hQ-Fs5"; */
+"KFA-hQ-Fs5.title" = "隐藏";
 
 /* Class = "NSMenuItem"; title = "Revert to Saved"; ObjectID = "KaW-ft-85H"; */
 "KaW-ft-85H.title" = "Revert to Saved";
@@ -317,6 +323,9 @@
 /* Class = "NSBox"; title = "Box"; ObjectID = "bFi-aV-ejJ"; */
 "bFi-aV-ejJ.title" = "Box";
 
+/* Class = "NSTextFieldCell"; title = "Shown"; ObjectID = "bN7-PB-oo2"; */
+"bN7-PB-oo2.title" = "显示";
+
 /* Class = "NSMenuItem"; title = "Show Colors"; ObjectID = "bgn-CT-cEk"; */
 "bgn-CT-cEk.title" = "Show Colors";
 
@@ -371,6 +380,9 @@
 /* Class = "NSButtonCell"; title = "Show preferences on launch"; ObjectID = "hCh-Ue-NgH"; */
 "hCh-Ue-NgH.title" = "在应用程序启动时显示偏好设置";
 
+/* Class = "NSTextFieldCell"; title = "Permenant Hidden icons will not show up\neven if you click on the arrow button"; ObjectID = "hMl-G6-ZQh"; */
+"hMl-G6-ZQh.title" = "持续隐藏的图标即使在您\n按下箭头图标后也不会显示";
+
 /* Class = "NSMenuItem"; title = "Smart Quotes"; ObjectID = "hQb-2v-fYv"; */
 "hQb-2v-fYv.title" = "Smart Quotes";
 
@@ -418,9 +430,6 @@
 
 /* Class = "NSMenu"; title = "Open Recent"; ObjectID = "oas-Oc-fiZ"; */
 "oas-Oc-fiZ.title" = "Open Recent";
-
-/* Class = "NSTextFieldCell"; title = "TODO: Animations showing how to use permanent hiding"; ObjectID = "obo-wA-r2W"; */
-"obo-wA-r2W.title" = "TODO: Animations showing how to use permanent hiding";
 
 /* Class = "NSMenuItem"; title = "Loosen"; ObjectID = "ogc-rX-tC1"; */
 "ogc-rX-tC1.title" = "Loosen";
