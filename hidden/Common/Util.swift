@@ -107,11 +107,11 @@ class Util {
     
     static var isPermHideEnabled : Bool {
         get {
-            let savedValue = UserDefaults.standard.bool(forKey: IS_PERM_HIDE_ENABLED)
+            let savedValue = UserDefaults.standard.bool(forKey: Notification.Name.IS_PERM_HIDE_ENABLED)
             return savedValue
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: IS_PERM_HIDE_ENABLED)
+            UserDefaults.standard.set(newValue, forKey: Notification.Name.IS_PERM_HIDE_ENABLED)
         }
     }
     
