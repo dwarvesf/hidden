@@ -42,7 +42,7 @@ class StatusBarController{
         
         self.exitEditPermHide()
         
-        if Util.getShowPreferences() {
+        if Util.showPreferences {
             openPreferenceViewControllerIfNeeded()
         }
         
@@ -51,7 +51,7 @@ class StatusBarController{
     }
     
     private func setUpPermHideStatusBarIfNeeded() {
-        if Util.getEnablePermHide() {
+        if Util.isPermHideEnabled {
             permHideStatusBar = NSStatusBar.system.statusItem(withLength: 20)
             if let button = permHideStatusBar?.button {
                 button.image = NSImage(named: NSImage.Name("ic_dot"))
@@ -61,7 +61,7 @@ class StatusBarController{
     
     private func collapseBarWhenReopenAppIfNeeded() {
         
-        if(Util.getIsCollapse() && Util.getKeepLastState() && self.isValidPosition())
+        if(Util.isCollapse && Util.keepLastState && self.isValidPosition())
         {
             setupCollapseMenuBar()
         }
@@ -84,7 +84,7 @@ class StatusBarController{
     
     private func expandMenubar()
     {
-        Util.setIsCollapse(false)
+        Util.isCollapse = false
         seprateStatusBar.length = 20
         if let button = expandCollapseStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_collapse"))
@@ -93,9 +93,7 @@ class StatusBarController{
     }
     
     private func autoCollapseIfNeeded() {
-        let isAutoHide = Util.getIsAutoHide()
-        
-        if isAutoHide == false {return}
+        if Util.isAutoHide == false {return}
         
         startTimerToAutoHide()
     }
@@ -115,7 +113,7 @@ class StatusBarController{
     }
     
     private func setupCollapseMenuBar() {
-        Util.setIsCollapse(true)
+        Util.isCollapse = true
         seprateStatusBar.length = 10000
         if let button = expandCollapseStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_expand"))
@@ -134,7 +132,7 @@ class StatusBarController{
             return dotX < lineX
         }
         
-        if Util.getEnablePermHide() && permHideIsOnLeftOfSeperator {
+        if Util.isPermHideEnabled && permHideIsOnLeftOfSeperator {
             permHideStatusBar?.length = 10000
         }
     }

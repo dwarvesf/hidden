@@ -45,111 +45,74 @@ class Util {
         }
     }
     
-    static func setIsAutoStart(_ isAutoStart:Bool){
-        UserDefaults.standard.set(isAutoStart, forKey: IS_AUTO_START)
-        
-    }
-    
-    static func getIsCollapse() -> Bool{
-        let savedValue = UserDefaults.standard.bool(forKey: IS_COLLAPSE)
-        return savedValue
-    }
-    
-    static func setIsCollapse(_ isCollapse:Bool){
-        UserDefaults.standard.set(isCollapse, forKey: IS_COLLAPSE)
-        
-    }
-    
-    static func getIsAutoStart() -> Bool{
-        let savedValue = UserDefaults.standard.bool(forKey: IS_AUTO_START)
-        return savedValue
-    }
-    
-    
-    
-    static func getStateAutoStart() -> NSControl.StateValue{
-        if(getIsAutoStart())
-        {
-            return .on
+    static var isAutoStart : Bool {
+        get {
+            let savedValue = UserDefaults.standard.bool(forKey: IS_AUTO_START)
+            return savedValue
         }
-        return .off
-    }
-    
-    static func setIsAutoHide(_ isAutoHide:Bool){
-        UserDefaults.standard.set(isAutoHide, forKey: IS_AUTO_HIDE)
-        
-    }
-    
-    static func getIsAutoHide()->Bool{
-        let isAutoHide = UserDefaults.standard.bool(forKey: IS_AUTO_HIDE)
-        return isAutoHide
-    }
-    
-    static func getStateAutoHide() -> NSControl.StateValue{
-        if(getIsAutoHide())
-        {
-            return .on
+        set {
+            UserDefaults.standard.set(newValue, forKey: IS_AUTO_START)
         }
-        return .off
     }
     
-    static func setIsKeepInDock(_ isKeepInDock:Bool){
-        UserDefaults.standard.set(isKeepInDock, forKey: IS_KEEP_IN_DOCK)
-        
-    }
-    
-    static func getIsKeepInDock() -> Bool{
-        UserDefaults.standard.register(defaults: [IS_KEEP_IN_DOCK : true])
-        let savedValue = UserDefaults.standard.bool(forKey: IS_KEEP_IN_DOCK)
-        return savedValue
-    }
-    
-    static func getStateKeepInDock() -> NSControl.StateValue {
-        if(getIsKeepInDock())
-        {
-            return .on
+    static var isCollapse : Bool {
+        get {
+            let savedValue = UserDefaults.standard.bool(forKey: IS_COLLAPSE)
+            return savedValue
         }
-        return .off
+        set {
+            UserDefaults.standard.set(newValue, forKey: IS_COLLAPSE)
+        }
     }
     
-    static func getShowPreferences() -> Bool {
-        UserDefaults.standard.register(defaults: [IS_SHOW_PREFERENCES : true])
-        return UserDefaults.standard.bool(forKey: IS_SHOW_PREFERENCES)
+    static var isAutoHide : Bool {
+        get {
+            let savedValue = UserDefaults.standard.bool(forKey: IS_AUTO_HIDE)
+            return savedValue
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: IS_AUTO_HIDE)
+        }
     }
     
-    static func setShowPreferences(_ isShowPreferences: Bool) {
-        UserDefaults.standard.set(isShowPreferences, forKey: IS_SHOW_PREFERENCES)
+    static var isKeepInDock : Bool {
+        get {
+            let savedValue = UserDefaults.standard.bool(forKey: IS_KEEP_IN_DOCK)
+            return savedValue
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: IS_KEEP_IN_DOCK)
+        }
     }
     
-    static func getStateShowPreferences() -> NSControl.StateValue {
-        return getShowPreferences() ? .on : .off
+    static var showPreferences : Bool {
+        get {
+            let savedValue = UserDefaults.standard.bool(forKey: IS_SHOW_PREFERENCES)
+            return savedValue
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: IS_SHOW_PREFERENCES)
+        }
     }
     
-    
-    static func getKeepLastState() -> Bool {
-        let savedValue = UserDefaults.standard.bool(forKey: IS_KEEP_LAST_STATE)
-        return savedValue
+    static var keepLastState : Bool {
+        get {
+            let savedValue = UserDefaults.standard.bool(forKey: IS_KEEP_LAST_STATE)
+            return savedValue
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: IS_KEEP_LAST_STATE)
+        }
     }
     
-    static func setKeepLastState(_ isKeepLastState: Bool) {
-        UserDefaults.standard.set(isKeepLastState, forKey: IS_KEEP_LAST_STATE)
-    }
-    
-    static func getStateKeepLastState() -> NSControl.StateValue {
-        return getKeepLastState() ? .on : .off
-    }
-    
-    
-    static func getEnablePermHide() -> Bool {
-        return UserDefaults.standard.bool(forKey: IS_PERM_HIDE_ENABLED)
-    }
-    
-    static func setEnablePermHide(_ isPermHideEnabled: Bool) {
-        UserDefaults.standard.set(isPermHideEnabled, forKey: IS_PERM_HIDE_ENABLED)
-    }
-    
-    static func getStateEnablePermHide() -> NSControl.StateValue {
-        return getEnablePermHide() ? .on : .off
+    static var isPermHideEnabled : Bool {
+        get {
+            let savedValue = UserDefaults.standard.bool(forKey: IS_PERM_HIDE_ENABLED)
+            return savedValue
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: IS_PERM_HIDE_ENABLED)
+        }
     }
     
     
@@ -190,6 +153,18 @@ class Util {
     static func permHideChanged() {
         let delegate = NSApplication.shared.delegate as! AppDelegate
         let statusBarController = delegate.statusBarController
-        statusBarController.setPermHideEnabled(getEnablePermHide())
+        statusBarController.setPermHideEnabled(self.isPermHideEnabled)
+    }
+}
+
+extension Bool {
+    func toStateValue() -> NSControl.StateValue {
+        return self ? NSControl.StateValue.on : NSControl.StateValue.off
+    }
+}
+
+extension NSControl.StateValue {
+    func toBool() -> Bool {
+        return self == .on ? true : false
     }
 }

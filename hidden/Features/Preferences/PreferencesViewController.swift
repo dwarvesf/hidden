@@ -64,69 +64,32 @@ class PreferencesViewController: NSViewController {
     }
     
     @objc func autoStart(_ isCheck:Bool){
-        Util.setIsAutoStart(isCheck)
+        Util.isAutoStart = isCheck
         Util.setUpAutoStart(isAutoStart: isCheck)
     }
     
     @IBAction func autoHideCheckChanged(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            Util.setIsAutoHide(true)
-        case .off:
-            Util.setIsAutoHide(false)
-        default:
-            break
-        }
+        Util.isAutoHide = sender.state.toBool()
     }
     
     @IBAction func keepInDockCheckChanged(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            Util.setIsKeepInDock(true)
-            let _ = Util.toggleDockIcon(true)
-        case .off:
-            Util.setIsKeepInDock(false)
-            let _ = Util.toggleDockIcon(false)
-            let _ = Util.showPrefWindow()
-        default:
-            break
-        }
+        Util.isKeepInDock = sender.state.toBool()
+        Util.toggleDockIcon(sender.state.toBool())
+        Util.showPrefWindow()
     }
     
     
     @IBAction func showPreferencesCheckChanged(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            Util.setShowPreferences(true)
-        case .off:
-            Util.setShowPreferences(false)
-        default:
-            break
-        }
+        Util.showPreferences = sender.state.toBool()
     }
     
     @IBAction func onLastKeepAppStateChange(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            Util.setKeepLastState(true)
-        case .off:
-            Util.setKeepLastState(false)
-        default:
-            break
-        }
+        Util.keepLastState = sender.state.toBool()
     }
     
     @IBAction func enablePermHideChange(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            Util.setEnablePermHide(true)
-            Util.permHideChanged()
-        case .off:
-            Util.setEnablePermHide(false)
-            Util.permHideChanged()
-        default:
-            break
-        }
+        Util.isPermHideEnabled = sender.state.toBool()
+        Util.permHideChanged()
     }
     
     
@@ -200,12 +163,12 @@ class PreferencesViewController: NSViewController {
     
     private func setupUI(){
         imageViewTop.image = NSImage(named:NSImage.Name("banner"))
-        checkBoxLogin.state = Util.getStateAutoStart()
-        checkBoxAutoHide.state = Util.getStateAutoHide()
-        checkBoxKeepInDock.state = Util.getStateKeepInDock()
-        checkBoxShowPreferences.state = Util.getStateShowPreferences()
-        checkBoxKeepLastState.state = Util.getStateKeepLastState()
-        checkBoxEnablePermHide.state = Util.getStateEnablePermHide()
+        checkBoxLogin.state = Util.isAutoStart.toStateValue()
+        checkBoxAutoHide.state = Util.isAutoHide.toStateValue()
+        checkBoxKeepInDock.state = Util.isKeepInDock.toStateValue()
+        checkBoxShowPreferences.state = Util.showPreferences.toStateValue()
+        checkBoxKeepLastState.state = Util.keepLastState.toStateValue()
+        checkBoxEnablePermHide.state = Util.isPermHideEnabled.toStateValue()
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Util.numberOfSecondForAutoHide))
     }
     
