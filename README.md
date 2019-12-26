@@ -25,6 +25,12 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
 [![AppStore](/img/appstore.png)](https://itunes.apple.com/app/hidden-bar/id1452453066)
 
+#### Using Homebrew
+
+```
+brew cask install hiddenbar
+```
+
 #### Manual download
 
 - [Download latest version](https://github.com/dwarvesf/hidden/releases/latest)
