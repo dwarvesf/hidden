@@ -74,22 +74,22 @@ class PreferencesViewController: NSViewController {
     
     @IBAction func keepInDockCheckChanged(_ sender: NSButton) {
         Util.isKeepInDock = sender.state.toBool()
-        Util.toggleDockIcon(sender.state.toBool())
-        Util.showPrefWindow()
+        let _ = Util.toggleDockIcon(sender.state.toBool())
+        let _ = Util.getAndShowPrefWindow()
     }
     
     
     @IBAction func showPreferencesCheckChanged(_ sender: NSButton) {
-        Util.showPreferences = sender.state.toBool()
+        Util.isShowPreferences = sender.state.toBool()
     }
     
     @IBAction func onLastKeepAppStateChange(_ sender: NSButton) {
         Util.keepLastState = sender.state.toBool()
     }
     
-    @IBAction func enablePermHideChange(_ sender: NSButton) {
-        Util.isPermHideEnabled = sender.state.toBool()
-        Util.permHideChanged()
+    @IBAction func checkBoxGhostClicked(_ sender: NSButton) {
+        Util.isGhostModeEnabled = sender.state.toBool()
+        Util.toggleGhostMode()
     }
     
     
@@ -166,9 +166,9 @@ class PreferencesViewController: NSViewController {
         checkBoxLogin.state = Util.isAutoStart.toStateValue()
         checkBoxAutoHide.state = Util.isAutoHide.toStateValue()
         checkBoxKeepInDock.state = Util.isKeepInDock.toStateValue()
-        checkBoxShowPreferences.state = Util.showPreferences.toStateValue()
+        checkBoxShowPreferences.state = Util.isShowPreferences.toStateValue()
         checkBoxKeepLastState.state = Util.keepLastState.toStateValue()
-        checkBoxEnablePermHide.state = Util.isPermHideEnabled.toStateValue()
+        checkBoxEnablePermHide.state = Util.isGhostModeEnabled.toStateValue()
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Util.numberOfSecondForAutoHide))
     }
     

@@ -17,6 +17,8 @@
 		08C20FE023AB44E60035D978 /* Bundle+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */; };
 		08C20FE223AB452C0035D978 /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C20FE123AB452C0035D978 /* AboutViewController.swift */; };
 		3CF14C82221FA49D0083D42B /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */; };
+		5527847523B49707007E681B /* Notification+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5527847423B49707007E681B /* Notification+Extension.swift */; };
+		5527847623B498D0007E681B /* Notification+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5527847423B49707007E681B /* Notification+Extension.swift */; };
 		9220587E2212A7C0008A8B03 /* LauncherApplication.app in Copy Files */ = {isa = PBXBuildFile; fileRef = 92C5054E21FEC03B0084719A /* LauncherApplication.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		929113F521F9D04100173149 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929113F421F9D04100173149 /* AppDelegate.swift */; };
 		929113F921F9D04200173149 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 929113F821F9D04200173149 /* Assets.xcassets */; };
@@ -28,7 +30,6 @@
 		92C5057F21FEC24C0084719A /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92C5057E21FEC24C0084719A /* ServiceManagement.framework */; };
 		92C5058121FEC2590084719A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92C5058021FEC2590084719A /* Cocoa.framework */; };
 		92C97B88220032ED0007559C /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B87220032ED0007559C /* Util.swift */; };
-		92C97B8B220049D20007559C /* NSBarButtonItem+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B8A220049D10007559C /* NSBarButtonItem+Extension.swift */; };
 		92C97B8D220058740007559C /* NSView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B8C220058740007559C /* NSView+Extension.swift */; };
 		92C97B8F220147FE0007559C /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B8E220147FE0007559C /* Constant.swift */; };
 		92C97B9122018C1F0007559C /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B9022018C1F0007559C /* StatusBarController.swift */; };
@@ -60,6 +61,7 @@
 		08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extension.swift"; sourceTree = "<group>"; };
 		08C20FE123AB452C0035D978 /* AboutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutViewController.swift; sourceTree = "<group>"; };
 		3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindowController.swift; sourceTree = "<group>"; };
+		5527847423B49707007E681B /* Notification+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Notification+Extension.swift"; path = "../../../Notification+Extension.swift"; sourceTree = "<group>"; };
 		9220587D22127050008A8B03 /* Hidden.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Hidden.entitlements; path = Hidden/Hidden.entitlements; sourceTree = "<group>"; };
 		929113F121F9D04100173149 /* Hidden Bar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hidden Bar.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		929113F421F9D04100173149 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -76,7 +78,6 @@
 		92C5057E21FEC24C0084719A /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		92C5058021FEC2590084719A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		92C97B87220032ED0007559C /* Util.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
-		92C97B8A220049D10007559C /* NSBarButtonItem+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSBarButtonItem+Extension.swift"; sourceTree = "<group>"; };
 		92C97B8C220058740007559C /* NSView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+Extension.swift"; sourceTree = "<group>"; };
 		92C97B8E220147FE0007559C /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 		92C97B9022018C1F0007559C /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
@@ -147,6 +148,7 @@
 			children = (
 				08A5F86323AA09F300981CA5 /* UserDefault+Extension.swift */,
 				08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */,
+				5527847423B49707007E681B /* Notification+Extension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -230,7 +232,6 @@
 		92C97B89220049B30007559C /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				92C97B8A220049D10007559C /* NSBarButtonItem+Extension.swift */,
 				92C97B8C220058740007559C /* NSView+Extension.swift */,
 				08C20FDD23AABDD10035D978 /* HyperlinkTextField.swift */,
 			);
@@ -362,7 +363,7 @@
 				08A5F85A23AA007A00981CA5 /* PreferencesViewController.swift in Sources */,
 				3CF14C82221FA49D0083D42B /* PreferencesWindowController.swift in Sources */,
 				B3CF690723AE0C8D00643963 /* PreferencesWindow.swift in Sources */,
-				92C97B8B220049D20007559C /* NSBarButtonItem+Extension.swift in Sources */,
+				5527847523B49707007E681B /* Notification+Extension.swift in Sources */,
 				92C97B8D220058740007559C /* NSView+Extension.swift in Sources */,
 				0842CDFB23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift in Sources */,
 				08C20FE223AB452C0035D978 /* AboutViewController.swift in Sources */,
@@ -376,6 +377,7 @@
 			files = (
 				92C5055321FEC03C0084719A /* ViewController.swift in Sources */,
 				92C5055121FEC03C0084719A /* AppDelegate.swift in Sources */,
+				5527847623B498D0007E681B /* Notification+Extension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -527,7 +529,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = VGURA84Q2L;
+				DEVELOPMENT_TEAM = W777S7V8TN;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -550,7 +552,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = VGURA84Q2L;
+				DEVELOPMENT_TEAM = W777S7V8TN;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -573,7 +575,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = VGURA84Q2L;
+				DEVELOPMENT_TEAM = W777S7V8TN;
 				INFOPLIST_FILE = LauncherApplication/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -596,7 +598,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = VGURA84Q2L;
+				DEVELOPMENT_TEAM = W777S7V8TN;
 				INFOPLIST_FILE = LauncherApplication/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

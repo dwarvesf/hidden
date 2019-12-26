@@ -12,27 +12,26 @@ import ServiceManagement
 
 
 class Util {
-    
+    static var isShowingPreferenceWindow = false
     static var numberOfSecondForAutoHide: Double {
         get {
-            let numberOfSeconds = UserDefaults.standard.double(forKey: Notification.Name.numberOfSecondForAutoHide)
+            let numberOfSeconds = UserDefaults.standard.double(forKey: UserDefaults.Key.numberOfSecondForAutoHide)
             
             //For very first time, set it equal 10
             if numberOfSeconds == 0.0 {
                 let defaultValue = 10.0
-                UserDefaults.standard.set(defaultValue, forKey: Notification.Name.numberOfSecondForAutoHide)
+                UserDefaults.standard.set(defaultValue, forKey: UserDefaults.Key.numberOfSecondForAutoHide)
                 return defaultValue
             }
             
             return numberOfSeconds
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: Notification.Name.numberOfSecondForAutoHide)
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.numberOfSecondForAutoHide)
         }
     }
     
-    static func setUpAutoStart(isAutoStart:Bool)
-    {
+    static func setUpAutoStart(isAutoStart:Bool) {
         let launcherAppId = "com.dwarvesv.LauncherApplication"
         let runningApps = NSWorkspace.shared.runningApplications
         let isRunning = !runningApps.filter { $0.bundleIdentifier == launcherAppId }.isEmpty
@@ -47,71 +46,71 @@ class Util {
     
     static var isAutoStart : Bool {
         get {
-            let savedValue = UserDefaults.standard.bool(forKey: IS_AUTO_START)
+            let savedValue = UserDefaults.standard.bool(forKey: UserDefaults.Key.isAutoStart)
             return savedValue
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: IS_AUTO_START)
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isAutoStart)
         }
     }
     
     static var isCollapse : Bool {
         get {
-            let savedValue = UserDefaults.standard.bool(forKey: IS_COLLAPSE)
+            let savedValue = UserDefaults.standard.bool(forKey: UserDefaults.Key.isCollapse)
             return savedValue
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: IS_COLLAPSE)
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isCollapse)
         }
     }
     
     static var isAutoHide : Bool {
         get {
-            let savedValue = UserDefaults.standard.bool(forKey: IS_AUTO_HIDE)
+            let savedValue = UserDefaults.standard.bool(forKey: UserDefaults.Key.isAutoHide)
             return savedValue
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: IS_AUTO_HIDE)
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isAutoHide)
         }
     }
     
     static var isKeepInDock : Bool {
         get {
-            let savedValue = UserDefaults.standard.bool(forKey: IS_KEEP_IN_DOCK)
+            let savedValue = UserDefaults.standard.bool(forKey: UserDefaults.Key.isKeepInDock)
             return savedValue
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: IS_KEEP_IN_DOCK)
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isKeepInDock)
         }
     }
     
-    static var showPreferences : Bool {
+    static var isShowPreferences : Bool {
         get {
-            let savedValue = UserDefaults.standard.bool(forKey: IS_SHOW_PREFERENCES)
+            let savedValue = UserDefaults.standard.bool(forKey: UserDefaults.Key.isShowPreferences)
             return savedValue
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: IS_SHOW_PREFERENCES)
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isShowPreferences)
         }
     }
     
     static var keepLastState : Bool {
         get {
-            let savedValue = UserDefaults.standard.bool(forKey: IS_KEEP_LAST_STATE)
+            let savedValue = UserDefaults.standard.bool(forKey: UserDefaults.Key.isKeepLastState)
             return savedValue
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: IS_KEEP_LAST_STATE)
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isKeepLastState)
         }
     }
     
-    static var isPermHideEnabled : Bool {
+    static var isGhostModeEnabled : Bool {
         get {
-            let savedValue = UserDefaults.standard.bool(forKey: Notification.Name.IS_PERM_HIDE_ENABLED)
+            let savedValue = UserDefaults.standard.bool(forKey: UserDefaults.Key.isPermHideEnabled)
             return savedValue
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: Notification.Name.IS_PERM_HIDE_ENABLED)
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isPermHideEnabled)
         }
     }
     
@@ -128,7 +127,8 @@ class Util {
         return names.count >= 2
     }
     
-    static func showPrefWindow() -> NSWindow {
+    static func getAndShowPrefWindow() -> NSWindow {
+        Util.isShowPreferences = true
         let prefWindow = PreferencesWindowController.shared.window!
         Util.bringToFront(window: prefWindow)
         return prefWindow
@@ -150,10 +150,10 @@ class Util {
         NSApp.activate(ignoringOtherApps: true)
     }
     
-    static func permHideChanged() {
+    static func toggleGhostMode() {
         let delegate = NSApplication.shared.delegate as! AppDelegate
         let statusBarController = delegate.statusBarController
-        statusBarController.setPermHideEnabled(self.isPermHideEnabled)
+        statusBarController.showGhostButtonIfNeeded()
     }
 }
 

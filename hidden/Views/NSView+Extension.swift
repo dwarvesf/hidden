@@ -9,7 +9,7 @@
 import Foundation
 import AppKit
 extension NSView {
-    var getOrigin:CGPoint? {
+    var position:CGPoint? {
         return self.window?.frame.origin
     }
 }

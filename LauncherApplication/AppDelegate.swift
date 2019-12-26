@@ -24,7 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if !isRunning {
             DistributedNotificationCenter.default().addObserver(self,
                                                                 selector: #selector(self.terminate),
-                                                                name: Notification.Name("killLauncher"),
+                                                                name: Notification.Name.killLauncher,
                                                                 object: mainAppIdentifier)
             
             let path = Bundle.main.bundlePath as NSString

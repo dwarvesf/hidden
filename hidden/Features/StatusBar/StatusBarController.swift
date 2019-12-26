@@ -18,7 +18,7 @@ class StatusBarController{
     //MARK: - BarItems
     private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
     private let seprateStatusBar = NSStatusBar.system.statusItem(withLength:20)
-    private var permHideStatusBar : NSStatusItem? = nil
+    private var btnGhost = NSStatusBar.system.statusItem(withLength: 0)
     private var appMenu:NSMenu? = nil
     
     
@@ -38,11 +38,11 @@ class StatusBarController{
             button.action = #selector(expandCollapseIfNeeded(_:))
         }
         
-        setUpPermHideStatusBarIfNeeded()
+        setUpGhostBarStatusItem()
         
-        self.exitEditPermHide()
+        self.enableGhostModeIfNeeded()
         
-        if Util.showPreferences {
+        if Util.isShowPreferences {
             openPreferenceViewControllerIfNeeded()
         }
         
@@ -50,11 +50,10 @@ class StatusBarController{
         autoCollapseIfNeeded()
     }
     
-    private func setUpPermHideStatusBarIfNeeded() {
-        if Util.isPermHideEnabled {
-            permHideStatusBar = NSStatusBar.system.statusItem(withLength: 20)
-            permHideStatusBar?.button?.image = NSImage(named: NSImage.Name("ic_dot"))
-        }
+    private func setUpGhostBarStatusItem() {
+       if let button = btnGhost.button {
+        button.title = "👻"
+       }
     }
     
     private func collapseBarWhenReopenAppIfNeeded() {
@@ -66,7 +65,7 @@ class StatusBarController{
     }
     
     private func isValidPosition() -> Bool {
-        return Float((expandCollapseStatusBar.button?.getOrigin!.x)!) > Float((seprateStatusBar.button?.getOrigin!.x)!)
+        return Float((expandCollapseStatusBar.button?.position!.x)!) > Float((seprateStatusBar.button?.position!.x)!)
     }
     
     @objc func expandCollapseIfNeeded(_ sender: NSStatusBarButton?) {
@@ -80,8 +79,7 @@ class StatusBarController{
         }
     }
     
-    private func expandMenubar()
-    {
+    private func expandMenubar() {
         Util.isCollapse = false
         seprateStatusBar.length = 20
         if let button = expandCollapseStatusBar.button {
@@ -111,6 +109,8 @@ class StatusBarController{
     }
     
     private func setupCollapseMenuBar() {
+        if Util.isShowPreferences {return}
+
         Util.isCollapse = true
         seprateStatusBar.length = 10000
         if let button = expandCollapseStatusBar.button {
@@ -118,20 +118,19 @@ class StatusBarController{
         }
     }
     
-    private func editPermHide() {
-        permHideStatusBar?.length = 20
-    }
+
     
-    private func exitEditPermHide() {
-        
+    private func enableGhostModeIfNeeded() {
         var permHideIsOnLeftOfSeperator : Bool {
-            let dotX = Float((permHideStatusBar?.button?.getOrigin?.x)!)
-            let lineX = Float((seprateStatusBar.button?.getOrigin?.x)!)
+            let dotX = Float((btnGhost.button?.position?.x)!)
+            let lineX = Float((seprateStatusBar.button?.position?.x)!)
             return dotX < lineX
         }
         
-        if Util.isPermHideEnabled && permHideIsOnLeftOfSeperator {
-            permHideStatusBar?.length = 10000
+        if Util.isGhostModeEnabled && permHideIsOnLeftOfSeperator {
+            btnGhost.length = 10000
+        }else {
+            btnGhost.length = 0
         }
     }
     
@@ -148,18 +147,16 @@ class StatusBarController{
     }
     
     @objc func openPreferenceViewControllerIfNeeded() {
-        let window = Util.showPrefWindow() as! PreferencesWindow
-        editPermHide()
+        let window = Util.getAndShowPrefWindow() as! PreferencesWindow
+        showGhostButtonIfNeeded()
         window.windowClosedHandler { [weak self] in
-            self?.exitEditPermHide()
+            Util.isShowPreferences = false
+            self?.enableGhostModeIfNeeded()
+            self?.autoCollapseIfNeeded()
         }
     }
-    
-    func setPermHideEnabled(_ permHideEnabled: Bool) {
-        if permHideEnabled {
-            permHideStatusBar?.length = 20
-        } else {
-            permHideStatusBar?.length = 0
-        }
+    func showGhostButtonIfNeeded() {
+        let btnGhostLength: CGFloat = Util.isGhostModeEnabled ? 22 : 0
+        btnGhost.length = btnGhostLength
     }
 }

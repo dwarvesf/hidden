@@ -21,4 +21,5 @@ class PreferencesWindow: NSWindow {
         closeHandler()
         super.close()
     }
+
 }
