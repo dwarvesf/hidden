@@ -18,5 +18,5 @@ let IS_COLLAPSE = "isCollapse"
 
 extension Notification.Name {
     static let numberOfSecondForAutoHide = "NUMBER_OF_SECOND_FOR_AUTO_HIDE"
-    static let IS_PERM_HIDE_ENABLED = "IS_PERM_HIDE_ENABLED"
+    static let isPermHideEnabled = "IS_PERM_HIDE_ENABLED"
 }
