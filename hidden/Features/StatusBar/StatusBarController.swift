@@ -16,8 +16,8 @@ class StatusBarController{
     private var timer:Timer? = nil
     
     //MARK: - BarItems
-    private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
-    private let seprateStatusBar = NSStatusBar.system.statusItem(withLength:20)
+    private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    private let seprateStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private var appMenu:NSMenu? = nil
     
     
