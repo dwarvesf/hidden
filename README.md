@@ -23,7 +23,7 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
 ## 🚀 Install
 
-[![AppStore](/img/appstore.png)](https://itunes.apple.com/app/hidden-bar/id1452453066)
+[![AppStore](/img/appstore.svg)](https://itunes.apple.com/app/hidden-bar/id1452453066)
 
 #### Using Homebrew
 
@@ -56,6 +56,9 @@ Please read [this](CONTRIBUTING.md) before you make a contribution.
 
 ## Requirements
 macOS version >= 10.13
+
+## You may also like
+- [Blurred](https://github.com/dwarvesf/Blurred) - A macOS utility that helps reduce distraction by dimming your inactive noise
 
 ## License
 
