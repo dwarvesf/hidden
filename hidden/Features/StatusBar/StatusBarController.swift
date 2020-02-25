@@ -17,19 +17,19 @@ class StatusBarController{
     
     //MARK: - BarItems
     private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private let seprateStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    private let separateStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private var appMenu:NSMenu? = nil
     
     
     func initView(){
         
         
-        if let button = seprateStatusBar.button {
+        if let button = separateStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_line"))
         }
         
         appMenu = setupMenuUI()
-        seprateStatusBar.menu = appMenu
+        separateStatusBar.menu = appMenu
         
         if let button = expandCollapseStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_collapse"))
@@ -55,13 +55,13 @@ class StatusBarController{
     }
     
     private func isValidPosition() -> Bool {
-        return Float((expandCollapseStatusBar.button?.getOrigin!.x)!) > Float((seprateStatusBar.button?.getOrigin!.x)!)
+        return Float((expandCollapseStatusBar.button?.getOrigin!.x)!) > Float((separateStatusBar.button?.getOrigin!.x)!)
     }
     
     @objc func expandCollapseIfNeeded(_ sender: NSStatusBarButton?) {
         if(isValidPosition())
         {
-            if seprateStatusBar.length != 20.0 {
+            if separateStatusBar.length != 20.0 {
                 expandMenubar()
             }else {
                 setupCollapseMenuBar()
@@ -72,7 +72,7 @@ class StatusBarController{
     private func expandMenubar()
     {
         Util.setIsCollapse(false)
-        seprateStatusBar.length = 20
+        separateStatusBar.length = 20
         if let button = expandCollapseStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_collapse"))
         }
@@ -103,7 +103,7 @@ class StatusBarController{
     
     private func setupCollapseMenuBar() {
         Util.setIsCollapse(true)
-        seprateStatusBar.length = 10000
+        separateStatusBar.length = 10000
         if let button = expandCollapseStatusBar.button {
             button.image = NSImage(named:NSImage.Name("ic_expand"))
         }
