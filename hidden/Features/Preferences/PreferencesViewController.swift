@@ -86,6 +86,7 @@ class PreferencesViewController: NSViewController {
         case .off:
             Util.setIsKeepInDock(false)
             let _ = Util.toggleDockIcon(false)
+            Util.showPrefWindow() // avoid window deactivate
         default:
             print("")
         }
