@@ -32,14 +32,7 @@ class PreferencesWindowController: NSWindowController {
     
     override func windowDidLoad() {
         super.windowDidLoad()
-        setupUI()
         updateVC()
-    }
-    
-    private func setupUI() {
-        window?.title = "Preferences"
-        window?.backgroundColor = NSColor(named: "WindowBgColor")
-        window?.standardWindowButton(.zoomButton)?.isHidden = true
     }
     
     override func keyDown(with event: NSEvent) {
