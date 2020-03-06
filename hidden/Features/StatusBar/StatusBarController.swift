@@ -37,6 +37,7 @@ class StatusBarController {
         return expandBarButtonX > separateBarButtonX
     }
     
+    //MARK: - Methods
     init() {
         setupUI()
         
@@ -66,15 +67,16 @@ class StatusBarController {
     }
     
     private func collapseMenuBar() {
-        guard self.isValidPosition && !self.isCollapsed else {return}
+        guard self.isValidPosition && !self.isCollapsed else {
+            autoCollapseIfNeeded()
+            return
+        }
         
         separateStatusBar.length = self.collapseStatusBarIconLength
         if let button = expandCollapseStatusBar.button {
             button.image = self.imgIconExpand
         }
-        
-        // Invalidate timer after collapse success
-        timer?.invalidate()
+
     }
     
     private func expandMenubar() {
@@ -94,21 +96,23 @@ class StatusBarController {
     }
     
     private func startTimerToAutoHide() {
-        self.timer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] _ in
+        self.timer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] timer in
             DispatchQueue.main.async {
                 self?.collapseMenuBar()
             }
+            timer.invalidate()
         }
     }
     
     private func getContextMenu() -> NSMenu {
         let menu = NSMenu()
         
-        menu.addItem(NSMenuItem(title: "Preferences...", action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: "P"))
+        let  prefItem = NSMenuItem(title: "Preferences...", action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: "P")
+        prefItem.target = self
+        menu.addItem(prefItem)
+
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-        
-        menu.item(withTitle: "Preferences...")?.target = self
         
         return menu
     }

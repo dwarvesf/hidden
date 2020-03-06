@@ -24,10 +24,9 @@ class AboutViewController: NSViewController {
     }
     
     private func setupUI() {
-        if let version = Bundle.main.releaseVersionNumber,
-            let buildNumber = Bundle.main.buildVersionNumber {
-            lblVersion.stringValue += " \(version) (\(buildNumber))"
-        }
+        guard let version = Bundle.main.releaseVersionNumber,
+                let buildNumber = Bundle.main.buildVersionNumber else { return }
+        lblVersion.stringValue += " \(version) (\(buildNumber))"
     }
     
 }

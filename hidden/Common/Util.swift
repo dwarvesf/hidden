@@ -14,11 +14,10 @@ import ServiceManagement
 class Util {
     
     static func setUpAutoStart(isAutoStart:Bool) {
-        let launcherAppId = "com.dwarvesv.LauncherApplication"
         let runningApps = NSWorkspace.shared.runningApplications
-        let isRunning = !runningApps.filter { $0.bundleIdentifier == launcherAppId }.isEmpty
+        let isRunning = !runningApps.filter { $0.bundleIdentifier == Constant.launcherAppId }.isEmpty
         
-        SMLoginItemSetEnabled(launcherAppId as CFString, isAutoStart)
+        SMLoginItemSetEnabled(Constant.launcherAppId as CFString, isAutoStart)
         
         if isRunning {
             DistributedNotificationCenter.default().post(name: Notification.Name("killLauncher"),
