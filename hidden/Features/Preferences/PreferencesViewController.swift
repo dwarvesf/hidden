@@ -62,62 +62,22 @@ class PreferencesViewController: NSViewController {
         }
     }
     
-    @objc func autoStart(_ isCheck:Bool){
-        Util.setIsAutoStart(isCheck)
-        Util.setUpAutoStart(isAutoStart: isCheck)
+    @objc func autoStart(_ isCheck: Bool){
+        Preferences.isAutoStart = isCheck
     }
     
     @IBAction func autoHideCheckChanged(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            Util.setIsAutoHide(true)
-        case .off:
-            Util.setIsAutoHide(false)
-        default:
-            print("")
-        }
+        Preferences.isAutoHide = sender.state == .on
     }
-    
-    @IBAction func keepInDockCheckChanged(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            Util.setIsKeepInDock(true)
-            let _ = Util.toggleDockIcon(true)
-        case .off:
-            Util.setIsKeepInDock(false)
-            let _ = Util.toggleDockIcon(false)
-        default:
-            print("")
-        }
-    }
-    
     
     @IBAction func showPreferencesChanged(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            Util.setShowPreferences(true)
-        case .off:
-            Util.setShowPreferences(false)
-        default:
-            break
-        }
-    }
-    
-    @IBAction func onLastKeepAppStateChange(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            Util.setKeepLastState(true)
-        case .off:
-            Util.setKeepLastState(false)
-        default:
-            break
-        }
+        Preferences.isShowPreference = sender.state == .on
     }
     
     @IBAction func timePopupDidSelected(_ sender: NSPopUpButton) {
         let selectedIndex = sender.indexOfSelectedItem
         if let selectedInSecond = SelectedSecond(rawValue: selectedIndex)?.toSeconds() {
-            Util.numberOfSecondForAutoHide = selectedInSecond
+            Preferences.numberOfSecondForAutoHide = selectedInSecond
         }
     }
     
@@ -136,7 +96,7 @@ class PreferencesViewController: NSViewController {
         btnClear.isEnabled = false
         
         // Remove globalkey from userdefault
-        Preferences.GlobalKey = nil
+        Preferences.globalKey = nil
     }
     
     public func updateGlobalShortcut(_ event: NSEvent) {
@@ -155,7 +115,7 @@ class PreferencesViewController: NSViewController {
             characters: characters,
             keyCode: uint32(event.keyCode))
         
-        Preferences.GlobalKey = newGlobalKeybind
+        Preferences.globalKey = newGlobalKeybind
         
         updateKeybindButton(newGlobalKeybind)
         btnClear.isEnabled = true
@@ -182,16 +142,14 @@ class PreferencesViewController: NSViewController {
     
     private func setupUI(){
         imageViewTop.image = NSImage(named:NSImage.Name("banner"))
-        checkBoxLogin.state = Util.getStateAutoStart()
-        checkBoxAutoHide.state = Util.getStateAutoHide()
-        checkBoxKeepInDock.state = Util.getStateKeepInDock()
-        checkBoxShowPreferences.state = Util.getStateShowPreferences()
-        checkBoxKeepLastState.state = Util.getStateKeepLastState()
-        timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Util.numberOfSecondForAutoHide))
+        checkBoxLogin.state = Preferences.isAutoStart ? .on : .off
+        checkBoxAutoHide.state = Preferences.isAutoHide ? .on : .off
+        checkBoxShowPreferences.state = Preferences.isShowPreference ? .on : .off
+        timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Preferences.numberOfSecondForAutoHide))
     }
     
     private func loadHotkey() {
-        if let globalKey = Preferences.GlobalKey {
+        if let globalKey = Preferences.globalKey {
             updateKeybindButton(globalKey)
             updateClearButton(globalKey)
         }

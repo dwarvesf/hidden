@@ -13,6 +13,7 @@
 		08A5F85F23AA01EE00981CA5 /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 08A5F85E23AA01EE00981CA5 /* HotKey */; };
 		08A5F86123AA085B00981CA5 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F86023AA085B00981CA5 /* Preferences.swift */; };
 		08A5F86423AA09F300981CA5 /* UserDefault+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F86323AA09F300981CA5 /* UserDefault+Extension.swift */; };
+		08B9F32C2411883300AA0551 /* NSWindow+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08B9F32B2411883300AA0551 /* NSWindow+Extension.swift */; };
 		08C20FDE23AABDD10035D978 /* HyperlinkTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C20FDD23AABDD10035D978 /* HyperlinkTextField.swift */; };
 		08C20FE023AB44E60035D978 /* Bundle+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */; };
 		08C20FE223AB452C0035D978 /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C20FE123AB452C0035D978 /* AboutViewController.swift */; };
@@ -55,6 +56,7 @@
 		08A5F85B23AA013100981CA5 /* SelectedSecond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedSecond.swift; sourceTree = "<group>"; };
 		08A5F86023AA085B00981CA5 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		08A5F86323AA09F300981CA5 /* UserDefault+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefault+Extension.swift"; sourceTree = "<group>"; };
+		08B9F32B2411883300AA0551 /* NSWindow+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSWindow+Extension.swift"; sourceTree = "<group>"; };
 		08C20FDD23AABDD10035D978 /* HyperlinkTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HyperlinkTextField.swift; sourceTree = "<group>"; };
 		08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extension.swift"; sourceTree = "<group>"; };
 		08C20FE123AB452C0035D978 /* AboutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutViewController.swift; sourceTree = "<group>"; };
@@ -80,6 +82,8 @@
 		92C97B8E220147FE0007559C /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 		92C97B9022018C1F0007559C /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		B350A2CC23AAFB47003A04AC /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
+		B8404C9A24041A4300E6DBF8 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
+		B8404C9B24041A4300E6DBF8 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -144,6 +148,7 @@
 			children = (
 				08A5F86323AA09F300981CA5 /* UserDefault+Extension.swift */,
 				08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */,
+				08B9F32B2411883300AA0551 /* NSWindow+Extension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -282,11 +287,12 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1010;
-				LastUpgradeCheck = 1010;
+				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = "Dwarves Foundation";
 				TargetAttributes = {
 					929113F021F9D04100173149 = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1130;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
 								enabled = 1;
@@ -295,6 +301,7 @@
 					};
 					92C5054D21FEC03B0084719A = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1130;
 					};
 				};
 			};
@@ -306,6 +313,7 @@
 				en,
 				Base,
 				"zh-Hans",
+				ja,
 			);
 			mainGroup = 929113E821F9D04100173149;
 			packageReferences = (
@@ -353,6 +361,7 @@
 				08A5F86123AA085B00981CA5 /* Preferences.swift in Sources */,
 				92C97B9122018C1F0007559C /* StatusBarController.swift in Sources */,
 				92D2122221FEE06600C92FF4 /* LauncherApplication.app in Sources */,
+				08B9F32C2411883300AA0551 /* NSWindow+Extension.swift in Sources */,
 				929113F521F9D04100173149 /* AppDelegate.swift in Sources */,
 				08C20FDE23AABDD10035D978 /* HyperlinkTextField.swift in Sources */,
 				92C97B88220032ED0007559C /* Util.swift in Sources */,
@@ -383,6 +392,7 @@
 			children = (
 				929113FB21F9D04200173149 /* Base */,
 				B350A2CC23AAFB47003A04AC /* zh-Hans */,
+				B8404C9A24041A4300E6DBF8 /* ja */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -391,6 +401,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				92C5055721FEC03C0084719A /* Base */,
+				B8404C9B24041A4300E6DBF8 /* ja */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -524,17 +535,18 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = W777S7V8TN;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 1.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -547,17 +559,18 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = W777S7V8TN;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 1.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -570,17 +583,18 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = W777S7V8TN;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = LauncherApplication/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.LauncherApplication;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -593,17 +607,18 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = W777S7V8TN;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = LauncherApplication/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.LauncherApplication;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

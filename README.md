@@ -23,7 +23,13 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
 ## 🚀 Install
 
-[![AppStore](/img/appstore.png)](https://itunes.apple.com/app/hidden-bar/id1452453066)
+[![AppStore](/img/appstore.svg)](https://itunes.apple.com/app/hidden-bar/id1452453066)
+
+#### Using Homebrew
+
+```
+brew cask install hiddenbar
+```
 
 #### Manual download
 
@@ -43,12 +49,16 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 ## ✨<a href="https://github.com/dwarvesf/hidden/graphs/contributors">Contributors</a>
 
 This project exists thanks to all the people who contribute. Thank you guys so much 👏
+
 [![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/0)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/0)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/1)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/1)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/2)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/2)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/3)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/3)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/4)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/4)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/5)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/5)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/6)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/6)[![](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/images/7)](https://sourcerer.io/fame/phucledien/dwarvesf/hidden/links/7)
 
 Please read [this](CONTRIBUTING.md) before you make a contribution.
 
 ## Requirements
 macOS version >= 10.13
+
+## You may also like
+- [Blurred](https://github.com/dwarvesf/Blurred) - A macOS utility that helps reduce distraction by dimming your inactive noise
 
 ## License
 

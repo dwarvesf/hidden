@@ -6,9 +6,7 @@
 //  Copyright © 2019 Dwarves Foundation. All rights reserved.
 //
 
-import Cocoa
 import AppKit
-import ServiceManagement
 import HotKey
 
 @NSApplicationMain
@@ -28,18 +26,34 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        Util.setUpAutoStart(isAutoStart: Util.getIsAutoStart())
-        statusBarController.initView()
+        setupAutoStartApp()
+        registerDefaultValues()
         setupHotKey()
+        openPreferencesIfNeeded()
+    }
+    
+    func openPreferencesIfNeeded() {
+        if Preferences.isShowPreference {
+            Util.showPrefWindow()
+        }
+    }
+    
+    func setupAutoStartApp() {
+        Util.setUpAutoStart(isAutoStart: Preferences.isAutoStart)
+    }
+    
+    func registerDefaultValues() {
+         UserDefaults.standard.register(defaults: [
+            UserDefaults.Key.isAutoStart: true,
+            UserDefaults.Key.isShowPreference: true,
+            UserDefaults.Key.isAutoHide: true,
+            UserDefaults.Key.numberOfSecondForAutoHide: 10.0
+         ])
     }
     
     func setupHotKey() {
-        guard let globalKey = Preferences.GlobalKey else {return}
+        guard let globalKey = Preferences.globalKey else {return}
         hotKey = HotKey(keyCombo: KeyCombo(carbonKeyCode: globalKey.keyCode, carbonModifiers: globalKey.carbonFlags))
-    }
-    
-    func applicationWillBecomeActive(_ notification: Notification) {
-        let _ = Util.toggleDockIcon(Util.getIsKeepInDock())
     }
     
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
