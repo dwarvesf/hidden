@@ -96,11 +96,11 @@ class StatusBarController {
     }
     
     private func startTimerToAutoHide() {
-        self.timer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] timer in
+        timer?.invalidate()
+        self.timer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] _ in
             DispatchQueue.main.async {
                 self?.collapseMenuBar()
             }
-            timer.invalidate()
         }
     }
     
