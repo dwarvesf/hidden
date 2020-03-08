@@ -23,7 +23,13 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
 ## 🚀 Install
 
+###  App Store
+
 [![AppStore](/img/appstore.svg)](https://itunes.apple.com/app/hidden-bar/id1452453066)
+
+### Others
+
+The Hidden Bar is notarized before distributed out side App Store. It's safe to use 👍
 
 #### Using Homebrew
 
