@@ -34,6 +34,8 @@
 		92C97B8F220147FE0007559C /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B8E220147FE0007559C /* Constant.swift */; };
 		92C97B9122018C1F0007559C /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B9022018C1F0007559C /* StatusBarController.swift */; };
 		92D2122221FEE06600C92FF4 /* LauncherApplication.app in Sources */ = {isa = PBXBuildFile; fileRef = 92C5054E21FEC03B0084719A /* LauncherApplication.app */; };
+		967F4B2524169BC800F18D3C /* String+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 967F4B2424169BC800F18D3C /* String+Extension.swift */; };
+		967F4B2824169CAF00F18D3C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 967F4B2A24169CAF00F18D3C /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -81,6 +83,10 @@
 		92C97B8C220058740007559C /* NSView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+Extension.swift"; sourceTree = "<group>"; };
 		92C97B8E220147FE0007559C /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 		92C97B9022018C1F0007559C /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		967F4B2424169BC800F18D3C /* String+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extension.swift"; sourceTree = "<group>"; };
+		967F4B2924169CAF00F18D3C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		967F4B2B24169CB200F18D3C /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		967F4B2C24169CB400F18D3C /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B350A2CC23AAFB47003A04AC /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 		B8404C9A24041A4300E6DBF8 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
 		B8404C9B24041A4300E6DBF8 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
@@ -149,6 +155,7 @@
 				08A5F86323AA09F300981CA5 /* UserDefault+Extension.swift */,
 				08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */,
 				08B9F32B2411883300AA0551 /* NSWindow+Extension.swift */,
+				967F4B2424169BC800F18D3C /* String+Extension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -203,6 +210,7 @@
 				929113F821F9D04200173149 /* Assets.xcassets */,
 				929113FA21F9D04200173149 /* Main.storyboard */,
 				929113FD21F9D04200173149 /* Info.plist */,
+				967F4B2A24169CAF00F18D3C /* Localizable.strings */,
 			);
 			path = hidden;
 			sourceTree = "<group>";
@@ -335,6 +343,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				929113F921F9D04200173149 /* Assets.xcassets in Resources */,
+				967F4B2824169CAF00F18D3C /* Localizable.strings in Resources */,
 				929113FC21F9D04200173149 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -365,6 +374,7 @@
 				929113F521F9D04100173149 /* AppDelegate.swift in Sources */,
 				08C20FDE23AABDD10035D978 /* HyperlinkTextField.swift in Sources */,
 				92C97B88220032ED0007559C /* Util.swift in Sources */,
+				967F4B2524169BC800F18D3C /* String+Extension.swift in Sources */,
 				08A5F85A23AA007A00981CA5 /* PreferencesViewController.swift in Sources */,
 				3CF14C82221FA49D0083D42B /* PreferencesWindowController.swift in Sources */,
 				92C97B8B220049D20007559C /* NSBarButtonItem+Extension.swift in Sources */,
@@ -404,6 +414,16 @@
 				B8404C9B24041A4300E6DBF8 /* ja */,
 			);
 			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		967F4B2A24169CAF00F18D3C /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				967F4B2924169CAF00F18D3C /* en */,
+				967F4B2B24169CB200F18D3C /* zh-Hans */,
+				967F4B2C24169CB400F18D3C /* ja */,
+			);
+			name = Localizable.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -535,7 +555,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 9;
-				DEVELOPMENT_TEAM = W777S7V8TN;
+				DEVELOPMENT_TEAM = 2U23P5CPX2;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -560,7 +580,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 9;
-				DEVELOPMENT_TEAM = W777S7V8TN;
+				DEVELOPMENT_TEAM = 2U23P5CPX2;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -584,7 +604,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = W777S7V8TN;
+				DEVELOPMENT_TEAM = 2U23P5CPX2;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = LauncherApplication/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -608,7 +628,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = W777S7V8TN;
+				DEVELOPMENT_TEAM = 2U23P5CPX2;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = LauncherApplication/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (

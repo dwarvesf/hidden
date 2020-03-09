@@ -91,7 +91,7 @@ class PreferencesViewController: NSViewController {
     @IBAction func unregister(_ sender: Any?) {
         let appDelegate = NSApplication.shared.delegate as! AppDelegate
         appDelegate.hotKey = nil
-        btnShortcut.title = "Set Shortcut"
+        btnShortcut.title = "Set Shortcut".localized
         listening = false
         btnClear.isEnabled = false
         
