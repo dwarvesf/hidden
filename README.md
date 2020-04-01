@@ -65,6 +65,7 @@ macOS version >= 10.13
 
 ## You may also like
 - [Blurred](https://github.com/dwarvesf/Blurred) - A macOS utility that helps reduce distraction by dimming your inactive noise
+- [Micro Sniff](https://github.com/dwarvesf/micro-sniff) - An ultra-light macOS utility that notify whenever your micro-device is being used
 
 ## License
 
