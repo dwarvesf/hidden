@@ -62,4 +62,14 @@ enum Preferences {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isShowPreference)
         }
     }
+    
+    static var areSeparatorsHidden: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.areSeparatorsHidden)
+        }
+        
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.areSeparatorsHidden)
+        }
+    }
 }

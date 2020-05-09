@@ -47,7 +47,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             UserDefaults.Key.isAutoStart: false,
             UserDefaults.Key.isShowPreference: true,
             UserDefaults.Key.isAutoHide: true,
-            UserDefaults.Key.numberOfSecondForAutoHide: 10.0
+            UserDefaults.Key.numberOfSecondForAutoHide: 10.0,
+            UserDefaults.Key.areSeparatorsHidden: false
          ])
     }
     

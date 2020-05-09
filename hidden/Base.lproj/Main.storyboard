@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="15705" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="16096" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15705"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="16096"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -527,21 +527,21 @@
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                 </menuItem>
                                                                 <menuItem id="YGs-j5-SAR">
-                                                                    <string key="title">	Default</string>
+                                                                    <string key="title">    Default</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeBaseWritingDirectionNatural:" target="Ady-hI-5gd" id="qtV-5e-UBP"/>
                                                                     </connections>
                                                                 </menuItem>
                                                                 <menuItem id="Lbh-J2-qVU">
-                                                                    <string key="title">	Left to Right</string>
+                                                                    <string key="title">    Left to Right</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeBaseWritingDirectionLeftToRight:" target="Ady-hI-5gd" id="S0X-9S-QSf"/>
                                                                     </connections>
                                                                 </menuItem>
                                                                 <menuItem id="jFq-tB-4Kx">
-                                                                    <string key="title">	Right to Left</string>
+                                                                    <string key="title">    Right to Left</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeBaseWritingDirectionRightToLeft:" target="Ady-hI-5gd" id="5fk-qB-AqJ"/>
@@ -552,21 +552,21 @@
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                 </menuItem>
                                                                 <menuItem id="Nop-cj-93Q">
-                                                                    <string key="title">	Default</string>
+                                                                    <string key="title">    Default</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeTextWritingDirectionNatural:" target="Ady-hI-5gd" id="lPI-Se-ZHp"/>
                                                                     </connections>
                                                                 </menuItem>
                                                                 <menuItem id="BgM-ve-c93">
-                                                                    <string key="title">	Left to Right</string>
+                                                                    <string key="title">    Left to Right</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeTextWritingDirectionLeftToRight:" target="Ady-hI-5gd" id="caW-Bv-w94"/>
                                                                     </connections>
                                                                 </menuItem>
                                                                 <menuItem id="RB4-Sm-HuC">
-                                                                    <string key="title">	Right to Left</string>
+                                                                    <string key="title">    Right to Left</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeTextWritingDirectionRightToLeft:" target="Ady-hI-5gd" id="EXD-6r-ZUu"/>
@@ -1029,76 +1029,28 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="481"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <box autoresizesSubviews="NO" boxType="custom" borderType="none" title="Box" translatesAutoresizingMaskIntoConstraints="NO" id="Jjd-1G-63n">
-                                <rect key="frame" x="0.0" y="155" width="600" height="326"/>
+                            <box autoresizesSubviews="NO" misplaced="YES" boxType="custom" borderType="none" title="Box" translatesAutoresizingMaskIntoConstraints="NO" id="Jjd-1G-63n">
+                                <rect key="frame" x="0.0" y="189" width="600" height="292"/>
                                 <view key="contentView" id="TZd-5p-NFL">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="326"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="292"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ZE5-y9-i8b">
-                                            <rect key="frame" x="20" y="139" width="560" height="147"/>
+                                            <rect key="frame" x="20" y="0.0" width="560" height="286"/>
                                             <constraints>
-                                                <constraint firstAttribute="height" constant="147" id="aZi-hy-l77"/>
+                                                <constraint firstAttribute="height" constant="286" id="aZi-hy-l77"/>
                                             </constraints>
                                             <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="banner" id="kFd-Cj-ig9"/>
                                         </imageView>
-                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="RGE-Xv-zm5">
-                                            <rect key="frame" x="153" y="8" width="295" height="109"/>
-                                            <textFieldCell key="cell" alignment="center" id="k7C-e5-6a0">
-                                                <font key="font" metaFont="system"/>
-                                                <string key="title">In your Mac's menu bar, hold ⌘ and drag icons 
-between sections to configure Hidden Bar.</string>
-                                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                            </textFieldCell>
-                                        </textField>
-                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="vlT-cT-cRT">
-                                            <rect key="frame" x="47" y="179" width="82" height="28"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="28" id="9fR-gq-8Q7"/>
-                                            </constraints>
-                                            <textFieldCell key="cell" lineBreakMode="clipping" title="Hidden" id="cXt-8R-PHo">
-                                                <font key="font" metaFont="systemMedium" size="24"/>
-                                                <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
-                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                            </textFieldCell>
-                                        </textField>
-                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="U3K-oK-4ET">
-                                            <rect key="frame" x="239" y="179" width="78" height="28"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="28" id="KIQ-nq-0e8"/>
-                                            </constraints>
-                                            <textFieldCell key="cell" lineBreakMode="clipping" title="Shown" id="iyS-g5-5mk">
-                                                <font key="font" metaFont="systemMedium" size="24"/>
-                                                <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
-                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                            </textFieldCell>
-                                        </textField>
                                     </subviews>
                                     <constraints>
-                                        <constraint firstItem="RGE-Xv-zm5" firstAttribute="centerX" secondItem="TZd-5p-NFL" secondAttribute="centerX" id="0YR-Ph-sDI"/>
-                                        <constraint firstItem="vlT-cT-cRT" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="119" id="BdC-yO-RZC"/>
-                                        <constraint firstAttribute="bottom" secondItem="RGE-Xv-zm5" secondAttribute="bottom" constant="8" id="BvJ-gy-2qG"/>
                                         <constraint firstItem="ZE5-y9-i8b" firstAttribute="leading" secondItem="TZd-5p-NFL" secondAttribute="leading" constant="20" id="IAn-7K-HFZ"/>
                                         <constraint firstItem="ZE5-y9-i8b" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="40" id="JZE-pj-Lxm"/>
-                                        <constraint firstItem="vlT-cT-cRT" firstAttribute="leading" secondItem="TZd-5p-NFL" secondAttribute="leading" constant="49" id="Owf-CP-dZy"/>
-                                        <constraint firstItem="RGE-Xv-zm5" firstAttribute="top" secondItem="ZE5-y9-i8b" secondAttribute="bottom" constant="22" id="PTc-jH-uwR"/>
                                         <constraint firstAttribute="trailing" secondItem="ZE5-y9-i8b" secondAttribute="trailing" constant="20" id="Sw1-lS-hmE"/>
-                                        <constraint firstAttribute="trailing" secondItem="U3K-oK-4ET" secondAttribute="trailing" constant="285" id="VJe-5e-or5"/>
-                                        <constraint firstItem="U3K-oK-4ET" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="vlT-cT-cRT" secondAttribute="trailing" constant="8" symbolic="YES" id="rnC-4c-gVc"/>
-                                        <constraint firstItem="U3K-oK-4ET" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="119" id="wkN-ou-lsT"/>
                                     </constraints>
                                 </view>
                                 <color key="fillColor" name="quaternaryLabelColor" catalog="System" colorSpace="catalog"/>
                             </box>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aZz-jM-wCs">
-                                <rect key="frame" x="18" y="113" width="91" height="26"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Settings" id="1Is-Ut-a9h">
-                                    <font key="font" metaFont="systemBold" size="22"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
                             <stackView distribution="fill" orientation="horizontal" alignment="top" spacing="35" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="I1C-Eb-1or">
                                 <rect key="frame" x="16" y="20" width="568" height="73"/>
                                 <subviews>
@@ -1255,6 +1207,14 @@ between sections to configure Hidden Bar.</string>
                                     <real value="3.4028234663852886e+38"/>
                                 </customSpacing>
                             </stackView>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="aZz-jM-wCs">
+                                <rect key="frame" x="18" y="146" width="91" height="26"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="Settings" id="1Is-Ut-a9h">
+                                    <font key="font" metaFont="systemBold" size="22"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                         <constraints>
                             <constraint firstItem="aZz-jM-wCs" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" id="8Mi-9O-H6u"/>
@@ -1276,17 +1236,16 @@ between sections to configure Hidden Bar.</string>
                         <outlet property="checkBoxLogin" destination="cbR-Jv-adm" id="DFO-De-0KU"/>
                         <outlet property="checkBoxShowPreferences" destination="gWT-L1-Xdf" id="sC8-cw-Fmh"/>
                         <outlet property="imageViewTop" destination="ZE5-y9-i8b" id="wNv-Wx-ILV"/>
-                        <outlet property="textFieldTitle" destination="RGE-Xv-zm5" id="v43-3R-PwU"/>
                         <outlet property="timePopup" destination="T6r-65-Oor" id="E7R-qd-xOq"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-295" y="828"/>
+            <point key="canvasLocation" x="-295" y="827.5"/>
         </scene>
     </scenes>
     <resources>
-        <image name="banner" width="512" height="136.5"/>
+        <image name="banner" width="512" height="247"/>
         <image name="ic_logo" width="1024" height="1024"/>
         <image name="ico_compass" width="372" height="384"/>
         <image name="ico_email" width="384" height="384"/>
