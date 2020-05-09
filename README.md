@@ -5,18 +5,12 @@
 ## Hidden Bar
 Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
-<p align="center">
-	<img width="400" src="img/screen1.png">
-	<img width="400" src="img/screen2.png">
-</p>
-
-
 ## Official Version
 [is here](), as well as all important information
 
-## Changes
-This version adds Always Hidden section of apps and allows to hide separators.
-The setting can be turned on or of in app's preferences. Note that you can encouter some problems if you don't restart.
+## Changes from Official Version
+This version adds `Always Hidden` section of apps and allows to hide separators.
+`Always Hidden` can be enabled or disabled in app's preferences. Note that you can encouter some problems if you don't restart.
 
 ## License
 
