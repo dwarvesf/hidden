@@ -6,7 +6,7 @@
 Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
 ## Official Version
-[is here](), as well as all important information
+[is here](https://github.com/dwarvesf/hidden), as well as all important information
 
 ## Changes from Official Version
 This version adds `Always Hidden` section of apps and allows to hide separators.
