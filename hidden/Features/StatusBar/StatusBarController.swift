@@ -16,14 +16,21 @@ class StatusBarController {
     //MARK: - BarItems
     private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let separateStatusBar = NSStatusBar.system.statusItem(withLength: CGFloat(20))
-    private let terminateStatusBar = NSStatusBar.system.statusItem(withLength: CGFloat(20))
+    private let terminateStatusBar = NSStatusBar.system.statusItem(withLength: Preferences.alwaysHiddenModeEnabled ? CGFloat(20) : CGFloat(0))
     
     private let hiddenIconLength: CGFloat = 0
     private let normalIconLength: CGFloat = 20
-    private var normalStatusBarIconLength: CGFloat {
+    private let collapseIconLength: CGFloat = 10000
+    
+    private var normalSeparateIconLength: CGFloat {
         return self.areSeparatorsHidden ? self.hiddenIconLength : self.normalIconLength
     }
-    private let collapseStatusBarIconLength: CGFloat = 10000
+    private var normalTerminateIconLength: CGFloat {
+        return Preferences.alwaysHiddenModeEnabled ? self.normalIconLength : self.hiddenIconLength
+    }
+    private var collapseTerminateIconLength: CGFloat {
+        return Preferences.alwaysHiddenModeEnabled ? self.collapseIconLength : self.hiddenIconLength
+    }
     
     private let menu = NSMenu()
     
@@ -32,11 +39,11 @@ class StatusBarController {
     private let imgIconExpand = NSImage(named:NSImage.Name("ic_expand"))
     
     private var isCollapsed: Bool {
-        return self.separateStatusBar.length == self.collapseStatusBarIconLength
+        return self.separateStatusBar.length == self.collapseIconLength
     }
     
     private var areSeparatorsHidden: Bool {
-        return self.terminateStatusBar.length == self.collapseStatusBarIconLength
+        return Preferences.areSeparatorsHidden
     }
     
     private var isValidPosition: Bool {
@@ -49,6 +56,8 @@ class StatusBarController {
     }
     
     private var isValidTogglablePosition: Bool {
+        if !Preferences.alwaysHiddenModeEnabled { return true }
+        
         guard
             let separateBarButtonX = self.separateStatusBar.button?.getOrigin?.x,
             let terminateBarButtonX = self.terminateStatusBar.button?.getOrigin?.x
@@ -66,7 +75,10 @@ class StatusBarController {
         })
         
         autoCollapseIfNeeded()
-        autoToggleSeparatorsIfNeeded()
+        
+        if areSeparatorsHidden {
+            self.hideSeparators()
+        }
     }
     
     private func setupUI() {
@@ -108,7 +120,7 @@ class StatusBarController {
             return
         }
         
-        separateStatusBar.length = self.collapseStatusBarIconLength
+        separateStatusBar.length = self.collapseIconLength
         if let button = expandCollapseStatusBar.button {
             button.image = self.imgIconExpand
         }
@@ -117,7 +129,7 @@ class StatusBarController {
     
     private func expandMenubar() {
         guard self.isCollapsed else {return}
-        separateStatusBar.length = normalStatusBarIconLength
+        separateStatusBar.length = normalSeparateIconLength
         if let button = expandCollapseStatusBar.button {
             button.image = self.imgIconCollapse
         }
@@ -166,26 +178,21 @@ class StatusBarController {
     }
     
     private func hideSeparators() {
-        guard self.isValidTogglablePosition && !self.areSeparatorsHidden else { return }
-        
-        terminateStatusBar.length = collapseStatusBarIconLength
-        separateStatusBar.length = normalStatusBarIconLength
+        guard self.isValidTogglablePosition else {
+            Preferences.areSeparatorsHidden = false
+            return
+        }
         
         Preferences.areSeparatorsHidden = true
+
+        terminateStatusBar.length = collapseTerminateIconLength
+        separateStatusBar.length = normalSeparateIconLength
     }
     
     private func showSeparators() {
-        guard self.areSeparatorsHidden else {return}
-        
-        terminateStatusBar.length = normalIconLength
-        separateStatusBar.length = normalStatusBarIconLength
-        
         Preferences.areSeparatorsHidden = false
-    }
-    
-    private func autoToggleSeparatorsIfNeeded() {
-        guard Preferences.areSeparatorsHidden && !self.areSeparatorsHidden else {return}
         
-        self.hideSeparators()
+        terminateStatusBar.length = normalTerminateIconLength
+        separateStatusBar.length = normalSeparateIconLength
     }
 }

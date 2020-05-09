@@ -72,4 +72,14 @@ enum Preferences {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.areSeparatorsHidden)
         }
     }
+    
+    static var alwaysHiddenModeEnabled: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.alwaysHiddenModeEnabled)
+        }
+        
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.alwaysHiddenModeEnabled)
+        }
+    }
 }

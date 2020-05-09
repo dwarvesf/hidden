@@ -21,6 +21,7 @@ class PreferencesViewController: NSViewController {
     @IBOutlet weak var checkBoxKeepInDock: NSButton!
     @IBOutlet weak var checkBoxLogin: NSButton!
     @IBOutlet weak var checkBoxShowPreferences: NSButton!
+    @IBOutlet weak var checkBoxAlwaysHiddenModeEnabled: NSButton!
     
     @IBOutlet weak var timePopup: NSPopUpButton!
     
@@ -72,6 +73,11 @@ class PreferencesViewController: NSViewController {
     
     @IBAction func showPreferencesChanged(_ sender: NSButton) {
         Preferences.isShowPreference = sender.state == .on
+    }
+    
+    @IBAction func alwaysHiddenModeEnabledChanged(_ sender: NSButton) {
+        Preferences.alwaysHiddenModeEnabled = sender.state == .on
+        Preferences.areSeparatorsHidden = false
     }
     
     @IBAction func timePopupDidSelected(_ sender: NSPopUpButton) {
@@ -145,6 +151,7 @@ class PreferencesViewController: NSViewController {
         checkBoxLogin.state = Preferences.isAutoStart ? .on : .off
         checkBoxAutoHide.state = Preferences.isAutoHide ? .on : .off
         checkBoxShowPreferences.state = Preferences.isShowPreference ? .on : .off
+        checkBoxAlwaysHiddenModeEnabled.state = Preferences.alwaysHiddenModeEnabled ? .on : .off
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Preferences.numberOfSecondForAutoHide))
     }
     
