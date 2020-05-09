@@ -77,7 +77,6 @@ class PreferencesViewController: NSViewController {
     
     @IBAction func alwaysHiddenModeEnabledChanged(_ sender: NSButton) {
         Preferences.alwaysHiddenModeEnabled = sender.state == .on
-        Preferences.areSeparatorsHidden = false
     }
     
     @IBAction func timePopupDidSelected(_ sender: NSPopUpButton) {

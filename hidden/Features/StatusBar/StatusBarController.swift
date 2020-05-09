@@ -157,7 +157,7 @@ class StatusBarController {
         toggleItem.target = self
         self.menu.addItem(toggleItem)
         
-        let prefItem = NSMenuItem(title: "Preferences...".localized, action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: "")
+        let prefItem = NSMenuItem(title: "Preferences...".localized, action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: ",")
         prefItem.target = self
         self.menu.addItem(prefItem)
 
