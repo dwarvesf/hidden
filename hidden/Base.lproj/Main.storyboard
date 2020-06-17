@@ -1073,7 +1073,7 @@
                                             </button>
                                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gbc-hh-BWq">
                                                 <rect key="frame" x="-2" y="33" width="296" height="18"/>
-                                                <buttonCell key="cell" type="check" title="Enanle Always hidden section (needs restart)" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Kux-8M-eoW">
+                                                <buttonCell key="cell" type="check" title="Enable Always hidden section (needs restart)" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Kux-8M-eoW">
                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                     <font key="font" metaFont="system"/>
                                                 </buttonCell>
