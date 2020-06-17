@@ -103,10 +103,16 @@ class StatusBarController {
     }
     
     @objc func statusBarButtonClicked(sender: NSStatusBarButton) {
-        if NSApp.currentEvent!.type == NSEvent.EventType.leftMouseUp {
-            expandCollapseIfNeeded(sender)
-        } else {
-            expandCollapseStatusBar.popUpMenu(self.menu)
+        
+        if let event = NSApp.currentEvent {
+            
+            let isOptionKeyPressed = event.modifierFlags.contains(NSEvent.ModifierFlags.option)
+            
+            if event.type == NSEvent.EventType.leftMouseUp && !isOptionKeyPressed {
+                expandCollapseIfNeeded(sender)
+            } else {
+                expandCollapseStatusBar.popUpMenu(self.menu)
+            }
         }
     }
     
