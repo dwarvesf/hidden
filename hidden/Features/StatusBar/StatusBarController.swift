@@ -39,6 +39,7 @@ class StatusBarController {
     
     //MARK: - Methods
     init() {
+        
         setupUI()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
@@ -60,6 +61,9 @@ class StatusBarController {
             button.target = self
             button.action = #selector(expandCollapseIfNeeded(_:))
         }
+        
+        expandCollapseStatusBar.autosaveName = "hiddenbar_expandcollapse";
+        separateStatusBar.autosaveName = "hiddenbar_separate";
     }
     
     @objc func expandCollapseIfNeeded(_ sender: NSStatusBarButton?) {
