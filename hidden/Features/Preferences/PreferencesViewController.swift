@@ -38,8 +38,8 @@ class PreferencesViewController: NSViewController {
     }
     
     //MARK: - VC Life cycle
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override func viewDidAppear() {
+        super.viewDidAppear()
         setupUI()
         loadHotkey()
     }
@@ -51,19 +51,7 @@ class PreferencesViewController: NSViewController {
     
     //MARK: - Actions
     @IBAction func loginCheckChanged(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            self.autoStart(true)
-            
-        case .off:
-            self.autoStart(false)
-        default:
-            break
-        }
-    }
-    
-    @objc func autoStart(_ isCheck: Bool){
-        Preferences.isAutoStart = isCheck
+        Preferences.isAutoStart = sender.state == .on
     }
     
     @IBAction func autoHideCheckChanged(_ sender: NSButton) {
