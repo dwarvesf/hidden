@@ -7,6 +7,8 @@
 */
 
 "Preferences..." = "偏好设置...";
-"Toggle Auto Hide" = "切换自动隐藏";
+"Toggle Auto Collapse" = "切换自动折叠";
+"Enable Auto Collapse" = "开启自动折叠";
+"Disable Auto Collapse" = "关闭自动折叠";
 "Quit" = "退出";
 "Set Shortcut" = "设置快捷键";

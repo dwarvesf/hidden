@@ -115,9 +115,19 @@ class StatusBarController {
         prefItem.target = self
         menu.addItem(prefItem)
         
-        let toggleAutoHideItem = NSMenuItem(title: "Toggle Auto Hide".localized, action: #selector(toggleAutoHide), keyEquivalent: "t")
+        let toggleAutoHideItem = NSMenuItem(title: "Toggle Auto Collapse".localized, action: #selector(toggleAutoHide), keyEquivalent: "t")
         toggleAutoHideItem.target = self
         menu.addItem(toggleAutoHideItem)
+        
+        Preferences.autoHideChangeHandler = {
+            if Preferences.isAutoHide {
+                toggleAutoHideItem.title = "Disable Auto Collapse".localized
+            } else {
+                toggleAutoHideItem.title = "Enable Auto Collapse".localized
+            }
+        }
+        
+        Preferences.autoHideChangeHandler()
 
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit".localized, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
