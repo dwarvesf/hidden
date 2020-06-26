@@ -38,10 +38,12 @@ class PreferencesViewController: NSViewController {
     }
     
     //MARK: - VC Life cycle
-    override func viewDidAppear() {
-        super.viewDidAppear()
-        setupUI()
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        updateData()
         loadHotkey()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
     }
     
     static func initWithStoryboard() -> PreferencesViewController {
@@ -128,7 +130,7 @@ class PreferencesViewController: NSViewController {
         
     }
     
-    private func setupUI(){
+    @objc private func updateData(){
         imageViewTop.image = NSImage(named:NSImage.Name("banner"))
         checkBoxLogin.state = Preferences.isAutoStart ? .on : .off
         checkBoxAutoHide.state = Preferences.isAutoHide ? .on : .off

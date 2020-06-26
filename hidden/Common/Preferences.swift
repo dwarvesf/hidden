@@ -18,6 +18,8 @@ enum Preferences {
         set {
             guard let data = try? JSONEncoder().encode(newValue) else { return }
             UserDefaults.standard.set(data, forKey: UserDefaults.Key.globalKey)
+            
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
     
@@ -30,6 +32,8 @@ enum Preferences {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isAutoStart)
             
             Util.setUpAutoStart(isAutoStart: newValue)
+            
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
     
@@ -40,6 +44,8 @@ enum Preferences {
         
         set {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.numberOfSecondForAutoHide)
+            
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
     
@@ -50,10 +56,10 @@ enum Preferences {
         
         set {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isAutoHide)
-            autoHideChangeHandler()
+            
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
-    static var autoHideChangeHandler = {}
     
     static var isShowPreference: Bool {
         get {
@@ -62,6 +68,8 @@ enum Preferences {
         
         set {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isShowPreference)
+            
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
 }
