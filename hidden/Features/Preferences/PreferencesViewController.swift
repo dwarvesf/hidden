@@ -40,8 +40,10 @@ class PreferencesViewController: NSViewController {
     //MARK: - VC Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        updateData()
         loadHotkey()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
     }
     
     static func initWithStoryboard() -> PreferencesViewController {
@@ -51,19 +53,7 @@ class PreferencesViewController: NSViewController {
     
     //MARK: - Actions
     @IBAction func loginCheckChanged(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            self.autoStart(true)
-            
-        case .off:
-            self.autoStart(false)
-        default:
-            break
-        }
-    }
-    
-    @objc func autoStart(_ isCheck: Bool){
-        Preferences.isAutoStart = isCheck
+        Preferences.isAutoStart = sender.state == .on
     }
     
     @IBAction func autoHideCheckChanged(_ sender: NSButton) {
@@ -140,7 +130,7 @@ class PreferencesViewController: NSViewController {
         
     }
     
-    private func setupUI(){
+    @objc private func updateData(){
         imageViewTop.image = NSImage(named:NSImage.Name("banner"))
         checkBoxLogin.state = Preferences.isAutoStart ? .on : .off
         checkBoxAutoHide.state = Preferences.isAutoHide ? .on : .off

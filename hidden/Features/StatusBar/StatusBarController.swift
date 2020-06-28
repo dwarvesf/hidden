@@ -111,17 +111,39 @@ class StatusBarController {
     private func getContextMenu() -> NSMenu {
         let menu = NSMenu()
         
-        let  prefItem = NSMenuItem(title: "Preferences...".localized, action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: "P")
+        let prefItem = NSMenuItem(title: "Preferences...".localized, action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: "P")
         prefItem.target = self
         menu.addItem(prefItem)
+        
+        let toggleAutoHideItem = NSMenuItem(title: "Toggle Auto Collapse".localized, action: #selector(toggleAutoHide), keyEquivalent: "t")
+        toggleAutoHideItem.target = self
+        toggleAutoHideItem.tag = 1
+        NotificationCenter.default.addObserver(self, selector: #selector(updateMenuTitles), name: .prefsChanged, object: nil)
+        menu.addItem(toggleAutoHideItem)
+        
+        updateMenuTitles()
 
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit".localized, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         
+        
         return menu
+    }
+    
+    @objc func updateMenuTitles() {
+        guard let toggleAutoHideItem = separateStatusBar.menu?.item(withTag: 1) else { return }
+        if Preferences.isAutoHide {
+            toggleAutoHideItem.title = "Disable Auto Collapse".localized
+        } else {
+            toggleAutoHideItem.title = "Enable Auto Collapse".localized
+        }
     }
     
     @objc func openPreferenceViewControllerIfNeeded() {
         Util.showPrefWindow()
+    }
+    
+    @objc func toggleAutoHide() {
+        Preferences.isAutoHide.toggle()
     }
 }
