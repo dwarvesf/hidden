@@ -55,6 +55,7 @@ class StatusBarController {
         }
         
         separateStatusBar.menu = self.getContextMenu()
+        updateMenuTitles()
         
         if let button = expandCollapseStatusBar.button {
             button.image = self.imgIconCollapse
@@ -89,12 +90,12 @@ class StatusBarController {
         if let button = expandCollapseStatusBar.button {
             button.image = self.imgIconCollapse
         }
-        
         autoCollapseIfNeeded()
     }
     
     private func autoCollapseIfNeeded() {
         guard Preferences.isAutoHide else {return}
+        guard !isCollapsed else { return }
         
         startTimerToAutoHide()
     }
@@ -103,7 +104,9 @@ class StatusBarController {
         timer?.invalidate()
         self.timer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] _ in
             DispatchQueue.main.async {
-                self?.collapseMenuBar()
+                if Preferences.isAutoHide {
+                    self?.collapseMenuBar()
+                }
             }
         }
     }
@@ -118,25 +121,27 @@ class StatusBarController {
         let toggleAutoHideItem = NSMenuItem(title: "Toggle Auto Collapse".localized, action: #selector(toggleAutoHide), keyEquivalent: "t")
         toggleAutoHideItem.target = self
         toggleAutoHideItem.tag = 1
-        NotificationCenter.default.addObserver(self, selector: #selector(updateMenuTitles), name: .prefsChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
         menu.addItem(toggleAutoHideItem)
-        
-        updateMenuTitles()
 
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit".localized, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         
-        
         return menu
     }
     
-    @objc func updateMenuTitles() {
+    private func updateMenuTitles() {
         guard let toggleAutoHideItem = separateStatusBar.menu?.item(withTag: 1) else { return }
         if Preferences.isAutoHide {
             toggleAutoHideItem.title = "Disable Auto Collapse".localized
         } else {
             toggleAutoHideItem.title = "Enable Auto Collapse".localized
         }
+    }
+    
+    @objc func updateAutoHide() {
+        updateMenuTitles()
+        autoCollapseIfNeeded()
     }
     
     @objc func openPreferenceViewControllerIfNeeded() {
