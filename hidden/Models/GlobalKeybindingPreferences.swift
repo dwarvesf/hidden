@@ -39,9 +39,20 @@ struct GlobalKeybindPreferences: Codable, CustomStringConvertible {
         if self.capsLock {
             stringBuilder += "⇪"
         }
+        if keyCode == 36 { // return
+            stringBuilder += "⏎"
+            return stringBuilder
+        }
+        
+        if keyCode == 51 { // delete
+            stringBuilder += "⌫"
+            return stringBuilder
+        }
+        
         if let characters = self.characters {
             stringBuilder += characters.uppercased()
         }
+        
         return "\(stringBuilder)"
     }
 }

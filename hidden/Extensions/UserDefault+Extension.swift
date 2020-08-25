@@ -16,4 +16,8 @@ extension UserDefaults {
         static let isAutoHide = "isAutoHide"
         static let isShowPreference = "isShowPreferences"
     }
+    
+    open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        print("hi!")
+    }
 }
