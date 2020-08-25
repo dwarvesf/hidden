@@ -126,7 +126,7 @@ class PreferencesViewController: NSViewController {
             characters: nil,
             keyCode: uint32(event.keyCode))
         
-        updateKeybindButton(newGlobalKeybind)
+        updateModifierbindButton(newGlobalKeybind)
         
     }
     
@@ -148,11 +148,20 @@ class PreferencesViewController: NSViewController {
     // Set the shortcut button to show the keys to press
     private func updateKeybindButton(_ globalKeybindPreference : GlobalKeybindPreferences) {
         btnShortcut.title = globalKeybindPreference.description
-
-        if globalKeybindPreference.description.isEmpty {
+        
+        if globalKeybindPreference.description.count <= 1 {
             unregister(nil)
         }
     }
+    
+    // Set the shortcut button to show the modifier to press
+      private func updateModifierbindButton(_ globalKeybindPreference : GlobalKeybindPreferences) {
+          btnShortcut.title = globalKeybindPreference.description
+          
+          if globalKeybindPreference.description.isEmpty {
+              unregister(nil)
+          }
+      }
     
     // If a keybind is set, allow users to clear it by enabling the clear button.
     private func updateClearButton(_ globalKeybindPreference : GlobalKeybindPreferences?) {
