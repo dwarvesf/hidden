@@ -21,7 +21,9 @@ class PreferencesViewController: NSViewController {
     @IBOutlet weak var checkBoxKeepInDock: NSButton!
     @IBOutlet weak var checkBoxLogin: NSButton!
     @IBOutlet weak var checkBoxShowPreferences: NSButton!
-    @IBOutlet weak var checkBoxAlwaysHiddenModeEnabled: NSButton!
+    
+    @IBOutlet weak var checkBoxShowAlwaysHiddenSection: NSButton!
+    
     
     @IBOutlet weak var timePopup: NSPopUpButton!
     
@@ -41,8 +43,10 @@ class PreferencesViewController: NSViewController {
     //MARK: - VC Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        updateData()
         loadHotkey()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
     }
     
     static func initWithStoryboard() -> PreferencesViewController {
@@ -52,19 +56,7 @@ class PreferencesViewController: NSViewController {
     
     //MARK: - Actions
     @IBAction func loginCheckChanged(_ sender: NSButton) {
-        switch sender.state {
-        case .on:
-            self.autoStart(true)
-            
-        case .off:
-            self.autoStart(false)
-        default:
-            break
-        }
-    }
-    
-    @objc func autoStart(_ isCheck: Bool){
-        Preferences.isAutoStart = isCheck
+        Preferences.isAutoStart = sender.state == .on
     }
     
     @IBAction func autoHideCheckChanged(_ sender: NSButton) {
@@ -75,9 +67,11 @@ class PreferencesViewController: NSViewController {
         Preferences.isShowPreference = sender.state == .on
     }
     
-    @IBAction func alwaysHiddenModeEnabledChanged(_ sender: NSButton) {
-        Preferences.alwaysHiddenModeEnabled = sender.state == .on
+    
+    @IBAction func showAlwaysHiddenSectionChanged(_ sender: NSButton) {
+        Preferences.alwaysHiddenSectionEnabled = sender.state == .on
     }
+    
     
     @IBAction func timePopupDidSelected(_ sender: NSPopUpButton) {
         let selectedIndex = sender.indexOfSelectedItem
@@ -141,16 +135,16 @@ class PreferencesViewController: NSViewController {
             characters: nil,
             keyCode: uint32(event.keyCode))
         
-        updateKeybindButton(newGlobalKeybind)
+        updateModifierbindButton(newGlobalKeybind)
         
     }
     
-    private func setupUI(){
+    @objc private func updateData(){
         imageViewTop.image = NSImage(named:NSImage.Name("banner"))
         checkBoxLogin.state = Preferences.isAutoStart ? .on : .off
         checkBoxAutoHide.state = Preferences.isAutoHide ? .on : .off
         checkBoxShowPreferences.state = Preferences.isShowPreference ? .on : .off
-        checkBoxAlwaysHiddenModeEnabled.state = Preferences.alwaysHiddenModeEnabled ? .on : .off
+        checkBoxShowAlwaysHiddenSection.state = Preferences.alwaysHiddenSectionEnabled ? .on : .off
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Preferences.numberOfSecondForAutoHide))
     }
     
@@ -164,11 +158,20 @@ class PreferencesViewController: NSViewController {
     // Set the shortcut button to show the keys to press
     private func updateKeybindButton(_ globalKeybindPreference : GlobalKeybindPreferences) {
         btnShortcut.title = globalKeybindPreference.description
-
-        if globalKeybindPreference.description.isEmpty {
+        
+        if globalKeybindPreference.description.count <= 1 {
             unregister(nil)
         }
     }
+    
+    // Set the shortcut button to show the modifier to press
+      private func updateModifierbindButton(_ globalKeybindPreference : GlobalKeybindPreferences) {
+          btnShortcut.title = globalKeybindPreference.description
+          
+          if globalKeybindPreference.description.isEmpty {
+              unregister(nil)
+          }
+      }
     
     // If a keybind is set, allow users to clear it by enabling the clear button.
     private func updateClearButton(_ globalKeybindPreference : GlobalKeybindPreferences?) {

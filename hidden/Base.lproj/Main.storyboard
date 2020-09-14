@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="16096" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="16097.3" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="16096"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="16097.3"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -526,19 +526,22 @@
                                                                 <menuItem title="Paragraph" enabled="NO" id="ZvO-Gk-QUH">
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                 </menuItem>
-                                                                <menuItem title="    Default" id="YGs-j5-SAR">
+                                                                <menuItem id="YGs-j5-SAR">
+                                                                    <string key="title">	Default</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeBaseWritingDirectionNatural:" target="Ady-hI-5gd" id="qtV-5e-UBP"/>
                                                                     </connections>
                                                                 </menuItem>
-                                                                <menuItem title="    Left to Right" id="Lbh-J2-qVU">
+                                                                <menuItem id="Lbh-J2-qVU">
+                                                                    <string key="title">	Left to Right</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeBaseWritingDirectionLeftToRight:" target="Ady-hI-5gd" id="S0X-9S-QSf"/>
                                                                     </connections>
                                                                 </menuItem>
-                                                                <menuItem title="    Right to Left" id="jFq-tB-4Kx">
+                                                                <menuItem id="jFq-tB-4Kx">
+                                                                    <string key="title">	Right to Left</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeBaseWritingDirectionRightToLeft:" target="Ady-hI-5gd" id="5fk-qB-AqJ"/>
@@ -548,19 +551,22 @@
                                                                 <menuItem title="Selection" enabled="NO" id="cqv-fj-IhA">
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                 </menuItem>
-                                                                <menuItem title="    Default" id="Nop-cj-93Q">
+                                                                <menuItem id="Nop-cj-93Q">
+                                                                    <string key="title">	Default</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeTextWritingDirectionNatural:" target="Ady-hI-5gd" id="lPI-Se-ZHp"/>
                                                                     </connections>
                                                                 </menuItem>
-                                                                <menuItem title="    Left to Right" id="BgM-ve-c93">
+                                                                <menuItem id="BgM-ve-c93">
+                                                                    <string key="title">	Left to Right</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeTextWritingDirectionLeftToRight:" target="Ady-hI-5gd" id="caW-Bv-w94"/>
                                                                     </connections>
                                                                 </menuItem>
-                                                                <menuItem title="    Right to Left" id="RB4-Sm-HuC">
+                                                                <menuItem id="RB4-Sm-HuC">
+                                                                    <string key="title">	Right to Left</string>
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeTextWritingDirectionRightToLeft:" target="Ady-hI-5gd" id="EXD-6r-ZUu"/>
@@ -1020,33 +1026,81 @@
             <objects>
                 <viewController storyboardIdentifier="prefVC" showSeguePresentationStyle="single" id="XfG-lQ-9wD" customClass="PreferencesViewController" customModule="Hidden_Bar" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" wantsLayer="YES" id="m2S-Jp-Qdl">
-                        <rect key="frame" x="0.0" y="0.0" width="648" height="481"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="481"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <box autoresizesSubviews="NO" misplaced="YES" boxType="custom" borderType="none" title="Box" translatesAutoresizingMaskIntoConstraints="NO" id="Jjd-1G-63n">
-                                <rect key="frame" x="0.0" y="189" width="600" height="292"/>
+                            <box autoresizesSubviews="NO" boxType="custom" borderType="none" title="Box" translatesAutoresizingMaskIntoConstraints="NO" id="Jjd-1G-63n">
+                                <rect key="frame" x="0.0" y="179" width="600" height="302"/>
                                 <view key="contentView" id="TZd-5p-NFL">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="292"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="302"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ZE5-y9-i8b">
-                                            <rect key="frame" x="20" y="-24" width="608" height="286"/>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="RGE-Xv-zm5">
+                                            <rect key="frame" x="153" y="8" width="295" height="72"/>
+                                            <textFieldCell key="cell" alignment="center" id="k7C-e5-6a0">
+                                                <font key="font" metaFont="system"/>
+                                                <string key="title">In your Mac's menu bar, hold ⌘ and drag icons 
+between sections to configure Hidden Bar.</string>
+                                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZE5-y9-i8b">
+                                            <rect key="frame" x="20" y="113" width="560" height="147"/>
                                             <constraints>
-                                                <constraint firstAttribute="height" constant="286" id="aZi-hy-l77"/>
+                                                <constraint firstAttribute="height" constant="147" id="aZi-hy-l77"/>
                                             </constraints>
                                             <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="banner" id="kFd-Cj-ig9"/>
                                         </imageView>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vlT-cT-cRT">
+                                            <rect key="frame" x="47" y="153" width="82" height="28"/>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="28" id="9fR-gq-8Q7"/>
+                                            </constraints>
+                                            <textFieldCell key="cell" lineBreakMode="clipping" title="Hidden" id="cXt-8R-PHo">
+                                                <font key="font" metaFont="systemMedium" size="24"/>
+                                                <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="U3K-oK-4ET">
+                                            <rect key="frame" x="239" y="153" width="78" height="28"/>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="28" id="KIQ-nq-0e8"/>
+                                            </constraints>
+                                            <textFieldCell key="cell" lineBreakMode="clipping" title="Shown" id="iyS-g5-5mk">
+                                                <font key="font" metaFont="systemMedium" size="24"/>
+                                                <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
                                     </subviews>
                                     <constraints>
+                                        <constraint firstItem="RGE-Xv-zm5" firstAttribute="centerX" secondItem="TZd-5p-NFL" secondAttribute="centerX" id="0YR-Ph-sDI"/>
+                                        <constraint firstItem="vlT-cT-cRT" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="119" id="BdC-yO-RZC"/>
+                                        <constraint firstAttribute="bottom" secondItem="RGE-Xv-zm5" secondAttribute="bottom" constant="8" id="BvJ-gy-2qG"/>
                                         <constraint firstItem="ZE5-y9-i8b" firstAttribute="leading" secondItem="TZd-5p-NFL" secondAttribute="leading" constant="20" id="IAn-7K-HFZ"/>
                                         <constraint firstItem="ZE5-y9-i8b" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="40" id="JZE-pj-Lxm"/>
+                                        <constraint firstItem="vlT-cT-cRT" firstAttribute="leading" secondItem="TZd-5p-NFL" secondAttribute="leading" constant="49" id="Owf-CP-dZy"/>
+                                        <constraint firstItem="RGE-Xv-zm5" firstAttribute="top" secondItem="ZE5-y9-i8b" secondAttribute="bottom" constant="35" id="PTc-jH-uwR"/>
                                         <constraint firstAttribute="trailing" secondItem="ZE5-y9-i8b" secondAttribute="trailing" constant="20" id="Sw1-lS-hmE"/>
+                                        <constraint firstAttribute="trailing" secondItem="U3K-oK-4ET" secondAttribute="trailing" constant="285" id="VJe-5e-or5"/>
+                                        <constraint firstItem="U3K-oK-4ET" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="vlT-cT-cRT" secondAttribute="trailing" constant="8" symbolic="YES" id="rnC-4c-gVc"/>
+                                        <constraint firstItem="U3K-oK-4ET" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="119" id="wkN-ou-lsT"/>
                                     </constraints>
                                 </view>
                                 <color key="fillColor" name="quaternaryLabelColor" catalog="System" colorSpace="catalog"/>
                             </box>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aZz-jM-wCs">
+                                <rect key="frame" x="18" y="137" width="91" height="26"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="Settings" id="1Is-Ut-a9h">
+                                    <font key="font" metaFont="systemBold" size="22"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                             <stackView distribution="fill" orientation="horizontal" alignment="top" spacing="35" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="I1C-Eb-1or">
-                                <rect key="frame" x="16" y="20" width="616" height="97"/>
+                                <rect key="frame" x="16" y="20" width="568" height="97"/>
                                 <subviews>
                                     <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="10" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="do4-pv-o3U">
                                         <rect key="frame" x="0.0" y="0.0" width="304" height="97"/>
@@ -1071,14 +1125,14 @@
                                                     <action selector="showPreferencesChanged:" target="XfG-lQ-9wD" id="UYB-yR-xTM"/>
                                                 </connections>
                                             </button>
-                                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gbc-hh-BWq">
-                                                <rect key="frame" x="-2" y="33" width="296" height="18"/>
-                                                <buttonCell key="cell" type="check" title="Enable Always hidden section (needs restart)" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Kux-8M-eoW">
+                                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yaS-iD-h7g" userLabel="Check Box Show Always Hidden Section">
+                                                <rect key="frame" x="-2" y="33" width="307" height="18"/>
+                                                <buttonCell key="cell" type="check" title="Enable always hidden section (requires restart)" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Nhn-ch-1f7">
                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                     <font key="font" metaFont="system"/>
                                                 </buttonCell>
                                                 <connections>
-                                                    <action selector="alwaysHiddenModeEnabledChanged:" target="XfG-lQ-9wD" id="4wx-Ab-haM"/>
+                                                    <action selector="showAlwaysHiddenSectionChanged:" target="XfG-lQ-9wD" id="y4P-J3-NYz"/>
                                                 </connections>
                                             </button>
                                             <stackView distribution="fill" orientation="horizontal" alignment="top" spacing="2" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bf8-qr-hjT">
@@ -1144,10 +1198,10 @@
                                         </customSpacing>
                                     </stackView>
                                     <stackView distribution="fill" orientation="vertical" alignment="centerX" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="NOW-ql-i4U">
-                                        <rect key="frame" x="339" y="22" width="277" height="75"/>
+                                        <rect key="frame" x="339" y="22" width="229" height="75"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="S0D-Ve-YKP">
-                                                <rect key="frame" x="85" y="58" width="108" height="17"/>
+                                                <rect key="frame" x="61" y="58" width="108" height="17"/>
                                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Global Shortcut" id="HJP-Lf-rxm">
                                                     <font key="font" metaFont="systemMedium" size="14"/>
                                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -1155,7 +1209,7 @@
                                                 </textFieldCell>
                                             </textField>
                                             <box title="Box" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="mtL-vU-2iq">
-                                                <rect key="frame" x="43" y="-4" width="191" height="56"/>
+                                                <rect key="frame" x="19" y="-4" width="191" height="56"/>
                                                 <view key="contentView" id="N9Y-29-pHK">
                                                     <rect key="frame" x="3" y="3" width="185" height="50"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1213,14 +1267,6 @@
                                     <real value="3.4028234663852886e+38"/>
                                 </customSpacing>
                             </stackView>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="aZz-jM-wCs">
-                                <rect key="frame" x="18" y="141" width="91" height="26"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Settings" id="1Is-Ut-a9h">
-                                    <font key="font" metaFont="systemBold" size="22"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
                         </subviews>
                         <constraints>
                             <constraint firstItem="aZz-jM-wCs" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" id="8Mi-9O-H6u"/>
@@ -1238,11 +1284,12 @@
                     <connections>
                         <outlet property="btnClear" destination="D4j-NZ-37N" id="2yc-ze-q1e"/>
                         <outlet property="btnShortcut" destination="yKf-P1-I45" id="AFr-y7-VbP"/>
-                        <outlet property="checkBoxAlwaysHiddenModeEnabled" destination="gbc-hh-BWq" id="fJI-G4-mC6"/>
                         <outlet property="checkBoxAutoHide" destination="gj1-Ms-4No" id="Ibl-5H-2vh"/>
                         <outlet property="checkBoxLogin" destination="cbR-Jv-adm" id="DFO-De-0KU"/>
+                        <outlet property="checkBoxShowAlwaysHiddenSection" destination="yaS-iD-h7g" id="T5N-bN-yl2"/>
                         <outlet property="checkBoxShowPreferences" destination="gWT-L1-Xdf" id="sC8-cw-Fmh"/>
                         <outlet property="imageViewTop" destination="ZE5-y9-i8b" id="wNv-Wx-ILV"/>
+                        <outlet property="textFieldTitle" destination="RGE-Xv-zm5" id="v43-3R-PwU"/>
                         <outlet property="timePopup" destination="T6r-65-Oor" id="E7R-qd-xOq"/>
                     </connections>
                 </viewController>
@@ -1252,7 +1299,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="banner" width="512" height="247"/>
+        <image name="banner" width="512" height="136.5"/>
         <image name="ic_logo" width="1024" height="1024"/>
         <image name="ico_compass" width="372" height="384"/>
         <image name="ico_email" width="384" height="384"/>
