@@ -20,7 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             guard let hotKey = hotKey else { return }
             
             hotKey.keyDownHandler = { [weak self] in
-                self?.statusBarController.expandCollapseIfNeeded(nil)
+                self?.statusBarController.expandCollapseIfNeeded()
             }
         }
     }
@@ -47,7 +47,9 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             UserDefaults.Key.isAutoStart: false,
             UserDefaults.Key.isShowPreference: true,
             UserDefaults.Key.isAutoHide: true,
-            UserDefaults.Key.numberOfSecondForAutoHide: 10.0
+            UserDefaults.Key.numberOfSecondForAutoHide: 10.0,
+            UserDefaults.Key.areSeparatorsHidden: false,
+            UserDefaults.Key.alwaysHiddenSectionEnabled: false
          ])
     }
     
