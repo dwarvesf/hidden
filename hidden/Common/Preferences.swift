@@ -72,4 +72,24 @@ enum Preferences {
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
+    
+    static var areSeparatorsHidden: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.areSeparatorsHidden)
+        }
+        
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.areSeparatorsHidden)
+        }
+    }
+    
+    static var alwaysHiddenSectionEnabled: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.alwaysHiddenSectionEnabled)
+        }
+        
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.alwaysHiddenSectionEnabled)
+        }
+    }
 }
