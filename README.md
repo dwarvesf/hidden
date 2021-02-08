@@ -37,7 +37,7 @@ The Hidden Bar is notarized before distributed out side App Store. It's safe to 
 #### Using Homebrew
 
 ```
-brew cask install hiddenbar
+brew install --cask hiddenbar
 ```
 
 #### Manual download
