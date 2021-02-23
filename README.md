@@ -2,8 +2,12 @@
 	<img width="200" height="200" margin-right="100%" src="https://github.com/dwarvesf/hidden/blob/master/hidden/Assets.xcassets/AppIcon.appiconset/1024x1024.png?raw=true">
 </p>
 <p align="center">
-<a href="https://github.com/dwarvesf/hidden/releases/latest">
+	<a href="https://webuild.community">
+		<img src="https://raw.githubusercontent.com/webuild-community/badge/master/svg/love.svg" />
+	</a>
+	<a href="https://github.com/dwarvesf/hidden/releases/latest">
  		<img src="https://img.shields.io/badge/download-latest-brightgreen.svg" alt="download">
+	</a>
 	<a href="https://img.shields.io/badge/platform-macOS-lightgrey.svg">
  		<img src="https://img.shields.io/badge/platform-macOS-lightgrey.svg" alt="platform">
 	</a>
@@ -20,12 +24,11 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 	<img width="400" src="img/screen2.png">
 </p>
 
-
 ## 🚀 Install
 
 ###  App Store
 
-[![AppStore](/img/appstore.svg)](https://itunes.apple.com/app/hidden-bar/id1452453066)
+[![AppStore](img/appstore.svg)](https://itunes.apple.com/app/hidden-bar/id1452453066)
 
 ### Others
 
@@ -34,7 +37,7 @@ The Hidden Bar is notarized before distributed out side App Store. It's safe to 
 #### Using Homebrew
 
 ```
-brew cask install hiddenbar
+brew install --cask hiddenbar
 ```
 
 #### Manual download
