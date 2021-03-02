@@ -36,12 +36,8 @@ class Util {
         let infoList = windowsListInfo as! [[String:Any]]
 
         for info in infoList {
-            for item in info {
-                if item.key == "kCGWindowLayer"
-                    && (item.value as? Int) ?? 0 > 100 {
-                    // for some reason, all status bar menus have their window layer bigger than 100
-                    return true
-                }
+            if (info["kCGWindowLayer"] as? Int) ?? 0 > 100 {
+                return true
             }
         }
         return false
