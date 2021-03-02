@@ -139,7 +139,7 @@ class StatusBarController {
     }
     
     private func collapseMenuBar() {
-        guard self.isValidPosition && !self.isCollapsed else {
+        guard self.isValidPosition && !self.isCollapsed && !Util.menuBarIsInUse else {
             autoCollapseIfNeeded()
             return
         }
