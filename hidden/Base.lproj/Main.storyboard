@@ -1097,7 +1097,7 @@ between sections to configure Hidden Bar.</string>
                                 <rect key="frame" x="16" y="20" width="568" height="129"/>
                                 <subviews>
                                     <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="10" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="do4-pv-o3U">
-                                        <rect key="frame" x="0.0" y="0.0" width="314" height="129"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="309" height="129"/>
                                         <subviews>
                                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cbR-Jv-adm">
                                                 <rect key="frame" x="-2" y="112" width="207" height="18"/>
@@ -1130,8 +1130,8 @@ between sections to configure Hidden Bar.</string>
                                                 </connections>
                                             </button>
                                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DPa-Fy-oct" userLabel="Check Box Auto Expand">
-                                                <rect key="frame" x="-2" y="34" width="316" height="18"/>
-                                                <buttonCell key="cell" type="check" title="Automatically expand when I hover on menu bar" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Ic0-OX-2ZW">
+                                                <rect key="frame" x="-2" y="34" width="216" height="18"/>
+                                                <buttonCell key="cell" type="check" title="Automatic expand and collapse" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Ic0-OX-2ZW">
                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                     <font key="font" metaFont="system"/>
                                                 </buttonCell>
@@ -1204,10 +1204,10 @@ between sections to configure Hidden Bar.</string>
                                         </customSpacing>
                                     </stackView>
                                     <stackView distribution="fill" orientation="vertical" alignment="centerX" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="NOW-ql-i4U">
-                                        <rect key="frame" x="349" y="54" width="219" height="75"/>
+                                        <rect key="frame" x="344" y="54" width="224" height="75"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="S0D-Ve-YKP">
-                                                <rect key="frame" x="56" y="58" width="108" height="17"/>
+                                                <rect key="frame" x="58" y="58" width="108" height="17"/>
                                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Global Shortcut" id="HJP-Lf-rxm">
                                                     <font key="font" metaFont="systemMedium" size="14"/>
                                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -1215,7 +1215,7 @@ between sections to configure Hidden Bar.</string>
                                                 </textFieldCell>
                                             </textField>
                                             <box title="Box" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="mtL-vU-2iq">
-                                                <rect key="frame" x="14" y="-4" width="191" height="56"/>
+                                                <rect key="frame" x="17" y="-4" width="191" height="56"/>
                                                 <view key="contentView" id="N9Y-29-pHK">
                                                     <rect key="frame" x="3" y="3" width="185" height="50"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

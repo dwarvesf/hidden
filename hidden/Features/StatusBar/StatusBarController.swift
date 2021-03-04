@@ -12,7 +12,7 @@ class StatusBarController {
     
     //MARK: - Variables
     private var timer : Timer?
-    private var mouseMoniter : GlobalEventMoniter?
+    private var mouseMovementHandler: MouseMovementHandler!
     
     //MARK: - BarItems
     private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -57,7 +57,8 @@ class StatusBarController {
     init() {
         
         setupUI()
-        setupEventMoniter()
+        
+        mouseMovementHandler = MouseMovementHandler(expandHandler: expandMenubar, collapseHandler: collapseMenuBar)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
             self.collapseMenuBar()
@@ -65,34 +66,6 @@ class StatusBarController {
         
         if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(updateAutoExpand), name: .prefsChanged, object: nil)
-    }
-    
-    private func setupEventMoniter() {
-        // get menu bar height
-        let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
-        let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))
-        let infoList = windowsListInfo as! [[String:Any]]
-        var menubarMinY: CGFloat = .nan
-        for info in infoList {
-            if (info["kCGWindowName"] as? String) ?? "" == "Menubar" {
-                guard let bounds = info["kCGWindowBounds"],
-                      let height = CGRect(dictionaryRepresentation: bounds as! CFDictionary)?.height,
-                      let screenHeight = NSScreen.main?.frame.height
-                else { return }
-                menubarMinY = screenHeight - height
-            }
-        }
-        
-        // setup global event handler
-        mouseMoniter = GlobalEventMoniter(mask: .mouseMoved) { event in
-            if NSEvent.mouseLocation.y >= menubarMinY {
-                // for some reason, NSEvent.mouseLocation gives out inverted y coords
-                self.expandMenubar()
-            }
-        }
-        updateAutoExpand()
     }
     
     private func setupUI() {
@@ -121,14 +94,6 @@ class StatusBarController {
         expandCollapseStatusBar.autosaveName = "hiddenbar_expandcollapse";
         separateStatusBar.autosaveName = "hiddenbar_separate";
         terminateStatusBar.autosaveName = "hiddenbar_terminate";
-    }
-    
-    @objc func updateAutoExpand() {
-        if Preferences.autoExpand {
-            mouseMoniter?.start()
-        } else {
-            mouseMoniter?.stop()
-        }
     }
     
     @objc func statusBarButtonClicked(sender: NSStatusBarButton) {
