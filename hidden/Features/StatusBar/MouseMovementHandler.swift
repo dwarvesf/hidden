@@ -20,6 +20,7 @@ class MouseMovementHandler {
     private var mouseIsOnMenuBar      = false {
         didSet {
             guard mouseIsOnMenuBar != oldValue else { return }
+            interactedWithMenuBar = false
             if mouseIsOnMenuBar {
                 expandHandler()
             } else if !interactedWithMenuBar {
