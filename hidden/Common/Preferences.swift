@@ -92,4 +92,16 @@ enum Preferences {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.alwaysHiddenSectionEnabled)
         }
     }
+    
+    static var autoExpand : Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.autoExpand)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.autoExpand)
+            
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
+    
 }

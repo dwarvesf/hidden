@@ -30,6 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         registerDefaultValues()
         setupHotKey()
         openPreferencesIfNeeded()
+        grantAccess()
     }
     
     func openPreferencesIfNeeded() {
@@ -65,5 +66,11 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         return true
     }
     
+    func grantAccess() {
+        if !GlobalEventMoniter.grantAccess() {
+            // TODO: guide user to enable accessibility access
+            print("Accessibility access not granted")
+        }
+    }
    
 }
