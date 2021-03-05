@@ -36,7 +36,9 @@ class Util {
         let infoList = windowsListInfo as! [[String:Any]]
 
         for info in infoList {
-            if (info["kCGWindowLayer"] as? Int) ?? 0 > 100 {
+            guard let windowLayer = info["kCGWindowLayer"] as? Int else { continue }
+            if windowLayer > 100
+                && windowLayer < 110 {
                 return true
             }
         }

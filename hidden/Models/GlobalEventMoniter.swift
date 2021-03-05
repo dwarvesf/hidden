@@ -10,11 +10,6 @@ import Cocoa
 
 class GlobalEventMoniter {
     
-    static func grantAccess() -> Bool {
-        let accessEnabled = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
-        return accessEnabled
-    }
-    
     var monitor: Any?
     let mask: NSEvent.EventTypeMask
     let handler: (NSEvent) -> ()
