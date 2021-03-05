@@ -23,6 +23,7 @@ class PreferencesViewController: NSViewController {
     @IBOutlet weak var checkBoxShowPreferences: NSButton!
     @IBOutlet weak var checkBoxShowAlwaysHiddenSection: NSButton!
     @IBOutlet weak var checkBoxAutoExpand: NSButton!
+    @IBOutlet weak var checkboxMenuBarDetection: NSButton!
     
     @IBOutlet weak var timePopup: NSPopUpButton!
     
@@ -73,6 +74,10 @@ class PreferencesViewController: NSViewController {
     
     @IBAction func autoExpandChanged(_ sender: NSButton) {
         Preferences.autoExpand = sender.state == .on
+    }
+    
+    @IBAction func menuBarDetectionChanged(_ sender: NSButton) {
+        Preferences.menuBarDetection = sender.state == .on
     }
     
     @IBAction func timePopupDidSelected(_ sender: NSPopUpButton) {

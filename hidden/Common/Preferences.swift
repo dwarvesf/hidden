@@ -104,4 +104,15 @@ enum Preferences {
         }
     }
     
+    static var menuBarDetection : Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.menuBarDetection)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.menuBarDetection)
+            
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
+    
 }
