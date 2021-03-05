@@ -39,7 +39,6 @@ class Util {
             guard let windowLayer = info["kCGWindowLayer"] as? Int else { continue }
             if windowLayer > 100
                 && windowLayer < 110 {
-                print(info)
                 return true
             }
         }

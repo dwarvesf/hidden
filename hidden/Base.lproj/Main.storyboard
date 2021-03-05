@@ -1039,8 +1039,8 @@ between sections to configure Hidden Bar.</string>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
-                                        <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZE5-y9-i8b">
-                                            <rect key="frame" x="20" y="55" width="560" height="147"/>
+                                        <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ZE5-y9-i8b">
+                                            <rect key="frame" x="20" y="57" width="577" height="147"/>
                                             <constraints>
                                                 <constraint firstAttribute="height" constant="147" id="aZi-hy-l77"/>
                                             </constraints>
@@ -1326,7 +1326,7 @@ between sections to configure Hidden Bar.</string>
                     </connections>
                 </button>
             </objects>
-            <point key="canvasLocation" x="-295" y="827.5"/>
+            <point key="canvasLocation" x="-295.5" y="827.5"/>
         </scene>
     </scenes>
     <resources>
