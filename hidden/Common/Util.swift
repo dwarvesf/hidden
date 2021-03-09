@@ -31,14 +31,8 @@ class Util {
     }
     
     static var menuBarIsInUse : Bool {
-        let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
-        let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))
-        let infoList = windowsListInfo as! [[String:Any]]
-
-        for info in infoList {
-            guard let windowLayer = info["kCGWindowLayer"] as? Int else { continue }
-            if windowLayer > 100
-                && windowLayer < 110 {
+        for info in WindowInfo.openedWindows {
+            if info.layer > 100 && info.layer < 110 {
                 return true
             }
         }

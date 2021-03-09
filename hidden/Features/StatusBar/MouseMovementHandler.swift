@@ -46,17 +46,16 @@ class MouseMovementHandler {
     
     private func setupEventMoniter() {
         // get menu bar height
-        let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
-        let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))
-        let infoList = windowsListInfo as! [[String:Any]]
+        guard let screenHeight = NSScreen.main?.frame.height else {
+            print("Failed to setup MouseMovementEventMonitor: Unable to get screen height")
+            return  
+        }
         var menubarMinY: CGFloat = .nan
-        for info in infoList {
-            if (info["kCGWindowName"] as? String) ?? "" == "Menubar" {
-                guard let bounds = info["kCGWindowBounds"],
-                      let height = CGRect(dictionaryRepresentation: bounds as! CFDictionary)?.height,
-                      let screenHeight = NSScreen.main?.frame.height
-                else { return }
-                menubarMinY = screenHeight - height
+        
+        for windowInfo in WindowInfo.openedWindows {
+            if (windowInfo.name ?? "") == "Menubar" {
+                let menubarHeight = windowInfo.frame.height
+                menubarMinY = screenHeight - menubarHeight
             }
         }
         
