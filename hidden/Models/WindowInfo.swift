@@ -31,10 +31,19 @@ struct WindowInfo: Decodable {
                 .filter { $0.alpha == 1 }
             return filteredWindowInfos
         } catch {
-            print("WindowInfo.openedWindowInfos: \(error.localizedDescription)")
+            print("WindowInfo.openedWindows: \(error.localizedDescription)")
         }
         
         return []
+    }
+    
+    static func windowNamed(_ name: String) -> WindowInfo? {
+        for windowInfo in WindowInfo.openedWindows {
+            if windowInfo.name == name {
+                return windowInfo
+            }
+        }
+        return nil
     }
     
     private enum CodingKeys : String, CodingKey {

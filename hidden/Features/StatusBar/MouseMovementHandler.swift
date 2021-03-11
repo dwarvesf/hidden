@@ -52,11 +52,13 @@ class MouseMovementHandler {
         }
         var menubarMinY: CGFloat = .nan
         
-        for windowInfo in WindowInfo.openedWindows {
-            if (windowInfo.name ?? "") == "Menubar" {
-                let menubarHeight = windowInfo.frame.height
-                menubarMinY = screenHeight - menubarHeight
-            }
+        if let menubarWindow = WindowInfo.windowNamed("Menubar") {
+            menubarMinY = screenHeight - menubarWindow.frame.height
+        }
+        
+        if menubarMinY == .nan {
+            print("Unable to get Menubar window height")
+            return
         }
         
         // setup mouse move event moniter

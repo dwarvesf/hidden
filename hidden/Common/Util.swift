@@ -29,14 +29,5 @@ class Util {
         let prefWindow = PreferencesWindowController.shared.window
         prefWindow?.bringToFront()
     }
-    
-    static var menuBarIsInUse : Bool {
-        for info in WindowInfo.openedWindows {
-            if info.layer > 100 && info.layer < 110 {
-                return true
-            }
-        }
-        return false
-    }
    
 }
