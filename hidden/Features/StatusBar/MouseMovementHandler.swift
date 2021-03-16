@@ -14,8 +14,7 @@ class MouseMovementHandler {
     var collapseHandler : () -> Void
     var isCollapsed     : () -> Bool
     
-    private var mouseMoveMoniter : GlobalEventMoniter?
-    private var mouseClickMoniter : GlobalEventMoniter?
+    var eventMoniters = [GlobalEventMoniter]()
     
     private var menubarMinY: CGFloat = .nan
     
@@ -50,17 +49,16 @@ class MouseMovementHandler {
     }
     
     private func setupEventMoniter() {
-        mouseMoveMoniter  = GlobalEventMoniter(mask: .mouseMoved, handler: mouseMoved)
-        mouseClickMoniter = GlobalEventMoniter(mask: .leftMouseDown, handler: mouseClicked)
+        eventMoniters.append(GlobalEventMoniter(mask: .mouseMoved, handler: mouseMoved))
+        eventMoniters.append(GlobalEventMoniter(mask: .leftMouseDown, handler: mouseClicked))
+        eventMoniters.append(GlobalEventMoniter(mask: .rightMouseDown, handler: mouseClicked))
     }
     
     @objc private func updateAutoExpandPreferences() {
         if Preferences.autoExpand {
-            mouseMoveMoniter?.start()
-            mouseClickMoniter?.start()
+            eventMoniters.forEach { $0.start() }
         } else {
-            mouseMoveMoniter?.stop()
-            mouseClickMoniter?.stop()
+            eventMoniters.forEach { $0.stop() }
         }
     }
     
