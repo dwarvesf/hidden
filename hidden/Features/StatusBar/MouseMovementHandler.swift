@@ -12,9 +12,14 @@ class MouseMovementHandler {
     
     var expandHandler   : () -> Void
     var collapseHandler : () -> Void
+    var isCollapsed     : () -> Bool
     
     private var mouseMoveMoniter : GlobalEventMoniter?
     private var mouseClickMoniter : GlobalEventMoniter?
+    
+    private var menubarMinY: CGFloat = .nan
+    
+    private var previousMouseLocation = NSEvent.mouseLocation
     
     private var interactedWithMenuBar = false
     private var mouseIsOnMenuBar      = false {
@@ -29,54 +34,24 @@ class MouseMovementHandler {
         }
     }
     
-    init(expandHandler: @escaping ()->Void, collapseHandler: @escaping ()->Void) {
+    init(expandHandler: @escaping ()->Void, collapseHandler: @escaping ()->Void, isCollapsed: @escaping ()->Bool) {
         self.expandHandler = expandHandler
         self.collapseHandler = collapseHandler
+        self.isCollapsed = isCollapsed
         
         setupEventMoniter()
+        updateAutoExpandPreferences()
         
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(updateAutoExpandPreferences),
             name: .prefsChanged,
             object: nil)
-        
-        updateAutoExpandPreferences()
     }
     
     private func setupEventMoniter() {
-        // get menu bar height
-        guard let screenHeight = NSScreen.main?.frame.height else {
-            print("Failed to setup MouseMovementEventMonitor: Unable to get screen height")
-            return  
-        }
-        var menubarMinY: CGFloat = .nan
-        
-        if let menubarFrame = WindowInfo.cgRectOfWindow(named: "Menubar") {
-            menubarMinY = screenHeight - menubarFrame.height
-        } else {
-            print("Failed to setup MouseMovementEventMonitor: Unable to get Menubar window height")
-            return
-        }
-        
-        // setup mouse move event moniter
-        mouseMoveMoniter = GlobalEventMoniter(mask: .mouseMoved) { event in
-            if NSEvent.mouseLocation.y >= menubarMinY {
-                // for some reason, NSEvent.mouseLocation gives out inverted y coords
-                self.mouseIsOnMenuBar = true
-            } else {
-                self.mouseIsOnMenuBar = false
-            }
-        }
-        
-        // setup mouse click event moniter
-        mouseClickMoniter = GlobalEventMoniter(mask: .leftMouseDown) { event in
-            if NSEvent.mouseLocation.y >= menubarMinY {
-                self.interactedWithMenuBar = true
-            } else {
-                self.interactedWithMenuBar = false
-            }
-        }
+        mouseMoveMoniter  = GlobalEventMoniter(mask: .mouseMoved, handler: mouseMoved)
+        mouseClickMoniter = GlobalEventMoniter(mask: .leftMouseDown, handler: mouseClicked)
     }
     
     @objc private func updateAutoExpandPreferences() {
@@ -86,6 +61,41 @@ class MouseMovementHandler {
         } else {
             mouseMoveMoniter?.stop()
             mouseClickMoniter?.stop()
+        }
+    }
+    
+    private func updateMenubarMinY() {
+        // Cocoa uses top left coords, but CG uses bottom left coords
+        // To avoid convertion everytime, menubarMinY is inverted on initialize
+        guard let screenHeight = Util.screenWithMouse?.frame.height,
+              let menubarFrame = WindowInfo.cgRectOfWindow(named: "Menubar")
+        else {
+            return
+        }
+        
+        menubarMinY = screenHeight - menubarFrame.height
+    }
+    
+    private func mouseMoved(_ event: NSEvent) {
+        
+        if !isCollapsed() && !(NSEvent.mouseLocation ~= previousMouseLocation) {
+            updateMenubarMinY()
+            previousMouseLocation = NSEvent.mouseLocation
+        }
+        
+        if NSEvent.mouseLocation.y >= menubarMinY {
+            self.mouseIsOnMenuBar = true
+        } else {
+            self.mouseIsOnMenuBar = false
+        }
+        
+    }
+    
+    private func mouseClicked(_ event: NSEvent) {
+        if NSEvent.mouseLocation.y >= self.menubarMinY {
+            self.interactedWithMenuBar = true
+        } else {
+            self.interactedWithMenuBar = false
         }
     }
     

@@ -58,7 +58,10 @@ class StatusBarController {
         
         setupUI()
         
-        mouseMovementHandler = MouseMovementHandler(expandHandler: expandMenubar, collapseHandler: collapseMenuBar)
+        mouseMovementHandler = MouseMovementHandler(
+            expandHandler: expandMenubar,
+            collapseHandler: collapseMenuBar,
+            isCollapsed: {self.isCollapsed})
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
             self.collapseMenuBar()
