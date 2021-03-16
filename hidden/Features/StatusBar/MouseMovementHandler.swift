@@ -52,12 +52,10 @@ class MouseMovementHandler {
         }
         var menubarMinY: CGFloat = .nan
         
-        if let menubarWindow = WindowInfo.windowNamed("Menubar") {
-            menubarMinY = screenHeight - menubarWindow.frame.height
-        }
-        
-        if menubarMinY == .nan {
-            print("Unable to get Menubar window height")
+        if let menubarFrame = WindowInfo.cgRectOfWindow(named: "Menubar") {
+            menubarMinY = screenHeight - menubarFrame.height
+        } else {
+            print("Failed to setup MouseMovementEventMonitor: Unable to get Menubar window height")
             return
         }
         
@@ -72,13 +70,13 @@ class MouseMovementHandler {
         }
         
         // setup mouse click event moniter
-        mouseClickMoniter = GlobalEventMoniter(mask: .leftMouseDown, handler: { event in
+        mouseClickMoniter = GlobalEventMoniter(mask: .leftMouseDown) { event in
             if NSEvent.mouseLocation.y >= menubarMinY {
                 self.interactedWithMenuBar = true
             } else {
                 self.interactedWithMenuBar = false
             }
-        })
+        }
     }
     
     @objc private func updateAutoExpandPreferences() {

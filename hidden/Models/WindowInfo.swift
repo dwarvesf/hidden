@@ -10,43 +10,7 @@ import AppKit
 
 struct WindowInfo: Decodable {
     
-    struct Bound: Decodable {
-        let Height: Int
-        let Width: Int
-        let X:Int
-        let Y: Int
-        
-        var cgRect : CGRect {
-            CGRect(x: X, y: Y, width: Width, height: Height)
-        }
-    }
-    
-    static var openedWindows : [WindowInfo] {
-        let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
-        let infoList = CGWindowListCopyWindowInfo(options, CGWindowID(0))
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: infoList as Any, options: .prettyPrinted)
-            let windowInfos = try JSONDecoder().decode([WindowInfo].self, from: jsonData)
-            let filteredWindowInfos = windowInfos
-                .filter { $0.alpha == 1 }
-            return filteredWindowInfos
-        } catch {
-            print("WindowInfo.openedWindows: \(error.localizedDescription)")
-        }
-        
-        return []
-    }
-    
-    static func windowNamed(_ name: String) -> WindowInfo? {
-        for windowInfo in WindowInfo.openedWindows {
-            if windowInfo.name == name {
-                return windowInfo
-            }
-        }
-        return nil
-    }
-    
-    private enum CodingKeys : String, CodingKey {
+    enum InfoType : String {
         case alpha = "kCGWindowAlpha"
         case bounds = "kCGWindowBounds"
         case ownerName = "kCGWindowOwnerName"
@@ -56,27 +20,28 @@ struct WindowInfo: Decodable {
         case layer = "kCGWindowLayer"
     }
     
-    init(from decoder: Decoder) throws {
-        let container = try! decoder.container(keyedBy: CodingKeys.self)
-        alpha = try container.decode(Int.self, forKey: CodingKeys.alpha)
-        bounds = try container.decode(Bound.self, forKey: CodingKeys.bounds)
-        ownerName = try container.decode(String.self, forKey: CodingKeys.ownerName)
-        ownerPID = try container.decode(Int.self, forKey: CodingKeys.ownerPID)
-        number = try container.decode(Int.self, forKey: CodingKeys.number)
-        layer = try container.decode(Int.self, forKey: CodingKeys.layer)
-        name = try? container.decode(String?.self, forKey: CodingKeys.name)
+    static var infoList : [ [ String : Any ] ]? {
+        let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
+        guard let infoList = CGWindowListCopyWindowInfo(options, CGWindowID(0)) else { return nil }
+        return (infoList as! [[String : Any]])
     }
     
-    private let bounds: Bound
-    let alpha     : Int?
-    let ownerName : String
-    let ownerPID  : Int
-    let name      : String?
-    let number    : Int
-    let layer     : Int
+    static func windowInfo(named windowName: String, type infoType: WindowInfo.InfoType) -> Any? {
+        guard let windowInfos = infoList else { return nil }
+        for info in windowInfos {
+            if let name = info["kCGWindowName"] as? String, name == windowName {
+                return info[infoType.rawValue]
+            }
+        }
+        return nil
+    }
     
-    var frame: CGRect {
-        bounds.cgRect
+    static func cgRectOfWindow(named windowName: String) -> CGRect? {
+        guard let bounds = windowInfo(named: windowName, type: .bounds),
+              let cgRect = CGRect(dictionaryRepresentation: bounds as! CFDictionary)
+        else { return nil }
+        
+        return cgRect
     }
     
 }
