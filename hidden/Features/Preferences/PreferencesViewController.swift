@@ -186,10 +186,15 @@ class PreferencesViewController: NSViewController {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 //MARK: - Show tutorial
 =======
 >>>>>>> Update tutorial images
+=======
+
+//MARK: - Show tutorial
+>>>>>>> Add How to use alway hide feature popup
 extension PreferencesViewController {
     
     func createTutorialView() {
@@ -288,6 +293,9 @@ extension PreferencesViewController {
     }
     
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Add How to use alway hide feature popup
     @IBAction func btnAlwayHiddenHelpPressed(_ sender: NSButton) {
         self.showHowToUseAlwayHiddenPopover(sender: sender)
     }
@@ -323,6 +331,9 @@ extension PreferencesViewController {
         popover.show(relativeTo: self.view.bounds, of: sender , preferredEdge: NSRectEdge.maxX)
     }
     
+<<<<<<< HEAD
 =======
 >>>>>>> Update tutorial images
+=======
+>>>>>>> Add How to use alway hide feature popup
 }
