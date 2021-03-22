@@ -185,8 +185,11 @@ class PreferencesViewController: NSViewController {
     }
 }
 
+<<<<<<< HEAD
 
 //MARK: - Show tutorial
+=======
+>>>>>>> Update tutorial images
 extension PreferencesViewController {
     
     func createTutorialView() {
@@ -284,6 +287,7 @@ extension PreferencesViewController {
         ])
     }
     
+<<<<<<< HEAD
     @IBAction func btnAlwayHiddenHelpPressed(_ sender: NSButton) {
         self.showHowToUseAlwayHiddenPopover(sender: sender)
     }
@@ -319,4 +323,6 @@ extension PreferencesViewController {
         popover.show(relativeTo: self.view.bounds, of: sender , preferredEdge: NSRectEdge.maxX)
     }
     
+=======
+>>>>>>> Update tutorial images
 }
