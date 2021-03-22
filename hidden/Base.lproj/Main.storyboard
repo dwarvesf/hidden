@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="16097.3" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="17701" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="16097.3"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="17701"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -526,22 +526,19 @@
                                                                 <menuItem title="Paragraph" enabled="NO" id="ZvO-Gk-QUH">
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                 </menuItem>
-                                                                <menuItem id="YGs-j5-SAR">
-                                                                    <string key="title">    Default</string>
+                                                                <menuItem title="    Default" id="YGs-j5-SAR">
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeBaseWritingDirectionNatural:" target="Ady-hI-5gd" id="qtV-5e-UBP"/>
                                                                     </connections>
                                                                 </menuItem>
-                                                                <menuItem id="Lbh-J2-qVU">
-                                                                    <string key="title">    Left to Right</string>
+                                                                <menuItem title="    Left to Right" id="Lbh-J2-qVU">
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeBaseWritingDirectionLeftToRight:" target="Ady-hI-5gd" id="S0X-9S-QSf"/>
                                                                     </connections>
                                                                 </menuItem>
-                                                                <menuItem id="jFq-tB-4Kx">
-                                                                    <string key="title">    Right to Left</string>
+                                                                <menuItem title="    Right to Left" id="jFq-tB-4Kx">
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeBaseWritingDirectionRightToLeft:" target="Ady-hI-5gd" id="5fk-qB-AqJ"/>
@@ -551,22 +548,19 @@
                                                                 <menuItem title="Selection" enabled="NO" id="cqv-fj-IhA">
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                 </menuItem>
-                                                                <menuItem id="Nop-cj-93Q">
-                                                                    <string key="title">    Default</string>
+                                                                <menuItem title="    Default" id="Nop-cj-93Q">
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeTextWritingDirectionNatural:" target="Ady-hI-5gd" id="lPI-Se-ZHp"/>
                                                                     </connections>
                                                                 </menuItem>
-                                                                <menuItem id="BgM-ve-c93">
-                                                                    <string key="title">    Left to Right</string>
+                                                                <menuItem title="    Left to Right" id="BgM-ve-c93">
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeTextWritingDirectionLeftToRight:" target="Ady-hI-5gd" id="caW-Bv-w94"/>
                                                                     </connections>
                                                                 </menuItem>
-                                                                <menuItem id="RB4-Sm-HuC">
-                                                                    <string key="title">    Right to Left</string>
+                                                                <menuItem title="    Right to Left" id="RB4-Sm-HuC">
                                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                                     <connections>
                                                                         <action selector="makeTextWritingDirectionRightToLeft:" target="Ady-hI-5gd" id="EXD-6r-ZUu"/>
@@ -711,7 +705,7 @@
                                     <nil key="toolTip"/>
                                     <segmentedControl key="view" verticalHuggingPriority="750" id="wAJ-zO-0Lg">
                                         <rect key="frame" x="0.0" y="14" width="145" height="23"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <autoresizingMask key="autoresizingMask"/>
                                         <segmentedCell key="cell" borderStyle="border" alignment="left" segmentDistribution="fillEqually" style="texturedSquare" trackingMode="selectOne" id="B2x-1Q-Aei">
                                             <font key="font" metaFont="system"/>
                                             <segments>
@@ -770,13 +764,13 @@
                                                     <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="ic_logo" id="QRE-Qb-a9e"/>
                                                 </imageView>
                                                 <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="12" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Zys-x5-Ty9">
-                                                    <rect key="frame" x="150" y="13" width="172" height="94"/>
+                                                    <rect key="frame" x="150" y="13" width="172" height="95"/>
                                                     <subviews>
                                                         <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="0.0" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qc9-cU-zZc">
-                                                            <rect key="frame" x="0.0" y="29" width="172" height="65"/>
+                                                            <rect key="frame" x="0.0" y="29" width="172" height="66"/>
                                                             <subviews>
                                                                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ekW-28-SJX">
-                                                                    <rect key="frame" x="-2" y="24" width="176" height="41"/>
+                                                                    <rect key="frame" x="-2" y="25" width="176" height="41"/>
                                                                     <textFieldCell key="cell" lineBreakMode="clipping" title="Hidden Bar" id="2xp-Ht-xa6">
                                                                         <font key="font" metaFont="systemMedium" size="35"/>
                                                                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -784,7 +778,7 @@
                                                                     </textFieldCell>
                                                                 </textField>
                                                                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ai3-8A-3rm">
-                                                                    <rect key="frame" x="-2" y="0.0" width="162" height="24"/>
+                                                                    <rect key="frame" x="-2" y="0.0" width="163" height="25"/>
                                                                     <textFieldCell key="cell" lineBreakMode="clipping" title="Menu bar cleaner" id="X4W-sr-Z32">
                                                                         <font key="font" metaFont="system" size="21"/>
                                                                         <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
@@ -847,7 +841,7 @@
                                         <rect key="frame" x="0.0" y="34" width="206" height="144"/>
                                         <subviews>
                                             <stackView distribution="fill" orientation="horizontal" alignment="centerY" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="aJr-BE-h8u">
-                                                <rect key="frame" x="0.0" y="120" width="157" height="24"/>
+                                                <rect key="frame" x="0.0" y="120" width="156" height="24"/>
                                                 <subviews>
                                                     <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="98N-BJ-EKs">
                                                         <rect key="frame" x="0.0" y="0.0" width="24" height="24"/>
@@ -858,7 +852,7 @@
                                                         <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="ico_compass" id="Fni-Bp-VZz"/>
                                                     </imageView>
                                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="jmL-Oh-IlC" customClass="HyperlinkTextField" customModule="Hidden_Bar" customModuleProvider="target">
-                                                        <rect key="frame" x="30" y="4" width="129" height="16"/>
+                                                        <rect key="frame" x="30" y="4" width="128" height="16"/>
                                                         <textFieldCell key="cell" lineBreakMode="clipping" title="Know more about us" id="Xb1-xM-sYy">
                                                             <font key="font" metaFont="system"/>
                                                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -1030,13 +1024,13 @@
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <box autoresizesSubviews="NO" boxType="custom" borderType="none" title="Box" translatesAutoresizingMaskIntoConstraints="NO" id="Jjd-1G-63n">
-                                <rect key="frame" x="0.0" y="179" width="600" height="302"/>
+                                <rect key="frame" x="0.0" y="189" width="600" height="292"/>
                                 <view key="contentView" id="TZd-5p-NFL">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="302"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="292"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="RGE-Xv-zm5">
-                                            <rect key="frame" x="153" y="8" width="295" height="72"/>
+                                            <rect key="frame" x="155" y="8" width="291" height="32"/>
                                             <textFieldCell key="cell" alignment="center" id="k7C-e5-6a0">
                                                 <font key="font" metaFont="system"/>
                                                 <string key="title">In your Mac's menu bar, hold ⌘ and drag icons
@@ -1045,31 +1039,165 @@ between sections to configure Hidden Bar.</string>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
-                                        <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZE5-y9-i8b">
-                                            <rect key="frame" x="20" y="113" width="560" height="147"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="147" id="aZi-hy-l77"/>
-                                            </constraints>
-                                            <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="banner" id="kFd-Cj-ig9"/>
-                                        </imageView>
-                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vlT-cT-cRT">
-                                            <rect key="frame" x="47" y="153" width="82" height="28"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="28" id="9fR-gq-8Q7"/>
-                                            </constraints>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vlT-cT-cRT">
+                                            <rect key="frame" x="57" y="167" width="110" height="28"/>
                                             <textFieldCell key="cell" lineBreakMode="clipping" title="Hidden" id="cXt-8R-PHo">
-                                                <font key="font" metaFont="systemMedium" size="24"/>
+                                                <font key="font" metaFont="system" size="24"/>
                                                 <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
-                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="U3K-oK-4ET">
-                                            <rect key="frame" x="239" y="153" width="78" height="28"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="28" id="KIQ-nq-0e8"/>
-                                            </constraints>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="U3K-oK-4ET">
+                                            <rect key="frame" x="209" y="167" width="78" height="28"/>
                                             <textFieldCell key="cell" lineBreakMode="clipping" title="Shown" id="iyS-g5-5mk">
-                                                <font key="font" metaFont="systemMedium" size="24"/>
+                                                <font key="font" metaFont="system" size="24"/>
+                                                <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <stackView distribution="fillEqually" orientation="horizontal" alignment="centerY" spacing="16" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pJz-eb-ydI">
+                                            <rect key="frame" x="81" y="232" width="439" height="22"/>
+                                            <subviews>
+                                                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="aFM-dG-B8C">
+                                                    <rect key="frame" x="0.0" y="1" width="20" height="20"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="20" id="IL5-hV-kYC"/>
+                                                        <constraint firstAttribute="height" constant="20" id="nF0-Q3-cb5"/>
+                                                    </constraints>
+                                                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="ico_1" id="Rhd-SC-uOj"/>
+                                                    <color key="contentTintColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                </imageView>
+                                                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="qxc-Yp-b1r">
+                                                    <rect key="frame" x="36" y="3" width="16" height="16"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="16" id="ZX0-py-Haa"/>
+                                                        <constraint firstAttribute="width" constant="16" id="ett-3g-YuM"/>
+                                                    </constraints>
+                                                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="ico_2" id="YzG-pw-q9P"/>
+                                                    <color key="contentTintColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                </imageView>
+                                                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="gnM-GI-R7m">
+                                                    <rect key="frame" x="68" y="3" width="16" height="16"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="16" id="4qa-rE-vec"/>
+                                                        <constraint firstAttribute="width" constant="16" id="bDt-fg-t9r"/>
+                                                    </constraints>
+                                                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="ico_3" id="1uO-TZ-HXR"/>
+                                                    <color key="contentTintColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                </imageView>
+                                                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="0jM-Sg-eOe">
+                                                    <rect key="frame" x="100" y="3" width="16" height="16"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="16" id="Pqv-0Y-f6o"/>
+                                                        <constraint firstAttribute="width" constant="16" id="rS2-p7-Lpu"/>
+                                                    </constraints>
+                                                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="seprated" id="AWD-J8-gJn"/>
+                                                    <color key="contentTintColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                </imageView>
+                                                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Jj7-ce-RFp">
+                                                    <rect key="frame" x="132" y="3" width="16" height="16"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="16" id="4MO-Ka-D1V"/>
+                                                        <constraint firstAttribute="height" constant="16" id="Kid-AW-1T4"/>
+                                                    </constraints>
+                                                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="ico_collapse" id="cJd-Rw-E9E"/>
+                                                    <color key="contentTintColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                </imageView>
+                                                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ua8-tz-ASW">
+                                                    <rect key="frame" x="164" y="3" width="16" height="16"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="16" id="Am4-hA-ifF"/>
+                                                        <constraint firstAttribute="width" constant="16" id="Okt-sB-AwK"/>
+                                                    </constraints>
+                                                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="ico_4" id="uam-ZN-0LD"/>
+                                                    <color key="contentTintColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                </imageView>
+                                                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="uA7-Mx-HHU">
+                                                    <rect key="frame" x="196" y="3" width="16" height="16"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="16" id="3sX-oP-9j3"/>
+                                                        <constraint firstAttribute="height" constant="16" id="4Zt-J2-fKu"/>
+                                                    </constraints>
+                                                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="ico_5" id="ghT-za-XMC"/>
+                                                    <color key="contentTintColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                </imageView>
+                                                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="UVr-YT-8Jf">
+                                                    <rect key="frame" x="228" y="3" width="16" height="16"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="16" id="1ah-4z-jtZ"/>
+                                                        <constraint firstAttribute="height" constant="16" id="ksd-ne-TBJ"/>
+                                                    </constraints>
+                                                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="ico_6" id="a05-Rv-Fjb"/>
+                                                    <color key="contentTintColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                </imageView>
+                                                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="mco-bH-Rso">
+                                                    <rect key="frame" x="260" y="3" width="16" height="16"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="16" id="DuM-LI-H0c"/>
+                                                        <constraint firstAttribute="height" constant="16" id="qhb-T8-Zxk"/>
+                                                    </constraints>
+                                                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="ico_7" id="Ytb-3g-Aqe"/>
+                                                    <color key="contentTintColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                </imageView>
+                                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Kt8-7z-csk">
+                                                    <rect key="frame" x="290" y="3" width="151" height="16"/>
+                                                    <textFieldCell key="cell" lineBreakMode="clipping" title="Monday 08 Mar 9:00AM" id="zAH-cs-dar">
+                                                        <font key="font" metaFont="system"/>
+                                                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                    </textFieldCell>
+                                                </textField>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="22" id="5rd-aA-uHs"/>
+                                            </constraints>
+                                            <visibilityPriorities>
+                                                <integer value="1000"/>
+                                                <integer value="1000"/>
+                                                <integer value="1000"/>
+                                                <integer value="1000"/>
+                                                <integer value="1000"/>
+                                                <integer value="1000"/>
+                                                <integer value="1000"/>
+                                                <integer value="1000"/>
+                                                <integer value="1000"/>
+                                                <integer value="1000"/>
+                                            </visibilityPriorities>
+                                            <customSpacing>
+                                                <real value="3.4028234663852886e+38"/>
+                                                <real value="3.4028234663852886e+38"/>
+                                                <real value="3.4028234663852886e+38"/>
+                                                <real value="3.4028234663852886e+38"/>
+                                                <real value="3.4028234663852886e+38"/>
+                                                <real value="3.4028234663852886e+38"/>
+                                                <real value="3.4028234663852886e+38"/>
+                                                <real value="3.4028234663852886e+38"/>
+                                                <real value="3.4028234663852886e+38"/>
+                                                <real value="3.4028234663852886e+38"/>
+                                            </customSpacing>
+                                        </stackView>
+                                        <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EVs-2B-Bqx">
+                                            <rect key="frame" x="173" y="146" width="22" height="70"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="12" id="4gg-ll-oij"/>
+                                                <constraint firstAttribute="height" constant="70" id="fjF-wG-847"/>
+                                            </constraints>
+                                            <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="arrow" id="n2V-WN-YtK"/>
+                                            <color key="contentTintColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                        </imageView>
+                                        <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="uBw-I6-e5a">
+                                            <rect key="frame" x="509" y="146" width="22" height="70"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="12" id="31o-Ut-bA7"/>
+                                                <constraint firstAttribute="height" constant="70" id="UhL-Ew-CZs"/>
+                                            </constraints>
+                                            <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="arrow" id="2gg-m3-EHq"/>
+                                            <color key="contentTintColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                        </imageView>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eBG-Wk-IXv">
+                                            <rect key="frame" x="314" y="167" width="189" height="28"/>
+                                            <textFieldCell key="cell" lineBreakMode="clipping" title="⭐️Always Hidden" id="1jU-1x-cFf">
+                                                <font key="font" metaFont="system" size="24"/>
                                                 <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
@@ -1077,22 +1205,23 @@ between sections to configure Hidden Bar.</string>
                                     </subviews>
                                     <constraints>
                                         <constraint firstItem="RGE-Xv-zm5" firstAttribute="centerX" secondItem="TZd-5p-NFL" secondAttribute="centerX" id="0YR-Ph-sDI"/>
-                                        <constraint firstItem="vlT-cT-cRT" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="119" id="BdC-yO-RZC"/>
+                                        <constraint firstItem="EVs-2B-Bqx" firstAttribute="leading" secondItem="vlT-cT-cRT" secondAttribute="trailing" constant="4" id="7oc-vz-2QR"/>
                                         <constraint firstAttribute="bottom" secondItem="RGE-Xv-zm5" secondAttribute="bottom" constant="8" id="BvJ-gy-2qG"/>
-                                        <constraint firstItem="ZE5-y9-i8b" firstAttribute="leading" secondItem="TZd-5p-NFL" secondAttribute="leading" constant="20" id="IAn-7K-HFZ"/>
-                                        <constraint firstItem="ZE5-y9-i8b" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="40" id="JZE-pj-Lxm"/>
-                                        <constraint firstItem="vlT-cT-cRT" firstAttribute="leading" secondItem="TZd-5p-NFL" secondAttribute="leading" constant="49" id="Owf-CP-dZy"/>
-                                        <constraint firstItem="RGE-Xv-zm5" firstAttribute="top" secondItem="ZE5-y9-i8b" secondAttribute="bottom" constant="35" id="PTc-jH-uwR"/>
-                                        <constraint firstAttribute="trailing" secondItem="ZE5-y9-i8b" secondAttribute="trailing" constant="20" id="Sw1-lS-hmE"/>
-                                        <constraint firstAttribute="trailing" secondItem="U3K-oK-4ET" secondAttribute="trailing" constant="285" id="VJe-5e-or5"/>
-                                        <constraint firstItem="U3K-oK-4ET" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="vlT-cT-cRT" secondAttribute="trailing" constant="8" symbolic="YES" id="rnC-4c-gVc"/>
-                                        <constraint firstItem="U3K-oK-4ET" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="119" id="wkN-ou-lsT"/>
+                                        <constraint firstItem="EVs-2B-Bqx" firstAttribute="top" secondItem="pJz-eb-ydI" secondAttribute="bottom" constant="16" id="Hpj-p4-UQa"/>
+                                        <constraint firstItem="U3K-oK-4ET" firstAttribute="centerY" secondItem="EVs-2B-Bqx" secondAttribute="centerY" id="Mmr-8O-VNL"/>
+                                        <constraint firstItem="pJz-eb-ydI" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="38" id="Rdj-2r-VTd"/>
+                                        <constraint firstItem="uBw-I6-e5a" firstAttribute="leading" secondItem="eBG-Wk-IXv" secondAttribute="trailing" constant="4" id="W2B-29-wzv"/>
+                                        <constraint firstItem="eBG-Wk-IXv" firstAttribute="centerY" secondItem="uBw-I6-e5a" secondAttribute="centerY" id="a1h-Oc-pu4"/>
+                                        <constraint firstItem="uBw-I6-e5a" firstAttribute="top" secondItem="pJz-eb-ydI" secondAttribute="bottom" constant="16" id="ap3-hF-i14"/>
+                                        <constraint firstItem="U3K-oK-4ET" firstAttribute="leading" secondItem="EVs-2B-Bqx" secondAttribute="trailing" constant="4" id="fk6-Sf-8S7"/>
+                                        <constraint firstItem="vlT-cT-cRT" firstAttribute="centerY" secondItem="EVs-2B-Bqx" secondAttribute="centerY" id="tzR-I4-rVG"/>
+                                        <constraint firstItem="pJz-eb-ydI" firstAttribute="centerX" secondItem="TZd-5p-NFL" secondAttribute="centerX" id="yqY-YO-f6B"/>
                                     </constraints>
                                 </view>
                                 <color key="fillColor" name="quaternaryLabelColor" catalog="System" colorSpace="catalog"/>
                             </box>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aZz-jM-wCs">
-                                <rect key="frame" x="18" y="137" width="91" height="26"/>
+                                <rect key="frame" x="18" y="147" width="91" height="26"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Settings" id="1Is-Ut-a9h">
                                     <font key="font" metaFont="systemBold" size="22"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -1100,13 +1229,13 @@ between sections to configure Hidden Bar.</string>
                                 </textFieldCell>
                             </textField>
                             <stackView distribution="fill" orientation="horizontal" alignment="top" spacing="35" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="I1C-Eb-1or">
-                                <rect key="frame" x="16" y="20" width="568" height="97"/>
+                                <rect key="frame" x="16" y="20" width="568" height="107"/>
                                 <subviews>
                                     <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="10" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="do4-pv-o3U">
-                                        <rect key="frame" x="0.0" y="0.0" width="304" height="97"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="337" height="107"/>
                                         <subviews>
                                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cbR-Jv-adm">
-                                                <rect key="frame" x="-2" y="81" width="203" height="18"/>
+                                                <rect key="frame" x="-2" y="90" width="207" height="18"/>
                                                 <buttonCell key="cell" type="check" title="Start Hidden Bar when I log in" bezelStyle="regularSquare" imagePosition="left" inset="2" id="W1G-55-zGo">
                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                     <font key="font" metaFont="system"/>
@@ -1116,7 +1245,7 @@ between sections to configure Hidden Bar.</string>
                                                 </connections>
                                             </button>
                                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gWT-L1-Xdf">
-                                                <rect key="frame" x="-2" y="57" width="194" height="18"/>
+                                                <rect key="frame" x="-2" y="64" width="198" height="18"/>
                                                 <buttonCell key="cell" type="check" title="Show preferences on launch" bezelStyle="regularSquare" imagePosition="left" inset="2" id="hCh-Ue-NgH">
                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                     <font key="font" metaFont="system"/>
@@ -1125,21 +1254,41 @@ between sections to configure Hidden Bar.</string>
                                                     <action selector="showPreferencesChanged:" target="XfG-lQ-9wD" id="UYB-yR-xTM"/>
                                                 </connections>
                                             </button>
-                                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yaS-iD-h7g" userLabel="Check Box Show Always Hidden Section">
-                                                <rect key="frame" x="-2" y="33" width="307" height="18"/>
-                                                <buttonCell key="cell" type="check" title="Enable always hidden section (requires restart)" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Nhn-ch-1f7">
-                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                                    <font key="font" metaFont="system"/>
-                                                </buttonCell>
-                                                <connections>
-                                                    <action selector="showAlwaysHiddenSectionChanged:" target="XfG-lQ-9wD" id="y4P-J3-NYz"/>
-                                                </connections>
-                                            </button>
+                                            <stackView distribution="fill" orientation="horizontal" alignment="top" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nE7-aX-FH9">
+                                                <rect key="frame" x="0.0" y="35" width="337" height="20"/>
+                                                <subviews>
+                                                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yaS-iD-h7g" userLabel="Check Box Show Always Hidden Section">
+                                                        <rect key="frame" x="-2" y="3" width="311" height="18"/>
+                                                        <buttonCell key="cell" type="check" title="Enable always hidden section (requires restart)" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Nhn-ch-1f7">
+                                                            <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                            <font key="font" metaFont="system"/>
+                                                        </buttonCell>
+                                                        <connections>
+                                                            <action selector="showAlwaysHiddenSectionChanged:" target="XfG-lQ-9wD" id="y4P-J3-NYz"/>
+                                                        </connections>
+                                                    </button>
+                                                    <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="CZq-vT-3m1">
+                                                        <rect key="frame" x="314" y="-4" width="25" height="25"/>
+                                                        <buttonCell key="cell" type="help" bezelStyle="helpButton" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="6y0-DP-P8w">
+                                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                            <font key="font" metaFont="system"/>
+                                                        </buttonCell>
+                                                    </button>
+                                                </subviews>
+                                                <visibilityPriorities>
+                                                    <integer value="1000"/>
+                                                    <integer value="1000"/>
+                                                </visibilityPriorities>
+                                                <customSpacing>
+                                                    <real value="3.4028234663852886e+38"/>
+                                                    <real value="3.4028234663852886e+38"/>
+                                                </customSpacing>
+                                            </stackView>
                                             <stackView distribution="fill" orientation="horizontal" alignment="top" spacing="2" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bf8-qr-hjT">
-                                                <rect key="frame" x="0.0" y="0.0" width="304" height="25"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="309" height="25"/>
                                                 <subviews>
                                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gj1-Ms-4No">
-                                                        <rect key="frame" x="-2" y="3" width="202" height="24"/>
+                                                        <rect key="frame" x="-2" y="4" width="206" height="22"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="20" id="Pg4-Eh-1V3"/>
                                                         </constraints>
@@ -1152,10 +1301,10 @@ between sections to configure Hidden Bar.</string>
                                                         </connections>
                                                     </button>
                                                     <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="T6r-65-Oor">
-                                                        <rect key="frame" x="198" y="1" width="109" height="25"/>
+                                                        <rect key="frame" x="203" y="1" width="110" height="25"/>
                                                         <popUpButtonCell key="cell" type="push" title="5 seconds" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="bzS-lm-JvT" id="SPt-Y3-pjj">
                                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                                            <font key="font" metaFont="system"/>
+                                                            <font key="font" metaFont="menu"/>
                                                             <menu key="menu" id="EWA-5U-Jd0">
                                                                 <items>
                                                                     <menuItem title="5 seconds" state="on" id="bzS-lm-JvT"/>
@@ -1198,10 +1347,10 @@ between sections to configure Hidden Bar.</string>
                                         </customSpacing>
                                     </stackView>
                                     <stackView distribution="fill" orientation="vertical" alignment="centerX" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="NOW-ql-i4U">
-                                        <rect key="frame" x="339" y="22" width="229" height="75"/>
+                                        <rect key="frame" x="372" y="32" width="196" height="75"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="S0D-Ve-YKP">
-                                                <rect key="frame" x="61" y="58" width="108" height="17"/>
+                                                <rect key="frame" x="44" y="58" width="108" height="17"/>
                                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Global Shortcut" id="HJP-Lf-rxm">
                                                     <font key="font" metaFont="systemMedium" size="14"/>
                                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -1209,13 +1358,13 @@ between sections to configure Hidden Bar.</string>
                                                 </textFieldCell>
                                             </textField>
                                             <box title="Box" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="mtL-vU-2iq">
-                                                <rect key="frame" x="19" y="-4" width="191" height="56"/>
+                                                <rect key="frame" x="3" y="-4" width="191" height="56"/>
                                                 <view key="contentView" id="N9Y-29-pHK">
                                                     <rect key="frame" x="3" y="3" width="185" height="50"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yKf-P1-I45">
-                                                            <rect key="frame" x="2" y="1" width="137" height="45"/>
+                                                            <rect key="frame" x="1" y="1" width="147" height="46"/>
                                                             <buttonCell key="cell" type="push" title="Set Shortcut" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="fc2-jD-QNf">
                                                                 <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                                                 <font key="font" metaFont="system" size="15"/>
@@ -1226,7 +1375,7 @@ between sections to configure Hidden Bar.</string>
                                                             </connections>
                                                         </button>
                                                         <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="D4j-NZ-37N">
-                                                            <rect key="frame" x="129" y="8" width="54" height="32"/>
+                                                            <rect key="frame" x="136" y="8" width="48" height="32"/>
                                                             <buttonCell key="cell" type="push" title="⌫" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" inset="2" id="IId-1b-leb">
                                                                 <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                                                 <font key="font" metaFont="system"/>
@@ -1282,13 +1431,16 @@ between sections to configure Hidden Bar.</string>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="arrowPointToAlwayHiddenImage" destination="uBw-I6-e5a" id="FCc-fJ-4aI"/>
+                        <outlet property="arrowPointToHiddenImage" destination="EVs-2B-Bqx" id="Bds-n4-dzK"/>
                         <outlet property="btnClear" destination="D4j-NZ-37N" id="2yc-ze-q1e"/>
                         <outlet property="btnShortcut" destination="yKf-P1-I45" id="AFr-y7-VbP"/>
                         <outlet property="checkBoxAutoHide" destination="gj1-Ms-4No" id="Ibl-5H-2vh"/>
                         <outlet property="checkBoxLogin" destination="cbR-Jv-adm" id="DFO-De-0KU"/>
                         <outlet property="checkBoxShowAlwaysHiddenSection" destination="yaS-iD-h7g" id="T5N-bN-yl2"/>
                         <outlet property="checkBoxShowPreferences" destination="gWT-L1-Xdf" id="sC8-cw-Fmh"/>
-                        <outlet property="imageViewTop" destination="ZE5-y9-i8b" id="wNv-Wx-ILV"/>
+                        <outlet property="lblAlwayHidden" destination="eBG-Wk-IXv" id="JaJ-0i-o6U"/>
+                        <outlet property="statusBarStackView" destination="pJz-eb-ydI" id="huU-as-oWi"/>
                         <outlet property="textFieldTitle" destination="RGE-Xv-zm5" id="v43-3R-PwU"/>
                         <outlet property="timePopup" destination="T6r-65-Oor" id="E7R-qd-xOq"/>
                     </connections>
@@ -1299,11 +1451,20 @@ between sections to configure Hidden Bar.</string>
         </scene>
     </scenes>
     <resources>
-        <image name="banner" width="512" height="136.5"/>
+        <image name="arrow" width="12" height="71"/>
         <image name="ic_logo" width="1024" height="1024"/>
+        <image name="ico_1" width="10" height="14"/>
+        <image name="ico_2" width="11" height="14"/>
+        <image name="ico_3" width="19" height="12"/>
+        <image name="ico_4" width="19" height="9"/>
+        <image name="ico_5" width="15" height="11"/>
+        <image name="ico_6" width="12" height="12"/>
+        <image name="ico_7" width="13" height="12"/>
+        <image name="ico_collapse" width="7" height="12"/>
         <image name="ico_compass" width="372" height="384"/>
         <image name="ico_email" width="384" height="384"/>
         <image name="ico_github" width="496" height="484"/>
         <image name="ico_twitter" width="512" height="416"/>
+        <image name="seprated" width="2" height="13"/>
     </resources>
 </document>
