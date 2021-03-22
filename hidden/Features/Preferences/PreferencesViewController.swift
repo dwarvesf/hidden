@@ -12,6 +12,7 @@ import HotKey
 
 class PreferencesViewController: NSViewController {
     
+   
     //MARK: - Outlets
     @IBOutlet weak var checkBoxKeepLastState: NSButton!
     @IBOutlet weak var textFieldTitle: NSTextField!
@@ -184,6 +185,8 @@ class PreferencesViewController: NSViewController {
     }
 }
 
+
+//MARK: - Show tutorial
 extension PreferencesViewController {
     
     func createTutorialView() {
@@ -279,6 +282,41 @@ extension PreferencesViewController {
         NSLayoutConstraint.activate([
             arrowPointToHiddenImage.centerXAnchor.constraint(equalTo: statusBarStackView.arrangedSubviews[7].centerXAnchor)
         ])
+    }
+    
+    @IBAction func btnAlwayHiddenHelpPressed(_ sender: NSButton) {
+        self.showHowToUseAlwayHiddenPopover(sender: sender)
+    }
+    
+    private func showHowToUseAlwayHiddenPopover(sender: NSButton) {
+        let controller = NSViewController()
+        
+        let label = NSTextField()
+        
+        let text = """
+        Use the always hidden feature to keep your icons tidy. Here's how to set it
+        Steps to enable:
+        1. Enable the always hidden “􀥤” (translucent color bar)
+        2. Hold  􀆔 and drag it on the left-hand side of the normal bar, then move any icons you want to disappear on the left of that bar.
+        3. Finally, please right-click on the collapse “􀆊” icon to make it disappear.
+        Steps to view always hidden icons:
+        1. You right-click on “􀆊” icon again to view and repeat the action to enable the feature. Enjoy 😉!
+        """
+        
+        label.stringValue = text
+        label.isBezeled = false
+        label.isEditable = false
+        controller.view = label
+        
+        
+        let popover = NSPopover()
+        popover.contentViewController = controller
+        popover.contentSize = controller.view.frame.size
+        
+        popover.behavior = .transient
+        popover.animates = true
+        
+        popover.show(relativeTo: self.view.bounds, of: sender , preferredEdge: NSRectEdge.maxX)
     }
     
 }
