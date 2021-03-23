@@ -14,9 +14,10 @@ class StatusBarController {
     private var timer:Timer? = nil
     
     //MARK: - BarItems
+        
     private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let separateStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private let terminateStatusBar = NSStatusBar.system.statusItem(withLength: Preferences.alwaysHiddenSectionEnabled ? 20 : 0)
+    private var alwayHideSeparateStatusBar:NSStatusItem? = nil
     
     private var normalSeparateStatusBarIconLength: CGFloat { return Preferences.areSeparatorsHidden ? 0 : 20 }
     private let collapseSeparateStatusBarIconLength: CGFloat = 10000
@@ -40,13 +41,13 @@ class StatusBarController {
         
         return expandBarButtonX >= separateBarButtonX
     }
-    
+    #warning("Check awlay hide")
     private var isValidTogglablePosition: Bool {
         if !Preferences.alwaysHiddenSectionEnabled { return true }
         
         guard
             let separateBarButtonX = self.separateStatusBar.button?.getOrigin?.x,
-            let terminateBarButtonX = self.terminateStatusBar.button?.getOrigin?.x
+            let terminateBarButtonX = self.alwayHideSeparateStatusBar?.button?.getOrigin?.x
             else {return false}
             
         return separateBarButtonX >= terminateBarButtonX
@@ -56,7 +57,7 @@ class StatusBarController {
     init() {
         
         setupUI()
-        
+        setupAlwayHideStatusBar()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
             self.collapseMenuBar()
         })
@@ -69,15 +70,9 @@ class StatusBarController {
         if let button = separateStatusBar.button {
             button.image = self.imgIconLine
         }
-        
-        if let button = terminateStatusBar.button {
-            button.image = self.imgIconLine
-            button.appearsDisabled = true
-        }
-        
         let menu = self.getContextMenu()
         separateStatusBar.menu = menu
-        terminateStatusBar.menu = menu
+
         updateMenuTitles()
         
         if let button = expandCollapseStatusBar.button {
@@ -90,7 +85,6 @@ class StatusBarController {
         
         expandCollapseStatusBar.autosaveName = "hiddenbar_expandcollapse";
         separateStatusBar.autosaveName = "hiddenbar_separate";
-        terminateStatusBar.autosaveName = "hiddenbar_terminate";
     }
     
     @objc func statusBarButtonClicked(sender: NSStatusBarButton) {
@@ -118,8 +112,7 @@ class StatusBarController {
         if !self.isCollapsed {
             self.separateStatusBar.length = self.normalSeparateStatusBarIconLength
         }
-        
-        self.terminateStatusBar.length = self.normalTerminateStatusBarIconLength
+        self.alwayHideSeparateStatusBar?.length = self.normalTerminateStatusBarIconLength
     }
     
     private func hideSeparators() {
@@ -130,8 +123,7 @@ class StatusBarController {
         if !self.isCollapsed {
             self.separateStatusBar.length = self.normalSeparateStatusBarIconLength
         }
-        
-        self.terminateStatusBar.length = self.collapseTerminateStatusBarIconLength
+        self.alwayHideSeparateStatusBar?.length = self.collapseTerminateStatusBarIconLength
     }
     
     func expandCollapseIfNeeded() {
@@ -217,5 +209,23 @@ class StatusBarController {
     
     @objc func toggleAutoHide() {
         Preferences.isAutoHide.toggle()
+    }
+    
+    private func setupAlwayHideStatusBar() {
+        NotificationCenter.default.addObserver(self, selector: #selector(toggleStatusBarIfNeeded), name: .alwayHideToggle, object: nil)
+        toggleStatusBarIfNeeded()
+    }
+    @objc private func toggleStatusBarIfNeeded() {
+        if Preferences.alwaysHiddenSectionEnabled {
+            self.alwayHideSeparateStatusBar =  NSStatusBar.system.statusItem(withLength: 20)
+            if let button = alwayHideSeparateStatusBar?.button {
+                button.image = self.imgIconLine
+                button.appearsDisabled = true
+            }
+            self.alwayHideSeparateStatusBar?.autosaveName = "hiddenbar_terminate";
+
+        }else {
+            self.alwayHideSeparateStatusBar = nil
+        }
     }
 }
