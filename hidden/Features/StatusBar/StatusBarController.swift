@@ -210,7 +210,11 @@ class StatusBarController {
     @objc func toggleAutoHide() {
         Preferences.isAutoHide.toggle()
     }
-    
+}
+
+
+//MARK: - Alway hide feature
+extension StatusBarController {
     private func setupAlwayHideStatusBar() {
         NotificationCenter.default.addObserver(self, selector: #selector(toggleStatusBarIfNeeded), name: .alwayHideToggle, object: nil)
         toggleStatusBarIfNeeded()
@@ -223,7 +227,7 @@ class StatusBarController {
                 button.appearsDisabled = true
             }
             self.alwayHideSeparateStatusBar?.autosaveName = "hiddenbar_terminate";
-
+            
         }else {
             self.alwayHideSeparateStatusBar = nil
         }
