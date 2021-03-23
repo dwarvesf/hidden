@@ -41,7 +41,6 @@ class StatusBarController {
         
         return expandBarButtonX >= separateBarButtonX
     }
-    #warning("Check awlay hide")
     private var isValidTogglablePosition: Bool {
         if !Preferences.alwaysHiddenSectionEnabled { return true }
         
@@ -73,13 +72,13 @@ class StatusBarController {
         let menu = self.getContextMenu()
         separateStatusBar.menu = menu
 
-        updateMenuTitles()
+        updateAutoCollapseMenuTitle()
         
         if let button = expandCollapseStatusBar.button {
             button.image = self.imgIconCollapse
             button.target = self
             
-            button.action = #selector(self.statusBarButtonClicked(sender:))
+            button.action = #selector(self.expandCollapseButtonPressed(sender:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
         
@@ -87,7 +86,7 @@ class StatusBarController {
         separateStatusBar.autosaveName = "hiddenbar_separate";
     }
     
-    @objc func statusBarButtonClicked(sender: NSStatusBarButton) {
+    @objc func expandCollapseButtonPressed(sender: NSStatusBarButton) {
         if let event = NSApp.currentEvent {
             
             let isOptionKeyPressed = event.modifierFlags.contains(NSEvent.ModifierFlags.option)
@@ -95,12 +94,12 @@ class StatusBarController {
             if event.type == NSEvent.EventType.leftMouseUp && !isOptionKeyPressed{
                 self.expandCollapseIfNeeded()
             } else {
-                self.toggleSeparators()
+                self.showHideSeparatorsAndAlwayHideArea()
             }
         }
     }
     
-    func toggleSeparators() {
+    func showHideSeparatorsAndAlwayHideArea() {
         Preferences.areSeparatorsHidden ? self.showSeparators() : self.hideSeparators()
         
         if self.isCollapsed {self.expandMenubar()}
@@ -189,7 +188,7 @@ class StatusBarController {
         return menu
     }
     
-    private func updateMenuTitles() {
+    private func updateAutoCollapseMenuTitle() {
         guard let toggleAutoHideItem = separateStatusBar.menu?.item(withTag: 1) else { return }
         if Preferences.isAutoHide {
             toggleAutoHideItem.title = "Disable Auto Collapse".localized
@@ -199,7 +198,7 @@ class StatusBarController {
     }
     
     @objc func updateAutoHide() {
-        updateMenuTitles()
+        updateAutoCollapseMenuTitle()
         autoCollapseIfNeeded()
     }
     
