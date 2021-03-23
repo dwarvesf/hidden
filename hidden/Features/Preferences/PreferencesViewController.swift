@@ -12,10 +12,18 @@ import HotKey
 
 class PreferencesViewController: NSViewController {
     
+   
     //MARK: - Outlets
     @IBOutlet weak var checkBoxKeepLastState: NSButton!
     @IBOutlet weak var textFieldTitle: NSTextField!
     @IBOutlet weak var imageViewTop: NSImageView!
+    
+    @IBOutlet weak var statusBarStackView: NSStackView!
+    @IBOutlet weak var arrowPointToHiddenImage: NSImageView!
+    @IBOutlet weak var arrowPointToAlwayHiddenImage: NSImageView!
+    @IBOutlet weak var lblAlwayHidden: NSTextField!
+    
+    
     
     @IBOutlet weak var checkBoxAutoHide: NSButton!
     @IBOutlet weak var checkBoxKeepInDock: NSButton!
@@ -43,7 +51,7 @@ class PreferencesViewController: NSViewController {
         super.viewDidLoad()
         updateData()
         loadHotkey()
-        
+        createTutorialView()
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
     }
     
@@ -68,6 +76,7 @@ class PreferencesViewController: NSViewController {
     
     @IBAction func showAlwaysHiddenSectionChanged(_ sender: NSButton) {
         Preferences.alwaysHiddenSectionEnabled = sender.state == .on
+        createTutorialView()
     }
     
     
@@ -138,7 +147,6 @@ class PreferencesViewController: NSViewController {
     }
     
     @objc private func updateData(){
-        imageViewTop.image = NSImage(named:NSImage.Name("banner"))
         checkBoxLogin.state = Preferences.isAutoStart ? .on : .off
         checkBoxAutoHide.state = Preferences.isAutoHide ? .on : .off
         checkBoxShowPreferences.state = Preferences.isShowPreference ? .on : .off
@@ -175,4 +183,140 @@ class PreferencesViewController: NSViewController {
     private func updateClearButton(_ globalKeybindPreference : GlobalKeybindPreferences?) {
         btnClear.isEnabled = globalKeybindPreference != nil
     }
+}
+
+
+//MARK: - Show tutorial
+extension PreferencesViewController {
+    
+    func createTutorialView() {
+        if Preferences.alwaysHiddenSectionEnabled {
+            alwayHideStatusBar()
+        }else {
+            hideStatusBar()
+        }
+    }
+    
+    func hideStatusBar() {
+        lblAlwayHidden.isHidden = true
+        arrowPointToAlwayHiddenImage.isHidden = true
+        statusBarStackView.removeAllSubViews()
+        let imageWidth: CGFloat = 16
+        
+        
+        let images = ["ico_1","ico_2","ico_3","seprated", "ico_collapse","ico_4","ico_5","ico_6","ico_7"].map { imageName in
+            NSImageView(image: NSImage(named: imageName)!)
+        }
+        
+        
+        for image in images {
+            statusBarStackView.addArrangedSubview(image)
+            image.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                image.widthAnchor.constraint(equalToConstant: imageWidth),
+                image.heightAnchor.constraint(equalToConstant: imageWidth)
+                
+            ])
+            if #available(OSX 10.14, *) {
+                image.contentTintColor = .labelColor
+            } else {
+                // Fallback on earlier versions
+            }
+        }
+        let dateTimeLabel = NSTextField()
+        dateTimeLabel.stringValue = Date.dateString() + " " + Date.timeString()
+        dateTimeLabel.translatesAutoresizingMaskIntoConstraints = false
+        dateTimeLabel.isBezeled = false
+        dateTimeLabel.isEditable = false
+        dateTimeLabel.sizeToFit()
+        dateTimeLabel.backgroundColor = .clear
+        statusBarStackView.addArrangedSubview(dateTimeLabel)
+        NSLayoutConstraint.activate([dateTimeLabel.heightAnchor.constraint(equalToConstant: imageWidth)
+        ])
+       
+        NSLayoutConstraint.activate([
+            arrowPointToHiddenImage.centerXAnchor.constraint(equalTo: statusBarStackView.arrangedSubviews[3].centerXAnchor)
+        ])
+    }
+    
+    func alwayHideStatusBar() {
+        lblAlwayHidden.isHidden = false
+        arrowPointToAlwayHiddenImage.isHidden = false
+        statusBarStackView.removeAllSubViews()
+        let imageWidth: CGFloat = 16
+        
+        
+        let images = ["ico_1","ico_2","ico_3","ico_4", "seprated_1","ico_5","ico_6","seprated", "ico_collapse","ico_7"].map { imageName in
+            NSImageView(image: NSImage(named: imageName)!)
+        }
+        
+        
+        for image in images {
+            statusBarStackView.addArrangedSubview(image)
+            image.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                image.widthAnchor.constraint(equalToConstant: imageWidth),
+                image.heightAnchor.constraint(equalToConstant: imageWidth)
+                
+            ])
+            if #available(OSX 10.14, *) {
+                image.contentTintColor = .labelColor
+            } else {
+                // Fallback on earlier versions
+            }
+        }
+        let dateTimeLabel = NSTextField()
+        dateTimeLabel.stringValue = Date.dateString() + " " + Date.timeString()
+        dateTimeLabel.translatesAutoresizingMaskIntoConstraints = false
+        dateTimeLabel.isBezeled = false
+        dateTimeLabel.isEditable = false
+        dateTimeLabel.sizeToFit()
+        dateTimeLabel.backgroundColor = .clear
+        statusBarStackView.addArrangedSubview(dateTimeLabel)
+        NSLayoutConstraint.activate([dateTimeLabel.heightAnchor.constraint(equalToConstant: imageWidth)
+        ])
+        
+        NSLayoutConstraint.activate([
+            arrowPointToAlwayHiddenImage.centerXAnchor.constraint(equalTo: statusBarStackView.arrangedSubviews[4].centerXAnchor)
+        ])
+        NSLayoutConstraint.activate([
+            arrowPointToHiddenImage.centerXAnchor.constraint(equalTo: statusBarStackView.arrangedSubviews[7].centerXAnchor)
+        ])
+    }
+    
+    @IBAction func btnAlwayHiddenHelpPressed(_ sender: NSButton) {
+        self.showHowToUseAlwayHiddenPopover(sender: sender)
+    }
+    
+    private func showHowToUseAlwayHiddenPopover(sender: NSButton) {
+        let controller = NSViewController()
+        
+        let label = NSTextField()
+        
+        let text = """
+        Use the always hidden feature to keep your icons tidy. Here's how to set it
+        Steps to enable:
+        1. Enable the always hidden “􀥤” (translucent color bar)
+        2. Hold  􀆔 and drag it on the left-hand side of the normal bar, then move any icons you want to disappear on the left of that bar.
+        3. Finally, please right-click on the collapse “􀆊” icon to make it disappear.
+        Steps to view always hidden icons:
+        1. You right-click on “􀆊” icon again to view and repeat the action to enable the feature. Enjoy 😉!
+        """
+        
+        label.stringValue = text
+        label.isBezeled = false
+        label.isEditable = false
+        controller.view = label
+        
+        
+        let popover = NSPopover()
+        popover.contentViewController = controller
+        popover.contentSize = controller.view.frame.size
+        
+        popover.behavior = .transient
+        popover.animates = true
+        
+        popover.show(relativeTo: self.view.bounds, of: sender , preferredEdge: NSRectEdge.maxX)
+    }
+    
 }
