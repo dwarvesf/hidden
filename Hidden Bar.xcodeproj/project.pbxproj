@@ -93,6 +93,9 @@
 		967F4B2924169CAF00F18D3C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		967F4B2B24169CB200F18D3C /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		967F4B2C24169CB400F18D3C /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B1326443261D7E0200319D35 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
+		B1326444261D7E0200319D35 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
+		B1326445261D7E0200319D35 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B350A2CC23AAFB47003A04AC /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 		B8404C9A24041A4300E6DBF8 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
 		B8404C9B24041A4300E6DBF8 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
@@ -335,6 +338,7 @@
 				"zh-Hans",
 				ja,
 				"zh-Hant",
+				fr,
 			);
 			mainGroup = 929113E821F9D04100173149;
 			packageReferences = (
@@ -420,6 +424,7 @@
 				B350A2CC23AAFB47003A04AC /* zh-Hans */,
 				B8404C9A24041A4300E6DBF8 /* ja */,
 				FF57A44925E6C50200988FC2 /* zh-Hant */,
+				B1326443261D7E0200319D35 /* fr */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -430,6 +435,7 @@
 				92C5055721FEC03C0084719A /* Base */,
 				B8404C9B24041A4300E6DBF8 /* ja */,
 				FF57A44A25E6C50200988FC2 /* zh-Hant */,
+				B1326444261D7E0200319D35 /* fr */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -441,6 +447,7 @@
 				967F4B2B24169CB200F18D3C /* zh-Hans */,
 				967F4B2C24169CB400F18D3C /* ja */,
 				FF57A44B25E6C50200988FC2 /* zh-Hant */,
+				B1326445261D7E0200319D35 /* fr */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
