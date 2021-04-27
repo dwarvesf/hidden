@@ -1,5 +1,5 @@
 //
-//  GlobalEventMoniter.swift
+//  EventMoniter.swift
 //  Hidden Bar
 //
 //  Created by Peter Luo on 2021/3/3.
@@ -8,13 +8,15 @@
 
 import Cocoa
 
-class GlobalEventMoniter {
+class EventMoniter {
     
-    var monitor: Any?
+    var globalMoniter: Any?
+    var localMoniter : Any?
+    
     let mask: NSEvent.EventTypeMask
     let handler: (NSEvent) -> ()
     var isStarted : Bool {
-        return self.monitor != nil
+        return self.globalMoniter != nil
     }
     
     init(mask: NSEvent.EventTypeMask, handler: @escaping (NSEvent) -> ()) {
@@ -28,13 +30,16 @@ class GlobalEventMoniter {
     
     func start() {
         guard !isStarted else { return }
-        self.monitor = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: handler)
+        self.globalMoniter = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: handler)
+        self.localMoniter  = NSEvent.addLocalMonitorForEvents(matching: mask) { self.handler($0) ; return $0 }
     }
     
     func stop() {
         guard isStarted else { return }
-        NSEvent.removeMonitor(self.monitor!)
-        self.monitor = nil
+        NSEvent.removeMonitor(self.globalMoniter!)
+        NSEvent.removeMonitor(self.localMoniter!)
+        globalMoniter = nil
+        localMoniter  = nil
     }
     
 }
