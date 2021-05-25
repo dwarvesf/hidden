@@ -185,7 +185,6 @@ class PreferencesViewController: NSViewController {
     }
 }
 
-
 //MARK: - Show tutorial
 extension PreferencesViewController {
     
@@ -318,5 +317,4 @@ extension PreferencesViewController {
         
         popover.show(relativeTo: self.view.bounds, of: sender , preferredEdge: NSRectEdge.maxX)
     }
-    
 }

@@ -90,6 +90,7 @@ enum Preferences {
         
         set {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.alwaysHiddenSectionEnabled)
+            NotificationCenter.default.post(Notification(name: .alwayHideToggle))
         }
     }
 }
