@@ -1272,18 +1272,9 @@ between sections to configure Hidden Bar.</string>
                                                         <buttonCell key="cell" type="help" bezelStyle="helpButton" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="6y0-DP-P8w">
                                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                                             <font key="font" metaFont="system"/>
-<<<<<<< HEAD
-<<<<<<< HEAD
                                                             <connections>
                                                                 <action selector="btnAlwayHiddenHelpPressed:" target="XfG-lQ-9wD" id="W71-gh-ijE"/>
                                                             </connections>
-=======
->>>>>>> Update tutorial images
-=======
-                                                            <connections>
-                                                                <action selector="btnAlwayHiddenHelpPressed:" target="XfG-lQ-9wD" id="W71-gh-ijE"/>
-                                                            </connections>
->>>>>>> Add How to use alway hide feature popup
                                                         </buttonCell>
                                                     </button>
                                                 </subviews>
