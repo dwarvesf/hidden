@@ -8,13 +8,24 @@
 
 "Preferences..." = "偏好設定⋯";
 "Quit" = "結束";
+"Toggle Auto Collapse" = "開關自動收合";
+"Enable Auto Collapse" = "開啟自動收合";
+"Disable Auto Collapse" = "關閉自動收合";
 "Set Shortcut" = "設定快捷鍵";
 "Tutorial text" = "
-Use the always hidden feature to keep your icons tidy. Here's how to set it
-Steps to enable:
-1. Enable the always hidden “􀥤” (translucent color bar)
-2. Hold  􀆔 and drag it on the left-hand side of the normal bar, then move any icons you want to disappear on the left of that bar.
-3. Finally, please right-click on the collapse “􀆊” icon to make it disappear.
-Steps to view always hidden icons:
-1. You right-click on “􀆊” icon again to view and repeat the action to enable the feature. Enjoy 😉!
+「持續隱藏」功能讓您的圖示永保整潔。本文會引導您設定這個功能。
+
+啟用步驟：
+
+1. 啟用表示持續隱藏的「|」按鈕（半透明色條）
+
+2. 按住 􀆔，接著拖曳到「一般顯示區域」的左側（一般隱藏區域）
+接著將不想顯示的圖示移至「一般隱藏區域」的左側（持續隱藏區域）。
+
+3. 最後，對表示縮回的「􀆊」圖示按下右鍵，就能隱藏「持續隱藏區域」中的圖示。
+
+顯示「持續隱藏」圖示的步驟：
+
+1. 重新對「􀆊」圖示按下右鍵就能顯示「持續隱藏區域」中的圖示，
+再按一次就能隱藏。試試看吧 😉！
 ";

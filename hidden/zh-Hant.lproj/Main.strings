@@ -11,6 +11,9 @@
 /* Class = "NSMenu"; title = "Find"; ObjectID = "1b7-l0-nxx"; */
 "1b7-l0-nxx.title" = "尋找";
 
+/* Class = "NSTextFieldCell"; title = "⭐️Always Hidden"; ObjectID = "1jU-1x-cFf"; */
+"1jU-1x-cFf.title" = "⭐️ 持續隱藏";
+
 /* Class = "NSMenuItem"; title = "Lower"; ObjectID = "1tx-W0-xDw"; */
 "1tx-W0-xDw.title" = "調低";
 
@@ -191,8 +194,8 @@
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
 "NMo-om-nkz.title" = "服務";
 
-/* Class = "NSButtonCell"; title = "Enable always hidden section (requires restart)"; ObjectID = "Nhn-ch-1f7"; */
-"Nhn-ch-1f7.title" = "啟用持續隱藏區域（需要重新啟動）";
+/* Class = "NSButtonCell"; title = "Enable always hidden section"; ObjectID = "Nhn-ch-1f7"; */
+"Nhn-ch-1f7.title" = "啟用持續隱藏區域";
 
 /* Class = "NSMenuItem"; title = "    Default"; ObjectID = "Nop-cj-93Q"; */
 "Nop-cj-93Q.title" = "    預設值";
