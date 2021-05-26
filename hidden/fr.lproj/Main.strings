@@ -11,6 +11,9 @@
 /* Class = "NSMenu"; title = "Find"; ObjectID = "1b7-l0-nxx"; */
 "1b7-l0-nxx.title" = "Chercher";
 
+/* Class = "NSTextFieldCell"; title = "⭐️Always Hidden"; ObjectID = "1jU-1x-cFf"; */
+"1jU-1x-cFf.title" = "⭐️Always Hidden";
+
 /* Class = "NSMenuItem"; title = "Lower"; ObjectID = "1tx-W0-xDw"; */
 "1tx-W0-xDw.title" = "Baisser";
 
@@ -191,8 +194,8 @@
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
 "NMo-om-nkz.title" = "Services";
 
-/* Class = "NSButtonCell"; title = "Enable always hidden section (requires restart)"; ObjectID = "Nhn-ch-1f7"; */
-"Nhn-ch-1f7.title" = "Activer la section toujours cachée (rédemarrage requis)";
+/* Class = "NSButtonCell"; title = "Enable always hidden section"; ObjectID = "Nhn-ch-1f7"; */
+"Nhn-ch-1f7.title" = "Activer la section toujours cachée";
 
 /* Class = "NSMenuItem"; title = "    Default"; ObjectID = "Nop-cj-93Q"; */
 "Nop-cj-93Q.title" = "    Defaut";
