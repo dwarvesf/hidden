@@ -26,8 +26,6 @@ class StatusBarController {
     private let collapseTerminateStatusBarIconLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 10000 : 0
     
     private let imgIconLine = NSImage(named:NSImage.Name("ic_line"))
-    private let imgIconCollapse = NSImage(named:NSImage.Name("ic_collapse"))
-    private let imgIconExpand = NSImage(named:NSImage.Name("ic_expand"))
     
     private var isCollapsed: Bool {
         return self.separateStatusBar.length == self.collapseSeparateStatusBarIconLength
@@ -39,7 +37,11 @@ class StatusBarController {
             let separateBarButtonX = self.separateStatusBar.button?.getOrigin?.x
             else {return false}
         
-        return expandBarButtonX >= separateBarButtonX
+        if Constant.isUsingLTRLanguage {
+            return expandBarButtonX >= separateBarButtonX
+        } else {
+            return expandBarButtonX <= separateBarButtonX
+        }
     }
     private var isValidTogglablePosition: Bool {
         if !Preferences.alwaysHiddenSectionEnabled { return true }
@@ -48,8 +50,12 @@ class StatusBarController {
             let separateBarButtonX = self.separateStatusBar.button?.getOrigin?.x,
             let terminateBarButtonX = self.alwayHideSeparateStatusBar?.button?.getOrigin?.x
             else {return false}
-            
-        return separateBarButtonX >= terminateBarButtonX
+        
+        if Constant.isUsingLTRLanguage {
+            return separateBarButtonX >= terminateBarButtonX
+        } else {
+            return separateBarButtonX <= terminateBarButtonX
+        }
     }
     
     //MARK: - Methods
@@ -75,7 +81,7 @@ class StatusBarController {
         updateAutoCollapseMenuTitle()
         
         if let button = expandCollapseStatusBar.button {
-            button.image = self.imgIconCollapse
+            button.image = Assets.collapseImage
             button.target = self
             
             button.action = #selector(self.expandCollapseButtonPressed(sender:))
@@ -137,7 +143,7 @@ class StatusBarController {
         
         separateStatusBar.length = self.collapseSeparateStatusBarIconLength
         if let button = expandCollapseStatusBar.button {
-            button.image = self.imgIconExpand
+            button.image = Assets.expandImage
         }
 
     }
@@ -146,7 +152,7 @@ class StatusBarController {
         guard self.isCollapsed else {return}
         separateStatusBar.length = normalSeparateStatusBarIconLength
         if let button = expandCollapseStatusBar.button {
-            button.image = self.imgIconCollapse
+            button.image = Assets.collapseImage
         }
         autoCollapseIfNeeded()
     }
