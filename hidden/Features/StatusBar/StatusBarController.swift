@@ -145,7 +145,10 @@ class StatusBarController {
         if let button = expandCollapseStatusBar.button {
             button.image = Assets.expandImage
         }
-
+        if Preferences.useFullStatusBarOnExpandEnabled {
+            NSApp.setActivationPolicy(.accessory)
+            NSApp.deactivate()
+        }
     }
     
     private func expandMenubar() {
@@ -155,6 +158,11 @@ class StatusBarController {
             button.image = Assets.collapseImage
         }
         autoCollapseIfNeeded()
+        
+        if Preferences.useFullStatusBarOnExpandEnabled {
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
     
     private func autoCollapseIfNeeded() {

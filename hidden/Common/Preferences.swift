@@ -9,6 +9,7 @@
 import Foundation
 
 enum Preferences {
+    
     static var globalKey: GlobalKeybindPreferences? {
         get {
             guard let data = UserDefaults.standard.value(forKey: UserDefaults.Key.globalKey) as? Data else { return nil }
@@ -93,4 +94,16 @@ enum Preferences {
             NotificationCenter.default.post(Notification(name: .alwayHideToggle))
         }
     }
+    
+    static var useFullStatusBarOnExpandEnabled: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
+        }
+        
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
+        }
+    }
+    
+    
 }
