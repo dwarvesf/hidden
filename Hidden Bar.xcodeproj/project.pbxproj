@@ -69,6 +69,9 @@
 		08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extension.swift"; sourceTree = "<group>"; };
 		08C20FE123AB452C0035D978 /* AboutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutViewController.swift; sourceTree = "<group>"; };
 		3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindowController.swift; sourceTree = "<group>"; };
+		55D9B6B52660F153007AF073 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Main.strings; sourceTree = "<group>"; };
+		55D9B6B62660F153007AF073 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Main.strings; sourceTree = "<group>"; };
+		55D9B6B72660F153007AF073 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		55F3F1182608923B0054B881 /* Date+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extension.swift"; sourceTree = "<group>"; };
 		55F3F11C2608925A0054B881 /* StackView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StackView+Extension.swift"; sourceTree = "<group>"; };
 		9220587D22127050008A8B03 /* Hidden.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Hidden.entitlements; path = Hidden/Hidden.entitlements; sourceTree = "<group>"; };
@@ -342,6 +345,7 @@
 				ja,
 				"zh-Hant",
 				fr,
+				vi,
 			);
 			mainGroup = 929113E821F9D04100173149;
 			packageReferences = (
@@ -429,6 +433,7 @@
 				B8404C9A24041A4300E6DBF8 /* ja */,
 				B1326443261D7E0200319D35 /* fr */,
 				FF8A0FB5265E10DB00C76226 /* zh-Hant */,
+				55D9B6B52660F153007AF073 /* vi */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -440,6 +445,7 @@
 				B8404C9B24041A4300E6DBF8 /* ja */,
 				FF57A44A25E6C50200988FC2 /* zh-Hant */,
 				B1326444261D7E0200319D35 /* fr */,
+				55D9B6B62660F153007AF073 /* vi */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -452,6 +458,7 @@
 				967F4B2C24169CB400F18D3C /* ja */,
 				FF57A44B25E6C50200988FC2 /* zh-Hant */,
 				B1326445261D7E0200319D35 /* fr */,
+				55D9B6B72660F153007AF073 /* vi */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -585,7 +592,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 11;
-				DEVELOPMENT_TEAM = VGURA84Q2L;
+				DEVELOPMENT_TEAM = W777S7V8TN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -610,7 +617,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 11;
-				DEVELOPMENT_TEAM = VGURA84Q2L;
+				DEVELOPMENT_TEAM = W777S7V8TN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = hidden/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -634,7 +641,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = VGURA84Q2L;
+				DEVELOPMENT_TEAM = W777S7V8TN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = LauncherApplication/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (

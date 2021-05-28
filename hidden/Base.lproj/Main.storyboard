@@ -648,8 +648,8 @@ between sections to configure Hidden Bar.</string>
                                                 </connections>
                                             </button>
                                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="EQP-7r-FSu">
-                                                <rect key="frame" x="-2" y="64" width="203" height="18"/>
-                                                <buttonCell key="cell" type="check" title="Use full status bar on expand" bezelStyle="regularSquare" imagePosition="left" inset="2" id="8z8-6N-wnc">
+                                                <rect key="frame" x="-2" y="64" width="238" height="18"/>
+                                                <buttonCell key="cell" type="check" title="Use the full MenuBar on expanding" bezelStyle="regularSquare" imagePosition="left" inset="2" id="8z8-6N-wnc">
                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                     <font key="font" metaFont="system"/>
                                                 </buttonCell>
