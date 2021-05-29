@@ -13,11 +13,13 @@
 "Quit" = "退出";
 "Set Shortcut" = "设置快捷键";
 "Tutorial text" = "
-Use the always hidden feature to keep your icons tidy. Here's how to set it
-Steps to enable:
-1. Enable the always hidden “􀥤” (translucent color bar)
-2. Hold  􀆔 and drag it on the left-hand side of the normal bar, then move any icons you want to disappear on the left of that bar.
-3. Finally, please right-click on the collapse “􀆊” icon to make it disappear.
-Steps to view always hidden icons:
-1. You right-click on “􀆊” icon again to view and repeat the action to enable the feature. Enjoy 😉!
+使用 '持续隐藏' 功能让您的菜单栏保持整洁。这个教程将会帮助您设置这个功能。
+
+启用步骤：
+1. 启用持续隐藏功能(半透明｜)。
+2. 按住 ⌘ 并将持续隐藏区域拖至一般隐藏区域（不透明｜）的左侧。
+3. 接着将不想显示的图标移至持续隐藏区域中。
+4. 最后右键单击 '>' 按钮，就能隐藏'持续隐藏区域'中的图标。
+（再次右键单击'>'按钮恢复显示'持续隐藏区域'中的图标。）
+祝您使用愉快 😉!
 ";
