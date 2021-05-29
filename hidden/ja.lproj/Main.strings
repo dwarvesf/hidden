@@ -12,7 +12,7 @@
 "1b7-l0-nxx.title" = "Find";
 
 /* Class = "NSTextFieldCell"; title = "⭐️Always Hidden"; ObjectID = "1jU-1x-cFf"; */
-"1jU-1x-cFf.title" = "⭐️Always Hidden";
+"1jU-1x-cFf.title" = "⭐️常に非表示";
 
 /* Class = "NSMenuItem"; title = "Lower"; ObjectID = "1tx-W0-xDw"; */
 "1tx-W0-xDw.title" = "Lower";
@@ -198,7 +198,13 @@
 "NIO-JJ-pjq.paletteLabel" = "Custom View";
 
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
-"NMo-om-nkz.title" = "Services";
+"NMo-om-nkz.title" = "サービス";
+
+/* Class = "NSButtonCell"; title = "Enable always hidden section"; ObjectID = "Nhn-ch-1f7"; */
+"Nhn-ch-1f7.title" = "「アイコンを常に非表示機能」を有効にする";
+
+/* Class = "NSButtonCell"; title = "Use the full MenuBar on expanding"; ObjectID = "8z8-6N-wnc"; */
+"8z8-6N-wnc.title" = "アイコンを表示する時に Hidden のメニューバーも表示";
 
 /* Class = "NSMenuItem"; title = "\tDefault"; ObjectID = "Nop-cj-93Q"; */
 "Nop-cj-93Q.title" = "\tDefault";
@@ -339,7 +345,7 @@
 "cUd-D7-0WY.title" = "ドックにアイコンを隠さない";
 
 /* Class = "NSTextFieldCell"; title = "Hidden"; ObjectID = "cXt-8R-PHo"; */
-"cXt-8R-PHo.title" = "隠す";
+"cXt-8R-PHo.title" = "非表示";
 
 /* Class = "NSMenuItem"; title = "Selection"; ObjectID = "cqv-fj-IhA"; */
 "cqv-fj-IhA.title" = "Selection";
@@ -405,7 +411,7 @@
 "kIP-vf-haE.title" = "Show Sidebar";
 
 /* Class = "NSButtonCell"; title = "Automatically hide icon after: "; ObjectID = "kg8-rW-srh"; */
-"kg8-rW-srh.title" = "一定時間を経つと自動的にアイコンを隠す: ";
+"kg8-rW-srh.title" = "一定時間を経つと自動的にアイコンを非表示する: ";
 
 /* Class = "NSMenuItem"; title = "Check Grammar With Spelling"; ObjectID = "mK6-2p-4JG"; */
 "mK6-2p-4JG.title" = "Check Grammar With Spelling";

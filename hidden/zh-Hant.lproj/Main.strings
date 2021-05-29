@@ -497,4 +497,5 @@
 /* Class = "NSTextFieldCell"; title = "General"; ObjectID = "zAf-vj-OOZ"; */
 "zAf-vj-OOZ.title" = "一般";
 
+/* Class = "NSButtonCell"; title = "Use the full MenuBar on expanding"; ObjectID = "8z8-6N-wnc"; */
 "8z8-6N-wnc.title" = "展開隱藏區時淨空選單列";

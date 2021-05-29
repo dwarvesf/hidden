@@ -8,13 +8,15 @@
 
 "Preferences..." = "環境設定...";
 "Quit" = "終了";
+"Toggle Auto Collapse" = "自動折りたたみを切り替える";
+"Enable Auto Collapse" = "自動折りたたみオン";
+"Disable Auto Collapse" = "自動折りたたみオフ";
 "Set Shortcut" = "ショットキーを設定";
 "Tutorial text" = "
-Use the always hidden feature to keep your icons tidy. Here's how to set it
-Steps to enable:
-1. Enable the always hidden “􀥤” (translucent color bar)
-2. Hold  􀆔 and drag it on the left-hand side of the normal bar, then move any icons you want to disappear on the left of that bar.
-3. Finally, please right-click on the collapse “􀆊” icon to make it disappear.
-Steps to view always hidden icons:
-1. You right-click on “􀆊” icon again to view and repeat the action to enable the feature. Enjoy 😉!
+「アイコンを常に非表示機能」でメニューバーをスッキリできる.
+設定方法:
+1. 「アイコンを常に非表示機能」を有効にする（半透明の｜が表示される）．
+2. Command(⌘)キーを押しながら，半透明の「｜」を不透明「｜」の左側に移動して，さらに常に非表示したいアイコンを半透明の「｜」の左側に移動する．
+3. 最後は「＞」を右クリックすると，半透明「｜」より左にあるアイコンが常に非表示される．
+（もう一回「＞」を右クリックすると，常に非表示されたアイコンが表示される）
 ";
