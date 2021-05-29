@@ -72,6 +72,12 @@
 		55D9B6B52660F153007AF073 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Main.strings; sourceTree = "<group>"; };
 		55D9B6B62660F153007AF073 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Main.strings; sourceTree = "<group>"; };
 		55D9B6B72660F153007AF073 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
+		55D9B6B82661DEDA007AF073 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Main.strings; sourceTree = "<group>"; };
+		55D9B6B92661DEDA007AF073 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Main.strings; sourceTree = "<group>"; };
+		55D9B6BA2661DEDA007AF073 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
+		55D9B6BB2661DEE7007AF073 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
+		55D9B6BC2661DEE8007AF073 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
+		55D9B6BD2661DEE8007AF073 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		55F3F1182608923B0054B881 /* Date+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extension.swift"; sourceTree = "<group>"; };
 		55F3F11C2608925A0054B881 /* StackView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StackView+Extension.swift"; sourceTree = "<group>"; };
 		9220587D22127050008A8B03 /* Hidden.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Hidden.entitlements; path = Hidden/Hidden.entitlements; sourceTree = "<group>"; };
@@ -346,6 +352,8 @@
 				"zh-Hant",
 				fr,
 				vi,
+				ar,
+				de,
 			);
 			mainGroup = 929113E821F9D04100173149;
 			packageReferences = (
@@ -434,6 +442,8 @@
 				B1326443261D7E0200319D35 /* fr */,
 				FF8A0FB5265E10DB00C76226 /* zh-Hant */,
 				55D9B6B52660F153007AF073 /* vi */,
+				55D9B6B82661DEDA007AF073 /* ar */,
+				55D9B6BB2661DEE7007AF073 /* de */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -446,6 +456,8 @@
 				FF57A44A25E6C50200988FC2 /* zh-Hant */,
 				B1326444261D7E0200319D35 /* fr */,
 				55D9B6B62660F153007AF073 /* vi */,
+				55D9B6B92661DEDA007AF073 /* ar */,
+				55D9B6BC2661DEE8007AF073 /* de */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -459,6 +471,8 @@
 				FF57A44B25E6C50200988FC2 /* zh-Hant */,
 				B1326445261D7E0200319D35 /* fr */,
 				55D9B6B72660F153007AF073 /* vi */,
+				55D9B6BA2661DEDA007AF073 /* ar */,
+				55D9B6BD2661DEE8007AF073 /* de */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
