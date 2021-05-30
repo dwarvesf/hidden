@@ -411,7 +411,7 @@
 "kIP-vf-haE.title" = "Show Sidebar";
 
 /* Class = "NSButtonCell"; title = "Automatically hide icon after: "; ObjectID = "kg8-rW-srh"; */
-"kg8-rW-srh.title" = "一段时间后自动隐藏菜单栏图标：";
+"kg8-rW-srh.title" = "等待";
 
 /* Class = "NSMenuItem"; title = "Check Grammar With Spelling"; ObjectID = "mK6-2p-4JG"; */
 "mK6-2p-4JG.title" = "Check Grammar With Spelling";
@@ -508,3 +508,6 @@
 
 /* Class = "NSTextFieldCell"; title = "General"; ObjectID = "zAf-vj-OOZ"; */
 "zAf-vj-OOZ.title" = "通用";
+
+/* Class = "NSTextFieldCell"; title = " "; ObjectID = "ERh-JM-snt"; */
+"ERh-JM-snt.title" = " 后自动隐藏图标";
