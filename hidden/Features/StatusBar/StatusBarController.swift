@@ -12,6 +12,7 @@ class StatusBarController {
     
     //MARK: - Variables
     private var timer:Timer? = nil
+    private var mouseOverDetector : MouseOverDetector?
     
     //MARK: - BarItems
         
@@ -69,6 +70,11 @@ class StatusBarController {
         
         if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
+        
+        mouseOverDetector = MouseOverDetector(
+            entersArea: expandMenubar,
+            leavesArea: { if !$0 {self.collapseMenuBar()} }
+        )
     }
     
     private func setupUI() {
