@@ -35,9 +35,16 @@ class MouseOverDetector {
             EventMoniter(eventType: .rightMouseUp, handler: mouseClicked),
             EventMoniter(eventType: .otherMouseUp, handler: mouseClicked),
         ]
-        
+    }
+    
+    func start() {
         mouseMoveMoniter?.start()
         mouseClickMoniters.forEach { $0.start() }
+    }
+    
+    func stop() {
+        mouseMoveMoniter?.stop()
+        mouseClickMoniters.forEach { $0.stop() }
     }
     
     private func mouseClicked(_ event: NSEvent) {

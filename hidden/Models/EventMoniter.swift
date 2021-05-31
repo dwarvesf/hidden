@@ -29,6 +29,9 @@ class EventMoniter {
     }
     
     func stop() {
+        guard globalMoniter != nil && localMoniter != nil else { return }
+        NSEvent.removeMonitor(globalMoniter!)
+        NSEvent.removeMonitor(localMoniter!)
         globalMoniter = nil
         localMoniter  = nil
     }

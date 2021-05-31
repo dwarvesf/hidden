@@ -75,6 +75,8 @@ class StatusBarController {
             entersArea: expandMenubar,
             leavesArea: { if !$0 {self.collapseMenuBar()} }
         )
+        
+        updatePrefs()
     }
     
     private func setupUI() {
@@ -199,7 +201,7 @@ class StatusBarController {
         let toggleAutoHideItem = NSMenuItem(title: "Toggle Auto Collapse".localized, action: #selector(toggleAutoHide), keyEquivalent: "t")
         toggleAutoHideItem.target = self
         toggleAutoHideItem.tag = 1
-        NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updatePrefs), name: .prefsChanged, object: nil)
         menu.addItem(toggleAutoHideItem)
 
         menu.addItem(NSMenuItem.separator())
@@ -217,9 +219,16 @@ class StatusBarController {
         }
     }
     
-    @objc func updateAutoHide() {
+    @objc func updatePrefs() {
         updateAutoCollapseMenuTitle()
         autoCollapseIfNeeded()
+        
+        if Preferences.autoExpandCollapse {
+            mouseOverDetector?.stop()
+            mouseOverDetector?.start()
+        } else {
+            mouseOverDetector?.stop()
+        }
     }
     
     @objc func openPreferenceViewControllerIfNeeded() {
