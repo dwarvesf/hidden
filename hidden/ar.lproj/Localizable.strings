@@ -6,18 +6,19 @@
   Copyright © 2020 Dwarves Foundation. All rights reserved.
 */
 
-"Preferences..." = "Preferences...";
-"Toggle Auto Collapse" = "Toggle Auto Collapse";
-"Enable Auto Collapse" = "Enable Auto Collapse";
-"Disable Auto Collapse" = "Disable Auto Collapse";
-"Quit" = "Quit";
-"Set Shortcut" = "Set Shortcut";
+"Preferences..." = "تفضيلات...";
+"Toggle Auto Collapse" = "بدل حالة الطي التلقائي";
+"Enable Auto Collapse" = "مكن الطي التلقائي";
+"Disable Auto Collapse" = "عطل الطي التلقائي";
+"Quit" = "إنهاء";
+"Set Shortcut" = "عين اختصارا";
 "Tutorial text" = "
-Use the always hidden feature to keep your icons tidy. Here's how to set it
-Steps to enable:
-1. Enable the always hidden “􀥤” (translucent color bar)
-2. Hold  􀆔 and drag it on the left-hand side of the normal bar, then move any icons you want to disappear on the left of that bar.
-3. Finally, please right-click on the collapse “􀆊” icon to make it disappear.
-Steps to view always hidden icons:
-1. You right-click on “􀆊” icon again to view and repeat the action to enable the feature. Enjoy 😉!
+استخدم ميزة مخفي دائما لتبقي أيقوناتك مرتبة. إليك كيفية تعيينها
+خطوات التمكين:
+
+مكن “􀥤” الخاص بمخفي دائما (شريط اللون الشفاف)
+استمر بالضغط على 􀆔 واسحبه إلى الجانب الأيمن من الشريط العادي، قم حرك أي أيقونات تريد إخفائها إلى يمين هذا الشريط.
+أخيرا، فضلا أنقر بالزر الأيمن على أيقونة الطي “􀆊” لجعلها تختفي.
+خطوات عرض الأيقونات المخفية دائما:
+أنقر بالزر الأيمن على أيقونة “􀆊” ثاتية للعرض وكرر الإجراء لتمكين الميزة. استمتع 😉!
 ";
