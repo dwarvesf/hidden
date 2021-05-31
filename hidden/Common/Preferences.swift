@@ -74,6 +74,18 @@ enum Preferences {
         }
     }
     
+    static var autoExpandCollapse: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.autoExpandCollapse)
+        }
+        set {
+            print(newValue)
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.autoExpandCollapse)
+            
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
+    
     static var areSeparatorsHidden: Bool {
         get {
             UserDefaults.standard.bool(forKey: UserDefaults.Key.areSeparatorsHidden)
