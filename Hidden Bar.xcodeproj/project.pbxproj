@@ -12,6 +12,7 @@
 		0095D59A2664E5EE00D4E607 /* EventMoniter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0095D5992664E5EE00D4E607 /* EventMoniter.swift */; };
 		0095D59C2664E8C900D4E607 /* MouseOverDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0095D59B2664E8C900D4E607 /* MouseOverDetector.swift */; };
 		0095D59E2664EDB000D4E607 /* WindowInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0095D59D2664EDB000D4E607 /* WindowInfo.swift */; };
+		0095D5A02664F7F800D4E607 /* CGPoint+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0095D59F2664F7F800D4E607 /* CGPoint+Extension.swift */; };
 		0842CDFB23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0842CDFA23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift */; };
 		08A5F85A23AA007A00981CA5 /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F85923AA007A00981CA5 /* PreferencesViewController.swift */; };
 		08A5F85C23AA013100981CA5 /* SelectedSecond.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F85B23AA013100981CA5 /* SelectedSecond.swift */; };
@@ -65,6 +66,7 @@
 		0095D5992664E5EE00D4E607 /* EventMoniter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventMoniter.swift; sourceTree = "<group>"; };
 		0095D59B2664E8C900D4E607 /* MouseOverDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MouseOverDetector.swift; sourceTree = "<group>"; };
 		0095D59D2664EDB000D4E607 /* WindowInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowInfo.swift; sourceTree = "<group>"; };
+		0095D59F2664F7F800D4E607 /* CGPoint+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGPoint+Extension.swift"; sourceTree = "<group>"; };
 		0842CDFA23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalKeybindingPreferences.swift; sourceTree = "<group>"; };
 		08A5F85923AA007A00981CA5 /* PreferencesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
 		08A5F85B23AA013100981CA5 /* SelectedSecond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedSecond.swift; sourceTree = "<group>"; };
@@ -191,6 +193,7 @@
 				00137CDE24A63DB1004AC855 /* Notification.Name+Extension.swift */,
 				55F3F1182608923B0054B881 /* Date+Extension.swift */,
 				55F3F11C2608925A0054B881 /* StackView+Extension.swift */,
+				0095D59F2664F7F800D4E607 /* CGPoint+Extension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -427,6 +430,7 @@
 				92C97B8D220058740007559C /* NSView+Extension.swift in Sources */,
 				0842CDFB23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift in Sources */,
 				55F3F11D2608925A0054B881 /* StackView+Extension.swift in Sources */,
+				0095D5A02664F7F800D4E607 /* CGPoint+Extension.swift in Sources */,
 				08C20FE223AB452C0035D978 /* AboutViewController.swift in Sources */,
 				00137CDF24A63DB1004AC855 /* Notification.Name+Extension.swift in Sources */,
 				08A5F86423AA09F300981CA5 /* UserDefault+Extension.swift in Sources */,
