@@ -83,7 +83,7 @@
                                 <toolbarItem implicitItemIdentifier="0B8CB0BB-7947-4D4F-8C91-449CFFCEC98B" label="Custom View" paletteLabel="Custom View" sizingBehavior="auto" id="ML6-W4-U8X">
                                     <nil key="toolTip"/>
                                     <textField key="view" horizontalHuggingPriority="251" verticalHuggingPriority="750" id="3wq-bO-RJi">
-                                        <rect key="frame" x="10" y="14" width="56" height="16"/>
+                                        <rect key="frame" x="12" y="14" width="52" height="16"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <textFieldCell key="cell" lineBreakMode="clipping" title="General" id="zAf-vj-OOZ">
                                             <font key="font" usesAppearanceFont="YES"/>
@@ -97,7 +97,7 @@
                                 <toolbarItem implicitItemIdentifier="F7DA19CF-BC58-47E1-8140-D04939EE4CA7" label="Custom View" paletteLabel="Custom View" sizingBehavior="auto" id="NIO-JJ-pjq">
                                     <nil key="toolTip"/>
                                     <segmentedControl key="view" verticalHuggingPriority="750" id="wAJ-zO-0Lg">
-                                        <rect key="frame" x="0.0" y="14" width="145" height="23"/>
+                                        <rect key="frame" x="0.0" y="14" width="120" height="23"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <segmentedCell key="cell" borderStyle="border" alignment="left" segmentDistribution="fillEqually" style="texturedSquare" trackingMode="selectOne" id="B2x-1Q-Aei">
                                             <font key="font" metaFont="system"/>

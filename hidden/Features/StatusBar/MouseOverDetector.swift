@@ -18,7 +18,7 @@ class MouseOverDetector {
     var entersAreaHandler : ()->Void
     var leavesAreaHandler : (Bool)->Void // $0: whether or not the mouse has clicked inside the area before leaving
     
-    private var statusBarY  : CGFloat = .nan
+    private var statusBarY : CGFloat = .nan
     private var mouseMoveMoniter : EventMoniter?
     private var mouseClickMoniters  = [EventMoniter]()
     
@@ -57,8 +57,13 @@ class MouseOverDetector {
         if let statusbarRect = WindowInfo.cgRectOfWindow(named: "Menubar"),
            let currentScreen = Util.screenWithMouse {
             // Cocoa uses top to down y coords but CoreGraphics uses down to top coords
-            // To avoid convertion everytime, statusBarY is inverted on initialize
+            // to avoid convertion everytime, statusBarY is inverted on initialize
+            
+            Util.SharedValues.statusbarHeight = statusbarRect.height
+            Util.SharedValues.screenWidth     = currentScreen.frame.width
+            Util.SharedValues.screenHeight    = currentScreen.frame.height
             statusBarY = currentScreen.frame.height - statusbarRect.height
+            
         } else {
             os_log("unable to get menu bar height")
         }

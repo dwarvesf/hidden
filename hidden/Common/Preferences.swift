@@ -79,7 +79,6 @@ enum Preferences {
             UserDefaults.standard.bool(forKey: UserDefaults.Key.autoExpandCollapse)
         }
         set {
-            print(newValue)
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.autoExpandCollapse)
             
             NotificationCenter.default.post(Notification(name: .prefsChanged))

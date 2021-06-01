@@ -334,7 +334,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1010;
-				LastUpgradeCheck = 1130;
+				LastUpgradeCheck = 1250;
 				ORGANIZATIONNAME = "Dwarves Foundation";
 				TargetAttributes = {
 					929113F021F9D04100173149 = {

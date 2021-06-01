@@ -71,7 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         // Languages like Arabic uses right to left (RTL) writing direction,
         // so some behavier of the app needs to be changed in these cases
         
-        Constant.isUsingLTRLanguage = (NSApplication.shared.userInterfaceLayoutDirection == .leftToRight)
+        Util.SharedValues.isUsingLTRLanguage = (NSApplication.shared.userInterfaceLayoutDirection == .leftToRight)
     }
    
 }

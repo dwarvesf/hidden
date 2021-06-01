@@ -32,18 +32,22 @@ class StatusBarController {
         return self.separateStatusBar.length == self.collapseSeparateStatusBarIconLength
     }
     
+    // used when collapsing
     private var isValidPosition: Bool {
         guard
+            !Util.menubarIsInUse,
             let expandBarButtonX = self.expandCollapseStatusBar.button?.getOrigin?.x,
             let separateBarButtonX = self.separateStatusBar.button?.getOrigin?.x
             else {return false}
         
-        if Constant.isUsingLTRLanguage {
+        if Util.SharedValues.isUsingLTRLanguage {
             return expandBarButtonX >= separateBarButtonX
         } else {
             return expandBarButtonX <= separateBarButtonX
         }
     }
+    
+    // used when hiding always hide seperation bar
     private var isValidTogglablePosition: Bool {
         if !Preferences.alwaysHiddenSectionEnabled { return true }
         
@@ -52,7 +56,7 @@ class StatusBarController {
             let terminateBarButtonX = self.alwayHideSeparateStatusBar?.button?.getOrigin?.x
             else {return false}
         
-        if Constant.isUsingLTRLanguage {
+        if Util.SharedValues.isUsingLTRLanguage {
             return separateBarButtonX >= terminateBarButtonX
         } else {
             return separateBarButtonX <= terminateBarButtonX
