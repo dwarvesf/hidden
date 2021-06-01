@@ -300,7 +300,16 @@ extension PreferencesViewController {
         label.stringValue = text
         label.isBezeled = false
         label.isEditable = false
-        controller.view = label
+        let view = NSView()
+        view.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: view.topAnchor),
+            label.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            label.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            label.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+        label.translatesAutoresizingMaskIntoConstraints = false
+        controller.view = view
         
         let popover = NSPopover()
         popover.contentViewController = controller
