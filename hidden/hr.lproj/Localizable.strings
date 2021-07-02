@@ -1,0 +1,23 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+
+"Preferences..." = "Postavke …";
+"Toggle Auto Collapse" = "Uklj/Isklj automatsko sklapanje";
+"Enable Auto Collapse" = "Uključi automatsko sklapanje";
+"Disable Auto Collapse" = "Isključi automatsko sklapanje";
+"Quit" = "Zatvori program";
+"Set Shortcut" = "Postavi prečac";
+"Tutorial text" = "
+Koristi uvijek skrivenu funkciju za održavanje reda tvojih ikona. Postavlja se na sljedeći način
+Koraci za aktiviranje:
+1. Uključi uvijek skriveni „􀥤” (prozirna traka)
+2. Pritisni i povuci 􀆔 na lijevu stranu normalne trake, zatim premjesti željene ikone na lijevoj strani trake.
+3. Na kraju, pritisni desnu tipku miša na ikonu za skrivanje „􀆊” da nestane.
+Koraci za prikaz uvijek skrivenih ikona:
+1. Ponovo pritisni desnu tipku miša na ikonu „􀆊” za prikaz i ponovljanje radnje za uključivanje funkcije. Uživaj 😉!
+";
