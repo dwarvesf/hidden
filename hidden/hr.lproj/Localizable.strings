@@ -1,0 +1,23 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+
+"Preferences..." = "Postavke …";
+"Toggle Auto Collapse" = "Uklj/Isklj automatsko sklapanje";
+"Enable Auto Collapse" = "Uključi automatsko sklapanje";
+"Disable Auto Collapse" = "Isključi automatsko sklapanje";
+"Quit" = "Zatvori program";
+"Set Shortcut" = "Postavi prečac";
+"Tutorial text" = "
+Koristi funkciju skrivanja ikona za održavanje reda u traci izbornika. Postavlja se na sljedeći način
+Koraci za uključivanje:
+1. Uključi uvijek skriveno „􀥤” (poluprozirna okomita crta)
+2. Pritisni i povuci 􀆔 na lijevu stranu standardne trake, zatim premjesti ikone koje želiš sakriti na lijevu stranu te trake.
+3. Na kraju pritisni desnom tipkom miša na ikonu za sklapanje „􀆊” kako bi se ikone sakrile.
+Koraci za prikazivanje uvijek skrivenih ikona:
+1. Pritisni desnom tipkom miša ponovo na ikonu „􀆊” i ponovi radnju za uključivanje funkcije. Uživaj 😉!
+";
