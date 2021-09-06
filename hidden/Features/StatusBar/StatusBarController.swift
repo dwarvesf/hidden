@@ -151,7 +151,6 @@ class StatusBarController {
             NSApp.deactivate()
         }
     }
-    
     private func expandMenubar() {
         guard self.isCollapsed else {return}
         btnSeparate.length = btnHiddenLength
