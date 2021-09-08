@@ -59,6 +59,8 @@ class StatusBarController {
         }
     }
     
+    private var isToggle = false
+    
     //MARK: - Methods
     init() {
         
@@ -133,7 +135,13 @@ class StatusBarController {
     }
     
     func expandCollapseIfNeeded() {
+        //prevented rapid click cause icon show many in Dock
+        if isToggle {return}
+        isToggle = true
         self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            self.isToggle = false
+        }
     }
     
     private func collapseMenuBar() {
@@ -162,6 +170,7 @@ class StatusBarController {
         if Preferences.useFullStatusBarOnExpandEnabled {
             NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
+            
         }
     }
     
