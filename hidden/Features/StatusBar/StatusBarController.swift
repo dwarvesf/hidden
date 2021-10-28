@@ -16,7 +16,7 @@ class StatusBarController {
     //MARK: - BarItems
         
     private let btnExpandCollapse = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private let btnSeparate = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    private let btnSeparate = NSStatusBar.system.statusItem(withLength: 1)
     private var btnAlwaysHidden:NSStatusItem? = nil
     
     private var btnHiddenLength: CGFloat =  20
