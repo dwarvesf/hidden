@@ -1,5 +1,5 @@
 <p align="center">
-	<img width="200" height="200" margin-right="100%" src="https://github.com/dwarvesf/hidden/blob/master/hidden/Assets.xcassets/AppIcon.appiconset/1024x1024.png?raw=true">
+	<img width="200" height="200" margin-right="100%" src="https://github.com/dwarvesf/hidden/blob/master/hidden/Assets.xcassets/AppIcon.appiconset/hidden-1024.png?raw=true">
 </p>
 <p align="center">
 	<a href="https://webuild.community">
