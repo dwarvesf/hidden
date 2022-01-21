@@ -1,68 +1,68 @@
 {
   "images" : [
     {
-      "size" : "16x16",
+      "filename" : "icon_16@1x.png",
       "idiom" : "mac",
-      "filename" : "hidden-16.png",
-      "scale" : "1x"
+      "scale" : "1x",
+      "size" : "16x16"
     },
     {
-      "size" : "16x16",
+      "filename" : "icon_16@2x.png",
       "idiom" : "mac",
-      "filename" : "hidden-32.png",
-      "scale" : "2x"
+      "scale" : "2x",
+      "size" : "16x16"
     },
     {
-      "size" : "32x32",
+      "filename" : "icon_32@1x.png",
       "idiom" : "mac",
-      "filename" : "hidden-32.png",
-      "scale" : "1x"
+      "scale" : "1x",
+      "size" : "32x32"
     },
     {
-      "size" : "32x32",
+      "filename" : "icon_32@2x.png",
       "idiom" : "mac",
-      "filename" : "hidden-64.png",
-      "scale" : "2x"
+      "scale" : "2x",
+      "size" : "32x32"
     },
     {
-      "size" : "128x128",
+      "filename" : "icon_128@1x.png",
       "idiom" : "mac",
-      "filename" : "hidden-128.png",
-      "scale" : "1x"
+      "scale" : "1x",
+      "size" : "128x128"
     },
     {
-      "size" : "128x128",
+      "filename" : "icon_128@2x.png",
       "idiom" : "mac",
-      "filename" : "hidden-256.png",
-      "scale" : "2x"
+      "scale" : "2x",
+      "size" : "128x128"
     },
     {
-      "size" : "256x256",
+      "filename" : "icon_256@1x.png",
       "idiom" : "mac",
-      "filename" : "hidden-256.png",
-      "scale" : "1x"
+      "scale" : "1x",
+      "size" : "256x256"
     },
     {
-      "size" : "256x256",
+      "filename" : "icon_256@2x.png",
       "idiom" : "mac",
-      "filename" : "hidden-512.png",
-      "scale" : "2x"
+      "scale" : "2x",
+      "size" : "256x256"
     },
     {
-      "size" : "512x512",
+      "filename" : "icon_512@1x.png",
       "idiom" : "mac",
-      "filename" : "hidden-512.png",
-      "scale" : "1x"
+      "scale" : "1x",
+      "size" : "512x512"
     },
     {
-      "size" : "512x512",
+      "filename" : "icon_512@2x.png",
       "idiom" : "mac",
-      "filename" : "hidden-1024.png",
-      "scale" : "2x"
+      "scale" : "2x",
+      "size" : "512x512"
     }
   ],
   "info" : {
-    "version" : 1,
-    "author" : "xcode"
+    "author" : "xcode",
+    "version" : 1
   }
 }
