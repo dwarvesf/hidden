@@ -59,13 +59,6 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         hotKey = HotKey(keyCombo: KeyCombo(carbonKeyCode: globalKey.keyCode, carbonModifiers: globalKey.carbonFlags))
     }
     
-    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        // Handle open preferences window
-        Util.showPrefWindow()
-        
-        return true
-    }
-    
     func detectLTRLang() {
         // Languages like Arabic uses right to left (RTL) writing direction,
         // so some behavier of the app needs to be changed in these cases

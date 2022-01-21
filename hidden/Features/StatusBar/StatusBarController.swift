@@ -15,48 +15,51 @@ class StatusBarController {
     
     //MARK: - BarItems
         
-    private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private let separateStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private var alwayHideSeparateStatusBar:NSStatusItem? = nil
+    private let btnExpandCollapse = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    private let btnSeparate = NSStatusBar.system.statusItem(withLength: 1)
+    private var btnAlwaysHidden:NSStatusItem? = nil
     
-    private var normalSeparateStatusBarIconLength: CGFloat { return Preferences.areSeparatorsHidden ? 0 : 20 }
-    private let collapseSeparateStatusBarIconLength: CGFloat = 10000
+    private var btnHiddenLength: CGFloat =  20
+    private let btnHiddenCollapseLength: CGFloat = 10000
     
-    private let normalTerminateStatusBarIconLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 20 : 0
-    private let collapseTerminateStatusBarIconLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 10000 : 0
+    private let btnAlwaysHiddenLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 20 : 0
+    private let btnAlwaysHiddenEnableExpandCollapseLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 10000 : 0
     
     private let imgIconLine = NSImage(named:NSImage.Name("ic_line"))
     
     private var isCollapsed: Bool {
-        return self.separateStatusBar.length == self.collapseSeparateStatusBarIconLength
+        return self.btnSeparate.length == self.btnHiddenCollapseLength
     }
     
-    private var isValidPosition: Bool {
+    private var isBtnSeparateValidPosition: Bool {
         guard
-            let expandBarButtonX = self.expandCollapseStatusBar.button?.getOrigin?.x,
-            let separateBarButtonX = self.separateStatusBar.button?.getOrigin?.x
+            let btnExpandCollapseX = self.btnExpandCollapse.button?.getOrigin?.x,
+            let btnSeparateX = self.btnSeparate.button?.getOrigin?.x
             else {return false}
         
         if Constant.isUsingLTRLanguage {
-            return expandBarButtonX >= separateBarButtonX
+            return btnExpandCollapseX >= btnSeparateX
         } else {
-            return expandBarButtonX <= separateBarButtonX
+            return btnExpandCollapseX <= btnSeparateX
         }
     }
-    private var isValidTogglablePosition: Bool {
+    
+    private var isBtnAlwaysHiddenValidPosition: Bool {
         if !Preferences.alwaysHiddenSectionEnabled { return true }
         
         guard
-            let separateBarButtonX = self.separateStatusBar.button?.getOrigin?.x,
-            let terminateBarButtonX = self.alwayHideSeparateStatusBar?.button?.getOrigin?.x
+            let btnSeparateX = self.btnSeparate.button?.getOrigin?.x,
+            let btnAlwaysHiddenX = self.btnAlwaysHidden?.button?.getOrigin?.x
             else {return false}
         
         if Constant.isUsingLTRLanguage {
-            return separateBarButtonX >= terminateBarButtonX
+            return btnSeparateX >= btnAlwaysHiddenX
         } else {
-            return separateBarButtonX <= terminateBarButtonX
+            return btnSeparateX <= btnAlwaysHiddenX
         }
     }
+    
+    private var isToggle = false
     
     //MARK: - Methods
     init() {
@@ -72,27 +75,27 @@ class StatusBarController {
     }
     
     private func setupUI() {
-        if let button = separateStatusBar.button {
+        if let button = btnSeparate.button {
             button.image = self.imgIconLine
         }
         let menu = self.getContextMenu()
-        separateStatusBar.menu = menu
+        btnSeparate.menu = menu
 
         updateAutoCollapseMenuTitle()
         
-        if let button = expandCollapseStatusBar.button {
+        if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
             button.target = self
             
-            button.action = #selector(self.expandCollapseButtonPressed(sender:))
+            button.action = #selector(self.btnExpandCollapsePressed(sender:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
         
-        expandCollapseStatusBar.autosaveName = "hiddenbar_expandcollapse";
-        separateStatusBar.autosaveName = "hiddenbar_separate";
+        btnExpandCollapse.autosaveName = "hiddenbar_expandcollapse";
+        btnSeparate.autosaveName = "hiddenbar_separate";
     }
     
-    @objc func expandCollapseButtonPressed(sender: NSStatusBarButton) {
+    @objc func btnExpandCollapsePressed(sender: NSStatusBarButton) {
         if let event = NSApp.currentEvent {
             
             let isOptionKeyPressed = event.modifierFlags.contains(NSEvent.ModifierFlags.option)
@@ -115,34 +118,40 @@ class StatusBarController {
         Preferences.areSeparatorsHidden = false
         
         if !self.isCollapsed {
-            self.separateStatusBar.length = self.normalSeparateStatusBarIconLength
+            self.btnSeparate.length = self.btnHiddenLength
         }
-        self.alwayHideSeparateStatusBar?.length = self.normalTerminateStatusBarIconLength
+        self.btnAlwaysHidden?.length = self.btnAlwaysHiddenLength
     }
     
     private func hideSeparators() {
-        guard self.isValidTogglablePosition else {return}
+        guard self.isBtnAlwaysHiddenValidPosition else {return}
         
         Preferences.areSeparatorsHidden = true
         
         if !self.isCollapsed {
-            self.separateStatusBar.length = self.normalSeparateStatusBarIconLength
+            self.btnSeparate.length = self.btnHiddenLength
         }
-        self.alwayHideSeparateStatusBar?.length = self.collapseTerminateStatusBarIconLength
+        self.btnAlwaysHidden?.length = self.btnAlwaysHiddenEnableExpandCollapseLength
     }
     
     func expandCollapseIfNeeded() {
+        //prevented rapid click cause icon show many in Dock
+        if isToggle {return}
+        isToggle = true
         self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            self.isToggle = false
+        }
     }
     
     private func collapseMenuBar() {
-        guard self.isValidPosition && !self.isCollapsed else {
+        guard self.isBtnSeparateValidPosition && !self.isCollapsed else {
             autoCollapseIfNeeded()
             return
         }
         
-        separateStatusBar.length = self.collapseSeparateStatusBarIconLength
-        if let button = expandCollapseStatusBar.button {
+        btnSeparate.length = self.btnHiddenCollapseLength
+        if let button = btnExpandCollapse.button {
             button.image = Assets.expandImage
         }
         if Preferences.useFullStatusBarOnExpandEnabled {
@@ -150,11 +159,10 @@ class StatusBarController {
             NSApp.deactivate()
         }
     }
-    
     private func expandMenubar() {
         guard self.isCollapsed else {return}
-        separateStatusBar.length = normalSeparateStatusBarIconLength
-        if let button = expandCollapseStatusBar.button {
+        btnSeparate.length = btnHiddenLength
+        if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
         }
         autoCollapseIfNeeded()
@@ -162,6 +170,7 @@ class StatusBarController {
         if Preferences.useFullStatusBarOnExpandEnabled {
             NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
+            
         }
     }
     
@@ -203,7 +212,7 @@ class StatusBarController {
     }
     
     private func updateAutoCollapseMenuTitle() {
-        guard let toggleAutoHideItem = separateStatusBar.menu?.item(withTag: 1) else { return }
+        guard let toggleAutoHideItem = btnSeparate.menu?.item(withTag: 1) else { return }
         if Preferences.isAutoHide {
             toggleAutoHideItem.title = "Disable Auto Collapse".localized
         } else {
@@ -234,15 +243,15 @@ extension StatusBarController {
     }
     @objc private func toggleStatusBarIfNeeded() {
         if Preferences.alwaysHiddenSectionEnabled {
-            self.alwayHideSeparateStatusBar =  NSStatusBar.system.statusItem(withLength: 20)
-            if let button = alwayHideSeparateStatusBar?.button {
+            self.btnAlwaysHidden =  NSStatusBar.system.statusItem(withLength: 20)
+            if let button = btnAlwaysHidden?.button {
                 button.image = self.imgIconLine
                 button.appearsDisabled = true
             }
-            self.alwayHideSeparateStatusBar?.autosaveName = "hiddenbar_terminate";
+            self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate";
             
         }else {
-            self.alwayHideSeparateStatusBar = nil
+            self.btnAlwaysHidden = nil
         }
     }
 }
