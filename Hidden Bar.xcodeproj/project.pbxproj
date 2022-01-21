@@ -69,6 +69,9 @@
 		08C20FDF23AB44E60035D978 /* Bundle+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extension.swift"; sourceTree = "<group>"; };
 		08C20FE123AB452C0035D978 /* AboutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutViewController.swift; sourceTree = "<group>"; };
 		3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindowController.swift; sourceTree = "<group>"; };
+		55188DF7279A737800A92772 /* hr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hr; path = hr.lproj/Main.strings; sourceTree = "<group>"; };
+		55188DF8279A737900A92772 /* hr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hr; path = hr.lproj/Main.strings; sourceTree = "<group>"; };
+		55188DF9279A737900A92772 /* hr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hr; path = hr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		55D9B6B52660F153007AF073 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Main.strings; sourceTree = "<group>"; };
 		55D9B6B62660F153007AF073 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Main.strings; sourceTree = "<group>"; };
 		55D9B6B72660F153007AF073 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -354,6 +357,7 @@
 				vi,
 				ar,
 				de,
+				hr,
 			);
 			mainGroup = 929113E821F9D04100173149;
 			packageReferences = (
@@ -444,6 +448,7 @@
 				55D9B6B52660F153007AF073 /* vi */,
 				55D9B6B82661DEDA007AF073 /* ar */,
 				55D9B6BB2661DEE7007AF073 /* de */,
+				55188DF7279A737800A92772 /* hr */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -458,6 +463,7 @@
 				55D9B6B62660F153007AF073 /* vi */,
 				55D9B6B92661DEDA007AF073 /* ar */,
 				55D9B6BC2661DEE8007AF073 /* de */,
+				55188DF8279A737900A92772 /* hr */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -473,6 +479,7 @@
 				55D9B6B72660F153007AF073 /* vi */,
 				55D9B6BA2661DEDA007AF073 /* ar */,
 				55D9B6BD2661DEE8007AF073 /* de */,
+				55188DF9279A737900A92772 /* hr */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
