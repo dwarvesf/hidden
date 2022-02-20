@@ -18,6 +18,7 @@ extension UserDefaults {
         static let areSeparatorsHidden = "areSeparatorsHidden"
         static let alwaysHiddenSectionEnabled = "alwaysHiddenSectionEnabled"
         static let useFullStatusBarOnExpandEnabled = "useFullStatusBarOnExpandEnabled"
+        static let useTransparentExpandIconEnabled = "useTransparentExpandIconEnabled"
     }
     
     open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {

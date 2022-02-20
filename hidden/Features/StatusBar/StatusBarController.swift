@@ -66,6 +66,7 @@ class StatusBarController {
         
         setupUI()
         setupAlwayHideStatusBar()
+        setupTransparentExpandIcon()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
             self.collapseMenuBar()
         })
@@ -252,6 +253,16 @@ extension StatusBarController {
             
         }else {
             self.btnAlwaysHidden = nil
+        }
+    }
+    
+    private func setupTransparentExpandIcon() {
+        NotificationCenter.default.addObserver(self, selector: #selector(toggleTransparentExpandIconIfNeeded), name: .transparentExpandIconToggle, object: nil)
+    }
+    @objc private func toggleTransparentExpandIconIfNeeded() {
+        guard self.isCollapsed else { return }
+        if let button = btnExpandCollapse.button {
+            button.image = Assets.expandImage
         }
     }
 }
