@@ -105,5 +105,16 @@ enum Preferences {
         }
     }
     
+    static var useTransparentExpandIconEnabled: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.useTransparentExpandIconEnabled)
+        }
+        
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.useTransparentExpandIconEnabled)
+            NotificationCenter.default.post(Notification(name: .transparentExpandIconToggle))
+        }
+    }
+    
     
 }

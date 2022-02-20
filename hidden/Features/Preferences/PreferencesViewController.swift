@@ -29,6 +29,7 @@ class PreferencesViewController: NSViewController {
     @IBOutlet weak var checkBoxKeepInDock: NSButton!
     @IBOutlet weak var checkBoxLogin: NSButton!
     @IBOutlet weak var checkBoxShowPreferences: NSButton!
+    @IBOutlet weak var checkBoxTransparentExpandIcon: NSButton!
     @IBOutlet weak var checkBoxShowAlwaysHiddenSection: NSButton!
     
     @IBOutlet weak var checkBoxUseFullStatusbar: NSButton!
@@ -81,6 +82,10 @@ class PreferencesViewController: NSViewController {
     }
     @IBAction func useFullStatusBarOnExpandChanged(_ sender: NSButton) {
         Preferences.useFullStatusBarOnExpandEnabled = sender.state == .on
+    }
+    
+    @IBAction func useTransparentExpandIconChanged(_ sender: NSButton) {
+        Preferences.useTransparentExpandIconEnabled = sender.state == .on
     }
     
     
@@ -155,6 +160,7 @@ class PreferencesViewController: NSViewController {
         checkBoxLogin.state = Preferences.isAutoStart ? .on : .off
         checkBoxAutoHide.state = Preferences.isAutoHide ? .on : .off
         checkBoxShowPreferences.state = Preferences.isShowPreference ? .on : .off
+        checkBoxTransparentExpandIcon.state = Preferences.useTransparentExpandIconEnabled ? .on : .off
         checkBoxShowAlwaysHiddenSection.state = Preferences.alwaysHiddenSectionEnabled ? .on : .off
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Preferences.numberOfSecondForAutoHide))
     }

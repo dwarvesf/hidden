@@ -12,4 +12,5 @@ extension Notification.Name {
     
     static let prefsChanged = Notification.Name("prefsChanged")
     static let alwayHideToggle = Notification.Name("alwayHideToggle")
+    static let transparentExpandIconToggle = Notification.Name("transparentExpandToggle")
 }
