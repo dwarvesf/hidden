@@ -1,0 +1,25 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+
+"Preferences..." = "Preferenze...";
+"Toggle Auto Collapse" = "Contrazione automatica";
+"Enable Auto Collapse" = "Abilita contrazione automatica";
+"Disable Auto Collapse" = "Disabilita contrazione automatica";
+"Quit" = "Chiudi";
+"Set Shortcut" = "Imposta scorciatoia";
+"Tutorial text" = "
+Usa la sezione sempre nascosta per tenere le tue icone in ordine, ecco come impostarla.
+
+Passi per abilitarla:
+1. Abilita la sezione sempre nascosta “􀥤” (barra trasparente)
+2. Tieni premuta la barra trasparente e trascinala sulla parte sinistra della barra classica, poi muovi ogni icona che vuoi far scomparire sulla sinistra della barra trasparente.
+3. In fine, clicca col tasto destro sull'icona di contrazione “􀆊” per farla scomparire.
+
+Passi per mostrare la sezione sempre nascosta:
+1. Clicca col tasto destro sull'icona “􀆊” per mostrarla e ripeti il passaggio per abilitare la funzione. Buon divertimento 😉!
+";
