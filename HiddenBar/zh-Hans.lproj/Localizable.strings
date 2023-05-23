@@ -1,0 +1,24 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+
+"Preferences..." = "偏好设置...";
+"Edit Mode" = "编辑模式";
+"Quit" = "退出";
+"Set Shortcut" = "设置快捷键";
+"Tutorial text" = "
+使用方法：
+1. 单击主按钮（”<“）以显示/隐藏“折叠”分区内的图标。
+2. 按住Option键（”⌥“）并单击主按钮（”<“）以显示“不可见“分区内的图标。
+3. 右击（Control-单击）主按钮（”<“）以调出菜单。
+
+编辑模式:
+1. 在菜单中选中”编辑模式“以进入编辑模式。
+2. 在编辑模式中会显示各分区之间的分割线。
+   按照自己的需要将各图标拖动到对应分区内，按住Command键（“⌘”）可拖动图标。
+3. 在菜单中清除”编辑模式“选框或单击主按钮（”<“）以退出编辑模式。
+";

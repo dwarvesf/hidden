@@ -1,0 +1,28 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+
+"Preferences..." = "環境設定...";
+"Edit Mode" = "編集モード";
+"Quit" = "終了";
+"Set Shortcut" = "ショットキーを設定";
+"Toggle Auto Collapse" = "自動折りたたみを切り替える";
+"Enable Auto Collapse" = "自動折りたたみオン";
+"Disable Auto Collapse" = "自動折りたたみオフ";
+"Tutorial text" = "
+使い方：
+1. 「＜」をクリックして「非表示」エリアにいるアイコンを表示・非表示する。
+2. Option（⌥）キーを押しながら「＜」をクリックして「常に非表示」エリアにいるアイコンを表示する。
+3. 「＜」を右クリック（Control-クリック）してコンテキストメニューを表示する。
+
+編集モード：
+1. コンテキストメニューに「編集モード」を選択して編集モードを有効にする。
+2. 編集モードが有効される場合は、各エリアの間にセパレーターが表示される。
+   Command(⌘)キーを押しながら，アイコンを好きなエリアに移動する。
+3. コンテキストメニューに「編集モード」をクリアして、または「＜」をクリックして編集モードを無効にする。
+";
+

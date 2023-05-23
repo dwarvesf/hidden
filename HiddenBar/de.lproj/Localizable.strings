@@ -1,0 +1,43 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+
+/*
+"Preferences..." = "Voreinstellungen…";
+"Toggle Auto Collapse" = "Automatisch einklappen";
+"Enable Auto Collapse" = "Automatisch einklappen einschalten";
+"Disable Auto Collapse" = "Automatisch einklappen ausschalten";
+"Quit" = "Beenden";
+"Set Shortcut" = "Shortcut einstellen";
+"Tutorial text" = "
+Verwende die “permanent ausgeblendet“ Funktion um deine Menüleistensymbole aufgeräumt zu halten.. Und so funktioniert es..
+Zum einschalten:
+1. Aktiviere permanent ausgeblendet “􀥤” (transluzenter Farbstreifen)
+2. Halte  􀆔 und ziehe es auf die linke Seite der normalen Leiste, verschiebe dann die Symbole die ausgeblendet werden sollen auf die linke Seite dieser Leiste.
+3. Abschließend klicke mit der rechten Maustaste auf das Einklappen Symbol “􀆊” um sie auszublenden.
+Zum Anzeigen der permanent ausgeblendeten Symbole:
+1. Klicke mit der rechten Maustaste nochmals auf das Einklappen Symbol “􀆊” um sie anzuzeigen und wiederhole den Schritt um die Funktion zu aktivieren. Viel Spaß 😉!
+";
+*/
+
+"Preferences..." = "Voreinstellungen…";
+"Edit Mode" = "Bearbeitungsmodus";
+"Quit" = "Beenden";
+"Set Shortcut" = "Shortcut einstellen";
+"Tutorial text" = "
+Verwendung:
+1. Klicken Sie auf den Hauptschalter (<), um die Statusleiste zu erweitern/zu reduzieren.
+2. Halten Sie die Wahltaste (⌥) gedrückt, während Sie auf den Hauptschalter (<) klicken, um stets ausgeblendete Elemente anzuzeigen.
+3. Klicken Sie mit der rechten Maustaste (Strg-Klick) auf den Hauptschalter (<), um das Kontextmenü anzuzeigen.
+
+Bearbeitungsmodus:
+1. Aktivieren Sie „Bearbeitungsmodus“ im Kontextmenü, um in den Bearbeitungsmodus zu gelangen.
+2. Im Bearbeitungsmodus werden Trennzeichen zwischen den Abschnitten angezeigt.
+   Ordnen Sie die Elemente der Statusleiste nach Bedarf in Abschnitte um.
+   (Halten Sie die Befehlstaste (⌘) gedrückt, um Symbole zu ziehen.)
+3. Verlassen Sie den Bearbeitungsmodus, indem Sie auf den Hauptschalter (<) klicken oder im Kontextmenü die Option „Bearbeitungsmodus“ deaktivieren.
+";

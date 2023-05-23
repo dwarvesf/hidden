@@ -1,0 +1,41 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+/*
+"Preferences..." = "Tuỳ chọn...";
+"Toggle Auto Collapse" = "Đổi trạng thái tự động ẩn";
+"Enable Auto Collapse" = "Bật tự động ẩn";
+"Disable Auto Collapse" = "Tắt tự động ẩn";
+"Quit" = "Thoát";
+"Set Shortcut" = "Cài phím tắt";
+"Tutorial text" = "
+Dùng tính năng luôn ẩn để làm thanh menu gọn gàng hơn bằng cách luôn ẩn những icons bạn không thích. Để bật tính năng này
+Các bước thực hiện:
+1. Bật tính năng luôn ẩn “􀥤” (thanh dọc có màu hơi mờ sẽ xuất hiện)
+2. Giữ phím 􀆔 và kéo thanh mờ này về phía bên tay trái của thanh không mờ, di chuyển icons của ứng dụng mà bạn không muốn hiện kể cả khi đang mở rộng (hiện ẩn).
+3. Sau cùng, click phải vào icon “􀆊” để luôn ẩn những icon này.
+Để hiện lại những icon luôn ẩn:
+1. Click phải vào nút “􀆊” 😉!
+";
+*/
+"Preferences..." = "Tuỳ chọn...";
+"Edit Mode" = "Chế độ chỉnh sửa";
+"Quit" = "Thoát";
+"Set Shortcut" = "Cài phím tắt";
+"Tutorial text" = "
+Cách sử dụng:
+1. Nhấp vào Chuyển đổi chính (\"<\") để mở rộng/thu gọn thanh trạng thái.
+2. Giữ phím Tùy chọn (\"⌥\") trong khi nhấp vào Chuyển đổi chính (\"<\") để hiển thị các mục luôn ẩn.
+3. Nhấp chuột phải (Nhấp chuột điều khiển) Chuyển đổi chính (\"<\") để hiển thị Trình đơn ngữ cảnh.
+
+Chế độ chỉnh sửa:
+1. Kiểm tra \"Chế độ chỉnh sửa\" trong Trình đơn ngữ cảnh để vào chế độ chỉnh sửa.
+2. Trong chế độ chỉnh sửa, các sperator giữa các phần được hiển thị.
+   Sắp xếp lại các mục trên thanh trạng thái thành các phần nếu cần.
+   (Giữ phím Command (\"⌘\") để kéo các biểu tượng.)
+3. Thoát khỏi chế độ chỉnh sửa bằng cách nhấp vào Chuyển đổi chính (\"<\") hoặc bỏ chọn \"Chế độ chỉnh sửa\" trong Trình đơn ngữ cảnh.
+";

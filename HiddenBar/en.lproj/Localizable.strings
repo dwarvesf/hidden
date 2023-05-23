@@ -1,0 +1,25 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+
+"Preferences..." = "Preferences...";
+"Edit Mode" = "Edit Mode";
+"Quit" = "Quit";
+"Set Shortcut" = "Set Shortcut";
+"Tutorial text" = "
+Usage:
+1. Click the Main Toggle (\"<\") to expand / collapse the status bar.
+2. Hold Option key (\"⌥\") while clicking the Main Toggle (\"<\") to reveal always hidden items.
+3. Right-click (Control-click) the Main Toggle (\"<\") to show Context Menu.
+
+Edit Mode:
+1. Check \"Edit Mode\" in Context Menu to enter edit mode.
+2. In edit mode, sperators between sections are shown.
+   Rearrange the status bar items into sections as needed.
+   (Hold Command key (\"⌘\") to drag icons.)
+3. Exit the edit mode by clicking the Main Toggle (\"<\") or unchecking \"Edit Mode\" in Context Menu.
+";

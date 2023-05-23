@@ -1,0 +1,143 @@
+/* Class = "NSTextFieldCell"; title = "Settings"; ObjectID = "1Is-Ut-a9h"; */
+"1Is-Ut-a9h.title" = "Postavke";
+
+/* Class = "NSMenuItem"; title = "Hidden Bar"; ObjectID = "1Xt-HY-uBw"; */
+"1Xt-HY-uBw.title" = "Hidden Bar";
+
+/* Class = "NSTextFieldCell"; title = "⭐️Always Hidden"; ObjectID = "1jU-1x-cFf"; */
+"1jU-1x-cFf.title" = "Uvijek skriveno";
+
+/* Class = "NSTextFieldCell"; title = "Hidden Bar"; ObjectID = "2xp-Ht-xa6"; */
+"2xp-Ht-xa6.title" = "Hidden Bar";
+
+/* Class = "NSTextFieldCell"; title = "Version"; ObjectID = "4Au-5A-dYq"; */
+"4Au-5A-dYq.title" = "Verzija";
+
+/* Class = "NSMenuItem"; title = "Quit Hidden Bar"; ObjectID = "4sb-4s-VLi"; */
+"4sb-4s-VLi.title" = "Zatvori Hidden Bar";
+
+/* Class = "NSMenuItem"; title = "About Hidden Bar"; ObjectID = "5kV-Vb-QxS"; */
+"5kV-Vb-QxS.title" = "Hidden Bar informacije";
+
+/* Class = "NSButtonCell"; title = "Use the full MenuBar on expanding"; ObjectID = "8z8-6N-wnc"; */
+"8z8-6N-wnc.title" = "Koristi cijelu traku izbornika pri rasklapanju";
+
+/* Class = "NSMenu"; title = "Main Menu"; ObjectID = "AYu-sK-qS6"; */
+"AYu-sK-qS6.title" = "Glavni izbornik";
+
+/* Class = "NSSegmentedCell"; B2x-1Q-Aei.ibShadowedLabels[0] = "General"; ObjectID = "B2x-1Q-Aei"; */
+"B2x-1Q-Aei.ibShadowedLabels[0]" = "Opće";
+
+/* Class = "NSSegmentedCell"; B2x-1Q-Aei.ibShadowedLabels[1] = "About"; ObjectID = "B2x-1Q-Aei"; */
+"B2x-1Q-Aei.ibShadowedLabels[1]" = "Informacije";
+
+/* Class = "NSMenuItem"; title = "Preferences…"; ObjectID = "BOF-NM-1cW"; */
+"BOF-NM-1cW.title" = "Postavke …";
+
+/* Class = "NSMenuItem"; title = "30 seconds"; ObjectID = "Ch6-Z2-LyX"; */
+"Ch6-Z2-LyX.title" = "30 s";
+
+/* Class = "NSTextFieldCell"; title = "Global Shortcut"; ObjectID = "HJP-Lf-rxm"; */
+"HJP-Lf-rxm.title" = "Globalni prečac";
+
+/* Class = "NSButtonCell"; title = "⌫"; ObjectID = "IId-1b-leb"; */
+"IId-1b-leb.title" = "⌫";
+
+/* Class = "NSBox"; title = "Box"; ObjectID = "Jjd-1G-63n"; */
+"Jjd-1G-63n.title" = "Kutija";
+
+/* Class = "NSMenuItem"; title = "Show All"; ObjectID = "Kd2-mp-pUS"; */
+"Kd2-mp-pUS.title" = "Prikaži sve";
+
+/* Class = "NSToolbarItem"; label = "Custom View"; ObjectID = "ML6-W4-U8X"; */
+"ML6-W4-U8X.label" = "Prilagođen prikaz";
+
+/* Class = "NSToolbarItem"; paletteLabel = "Custom View"; ObjectID = "ML6-W4-U8X"; */
+"ML6-W4-U8X.paletteLabel" = "Prilagođen prikaz";
+
+/* Class = "NSToolbarItem"; label = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
+"NIO-JJ-pjq.label" = "Prilagođen prikaz";
+
+/* Class = "NSToolbarItem"; paletteLabel = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
+"NIO-JJ-pjq.paletteLabel" = "Prilagođen prikaz";
+
+/* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
+"NMo-om-nkz.title" = "Usluge";
+
+/* Class = "NSButtonCell"; title = "Enable always hidden section"; ObjectID = "Nhn-ch-1f7"; */
+"Nhn-ch-1f7.title" = "Uključi uvijek skriveni odjeljak";
+
+/* Class = "NSMenuItem"; title = "Hide Hidden Bar"; ObjectID = "Olw-nP-bQN"; */
+"Olw-nP-bQN.title" = "Sakrij Hidden Bar";
+
+/* Class = "NSTextFieldCell"; title = "Follow us on Twitter"; ObjectID = "Tba-C7-Zr8"; */
+"Tba-C7-Zr8.title" = "Prati nas na Twitteru";
+
+/* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "Vdr-fp-XzO"; */
+"Vdr-fp-XzO.title" = "Sakrij ostalo";
+
+/* Class = "NSButtonCell"; title = "Start Hidden Bar when I log in"; ObjectID = "W1G-55-zGo"; */
+"W1G-55-zGo.title" = "Pokreni Hidden Bar nakon prijave";
+
+/* Class = "NSTextFieldCell"; title = "Menu bar cleaner"; ObjectID = "X4W-sr-Z32"; */
+"X4W-sr-Z32.title" = "Čistač trake izbornika";
+
+/* Class = "NSTextFieldCell"; title = "Know more about us"; ObjectID = "Xb1-xM-sYy"; */
+"Xb1-xM-sYy.title" = "Saznaj više o nama";
+
+/* Class = "NSMenuItem"; title = "1 minute"; ObjectID = "Zkr-Xd-Ffh"; */
+"Zkr-Xd-Ffh.title" = "1 min";
+
+/* Class = "NSTextFieldCell"; title = "MIT © Dwarves Foundation"; ObjectID = "b1t-QR-iSj"; */
+"b1t-QR-iSj.title" = "MIT © Dwarves Foundation";
+
+/* Class = "NSBox"; title = "Box"; ObjectID = "bFi-aV-ejJ"; */
+"bFi-aV-ejJ.title" = "Kutija";
+
+/* Class = "NSMenuItem"; title = "5 seconds"; ObjectID = "bzS-lm-JvT"; */
+"bzS-lm-JvT.title" = "5 s";
+
+/* Class = "NSTextFieldCell"; title = "Hidden"; ObjectID = "cXt-8R-PHo"; */
+"cXt-8R-PHo.title" = "Skriveno";
+
+/* Class = "NSButtonCell"; title = "Set Shortcut"; ObjectID = "fc2-jD-QNf"; */
+"fc2-jD-QNf.title" = "Postavi prečac";
+
+/* Class = "NSTextFieldCell"; title = "This app is fully open source"; ObjectID = "fqc-io-QOP"; */
+"fqc-io-QOP.title" = "Ovo je progam otvorenog koda";
+
+/* Class = "NSButtonCell"; title = "Show preferences on launch"; ObjectID = "hCh-Ue-NgH"; */
+"hCh-Ue-NgH.title" = "Prikaži postavke nakon pokretanja";
+
+/* Class = "NSMenu"; title = "Services"; ObjectID = "hz9-B4-Xy5"; */
+"hz9-B4-Xy5.title" = "Usluge";
+
+/* Class = "NSTextFieldCell"; title = "Shown"; ObjectID = "iyS-g5-5mk"; */
+"iyS-g5-5mk.title" = "Prikazano";
+
+/* Class = "NSTextFieldCell"; title = "In your Mac's menu bar, hold ⌘ and drag icons\nbetween sections to configure Hidden Bar."; ObjectID = "k7C-e5-6a0"; */
+"k7C-e5-6a0.title" = "Za konfiguriranje programa Hidden Bar, u traci izbornika pritisni tipku ⌘ i povuci ikone između odjeljaka.";
+
+/* Class = "NSButtonCell"; title = "Automatically hide icon after: "; ObjectID = "kg8-rW-srh"; */
+"kg8-rW-srh.title" = "Sakrij ikone automatski nakon: ";
+
+/* Class = "NSBox"; title = "Box"; ObjectID = "mtL-vU-2iq"; */
+"mtL-vU-2iq.title" = "Pozadina";
+
+/* Class = "NSMenuItem"; title = "15 seconds"; ObjectID = "rdn-Xm-fZD"; */
+"rdn-Xm-fZD.title" = "15 s";
+
+/* Class = "NSTextFieldCell"; title = "Email us"; ObjectID = "sRr-sO-uV0"; */
+"sRr-sO-uV0.title" = "Pošalji nam e-mail";
+
+/* Class = "NSMenu"; title = "Hidden Bar"; ObjectID = "uQy-DD-JDr"; */
+"uQy-DD-JDr.title" = "Hidden Bar";
+
+/* Class = "NSMenuItem"; title = "10 seconds"; ObjectID = "z2X-nw-vxX"; */
+"z2X-nw-vxX.title" = "10 s";
+
+/* Class = "NSTextFieldCell"; title = "Monday 08 Mar 9:00AM"; ObjectID = "zAH-cs-dar"; */
+"zAH-cs-dar.title" = "Ponedjeljak, 8. ožujka 9:00";
+
+/* Class = "NSTextFieldCell"; title = "General"; ObjectID = "zAf-vj-OOZ"; */
+"zAf-vj-OOZ.title" = "Opće";

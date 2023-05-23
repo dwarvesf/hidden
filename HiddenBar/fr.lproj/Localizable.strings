@@ -1,0 +1,44 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+
+/*
+"Preferences..." = "Réglages...";
+"Toggle Auto Collapse" = "Activer la réduction automatique";
+"Enable Auto Collapse" = "Activer la réduction automatique";
+"Disable Auto Collapse" = "Désactiver la réduction automatique";
+"Quit" = "Quitter";
+"Set Shortcut" = "Définir un raccourci";
+"Tutorial text" = "
+Utilisez la fonction de section toujours cachée pour garder vos icônes bien rangées.
+Étapes pour activer:
+1. Activez le «􀥤» toujours masqué (barre de couleur translucide)
+2. Maintenez 􀆔 et faites-le glisser sur le côté gauche de la barre normale, puis déplacez les icônes que vous souhaitez faire disparaître sur la gauche de cette barre.
+3. Enfin, faites un clic droit sur l'icône de réduction «􀆊» pour la faire disparaître.
+
+Étapes pour afficher les icônes toujours masquées:
+1. Vous cliquez à nouveau avec le bouton droit de la souris sur l'icône «view» pour afficher et répéter l'action pour activer la fonction. Profitez 😉! 
+";
+*/
+
+"Preferences..." = "Réglages...";
+"Edit Mode" = "Mode édition";
+"Quit" = "Quitter";
+"Set Shortcut" = "Définir un raccourci";
+"Tutorial text" = "
+Usage:
+1. Cliquez sur la bascule principale (\"<\") pour développer/réduire la barre d'état.
+2. Maintenez la touche Option (\"⌥\") enfoncée tout en cliquant sur la bascule principale (\"<\") pour révéler les éléments toujours masqués.
+3. Cliquez avec le bouton droit (Contrôle-clic) sur la bascule principale (\"<\") pour afficher le menu contextuel.
+
+Mode édition:
+1. Cochez \"Mode d'édition\" dans le menu contextuel pour entrer en mode d'édition.
+2. En mode édition, les séparateurs entre les sections sont affichés.
+   Réorganisez les éléments de la barre d'état en sections selon vos besoins.
+   (Maintenez la touche Commande (\"⌘\") enfoncée pour faire glisser les icônes.)
+3. Quittez le mode d'édition en cliquant sur la bascule principale (\"<\") ou en décochant \"Mode d'édition\" dans le menu contextuel.
+";
