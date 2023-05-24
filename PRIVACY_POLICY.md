@@ -1,5 +1,9 @@
 ## Privacy Policy
 
+The Unofficial Maintenance version of Hidden Bar is built by UeharaYou, inheriting the original privacy policy of the original Hidden Bar.
+
+### Privacy Policy for original Hidden Bar
+
 Dwarves Foundation built the Hidden Bar app as an Open Source app. This app is provided by Dwarves Foundation at no cost and is intended for use as is.
 
 **Information Collection and Use**
