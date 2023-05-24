@@ -8,7 +8,8 @@
 
 import Foundation
 
-enum Global { // Global Variables for Project
+enum Global {
+    // Global Variables for Project
     static let appName = "Minimal Bar"
     static let mainAppId = "moe.ueharayou.MinimalBar"
 }

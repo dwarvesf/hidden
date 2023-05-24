@@ -8,6 +8,8 @@
 
 "Preferences..." = "環境設定...";
 "Edit Mode" = "編集モード";
+"Edit" = "編集";
+"Invalid" = "無効な構成";
 "Quit" = "終了";
 "Set Shortcut" = "ショットキーを設定";
 "Toggle Auto Collapse" = "自動折りたたみを切り替える";

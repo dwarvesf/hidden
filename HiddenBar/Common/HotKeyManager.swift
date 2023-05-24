@@ -21,7 +21,6 @@ class HotKeyManager {
                 default:
                     Preferences.statusBarPolicy = .collapsed
                 }
-                //StatusBarController.triggerAdjustment()
             }
         }
     }

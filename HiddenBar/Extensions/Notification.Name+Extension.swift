@@ -11,6 +11,5 @@ import Cocoa
 class NotificationNames  {
     
     static let prefsChanged = Notification.Name("prefsChanged")
-    //static let policyChanged = Notification.Name("policyChanged")
-    //static let alwayHideToggle = Notification.Name("alwayHideToggle")
+    
 }

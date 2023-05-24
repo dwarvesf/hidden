@@ -13,11 +13,10 @@ enum StatusBarPolicy:Int {
 }
 
 class StatusBarController {
-    
-    //MARK: - Variables
-    //private let autoCollapseTimer:Timer
-    
-    //MARK: - BarItems
+
+    enum StatusBarValidity {
+        case invalid; case onStartUp; case valid
+    }
     
     private let masterToggle = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let primarySeprator = NSStatusBar.system.statusItem(withLength: 0)
@@ -29,17 +28,20 @@ class StatusBarController {
     private static let normalSepratorLength: CGFloat =  10
     private static let expandedSeperatorLength: CGFloat = 10000
 
-    private var areSeperatorPositionValid: Bool {
+    public static func areSeperatorPositionValid () -> StatusBarValidity {
         guard
-            let toggleButtonX = masterToggle.button?.getOrigin?.x,
-            let primarySepratorX = primarySeprator.button?.getOrigin?.x,
-            let secondarySepratorX = secondarySeprator.button?.getOrigin?.x
-            else {return false}
+            let toggleButtonX = instance.masterToggle.button?.getOrigin?.x,
+            let primarySepratorX = instance.primarySeprator.button?.getOrigin?.x,
+            let secondarySepratorX = instance.secondarySeprator.button?.getOrigin?.x
+        else {return .invalid}
+        
+        // all x will be 0 if applicationDidFinishLaunching have not returned, so we have to try again
+        if toggleButtonX == 0 && primarySepratorX == 0 && secondarySepratorX == 0 {return .onStartUp}
         
         if Global.isUsingLTRTypeSystem {
-            return toggleButtonX >= primarySepratorX && primarySepratorX >= secondarySepratorX
+            return (toggleButtonX > primarySepratorX && primarySepratorX > secondarySepratorX) ? .valid : .invalid
         } else {
-            return toggleButtonX <= primarySepratorX && primarySepratorX <= secondarySepratorX
+            return (toggleButtonX < primarySepratorX && primarySepratorX < secondarySepratorX) ? .valid : .invalid
         }
     }
 
@@ -71,6 +73,18 @@ class StatusBarController {
     //MARK: - Methods
     private static let instance = StatusBarController()
     private init() {
+        if let button = masterToggle.button {
+            button.image = Assets.collapseImage
+        }
+        
+        if let button = primarySeprator.button {
+            button.image = Assets.seperatorImage
+        }
+        
+        if let button = secondarySeprator.button {
+            button.image = Assets.seperatorImage
+            button.appearsDisabled = true
+        }
         masterToggle.autosaveName = "hiddenbar_masterToggle";
         primarySeprator.autosaveName = "hiddenbar_primarySeprator";
         secondarySeprator.autosaveName = "hiddenbar_secondarySeprator";
@@ -85,37 +99,54 @@ class StatusBarController {
         secondarySeprator = instance.secondarySeprator
         
         if let button = masterToggle.button {
-            button.image = Assets.collapseImage
             button.target = self
             button.action = #selector(toggleButtonPressed(sender:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
+        // This won't work: blocking action to be sent.
         //let menu = StatusBarMenuManager.getContextMenu()
         //masterToggle.menu = menu
         
-        if let button = primarySeprator.button {
-            button.image = Assets.seperatorImage
-        }
-        
-        if let button = secondarySeprator.button {
-            button.image = Assets.seperatorImage
-            button.appearsDisabled = true
-        }
-        
+        masterToggle.isVisible = true
+        primarySeprator.isVisible = true
+        secondarySeprator.isVisible = true
+
         NotificationCenter.default.addObserver(forName: NotificationNames.prefsChanged, object: nil, queue: Global.mainQueue) {[] (notification) in
-            //guard let target = self else {return}
             triggerAdjustment()
         }
         
         // Manually adjusting the bar once
         triggerAdjustment()
-        
     }
     
     private static func triggerAdjustment() {
-        resetAutoCollapseTimer()
-        adjustStatusBar()
-        adjustMenuBar()
+        switch areSeperatorPositionValid() {
+        case .onStartUp:
+            Timer.scheduledTimer(withTimeInterval: TimeInterval(1), repeats: false) { _ in
+                // retry on more time after 1s
+                NotificationCenter.default.post(Notification(name: NotificationNames.prefsChanged, object: Preferences.isAutoStart))
+            }
+            fallthrough
+        case .valid:
+            resetAutoCollapseTimer()
+            adjustStatusBar()
+            adjustMenuBar()
+        case .invalid:
+            resetSeperator()
+        }
+    }
+    
+    private static func resetSeperator () {
+        let masterToggle = instance.masterToggle,
+            primarySeprator = instance.primarySeprator,
+            secondarySeprator = instance.secondarySeprator,
+            lock = instance.updateLock
+        lock.lock(before: Date(timeIntervalSinceNow: 1))
+        primarySeprator.length = StatusBarController.normalSepratorLength
+        secondarySeprator.length = StatusBarController.normalSepratorLength
+        masterToggle.button?.image = Assets.expandImage
+        masterToggle.button?.title = "Invalid".localized
+        lock.unlock()
     }
     
     private static func resetAutoCollapseTimer () {
@@ -151,16 +182,15 @@ class StatusBarController {
         
         lock.lock(before: Date(timeIntervalSinceNow: 1))
         if Preferences.isEditMode {
-            //NSLog("EDIT")
             primarySeprator.length = StatusBarController.normalSepratorLength
             //primarySeprator.isVisible = true
             secondarySeprator.length = StatusBarController.normalSepratorLength
             //secondarySeprator.isVisible = true
             masterToggle.button?.image = Assets.expandImage
+            masterToggle.button?.title = "Edit".localized
             
         }
         else {
-            //NSLog("NONEDIT, \(Preferences.statusBarPolicy)")
             switch Preferences.statusBarPolicy {
             case .fullExpand:
                 primarySeprator.length = StatusBarController.hiddenSepratorLength
@@ -168,6 +198,7 @@ class StatusBarController {
                 secondarySeprator.length = StatusBarController.hiddenSepratorLength
                 //secondarySeprator.isVisible = false
                 masterToggle.button?.image = Assets.expandImage
+                masterToggle.button?.title = ""
                 
             case .partialExpand:
                 primarySeprator.length = StatusBarController.hiddenSepratorLength
@@ -175,6 +206,7 @@ class StatusBarController {
                 secondarySeprator.length = StatusBarController.expandedSeperatorLength
                 //secondarySeprator.isVisible = true
                 masterToggle.button?.image = Assets.expandImage
+                masterToggle.button?.title = ""
                 
             case .collapsed:
                 primarySeprator.length = StatusBarController.expandedSeperatorLength
@@ -182,6 +214,7 @@ class StatusBarController {
                 secondarySeprator.length = StatusBarController.expandedSeperatorLength
                 //secondarySeprator.isVisible = true
                 masterToggle.button?.image = Assets.collapseImage
+                masterToggle.button?.title = ""
                 
             }
         }
@@ -213,156 +246,5 @@ class StatusBarController {
         }
         lock.unlock()
     }
-    
-    
-    /*
-     SYSTEM BUG?
-     SOMEHOW WHEN SETTING isVisible PROPERTY OF A NSStatusBarItem, THE APP CRASHES FOR BAD ACCESS.
-     => set isVisible will trigger the notification that triggers the observer, causing infinite recursion on this procedure
-     => set isVisible to false will discard its location on status bar
-     */
-    
-    /* === TRASH ===
-    func showHideSeparatorsAndAlwayHideArea() {
-        NSLog("\(Preferences.areSeparatorsHidden)")
-        Preferences.areSeparatorsHidden ? showSeparators() : hideSeparators()
-        
-        if isCollapsed {expandMenubar()}
-    }
-    
-    private func showSeparators() {
-        Preferences.areSeparatorsHidden = false
-        
-        if !isCollapsed {
-            primarySeprator.length = normalSepratorLength
-        }
-        btnAlwaysHidden?.length = btnAlwaysHiddenLength
-    }
-    
-    private func hideSeparators() {
-        guard isBtnAlwaysHiddenValidPosition else {return}
-        
-        Preferences.areSeparatorsHidden = true
-        
-        if !isCollapsed {
-            primarySeprator.length = normalSepratorLength
-        }
-        btnAlwaysHidden?.length = btnAlwaysHiddenEnableExpandCollapseLength
-    }
-    
-    
-    
-    func expandCollapseIfNeeded() {
-        //prevented rapid click cause icon show many in Dock
-        if isToggle {return}
-        isToggle = true
-        isCollapsed ? expandMenubar() : collapseMenuBar()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            isToggle = false
-        }
-    }
-    
-    private func collapseMenuBar() {
-        guard isprimarySepratorValidPosition && !isCollapsed else {
-            autoCollapseIfNeeded()
-            return
-        }
-        
-        primarySeprator.length = expandedSeperatorLength
-        if let button = masterToggle.button {
-            button.image = Assets.expandImage
-        }
-        if Preferences.useFullStatusBarOnExpandEnabled {
-            NSApp.setActivationPolicy(.accessory)
-            NSApp.deactivate()
-        }
-    }
-    private func expandMenubar() {
-        guard isCollapsed else {return}
-        primarySeprator.length = normalSepratorLength
-        if let button = masterToggle.button {
-            button.image = Assets.collapseImage
-        }
-        autoCollapseIfNeeded()
-        
-        if Preferences.useFullStatusBarOnExpandEnabled {
-            NSApp.setActivationPolicy(.regular)
-            NSApp.activate(ignoringOtherApps: true)
-        }
-    }
-    
-    private func autoCollapseIfNeeded() {
-        guard Preferences.isAutoHide else {return}
-        guard !isCollapsed else { return }
-        
-        startTimerToAutoHide()
-    }
-    
-    private func startTimerToAutoHide() {
-        //autoCollapseTimer.invalidate()
-    }
-    */
-    
-    /*
-    private func updateAutoCollapseMenuTitle() {
-        guard let toggleAutoHideItem = primarySeprator.menu?.item(withTag: 1) else { return }
-        if Preferences.isAutoHide {
-            toggleAutoHideItem.title = "Disable Auto Collapse".localized
-        } else {
-            toggleAutoHideItem.title = "Enable Auto Collapse".localized
-        }
-    }
-    */
-     
-    @objc func updateAutoHide() {
-        //updateAutoCollapseMenuTitle()
-        //autoCollapseIfNeeded()
-    }
-    
-
-    
-    @objc func toggleAutoHide() {
-        Preferences.isAutoHide.toggle()
-    }
 }
 
-//MARK: - Alway hide feature
-/*
-extension StatusBarController {
-    private func setupAlwayHideStatusBar() {
-        NotificationCenter.default.addObserver(self, selector: #selector(toggleStatusBarIfNeeded), name: UserDefaults.didChangeNotification, object: nil)
-        //NotificationCenter.default.addObserver(self, selector: #selector(toggleStatusBarIfNeeded), name: .alwayHideToggle, object: nil)
-        toggleStatusBarIfNeeded()
-    }
-    @objc private func toggleStatusBarIfNeeded() {
-        if Preferences.alwaysHiddenSectionEnabled {
-            NSLog("FIXME: Always Hidden func bypassed.")
-            return;
-            /*
-            btnAlwaysHidden =  NSStatusBar.system.statusItem(withLength: 20)
-            if let button = btnAlwaysHidden?.button {
-                button.image = imgIconLine
-                button.appearsDisabled = true
-            }
-            btnAlwaysHidden?.autosaveName = "hiddenbar_terminate";
-            */
-        }else {
-            //btnAlwaysHidden = nil
-        }
-    }
-}
-*/
-
-
-/*
- let a = NSStatusBar.system.thickness
- let b = masterToggle.button!.window!.convertPoint(toScreen: masterToggle.button!.bounds.origin)
- 
- masterToggle.button!.draw(NSRect(x: a.minX, y: a.minY, width: a.width, height: a.height))
- NSLog("\(a), \(b)")
- 
-StatusBarMenuManager.getContextMenu().popUp(positioning: nil, at: CGPoint(x:(masterToggle.button!.frame.minX), y:(masterToggle.button!.frame.minY)), in: masterToggle.button!.superview!.superview!.superview)
- 
- StatusBarMenuManager.getContextMenu().popUp(positioning: nil, at: .init(x: sender.bounds.minX, y: sender.bounds.maxY), in: sender)
- 
- */

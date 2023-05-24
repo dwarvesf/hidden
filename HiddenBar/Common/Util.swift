@@ -10,59 +10,7 @@ import AppKit
 import Foundation
 //import ServiceManagement
 
-/*
-class ServiceManager {
-    
-    private static let instance = ServiceManager()
-    private var previousAutoStartPref = !Preferences.isAutoStart
-    private init (){}
-    
-    static func setup() {
-        
-        // Sync login items from setting app. (Might be altered by user)
-        // TODO: Better in-time sync: modify getter of Preferences.isAutoStart
-        // TODO: Fix other circumstances: disable Checkbox on notFound, semistate on requiresApproval
-        if #available(macOS 13.0, *) {
-            switch SMAppService.mainApp.status {
-            case .enabled:
-                Preferences.isAutoStart = true
-            case .notRegistered, .requiresApproval, .notFound:
-                Preferences.isAutoStart = false
-            @unknown default:
-                Preferences.isAutoStart = false
-            }
-        }
-        
-        NotificationCenter.default.addObserver(forName: NotificationNames.prefsChanged, object: nil, queue: Global.mainQueue) {[] (notification) in
-            updateLoginItem()
-        }
-        updateLoginItem()
-    }
-    
-    static func updateLoginItem() {
-        if instance.previousAutoStartPref == Preferences.isAutoStart {return}
-        if #available(macOS 13.0, *) {
-            let loginItem = SMAppService.mainApp// .loginItem(identifier: Global.mainAppId)
-            do {
-                switch Preferences.isAutoStart {
-                case true:
-                    try loginItem.register()
-                case false:
-                    try loginItem.unregister()
-                }
-            }
-            catch {
-                NSLog("Update Failed: \(error).")
-            }
-        }
-        else {
-            SMLoginItemSetEnabled(Global.mainAppId as CFString, Preferences.isAutoStart)
-        }
-        instance.previousAutoStartPref = Preferences.isAutoStart
-    }
-    
-}
-*/
+
 
 class Util {
     

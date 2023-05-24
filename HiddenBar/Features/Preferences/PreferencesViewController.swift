@@ -14,22 +14,15 @@ class PreferencesViewController: NSViewController {
     
    
     //MARK: - Outlets
-    //@IBOutlet weak var checkBoxKeepLastState: NSButton!
-    @IBOutlet weak var textFieldTitle: NSTextField!
-    //@IBOutlet weak var imageViewTop: NSImageView!
     
+    @IBOutlet weak var textFieldTitle: NSTextField!
     @IBOutlet weak var statusBarStackView: NSStackView!
     @IBOutlet weak var arrowPointToHiddenImage: NSImageView!
     @IBOutlet weak var arrowPointToAlwayHiddenImage: NSImageView!
     @IBOutlet weak var lblAlwayHidden: NSTextField!
     
-    
-    
     @IBOutlet weak var checkBoxAutoHide: NSButton!
-    //@IBOutlet weak var checkBoxKeepInDock: NSButton!
     @IBOutlet weak var checkBoxLogin: NSButton!
-    //@IBOutlet weak var checkBoxShowPreferences: NSButton!
-    //@IBOutlet weak var checkBoxShowAlwaysHiddenSection: NSButton!
     
     @IBOutlet weak var checkBoxUseFullStatusbar: NSButton!
     @IBOutlet weak var timePopup: NSPopUpButton!
@@ -53,9 +46,7 @@ class PreferencesViewController: NSViewController {
         updateData()
         loadHotkey()
         createTutorialView()
-        /*
-        NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: NotificationNames.prefsChanged, object: nil)
-        */
+
         NotificationCenter.default.addObserver(forName: NotificationNames.prefsChanged, object: nil, queue: nil) {
             [weak self] notification in
             guard let target = self else {return}
@@ -77,22 +68,7 @@ class PreferencesViewController: NSViewController {
     @IBAction func autoHideCheckChanged(_ sender: NSButton) {
         Preferences.isAutoHide = sender.state == .on
     }
-    /*
-    @IBAction func showPreferencesChanged(_ sender: NSButton) {
-        Preferences.isShowPreference = sender.state == .on
-    }
-    
-    
-    @IBAction func showAlwaysHiddenSectionChanged(_ sender: NSButton) {
-        if(sender.state == .on) {
-            Preferences.statusBarPolicy = .fullExpand
-        }
-        else {
-            Preferences.statusBarPolicy = .partialExpand
-        }
-        createTutorialView()
-    }
-     */
+
     @IBAction func useFullStatusBarOnExpandChanged(_ sender: NSButton) {
         Preferences.isUsingFullStatusBar = sender.state == .on
     }
@@ -107,16 +83,13 @@ class PreferencesViewController: NSViewController {
     
     // When the set shortcut button is pressed start listening for the new shortcut
     @IBAction func register(_ sender: Any) {
-        //assert(false, "FIXME! Reimplement hotkey.")
         listening = true
         view.window?.makeFirstResponder(nil)
     }
     
     // If the shortcut is cleared, clear the UI and tell AppDelegate to stop listening to the previous keybind.
     @IBAction func unregister(_ sender: Any?) {
-        //assert(false, "FIXME! Reimplement hotkey.")
         HotKeyManager.hotKey = nil
-        // FIXME !!!!
         btnShortcut.title = "Set Shortcut".localized
         listening = false
         btnClear.isEnabled = false
@@ -145,7 +118,6 @@ class PreferencesViewController: NSViewController {
         
         updateKeybindButton(newGlobalKeybind)
         btnClear.isEnabled = true
-        //assert(false, "FIXME! Reimplement hotkey.")
         HotKeyManager.hotKey = HotKey(keyCombo: KeyCombo(carbonKeyCode: UInt32(event.keyCode), carbonModifiers: event.modifierFlags.carbonFlags))
     }
     
@@ -282,64 +254,3 @@ class PreferencesViewController: NSViewController {
         popover.show(relativeTo: self.view.bounds, of: sender , preferredEdge: NSRectEdge.maxX)
     }
 }
-
-//MARK: - Show tutorial
-/*
-extension PreferencesViewController {
-    
-    func createTutorialView() {
-        /*
-        if Preferences.statusBarPolicy == .fullExpand {
-            alwayHideStatusBar()
-        }else {
-            hideStatusBar()
-        }*/
-        alwayHideStatusBar()
-    }
-    
-    /*
-    func hideStatusBar() {
-        lblAlwayHidden.isHidden = true
-        arrowPointToAlwayHiddenImage.isHidden = true
-        statusBarStackView.removeAllSubViews()
-        let imageWidth: CGFloat = 16
-        
-        
-        let images = ["ico_1","ico_2","ico_3","seprated", "ico_collapse","ico_4","ico_5","ico_6","ico_7"].map { imageName in
-            NSImageView(image: NSImage(named: imageName)!)
-        }
-        
-        
-        for image in images {
-            statusBarStackView.addArrangedSubview(image)
-            image.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                image.widthAnchor.constraint(equalToConstant: imageWidth),
-                image.heightAnchor.constraint(equalToConstant: imageWidth)
-                
-            ])
-            if #available(OSX 10.14, *) {
-                image.contentTintColor = .labelColor
-            } else {
-                // Fallback on earlier versions
-            }
-        }
-        let dateTimeLabel = NSTextField()
-        dateTimeLabel.stringValue = Date.dateString() + " " + Date.timeString()
-        dateTimeLabel.translatesAutoresizingMaskIntoConstraints = false
-        dateTimeLabel.isBezeled = false
-        dateTimeLabel.isEditable = false
-        dateTimeLabel.sizeToFit()
-        dateTimeLabel.backgroundColor = .clear
-        statusBarStackView.addArrangedSubview(dateTimeLabel)
-        NSLayoutConstraint.activate([dateTimeLabel.heightAnchor.constraint(equalToConstant: imageWidth)
-        ])
-       
-        NSLayoutConstraint.activate([
-            arrowPointToHiddenImage.centerXAnchor.constraint(equalTo: statusBarStackView.arrangedSubviews[3].centerXAnchor)
-        ])
-    }
-    */
-
-}
-*/

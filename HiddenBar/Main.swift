@@ -26,14 +26,6 @@ import AppKit
         // Register user default
         Preferences.setDefault()
         
-        // Register observer
-        //ServiceManager.addObserver()
-        /*
-        NotificationCenter.default.addObserver(forName: NotificationPool.prefsChanged, object: nil, queue: Global.mainQueue) {[] (notification) in
-            NSLog("Preference changed: \(notification).")
-        }
-        */
-        
         // Load GUI
         NSLog("GUI started.")
         let ret_val = NSApplicationMain(CommandLine.argc, CommandLine.unsafeArgv)

@@ -236,16 +236,16 @@
                                 <color key="fillColor" name="quaternaryLabelColor" catalog="System" colorSpace="catalog"/>
                             </box>
                             <stackView distribution="fill" orientation="vertical" alignment="centerX" spacing="22" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" fixedFrame="YES" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ve9-SV-zSn">
-                                <rect key="frame" x="107" y="5" width="387" height="178"/>
+                                <rect key="frame" x="81" y="5" width="438" height="178"/>
                                 <subviews>
                                     <stackView distribution="fill" orientation="horizontal" alignment="top" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wkG-Hu-6WL">
-                                        <rect key="frame" x="0.0" y="34" width="387" height="144"/>
+                                        <rect key="frame" x="0.0" y="34" width="438" height="144"/>
                                         <subviews>
                                             <stackView distribution="fillEqually" orientation="vertical" alignment="centerX" spacing="16" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xjq-Yd-20l">
-                                                <rect key="frame" x="0.0" y="120" width="164" height="24"/>
+                                                <rect key="frame" x="0.0" y="56" width="215" height="88"/>
                                                 <subviews>
                                                     <stackView distribution="fill" orientation="horizontal" alignment="centerY" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="1WC-SE-qX5">
-                                                        <rect key="frame" x="0.0" y="0.0" width="164" height="24"/>
+                                                        <rect key="frame" x="24" y="64" width="168" height="24"/>
                                                         <subviews>
                                                             <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="FKj-rN-Xms">
                                                                 <rect key="frame" x="0.0" y="0.0" width="24" height="24"/>
@@ -256,14 +256,14 @@
                                                                 <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="ico_github" id="3bg-eT-gLV"/>
                                                             </imageView>
                                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="F4l-p0-CZV" customClass="HyperlinkTextField" customModule="Hidden_Bar" customModuleProvider="target">
-                                                                <rect key="frame" x="30" y="4" width="136" height="16"/>
-                                                                <textFieldCell key="cell" lineBreakMode="clipping" title="Version 2.0 Repositoy" id="2X9-xt-WLt">
+                                                                <rect key="frame" x="30" y="4" width="140" height="16"/>
+                                                                <textFieldCell key="cell" lineBreakMode="clipping" title="2.0 Request Repositoy" id="2X9-xt-WLt">
                                                                     <font key="font" metaFont="system"/>
                                                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                                 </textFieldCell>
                                                                 <userDefinedRuntimeAttributes>
-                                                                    <userDefinedRuntimeAttribute type="string" keyPath="href" value="https://github.com/ueharayou/hidden"/>
+                                                                    <userDefinedRuntimeAttribute type="string" keyPath="href" value="https://github.com/UeharaYou/Hidden-Bar"/>
                                                                 </userDefinedRuntimeAttributes>
                                                             </textField>
                                                         </subviews>
@@ -276,19 +276,39 @@
                                                             <real value="3.4028234663852886e+38"/>
                                                         </customSpacing>
                                                     </stackView>
+                                                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Sqd-np-PBZ">
+                                                        <rect key="frame" x="15" y="32" width="186" height="16"/>
+                                                        <textFieldCell key="cell" lineBreakMode="clipping" title="This repository is an unofficial" id="O79-Ae-pp2">
+                                                            <font key="font" usesAppearanceFont="YES"/>
+                                                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                        </textFieldCell>
+                                                    </textField>
+                                                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ioj-AA-tNz">
+                                                        <rect key="frame" x="-2" y="0.0" width="219" height="16"/>
+                                                        <textFieldCell key="cell" lineBreakMode="clipping" title="branch of Hidden Bar development." id="YDg-Sa-u5Z">
+                                                            <font key="font" metaFont="system"/>
+                                                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                        </textFieldCell>
+                                                    </textField>
                                                 </subviews>
                                                 <visibilityPriorities>
+                                                    <integer value="1000"/>
+                                                    <integer value="1000"/>
                                                     <integer value="1000"/>
                                                 </visibilityPriorities>
                                                 <customSpacing>
                                                     <real value="3.4028234663852886e+38"/>
+                                                    <real value="3.4028234663852886e+38"/>
+                                                    <real value="3.4028234663852886e+38"/>
                                                 </customSpacing>
                                             </stackView>
                                             <box horizontalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="D03-DP-ziP">
-                                                <rect key="frame" x="170" y="48" width="5" height="96"/>
+                                                <rect key="frame" x="221" y="48" width="5" height="96"/>
                                             </box>
                                             <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="16" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="X4u-KC-g9w">
-                                                <rect key="frame" x="181" y="0.0" width="206" height="144"/>
+                                                <rect key="frame" x="232" y="0.0" width="206" height="144"/>
                                                 <subviews>
                                                     <stackView distribution="fill" orientation="horizontal" alignment="centerY" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="aJr-BE-h8u">
                                                         <rect key="frame" x="0.0" y="120" width="156" height="24"/>
@@ -445,7 +465,7 @@
                                         </customSpacing>
                                     </stackView>
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Lhv-JW-S82">
-                                        <rect key="frame" x="122" y="0.0" width="143" height="12"/>
+                                        <rect key="frame" x="148" y="0.0" width="143" height="12"/>
                                         <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" title="MIT © Dwarves Foundation" id="b1t-QR-iSj">
                                             <font key="font" size="11" name="HelveticaNeue"/>
                                             <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>

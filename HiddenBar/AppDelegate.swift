@@ -11,11 +11,8 @@ import HotKey
 
 class AppDelegate: NSObject, NSApplicationDelegate{
     
-    //var statusBarController = StatusBarController()
-
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSLog("App launched.")
-        //ServiceManager.setup() //using LaunchAtLogin package
         StatusBarController.setup()
         HotKeyManager.setupHotKey()
     }
