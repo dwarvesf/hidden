@@ -84,6 +84,7 @@
 		FB1660452A12CB2A008C6B3C /* Main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Main.swift; sourceTree = "<group>"; };
 		FB1660802A12D3F4008C6B3C /* ProjectGlobal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectGlobal.swift; sourceTree = "<group>"; };
 		FB1660832A12E668008C6B3C /* ProductGlobal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductGlobal.swift; sourceTree = "<group>"; };
+		FB25CE2D2A21346300499D11 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
 		FB6337322A1D5648007527EE /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 		FB6DDEC22A1D93010052B63C /* trash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = trash.swift; sourceTree = "<group>"; };
 		FB71B0C62A153D6600D287CB /* Notification.Name+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Notification.Name+Extension.swift"; sourceTree = "<group>"; };
@@ -384,6 +385,7 @@
 				55D9B6B82661DEDA007AF073 /* ar */,
 				55D9B6BB2661DEE7007AF073 /* de */,
 				55188DF7279A737800A92772 /* hr */,
+				FB25CE2D2A21346300499D11 /* en */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
