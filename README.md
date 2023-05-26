@@ -50,6 +50,8 @@ To build this version of Hidden Bar, you have to have Xcode installed.
 
 ## 🕹 Usage
 
+The usage of version of Hidden Bar is slightly different from the original one.
+
 * `⌘` + drag to move the Hidden icons around in the menu bar.
 * Click the Arrow icon to hide menu bar items.
 
