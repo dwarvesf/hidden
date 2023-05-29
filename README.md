@@ -2,12 +2,6 @@
 	<img width="200" height="200" margin-right="100%" src="https://github.com/dwarvesf/hidden/blob/develop/img/icon_512%402x.png?raw=true">
 </p>
 <p align="center">
-	<a href="https://webuild.community">
-		<img src="https://raw.githubusercontent.com/webuild-community/badge/master/svg/love.svg" />
-	</a>
-	<a href="https://github.com/dwarvesf/hidden/releases/latest">
- 		<img src="https://img.shields.io/badge/download-latest-brightgreen.svg" alt="download">
-	</a>
 	<a href="https://img.shields.io/badge/platform-macOS-lightgrey.svg">
  		<img src="https://img.shields.io/badge/platform-macOS-lightgrey.svg" alt="platform">
 	</a>
@@ -35,8 +29,9 @@ Original Version (v1.8): [![AppStore](img/appstore.svg)](https://itunes.apple.co
 
 ### Pre-built Packages
 
-This version of Hidden Bar is NOT notarized. Therefore no pre-built packages available. 
-To test this version of Hidden Bar.
+This version of Hidden Bar is NOT notarized. The GateKeeper will flag any non-notarized App as Untrusted and therefore prevent it from opening. Although you can override GateKeeper's decision, it is considered a bad habit while using your computer. Besides notarizing an app requires enrollments of Apple Developer Program, which currently is not the case for me. Therefore NO pre-built packages available.
+
+To test this version of Hidden Bar, you have to build it from source, which means you might also inspect the code yourself.
 
 For packages of the original Hidden Bar (up to v1.9), check out the original repo [here](https://github.com/dwarvesf/hidden).
 
@@ -80,4 +75,4 @@ macOS version >= 10.13
 
 ## License
 
-MIT &copy; [Dwarves Foundation](https://github.com/dwarvesf)
+MIT &copy; [UeharaYou](https://github.com/UeharaYou); origional: [Dwarves Foundation](https://github.com/dwarvesf)
