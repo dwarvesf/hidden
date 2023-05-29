@@ -75,4 +75,4 @@ macOS version >= 10.13
 
 ## License
 
-MIT &copy; [UeharaYou](https://github.com/UeharaYou); origional: [Dwarves Foundation](https://github.com/dwarvesf)
+MIT &copy; [UeharaYou](https://github.com/UeharaYou); original: [Dwarves Foundation](https://github.com/dwarvesf)
