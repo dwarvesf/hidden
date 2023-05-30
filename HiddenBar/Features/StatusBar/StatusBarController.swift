@@ -70,7 +70,6 @@ class StatusBarController {
         }
     }
     
-    //MARK: - Methods
     private static let instance = StatusBarController()
     private init() {
         if let button = masterToggle.button {
