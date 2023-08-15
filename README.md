@@ -54,6 +54,13 @@ brew install --cask hiddenbar
 <p align="center">
 	<img src="img/tutorial.gif">
 </p>
+* Activate Always Hidden in preference, then restart the app. Drag icons to the left of the dim grey bar into the Always Hidden section. Right-click on the Arrow icon to hide Always Hidden items.
+<p align="center">
+	<img src="https://github.com/twwright/hidden/assets/2465794/dd2c540c-3d35-445c-9008-2ef7656131f3">
+</p>
+
+
+
 
 ## ✨<a href="https://github.com/dwarvesf/hidden/graphs/contributors">Contributors</a>
 
