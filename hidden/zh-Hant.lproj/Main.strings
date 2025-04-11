@@ -236,8 +236,8 @@
 /* Class = "NSMenuItem"; title = "Jump to Selection"; ObjectID = "S0p-oC-mLd"; */
 "S0p-oC-mLd.title" = "跳至所選範圍";
 
-/* Class = "NSTextFieldCell"; title = "Follow us on Twitter"; ObjectID = "Tba-C7-Zr8"; */
-"Tba-C7-Zr8.title" = "在 Twitter 追蹤我們";
+/* Class = "NSTextFieldCell"; title = "Follow us on X"; ObjectID = "Tba-C7-Zr8"; */
+"Tba-C7-Zr8.title" = "在 X 追蹤我們";
 
 /* Class = "NSMenu"; title = "Window"; ObjectID = "Td7-aD-5lo"; */
 "Td7-aD-5lo.title" = "視窗";

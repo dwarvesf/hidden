@@ -70,8 +70,8 @@
 /* Class = "NSMenuItem"; title = "Hide Hidden Bar"; ObjectID = "Olw-nP-bQN"; */
 "Olw-nP-bQN.title" = "أخف الشريط المخفي";
 
-/* Class = "NSTextFieldCell"; title = "Follow us on Twitter"; ObjectID = "Tba-C7-Zr8"; */
-"Tba-C7-Zr8.title" = "تابعنا على تويتر";
+/* Class = "NSTextFieldCell"; title = "Follow us on X"; ObjectID = "Tba-C7-Zr8"; */
+"Tba-C7-Zr8.title" = "تابعنا على X";
 
 /* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "Vdr-fp-XzO"; */
 "Vdr-fp-XzO.title" = "أخف الآخرين";

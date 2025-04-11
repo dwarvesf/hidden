@@ -278,13 +278,13 @@
                                                     </imageView>
                                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="c5D-4V-z75" customClass="HyperlinkTextField" customModule="Hidden_Bar" customModuleProvider="target">
                                                         <rect key="frame" x="30" y="4" width="125" height="16"/>
-                                                        <textFieldCell key="cell" lineBreakMode="clipping" title="Follow us on Twitter" id="Tba-C7-Zr8">
+                                                        <textFieldCell key="cell" lineBreakMode="clipping" title="Follow us on X" id="Tba-C7-Zr8">
                                                             <font key="font" metaFont="system"/>
                                                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                         </textFieldCell>
                                                         <userDefinedRuntimeAttributes>
-                                                            <userDefinedRuntimeAttribute type="string" keyPath="href" value="https://twitter.com/dwarvesf"/>
+                                                            <userDefinedRuntimeAttribute type="string" keyPath="href" value="https://x.com/dwarvesf"/>
                                                         </userDefinedRuntimeAttributes>
                                                     </textField>
                                                 </subviews>

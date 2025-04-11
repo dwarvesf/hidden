@@ -71,8 +71,8 @@
 /* Class = "NSMenuItem"; title = "Hide Hidden Bar"; ObjectID = "Olw-nP-bQN"; */
 "Olw-nP-bQN.title" = "Hidden Bar ausblenden";
 
-/* Class = "NSTextFieldCell"; title = "Follow us on Twitter"; ObjectID = "Tba-C7-Zr8"; */
-"Tba-C7-Zr8.title" = "Folge uns auf Twitter";
+/* Class = "NSTextFieldCell"; title = "Follow us on X"; ObjectID = "Tba-C7-Zr8"; */
+"Tba-C7-Zr8.title" = "Folge uns auf X";
 
 /* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "Vdr-fp-XzO"; */
 "Vdr-fp-XzO.title" = "Andere ausblenden";
