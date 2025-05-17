@@ -1,0 +1,24 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+
+"Preferences..." = "Tercihler…";
+"Toggle Auto Collapse" = "Otomatik daralt";
+"Enable Auto Collapse" = "Otomatik daraltmayı etkinleştir";
+"Disable Auto Collapse" = "Otomatik daraltmayı devre dışı bırak";
+"Quit" = "Çıkış";
+"Set Shortcut" = "Kısayol ayarla";
+"Tutorial text" = "
+Her zaman gizli (“Always Hidden”) özelliğiyle menü çubuğu simgelerinizi derli toplu tutabilirsiniz. Nasıl kullanılır?
+Özelliği etkinleştirmek için:
+1. Her zaman gizli “􀥤” (yarı saydam renk çubuğu) seçeneğini etkinleştirin
+2. 􀆔 tuşuna basılı tutun ve bu çubuğu normal çubuğun soluna sürükleyin, ardından gizlemek istediğiniz simgeleri bu çubuğun soluna taşıyın.
+3. Son olarak “􀆊” daraltma simgesine sağ tıklayarak simgeleri gizleyin.
+Her zaman gizli simgeleri göstermek için:
+1. Daraltma simgesine tekrar sağ tıklayın
+2. Özelliği kapatmak için aynı adımı tekrarlayın. Keyfini çıkarın 😉!
+";
