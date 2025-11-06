@@ -55,7 +55,12 @@ class PreferencesViewController: NSViewController {
         createTutorialView()
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
     }
-    
+
+    deinit {
+        // Clean up NotificationCenter observer to prevent memory leaks
+        NotificationCenter.default.removeObserver(self, name: .prefsChanged, object: nil)
+    }
+
     static func initWithStoryboard() -> PreferencesViewController {
         let vc = NSStoryboard(name:"Main", bundle: nil).instantiateController(withIdentifier: "prefVC") as! PreferencesViewController
         return vc

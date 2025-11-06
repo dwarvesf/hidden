@@ -63,17 +63,32 @@ class StatusBarController {
     
     //MARK: - Methods
     init() {
-        
+
         setupUI()
         setupAlwayHideStatusBar()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-            self.collapseMenuBar()
-        })
-        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            self?.collapseMenuBar()
+        }
+
         if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
     }
-    
+
+    deinit {
+        // Clean up NotificationCenter observers to prevent memory leaks
+        NotificationCenter.default.removeObserver(self, name: .prefsChanged, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .alwayHideToggle, object: nil)
+
+        // Invalidate timer to prevent retain cycles
+        timer?.invalidate()
+        timer = nil
+
+        // Properly remove status items
+        if let statusItem = self.btnAlwaysHidden {
+            NSStatusBar.system.removeStatusItem(statusItem)
+        }
+    }
+
     private func setupUI() {
         if let button = btnSeparate.button {
             button.image = self.imgIconLine
@@ -139,8 +154,8 @@ class StatusBarController {
         if isToggle {return}
         isToggle = true
         self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            self.isToggle = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            self?.isToggle = false
         }
     }
     
@@ -243,14 +258,20 @@ extension StatusBarController {
     }
     @objc private func toggleStatusBarIfNeeded() {
         if Preferences.alwaysHiddenSectionEnabled {
-            self.btnAlwaysHidden =  NSStatusBar.system.statusItem(withLength: 20)
-            if let button = btnAlwaysHidden?.button {
-                button.image = self.imgIconLine
-                button.appearsDisabled = true
+            // Only create new status item if one doesn't exist
+            if self.btnAlwaysHidden == nil {
+                self.btnAlwaysHidden = NSStatusBar.system.statusItem(withLength: 20)
+                if let button = btnAlwaysHidden?.button {
+                    button.image = self.imgIconLine
+                    button.appearsDisabled = true
+                }
+                self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate"
             }
-            self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate";
-            
-        }else {
+        } else {
+            // Properly remove status item before setting to nil
+            if let statusItem = self.btnAlwaysHidden {
+                NSStatusBar.system.removeStatusItem(statusItem)
+            }
             self.btnAlwaysHidden = nil
         }
     }
