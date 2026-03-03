@@ -19,11 +19,11 @@ class StatusBarController {
     private let btnSeparate = NSStatusBar.system.statusItem(withLength: 1)
     private var btnAlwaysHidden:NSStatusItem? = nil
     
-    private var btnHiddenLength: CGFloat =  20
-    private let btnHiddenCollapseLength: CGFloat = 10000
+    private var btnHiddenLength: CGFloat = 20
+    private var btnHiddenCollapseLength: CGFloat = 2000
     
-    private let btnAlwaysHiddenLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 20 : 0
-    private let btnAlwaysHiddenEnableExpandCollapseLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 10000 : 0
+    private var btnAlwaysHiddenLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 20 : 0
+    private var btnAlwaysHiddenEnableExpandCollapseLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 2000 : 0
     
     private let imgIconLine = NSImage(named:NSImage.Name("ic_line"))
     
@@ -63,15 +63,33 @@ class StatusBarController {
     
     //MARK: - Methods
     init() {
-        
+        updateCollapsedLengths()
         setupUI()
         setupAlwayHideStatusBar()
+        NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
             self.collapseMenuBar()
         })
         
         if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handleScreenParametersChanged() {
+        updateCollapsedLengths()
+    }
+    
+    private func updateCollapsedLengths() {
+        let screenWidth = NSScreen.main?.visibleFrame.width ?? 1728
+        // Keep collapse length bounded to avoid pathological layout/memory behavior
+        // on newer macOS versions while still fully hiding the trailing section.
+        let boundedCollapseLength = max(500, min(screenWidth + 200, 4000))
+        btnHiddenCollapseLength = boundedCollapseLength
+        btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? boundedCollapseLength : 0
     }
     
     private func setupUI() {
@@ -242,15 +260,22 @@ extension StatusBarController {
         toggleStatusBarIfNeeded()
     }
     @objc private func toggleStatusBarIfNeeded() {
+        updateCollapsedLengths()
+        
         if Preferences.alwaysHiddenSectionEnabled {
-            self.btnAlwaysHidden =  NSStatusBar.system.statusItem(withLength: 20)
+            if let existing = self.btnAlwaysHidden {
+                NSStatusBar.system.removeStatusItem(existing)
+            }
+            self.btnAlwaysHidden = NSStatusBar.system.statusItem(withLength: btnAlwaysHiddenLength)
             if let button = btnAlwaysHidden?.button {
                 button.image = self.imgIconLine
                 button.appearsDisabled = true
             }
-            self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate";
-            
-        }else {
+            self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate"
+        } else {
+            if let existing = self.btnAlwaysHidden {
+                NSStatusBar.system.removeStatusItem(existing)
+            }
             self.btnAlwaysHidden = nil
         }
     }
