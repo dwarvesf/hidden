@@ -152,6 +152,9 @@
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
 "NMo-om-nkz.title" = "Services";
 
+/* Class = "NSButtonCell"; title = "Enable always hidden section (requires restart)"; ObjectID = "Nhn-ch-1f7"; */
+"Nhn-ch-1f7.title" = "「アイコンを常に非表示機能」を有効にする（再起動する必要がある）";
+
 /* Class = "NSMenuItem"; title = "\tDefault"; ObjectID = "Nop-cj-93Q"; */
 "Nop-cj-93Q.title" = "\tDefault";
 

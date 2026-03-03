@@ -11,6 +11,9 @@
 /* Class = "NSMenu"; title = "Find"; ObjectID = "1b7-l0-nxx"; */
 "1b7-l0-nxx.title" = "Find";
 
+/* Class = "NSTextFieldCell"; title = "⭐️Always Hidden"; ObjectID = "1jU-1x-cFf"; */
+"1jU-1x-cFf.title" = "⭐️持续隐藏";
+
 /* Class = "NSMenuItem"; title = "Lower"; ObjectID = "1tx-W0-xDw"; */
 "1tx-W0-xDw.title" = "Lower";
 
@@ -196,6 +199,12 @@
 
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
 "NMo-om-nkz.title" = "Services";
+
+/* Class = "NSButtonCell"; title = "Enable always hidden section"; ObjectID = "Nhn-ch-1f7"; */
+"Nhn-ch-1f7.title" = "启用持续隐藏区域";
+
+/* Class = "NSButtonCell"; title = "Use the full MenuBar on expanding"; ObjectID = "8z8-6N-wnc"; */
+"8z8-6N-wnc.title" = "展开隐藏区域时使用完整的菜单栏";
 
 /* Class = "NSMenuItem"; title = "\tDefault"; ObjectID = "Nop-cj-93Q"; */
 "Nop-cj-93Q.title" = "\tDefault";
@@ -402,7 +411,7 @@
 "kIP-vf-haE.title" = "Show Sidebar";
 
 /* Class = "NSButtonCell"; title = "Automatically hide icon after: "; ObjectID = "kg8-rW-srh"; */
-"kg8-rW-srh.title" = "一段时间后自动隐藏菜单栏图标：";
+"kg8-rW-srh.title" = "等待";
 
 /* Class = "NSMenuItem"; title = "Check Grammar With Spelling"; ObjectID = "mK6-2p-4JG"; */
 "mK6-2p-4JG.title" = "Check Grammar With Spelling";
@@ -499,3 +508,6 @@
 
 /* Class = "NSTextFieldCell"; title = "General"; ObjectID = "zAf-vj-OOZ"; */
 "zAf-vj-OOZ.title" = "通用";
+
+/* Class = "NSTextFieldCell"; title = " "; ObjectID = "ERh-JM-snt"; */
+"ERh-JM-snt.title" = " 后自动隐藏图标";
