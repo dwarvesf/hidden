@@ -47,6 +47,10 @@ class PreferencesViewController: NSViewController {
         }
     }
     
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
     //MARK: - VC Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
