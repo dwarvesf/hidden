@@ -12,6 +12,7 @@ class StatusBarController {
     
     //MARK: - Variables
     private var timer:Timer? = nil
+    private lazy var overlayWindow = MenuBarOverlayWindow()
     
     //MARK: - BarItems
         
@@ -28,7 +29,9 @@ class StatusBarController {
     private let imgIconLine = NSImage(named:NSImage.Name("ic_line"))
     
     private var isCollapsed: Bool {
-        return self.btnSeparate.length == self.btnHiddenCollapseLength
+        // Use a threshold instead of exact equality so that a screen-change
+        // recalculation of btnHiddenCollapseLength doesn't break state detection.
+        return self.btnSeparate.length > self.btnHiddenLength
     }
     
     private var isBtnSeparateValidPosition: Bool {
@@ -80,16 +83,31 @@ class StatusBarController {
     }
     
     @objc private func handleScreenParametersChanged() {
+        let wasCollapsed = isCollapsed
         updateCollapsedLengths()
+        // If the bar was collapsed, re-apply the new collapse length and
+        // reposition the overlay for the new display configuration.
+        if wasCollapsed {
+            btnSeparate.length = btnHiddenCollapseLength
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.showOverlayIfNeeded()
+            }
+        }
     }
     
     private func updateCollapsedLengths() {
-        let screenWidth = NSScreen.main?.visibleFrame.width ?? 1728
-        // Keep collapse length bounded to avoid pathological layout/memory behavior
-        // on newer macOS versions while still fully hiding the trailing section.
-        let boundedCollapseLength = max(500, min(screenWidth + 200, 4000))
-        btnHiddenCollapseLength = boundedCollapseLength
-        btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? boundedCollapseLength : 0
+        // Determine the screen where status items live by checking the button's
+        // window. Fall back to NSScreen.main, then the first screen.
+        // macOS enforces a hard maximum of 10,000 for NSStatusItem length, so we
+        // cap at that value.  On ultra-wide monitors where 10,000 isn't enough to
+        // push all items off-screen, the overlay window covers the remainder.
+        let screen = btnExpandCollapse.button?.window?.screen
+                     ?? NSScreen.main
+                     ?? NSScreen.screens.first
+        let screenWidth = screen?.frame.width ?? 1728
+        let collapseLength = max(500, min(screenWidth * 2, 10000))
+        btnHiddenCollapseLength = collapseLength
+        btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? collapseLength : 0
     }
     
     private func setupUI() {
@@ -176,9 +194,16 @@ class StatusBarController {
             NSApp.setActivationPolicy(.accessory)
             NSApp.deactivate()
         }
+        
+        // After macOS finishes repositioning status items, show overlay to
+        // cover any items that couldn't be pushed off-screen (ultra-wide).
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.showOverlayIfNeeded()
+        }
     }
     private func expandMenubar() {
         guard self.isCollapsed else {return}
+        overlayWindow.hideOverlay()
         btnSeparate.length = btnHiddenLength
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
@@ -197,6 +222,54 @@ class StatusBarController {
         guard !isCollapsed else { return }
         
         startTimerToAutoHide()
+    }
+    
+    /// Calculate the overlay frame and show it to cover any hidden items that
+    /// macOS couldn't push off the left edge of the screen (ultra-wide monitors).
+    private func showOverlayIfNeeded() {
+        guard isCollapsed else {
+            overlayWindow.hideOverlay()
+            return
+        }
+        
+        // Find the screen where the status items live (via the toggle button's window).
+        guard let buttonWindow = btnExpandCollapse.button?.window,
+              let screen = buttonWindow.screen else {
+            overlayWindow.hideOverlay()
+            return
+        }
+        
+        // Menu bar height: on the primary screen we can derive it from the
+        // visible-frame inset; on secondary screens macOS often reports
+        // visibleFrame == frame, so fall back to NSStatusBar.system.thickness.
+        var menuBarHeight = screen.frame.maxY - screen.visibleFrame.maxY
+        if menuBarHeight < 1 {
+            menuBarHeight = NSStatusBar.system.thickness
+        }
+        
+        // The overlay covers from just past the app menu zone up to the left
+        // edge of the expand/collapse button's window.  We leave a 600pt
+        // margin on the left so the Apple logo and application menus (e.g.
+        // Chrome  File  Edit  View …) remain visible and clickable.
+        let appMenuMargin: CGFloat = 600
+        let overlayLeft = screen.frame.origin.x + appMenuMargin
+        let rightEdge = buttonWindow.frame.origin.x
+        let overlayWidth = rightEdge - overlayLeft
+        
+        // Only show the overlay if there's meaningful width to cover.
+        guard overlayWidth > 1 else {
+            overlayWindow.hideOverlay()
+            return
+        }
+        
+        let overlayFrame = NSRect(
+            x: overlayLeft,
+            y: screen.frame.maxY - menuBarHeight,
+            width: overlayWidth,
+            height: menuBarHeight
+        )
+        
+        overlayWindow.showOverlay(frame: overlayFrame)
     }
     
     private func startTimerToAutoHide() {
