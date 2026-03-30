@@ -9,15 +9,18 @@
 import AppKit
 
 class StatusBarController {
-    
+
     //MARK: - Variables
     private var timer:Timer? = nil
-    
+
     //MARK: - BarItems
-        
+
     private let btnExpandCollapse = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let btnSeparate = NSStatusBar.system.statusItem(withLength: 1)
     private var btnAlwaysHidden:NSStatusItem? = nil
+
+    //MARK: - Notch Overflow
+    private(set) var notchOverflowController = NotchOverflowController()
     
     private var btnHiddenLength: CGFloat = 20
     private var btnHiddenCollapseLength: CGFloat = 2000
@@ -113,6 +116,21 @@ class StatusBarController {
         
         if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
+
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotchOverflowToggle), name: .notchOverflowToggle, object: nil)
+    }
+
+    /// Called from AppDelegate after defaults are registered
+    func setupNotchOverflow() {
+        notchOverflowController.setup()
+    }
+
+    @objc private func handleNotchOverflowToggle() {
+        if Preferences.notchOverflowEnabled {
+            notchOverflowController.setup()
+        } else {
+            notchOverflowController.teardown()
+        }
     }
     
     deinit {
@@ -207,7 +225,7 @@ class StatusBarController {
 
             let isOptionKeyPressed = event.modifierFlags.contains(NSEvent.ModifierFlags.option)
 
-            if event.type == NSEvent.EventType.leftMouseUp && !isOptionKeyPressed{
+            if event.type == NSEvent.EventType.leftMouseUp && !isOptionKeyPressed {
                 self.expandCollapseIfNeeded()
             } else if event.type == NSEvent.EventType.rightMouseUp && !isOptionKeyPressed {
                 // Right-click opens the same context menu the separator has (#356),
@@ -344,11 +362,19 @@ class StatusBarController {
     
     private func getContextMenu() -> NSMenu {
         let menu = NSMenu()
-        
+
+        // Notch overflow menu item (only on notch Macs)
+        if NotchOverflowController.hasNotch {
+            let overflowItem = NSMenuItem(title: "Show Notch Items (\u{2318}\u{21E7}B)", action: #selector(showNotchOverflow), keyEquivalent: "")
+            overflowItem.target = self
+            menu.addItem(overflowItem)
+            menu.addItem(NSMenuItem.separator())
+        }
+
         let prefItem = NSMenuItem(title: "Preferences...".localized, action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: "P")
         prefItem.target = self
         menu.addItem(prefItem)
-        
+
         let toggleAutoHideItem = NSMenuItem(title: "Toggle Auto Collapse".localized, action: #selector(toggleAutoHide), keyEquivalent: "t")
         toggleAutoHideItem.target = self
         toggleAutoHideItem.tag = 1
@@ -377,6 +403,10 @@ class StatusBarController {
     
     @objc func openPreferenceViewControllerIfNeeded() {
         Util.showPrefWindow()
+    }
+
+    @objc func showNotchOverflow() {
+        notchOverflowController.showOverflowMenuFromSeparator(near: btnExpandCollapse)
     }
     
     @objc func toggleAutoHide() {

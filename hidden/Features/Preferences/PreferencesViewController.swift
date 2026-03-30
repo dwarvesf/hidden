@@ -53,6 +53,7 @@ class PreferencesViewController: NSViewController {
         updateData()
         loadHotkey()
         createTutorialView()
+        addNotchOverflowSection()
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
     }
 
@@ -193,6 +194,33 @@ class PreferencesViewController: NSViewController {
     private func updateClearButton(_ globalKeybindPreference : GlobalKeybindPreferences?) {
         btnClear.isEnabled = globalKeybindPreference != nil
     }
+}
+
+//MARK: - Notch Overflow Section
+extension PreferencesViewController {
+
+    func addNotchOverflowSection() {
+        guard NotchOverflowController.hasNotch else { return }
+
+        // Add compact info below the tutorial area, anchored to statusBarStackView
+        let infoLabel = NSTextField(labelWithString:
+            "Notch Overflow:  \u{2318}\u{21E7}B  or  right-click \u{2039}  to access hidden icons")
+        infoLabel.font = NSFont.systemFont(ofSize: 10.5)
+        if #available(macOS 10.14, *) {
+            infoLabel.textColor = .secondaryLabelColor
+        }
+        infoLabel.alignment = .center
+        infoLabel.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(infoLabel)
+
+        // Position centered, between tutorial text and Settings divider
+        // statusBarStackView is near the top; we go well below it
+        NSLayoutConstraint.activate([
+            infoLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            infoLabel.topAnchor.constraint(equalTo: statusBarStackView.bottomAnchor, constant: 78)
+        ])
+    }
+
 }
 
 //MARK: - Show tutorial

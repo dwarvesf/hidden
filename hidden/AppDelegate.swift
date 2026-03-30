@@ -7,6 +7,7 @@
 //
 
 import AppKit
+import Carbon
 import HotKey
 import ServiceManagement
 
@@ -15,16 +16,19 @@ import ServiceManagement
 class AppDelegate: NSObject, NSApplicationDelegate{
     
     var statusBarController = StatusBarController()
-    
+
     var hotKey: HotKey? {
         didSet {
             guard let hotKey = hotKey else { return }
-            
+
             hotKey.keyDownHandler = { [weak self] in
                 self?.statusBarController.expandCollapseIfNeeded()
             }
         }
     }
+
+    // Notch overflow hotkey: Cmd+Shift+B
+    var notchOverflowHotKey: HotKey?
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         setupAutoStartApp()
@@ -32,6 +36,18 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         setupHotKey()
         openPreferencesIfNeeded()
         detectLTRLang()
+        statusBarController.setupNotchOverflow()
+        setupNotchOverflowHotKey()
+    }
+
+    func setupNotchOverflowHotKey() {
+        guard NotchOverflowController.hasNotch else { return }
+        // Cmd+Shift+B (keyCode 11 = B)
+        let carbonMods = UInt32(cmdKey | shiftKey)
+        notchOverflowHotKey = HotKey(keyCombo: KeyCombo(carbonKeyCode: 11, carbonModifiers: carbonMods))
+        notchOverflowHotKey?.keyDownHandler = { [weak self] in
+            self?.statusBarController.notchOverflowController.triggerOverflow()
+        }
     }
     
     func openPreferencesIfNeeded() {
@@ -61,7 +77,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             UserDefaults.Key.isAutoHide: true,
             UserDefaults.Key.numberOfSecondForAutoHide: 10.0,
             UserDefaults.Key.areSeparatorsHidden: false,
-            UserDefaults.Key.alwaysHiddenSectionEnabled: false
+            UserDefaults.Key.alwaysHiddenSectionEnabled: false,
+            UserDefaults.Key.notchOverflowEnabled: true
          ])
     }
     
