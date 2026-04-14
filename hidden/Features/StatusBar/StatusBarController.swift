@@ -28,7 +28,7 @@ class StatusBarController {
     private let imgIconLine = NSImage(named:NSImage.Name("ic_line"))
     
     private var isCollapsed: Bool {
-        return self.btnSeparate.length == self.btnHiddenCollapseLength
+        return self.btnSeparate.length > self.btnHiddenLength
     }
     
     private var isBtnSeparateValidPosition: Bool {
@@ -80,16 +80,24 @@ class StatusBarController {
     }
     
     @objc private func handleScreenParametersChanged() {
+        let wasCollapsed = isCollapsed
         updateCollapsedLengths()
+        if wasCollapsed {
+            btnSeparate.length = btnHiddenCollapseLength
+            if Preferences.areSeparatorsHidden {
+                btnAlwaysHidden?.length = btnAlwaysHiddenEnableExpandCollapseLength
+            }
+        }
     }
     
     private func updateCollapsedLengths() {
-        let screenWidth = NSScreen.main?.visibleFrame.width ?? 1728
-        // Keep collapse length bounded to avoid pathological layout/memory behavior
-        // on newer macOS versions while still fully hiding the trailing section.
-        let boundedCollapseLength = max(500, min(screenWidth + 200, 4000))
-        btnHiddenCollapseLength = boundedCollapseLength
-        btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? boundedCollapseLength : 0
+        // Use the widest screen across all displays so the collapse length is always
+        // large enough, regardless of which display has focus.
+        // macOS enforces a hard 10,000pt maximum for NSStatusItem.length.
+        let screenWidth = NSScreen.screens.map { $0.frame.width }.max() ?? 1728
+        let collapseLength = max(500, min(screenWidth * 2, 10_000))
+        btnHiddenCollapseLength = collapseLength
+        btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? collapseLength : 0
     }
     
     private func setupUI() {
