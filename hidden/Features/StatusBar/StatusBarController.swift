@@ -304,6 +304,7 @@ class StatusBarController {
 //MARK: - Separate hidden items bar
 extension StatusBarController {
     private enum SeparateBarTiming {
+        static let shieldSettleDelay: DispatchTimeInterval = .milliseconds(40)
         static let captureDelay: DispatchTimeInterval = .milliseconds(80)
         static let showDelayAfterCollapse: DispatchTimeInterval = .milliseconds(160)
     }
@@ -321,13 +322,13 @@ extension StatusBarController {
         guard let expandCollapseGeometry = currentExpandCollapseGeometry() else { return }
 
         timer?.invalidate()
-        hiddenItemsCaptureShieldController.show(on: expandCollapseGeometry.screen, near: expandCollapseGeometry.frame)
-        btnSeparate.length = btnHiddenLength
-        if let button = btnExpandCollapse.button {
-            button.image = Assets.collapseImage
-        }
+        hiddenItemsCaptureShieldController.show(
+            on: expandCollapseGeometry.screen,
+            near: expandCollapseGeometry.frame,
+            covering: btnSeparate.button?.window?.frame
+        )
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + SeparateBarTiming.captureDelay) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + SeparateBarTiming.shieldSettleDelay) { [weak self] in
             guard let self = self else { return }
             guard Preferences.showHiddenItemsInSeparateBar else {
                 self.hiddenItemsCaptureShieldController.hide()
@@ -335,36 +336,50 @@ extension StatusBarController {
                 return
             }
 
-            guard let capture = self.captureExpandedHiddenItems() else {
-                self.hiddenItemsCaptureShieldController.hide()
-                self.expandMenubar(force: true)
-                return
+            self.btnSeparate.length = self.btnHiddenLength
+            if let button = self.btnExpandCollapse.button {
+                button.image = Assets.collapseImage
             }
 
-            guard self.collapseMenuBarForSeparatePanel() else { return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + SeparateBarTiming.showDelayAfterCollapse) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + SeparateBarTiming.captureDelay) { [weak self] in
                 guard let self = self else { return }
-                self.hiddenItemsCaptureShieldController.hide()
-                guard Preferences.showHiddenItemsInSeparateBar && self.isBtnSeparateValidPosition else {
-                    if !self.isBtnSeparateValidPosition {
-                        self.restoreInlineMenuBarAfterInvalidSeparatePosition()
-                    }
+                guard Preferences.showHiddenItemsInSeparateBar else {
+                    self.hiddenItemsCaptureShieldController.hide()
+                    self.collapseMenuBar()
                     return
                 }
-                let capture = self.captureByCoveringItemsStillVisibleInMenuBar(capture)
 
-                self.hiddenItemsBarController.show(capture: capture) { [weak self] sourceX in
-                    self?.activateHiddenItem(atSourceX: sourceX, from: capture)
+                guard let capture = self.captureExpandedHiddenItems() else {
+                    self.hiddenItemsCaptureShieldController.hide()
+                    self.expandMenubar(force: true)
+                    return
                 }
-                self.hiddenItemsSeparatorOverlayController.show(
-                    frame: capture.menuBarOverlayFrame,
-                    separatorFrame: capture.separatorFrame,
-                    prefersDarkBackground: capture.prefersDarkBackground
-                )
-                if let button = self.btnExpandCollapse.button {
-                    button.image = Assets.collapseImage
+
+                guard self.collapseMenuBarForSeparatePanel() else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + SeparateBarTiming.showDelayAfterCollapse) { [weak self] in
+                    guard let self = self else { return }
+                    self.hiddenItemsCaptureShieldController.hide()
+                    guard Preferences.showHiddenItemsInSeparateBar && self.isBtnSeparateValidPosition else {
+                        if !self.isBtnSeparateValidPosition {
+                            self.restoreInlineMenuBarAfterInvalidSeparatePosition()
+                        }
+                        return
+                    }
+                    let capture = self.captureByCoveringItemsStillVisibleInMenuBar(capture)
+
+                    self.hiddenItemsBarController.show(capture: capture) { [weak self] sourceX in
+                        self?.activateHiddenItem(atSourceX: sourceX, from: capture)
+                    }
+                    self.hiddenItemsSeparatorOverlayController.show(
+                        frame: capture.menuBarOverlayFrame,
+                        separatorFrame: capture.separatorFrame,
+                        prefersDarkBackground: capture.prefersDarkBackground
+                    )
+                    if let button = self.btnExpandCollapse.button {
+                        button.image = Assets.collapseImage
+                    }
+                    self.autoCollapseIfNeeded()
                 }
-                self.autoCollapseIfNeeded()
             }
         }
     }

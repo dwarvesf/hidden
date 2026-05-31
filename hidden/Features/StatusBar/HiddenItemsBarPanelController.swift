@@ -112,13 +112,14 @@ final class HiddenItemsBarCaptureShieldController: NSObject {
         panel.ignoresMouseEvents = true
     }
 
-    func show(on screen: NSScreen, near expandCollapseFrame: CGRect) {
+    func show(on screen: NSScreen, near expandCollapseFrame: CGRect, covering hiddenSectionFrame: CGRect?) {
         let menuBarHeight = max(22, screen.frame.maxY - screen.visibleFrame.maxY)
         let shieldPadding: CGFloat = 12
+        let fallbackWidth: CGFloat = 360
         let shieldFrame: CGRect
 
         if Constant.isUsingLTRLanguage {
-            let minX = max(screen.frame.minX, expandCollapseFrame.minX - 360)
+            let minX = max(screen.frame.minX, hiddenSectionFrame?.minX ?? expandCollapseFrame.minX - fallbackWidth)
             shieldFrame = CGRect(
                 x: minX,
                 y: screen.frame.maxY - menuBarHeight,
@@ -126,7 +127,7 @@ final class HiddenItemsBarCaptureShieldController: NSObject {
                 height: menuBarHeight
             )
         } else {
-            let maxX = min(screen.frame.maxX, expandCollapseFrame.maxX + 360)
+            let maxX = min(screen.frame.maxX, hiddenSectionFrame?.maxX ?? expandCollapseFrame.maxX + fallbackWidth)
             shieldFrame = CGRect(
                 x: expandCollapseFrame.maxX - shieldPadding,
                 y: screen.frame.maxY - menuBarHeight,
