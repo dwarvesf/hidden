@@ -32,6 +32,9 @@ class StatusBarController {
     private let hiddenItemsSeparatorOverlayController = HiddenItemsBarSeparatorOverlayController()
     private var activeExpandCollapseFrame: CGRect?
     private var activeStatusItemScreen: NSScreen?
+    private var configurationDragMonitor: Any?
+    private var isTemporarilyExpandedForConfigurationDrag = false
+    private var configurationDragCollapseWorkItem: DispatchWorkItem?
 
     private var isCollapsed: Bool {
         return self.btnSeparate.length == self.btnHiddenCollapseLength
@@ -76,6 +79,7 @@ class StatusBarController {
         updateCollapsedLengths()
         setupUI()
         setupAlwayHideStatusBar()
+        setupConfigurationDragMonitor()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handlePreferencesChanged), name: .prefsChanged, object: nil)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
@@ -88,6 +92,9 @@ class StatusBarController {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+        if let configurationDragMonitor = configurationDragMonitor {
+            NSEvent.removeMonitor(configurationDragMonitor)
+        }
     }
 
     @objc private func handleScreenParametersChanged() {
@@ -298,6 +305,76 @@ class StatusBarController {
 
     @objc func toggleAutoHide() {
         Preferences.isAutoHide.toggle()
+    }
+}
+
+//MARK: - Configuration drag support
+extension StatusBarController {
+    private func setupConfigurationDragMonitor() {
+        configurationDragMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDragged, .leftMouseUp]) { [weak self] event in
+            DispatchQueue.main.async {
+                self?.handleConfigurationDragEvent(event)
+            }
+        }
+    }
+
+    private func handleConfigurationDragEvent(_ event: NSEvent?) {
+        guard let event = event else { return }
+
+        switch event.type {
+        case .leftMouseDragged:
+            guard event.modifierFlags.contains(.command) else { return }
+            temporarilyExpandForConfigurationDragIfNeeded()
+        case .leftMouseUp:
+            collapseAfterConfigurationDragIfNeeded()
+        default:
+            break
+        }
+    }
+
+    private func temporarilyExpandForConfigurationDragIfNeeded() {
+        guard
+            Preferences.showHiddenItemsInSeparateBar,
+            !Preferences.areSeparatorsHidden,
+            isCollapsed
+        else {
+            return
+        }
+
+        configurationDragCollapseWorkItem?.cancel()
+        hiddenItemsCaptureShieldController.hide()
+        hiddenItemsBarController.hide()
+        hiddenItemsSeparatorOverlayController.hide()
+        btnSeparate.length = btnHiddenLength
+        isTemporarilyExpandedForConfigurationDrag = true
+
+        if let button = btnExpandCollapse.button {
+            button.image = Assets.collapseImage
+        }
+    }
+
+    private func collapseAfterConfigurationDragIfNeeded() {
+        guard isTemporarilyExpandedForConfigurationDrag else { return }
+
+        configurationDragCollapseWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.isTemporarilyExpandedForConfigurationDrag = false
+            self.forceCollapseAfterConfigurationDrag()
+        }
+        configurationDragCollapseWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: workItem)
+    }
+
+    private func forceCollapseAfterConfigurationDrag() {
+        hiddenItemsCaptureShieldController.hide()
+        hiddenItemsBarController.hide()
+        hiddenItemsSeparatorOverlayController.hide()
+        btnSeparate.length = btnHiddenCollapseLength
+
+        if let button = btnExpandCollapse.button {
+            button.image = Assets.expandImage
+        }
     }
 }
 
