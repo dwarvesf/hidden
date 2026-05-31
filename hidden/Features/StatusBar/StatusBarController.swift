@@ -192,6 +192,10 @@ class StatusBarController {
         hiddenItemsBarController.hide()
 
         guard self.isBtnSeparateValidPosition && !self.isCollapsed else {
+            if !self.isBtnSeparateValidPosition {
+                restoreInlineMenuBarAfterInvalidSeparatePosition()
+                return
+            }
             autoCollapseIfNeeded()
             if let button = btnExpandCollapse.button {
                 button.image = Assets.expandImage
@@ -297,7 +301,10 @@ extension StatusBarController {
 
     private func expandHiddenItemsBar() {
         guard self.isCollapsed else { return }
-        guard self.isBtnSeparateValidPosition else { return }
+        guard self.isBtnSeparateValidPosition else {
+            restoreInlineMenuBarAfterInvalidSeparatePosition()
+            return
+        }
         guard self.canCaptureScreenForSeparatePanel() else {
             self.expandMenubar()
             return
@@ -328,11 +335,16 @@ extension StatusBarController {
                 return
             }
 
-            self.collapseMenuBarForSeparatePanel()
+            guard self.collapseMenuBarForSeparatePanel() else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + SeparateBarTiming.showDelayAfterCollapse) { [weak self] in
                 guard let self = self else { return }
                 self.hiddenItemsCaptureShieldController.hide()
-                guard Preferences.showHiddenItemsInSeparateBar else { return }
+                guard Preferences.showHiddenItemsInSeparateBar && self.isBtnSeparateValidPosition else {
+                    if !self.isBtnSeparateValidPosition {
+                        self.restoreInlineMenuBarAfterInvalidSeparatePosition()
+                    }
+                    return
+                }
 
                 self.hiddenItemsBarController.show(capture: capture) { [weak self] sourceX in
                     self?.activateHiddenItem(atSourceX: sourceX, from: capture)
@@ -355,8 +367,12 @@ extension StatusBarController {
         return true
     }
 
-    private func collapseMenuBarForSeparatePanel() {
+    private func collapseMenuBarForSeparatePanel() -> Bool {
         hiddenItemsBarController.hide()
+        guard self.isBtnSeparateValidPosition else {
+            restoreInlineMenuBarAfterInvalidSeparatePosition()
+            return false
+        }
         btnSeparate.length = btnHiddenCollapseLength
         if let button = btnExpandCollapse.button {
             button.image = Assets.expandImage
@@ -364,6 +380,22 @@ extension StatusBarController {
         if Preferences.useFullStatusBarOnExpandEnabled {
             NSApp.setActivationPolicy(.accessory)
             NSApp.deactivate()
+        }
+        return true
+    }
+
+    private func restoreInlineMenuBarAfterInvalidSeparatePosition() {
+        timer?.invalidate()
+        hiddenItemsCaptureShieldController.hide()
+        hiddenItemsBarController.hide()
+        btnSeparate.length = btnHiddenLength
+        if let button = btnExpandCollapse.button {
+            button.image = Assets.collapseImage
+        }
+
+        if Preferences.useFullStatusBarOnExpandEnabled {
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
         }
     }
 
