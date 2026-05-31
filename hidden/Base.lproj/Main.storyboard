@@ -622,10 +622,10 @@ between sections to configure Hidden Bar.</string>
                                 </textFieldCell>
                             </textField>
                             <stackView distribution="fill" orientation="horizontal" alignment="top" spacing="35" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="I1C-Eb-1or">
-                                <rect key="frame" x="16" y="20" width="636" height="133"/>
+                                <rect key="frame" x="16" y="20" width="636" height="159"/>
                                 <subviews>
                                     <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="10" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="do4-pv-o3U">
-                                        <rect key="frame" x="0.0" y="0.0" width="328" height="133"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="328" height="159"/>
                                         <subviews>
                                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cbR-Jv-adm">
                                                 <rect key="frame" x="-2" y="116" width="207" height="18"/>
@@ -655,6 +655,16 @@ between sections to configure Hidden Bar.</string>
                                                 </buttonCell>
                                                 <connections>
                                                     <action selector="useFullStatusBarOnExpandChanged:" target="XfG-lQ-9wD" id="kh2-cl-DOH"/>
+                                                </connections>
+                                            </button>
+                                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="QZ2-tc-LbE" userLabel="Check Box Show Hidden Items In Separate Bar">
+                                                <rect key="frame" x="-2" y="38" width="328" height="18"/>
+                                                <buttonCell key="cell" type="check" title="Show hidden items in separate bar" bezelStyle="regularSquare" imagePosition="left" inset="2" id="tRb-eP-1yY">
+                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                    <font key="font" metaFont="system"/>
+                                                </buttonCell>
+                                                <connections>
+                                                    <action selector="showHiddenItemsInSeparateBarChanged:" target="XfG-lQ-9wD" id="Aqq-FN-X0K"/>
                                                 </connections>
                                             </button>
                                             <stackView distribution="fill" orientation="horizontal" alignment="top" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nE7-aX-FH9">
@@ -762,8 +772,10 @@ between sections to configure Hidden Bar.</string>
                                             <integer value="1000"/>
                                             <integer value="1000"/>
                                             <integer value="1000"/>
+                                            <integer value="1000"/>
                                         </visibilityPriorities>
                                         <customSpacing>
+                                            <real value="3.4028234663852886e+38"/>
                                             <real value="3.4028234663852886e+38"/>
                                             <real value="3.4028234663852886e+38"/>
                                             <real value="3.4028234663852886e+38"/>
@@ -863,6 +875,7 @@ between sections to configure Hidden Bar.</string>
                         <outlet property="checkBoxAutoHide" destination="gj1-Ms-4No" id="Ibl-5H-2vh"/>
                         <outlet property="checkBoxLogin" destination="cbR-Jv-adm" id="DFO-De-0KU"/>
                         <outlet property="checkBoxShowAlwaysHiddenSection" destination="yaS-iD-h7g" id="T5N-bN-yl2"/>
+                        <outlet property="checkBoxShowHiddenItemsInSeparateBar" destination="QZ2-tc-LbE" id="2qk-TZ-Qgs"/>
                         <outlet property="checkBoxShowPreferences" destination="gWT-L1-Xdf" id="sC8-cw-Fmh"/>
                         <outlet property="checkBoxUseFullStatusbar" destination="EQP-7r-FSu" id="Vll-3t-F9V"/>
                         <outlet property="lblAlwayHidden" destination="eBG-Wk-IXv" id="JaJ-0i-o6U"/>
