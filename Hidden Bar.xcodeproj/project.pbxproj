@@ -22,6 +22,7 @@
 		3CF14C82221FA49D0083D42B /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */; };
 		55F3F1192608923B0054B881 /* Date+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F3F1182608923B0054B881 /* Date+Extension.swift */; };
 		55F3F11D2608925A0054B881 /* StackView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F3F11C2608925A0054B881 /* StackView+Extension.swift */; };
+		6C0A10012DEBF00100A5E001 /* HiddenItemsBarPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0A10002DEBF00100A5E001 /* HiddenItemsBarPanelController.swift */; };
 		9220587E2212A7C0008A8B03 /* LauncherApplication.app in Copy Files */ = {isa = PBXBuildFile; fileRef = 92C5054E21FEC03B0084719A /* LauncherApplication.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		929113F521F9D04100173149 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929113F421F9D04100173149 /* AppDelegate.swift */; };
 		929113F921F9D04200173149 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 929113F821F9D04200173149 /* Assets.xcassets */; };
@@ -83,6 +84,7 @@
 		55D9B6BD2661DEE8007AF073 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		55F3F1182608923B0054B881 /* Date+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extension.swift"; sourceTree = "<group>"; };
 		55F3F11C2608925A0054B881 /* StackView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StackView+Extension.swift"; sourceTree = "<group>"; };
+		6C0A10002DEBF00100A5E001 /* HiddenItemsBarPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiddenItemsBarPanelController.swift; sourceTree = "<group>"; };
 		9220587D22127050008A8B03 /* Hidden.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Hidden.entitlements; path = Hidden/Hidden.entitlements; sourceTree = "<group>"; };
 		929113F121F9D04100173149 /* Hidden Bar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hidden Bar.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		929113F421F9D04100173149 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -162,6 +164,7 @@
 			isa = PBXGroup;
 			children = (
 				92C97B9022018C1F0007559C /* StatusBarController.swift */,
+				6C0A10002DEBF00100A5E001 /* HiddenItemsBarPanelController.swift */,
 			);
 			path = StatusBar;
 			sourceTree = "<group>";
@@ -405,6 +408,7 @@
 				08A5F85C23AA013100981CA5 /* SelectedSecond.swift in Sources */,
 				08A5F86123AA085B00981CA5 /* Preferences.swift in Sources */,
 				92C97B9122018C1F0007559C /* StatusBarController.swift in Sources */,
+				6C0A10012DEBF00100A5E001 /* HiddenItemsBarPanelController.swift in Sources */,
 				55F3F1192608923B0054B881 /* Date+Extension.swift in Sources */,
 				92D2122221FEE06600C92FF4 /* LauncherApplication.app in Sources */,
 				08B9F32C2411883300AA0551 /* NSWindow+Extension.swift in Sources */,
