@@ -29,6 +29,9 @@ class StatusBarController {
     private let imgIconLine = NSImage(named:NSImage.Name("ic_line"))
     private let hiddenItemsBarController = HiddenItemsBarPanelController()
     private let hiddenItemsCaptureShieldController = HiddenItemsBarCaptureShieldController()
+    private let hiddenItemsSeparatorOverlayController = HiddenItemsBarSeparatorOverlayController()
+    private var activeExpandCollapseFrame: CGRect?
+    private var activeStatusItemScreen: NSScreen?
 
     private var isCollapsed: Bool {
         return self.btnSeparate.length == self.btnHiddenCollapseLength
@@ -88,6 +91,8 @@ class StatusBarController {
     }
 
     @objc private func handleScreenParametersChanged() {
+        activeExpandCollapseFrame = nil
+        activeStatusItemScreen = nil
         updateCollapsedLengths()
     }
 
@@ -103,6 +108,7 @@ class StatusBarController {
     @objc private func handlePreferencesChanged() {
         if !Preferences.showHiddenItemsInSeparateBar {
             hiddenItemsBarController.hide()
+            hiddenItemsSeparatorOverlayController.hide()
             if let button = btnExpandCollapse.button {
                 button.image = isCollapsed ? Assets.expandImage : Assets.collapseImage
             }
@@ -133,6 +139,9 @@ class StatusBarController {
     }
 
     @objc func btnExpandCollapsePressed(sender: NSStatusBarButton) {
+        activeExpandCollapseFrame = sender.window?.frame
+        activeStatusItemScreen = sender.window?.screen
+
         if let event = NSApp.currentEvent {
 
             let isOptionKeyPressed = event.modifierFlags.contains(NSEvent.ModifierFlags.option)
@@ -164,6 +173,7 @@ class StatusBarController {
         guard self.isBtnAlwaysHiddenValidPosition else {return}
 
         Preferences.areSeparatorsHidden = true
+        hiddenItemsSeparatorOverlayController.hide()
 
         if !self.isCollapsed {
             self.btnSeparate.length = self.btnHiddenLength
@@ -190,6 +200,7 @@ class StatusBarController {
     private func collapseMenuBar() {
         hiddenItemsCaptureShieldController.hide()
         hiddenItemsBarController.hide()
+        hiddenItemsSeparatorOverlayController.hide()
 
         guard self.isBtnSeparateValidPosition && !self.isCollapsed else {
             if !self.isBtnSeparateValidPosition {
@@ -217,6 +228,7 @@ class StatusBarController {
         guard self.isCollapsed || force else {return}
         hiddenItemsCaptureShieldController.hide()
         hiddenItemsBarController.hide()
+        hiddenItemsSeparatorOverlayController.hide()
         btnSeparate.length = btnHiddenLength
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
@@ -306,13 +318,10 @@ extension StatusBarController {
             self.expandMenubar()
             return
         }
-        guard
-            let expandCollapseFrame = btnExpandCollapse.button?.window?.frame,
-            let screen = btnExpandCollapse.button?.window?.screen ?? NSScreen.main ?? NSScreen.screens.first
-        else { return }
+        guard let expandCollapseGeometry = currentExpandCollapseGeometry() else { return }
 
         timer?.invalidate()
-        hiddenItemsCaptureShieldController.show(on: screen, near: expandCollapseFrame)
+        hiddenItemsCaptureShieldController.show(on: expandCollapseGeometry.screen, near: expandCollapseGeometry.frame)
         btnSeparate.length = btnHiddenLength
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
@@ -342,10 +351,15 @@ extension StatusBarController {
                     }
                     return
                 }
+                let capture = self.captureByCoveringItemsStillVisibleInMenuBar(capture)
 
                 self.hiddenItemsBarController.show(capture: capture) { [weak self] sourceX in
                     self?.activateHiddenItem(atSourceX: sourceX, from: capture)
                 }
+                self.hiddenItemsSeparatorOverlayController.show(
+                    frame: capture.menuBarOverlayFrame,
+                    separatorFrame: capture.separatorFrame
+                )
                 if let button = self.btnExpandCollapse.button {
                     button.image = Assets.collapseImage
                 }
@@ -385,6 +399,7 @@ extension StatusBarController {
         timer?.invalidate()
         hiddenItemsCaptureShieldController.hide()
         hiddenItemsBarController.hide()
+        hiddenItemsSeparatorOverlayController.hide()
         btnSeparate.length = btnHiddenLength
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
@@ -397,32 +412,39 @@ extension StatusBarController {
     }
 
     private func captureExpandedHiddenItems() -> HiddenItemsBarCapture? {
-        guard
-            let separateFrame = btnSeparate.button?.window?.frame,
-            let expandCollapseFrame = btnExpandCollapse.button?.window?.frame
-        else { return nil }
+        guard let windowList = menuBarWindowList() else { return nil }
 
-        let screen = btnExpandCollapse.button?.window?.screen ?? NSScreen.main ?? NSScreen.screens.first
-        guard let targetScreen = screen else { return nil }
-        guard isMenuBarFrame(separateFrame, on: targetScreen) else { return nil }
+        for screen in preferredCaptureScreens() {
+            guard
+                let separatorQuartzRect = statusItemQuartzRect(named: "hiddenbar_separate", statusItem: btnSeparate, from: windowList, on: screen),
+                let expandCollapseQuartzRect = statusItemQuartzRect(named: "hiddenbar_expandcollapse", statusItem: btnExpandCollapse, from: windowList, on: screen)
+            else { continue }
 
-        let items = captureVisibleHiddenSectionItems(
-            separatedBy: separateFrame,
-            expandCollapseFrame: expandCollapseFrame,
-            on: targetScreen
-        )
-        guard !items.isEmpty else { return nil }
-        return HiddenItemsBarCapture(items: items, screen: targetScreen)
-    }
-
-    private func captureVisibleHiddenSectionItems(separatedBy separatorFrame: CGRect, expandCollapseFrame: CGRect, on screen: NSScreen) -> [HiddenItemsBarItem] {
-        guard let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else {
-            return []
+            let items = captureVisibleHiddenSectionItems(
+                from: windowList,
+                separatorQuartzRect: separatorQuartzRect,
+                expandCollapseQuartzRect: expandCollapseQuartzRect,
+                on: screen
+            )
+            if !items.isEmpty {
+                let separatorFrame = appKitRectFromQuartzRect(separatorQuartzRect, on: screen)
+                return HiddenItemsBarCapture(
+                    items: items,
+                    screen: screen,
+                    separatorFrame: separatorFrame,
+                    menuBarOverlayFrame: menuBarOverlayFrame(
+                        for: separatorFrame,
+                        covering: [],
+                        on: screen
+                    )
+                )
+            }
         }
 
-        let separatorQuartzRect = quartzRectFromAppKitRect(separatorFrame)
-        let expandCollapseQuartzRect = quartzRectFromAppKitRect(expandCollapseFrame)
+        return nil
+    }
 
+    private func captureVisibleHiddenSectionItems(from windowList: [[String: Any]], separatorQuartzRect: CGRect, expandCollapseQuartzRect: CGRect, on screen: NSScreen) -> [HiddenItemsBarItem] {
         let capturedItems = windowList.compactMap { info -> (item: HiddenItemsBarItem, quartzRect: CGRect)? in
             guard
                 let windowNumber = info[kCGWindowNumber as String] as? Int,
@@ -441,7 +463,8 @@ extension StatusBarController {
             return (
                 item: HiddenItemsBarItem(
                     image: NSImage(cgImage: image, size: appKitRect.size),
-                    sourceRect: appKitRect
+                    sourceRect: appKitRect,
+                    windowNumber: windowNumber
                 ),
                 quartzRect: quartzRect
             )
@@ -461,6 +484,58 @@ extension StatusBarController {
         }
 
         return []
+    }
+
+    private func captureByCoveringItemsStillVisibleInMenuBar(_ capture: HiddenItemsBarCapture) -> HiddenItemsBarCapture {
+        guard let windowList = menuBarWindowList() else { return capture }
+
+        let visibleRectsByWindowNumber = Dictionary(uniqueKeysWithValues: windowList.compactMap { info -> (Int, CGRect)? in
+            guard
+                let windowNumber = info[kCGWindowNumber as String] as? Int,
+                let quartzRect = visibleMenuBarItemQuartzRect(from: info, on: capture.screen)
+            else {
+                return nil
+            }
+
+            return (windowNumber, appKitRectFromQuartzRect(quartzRect, on: capture.screen))
+        })
+        let visibleCapturedRects = capture.items.compactMap { visibleRectsByWindowNumber[$0.windowNumber] }
+        guard !visibleCapturedRects.isEmpty else { return capture }
+
+        return HiddenItemsBarCapture(
+            items: capture.items,
+            screen: capture.screen,
+            separatorFrame: capture.separatorFrame,
+            menuBarOverlayFrame: menuBarOverlayFrame(
+                for: capture.separatorFrame,
+                covering: visibleCapturedRects,
+                on: capture.screen
+            )
+        )
+    }
+
+    private func menuBarOverlayFrame(for separatorFrame: CGRect, covering itemFrames: [CGRect], on screen: NSScreen) -> CGRect {
+        let menuBarHeight = max(22, screen.frame.maxY - screen.visibleFrame.maxY)
+        let minX = max(
+            screen.frame.minX,
+            itemFrames.reduce(separatorFrame.minX) { min($0, $1.minX) }
+        )
+        let maxX = min(
+            screen.frame.maxX,
+            itemFrames.reduce(separatorFrame.maxX) { max($0, $1.maxX) }
+        )
+        let width = max(btnHiddenLength, maxX - minX)
+
+        return CGRect(
+            x: minX,
+            y: screen.frame.maxY - menuBarHeight,
+            width: width,
+            height: menuBarHeight
+        )
+    }
+
+    private func menuBarWindowList() -> [[String: Any]]? {
+        CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]]
     }
 
     private func visibleMenuBarItemQuartzRect(from info: [String: Any], on screen: NSScreen) -> CGRect? {
@@ -507,15 +582,98 @@ extension StatusBarController {
         return nil
     }
 
-    private func isMenuBarFrame(_ frame: CGRect, on screen: NSScreen) -> Bool {
+    private func preferredCaptureScreens() -> [NSScreen] {
+        let preferred = btnExpandCollapse.button?.window?.screen ?? activeStatusItemScreen ?? NSScreen.main
+        guard let first = preferred else { return NSScreen.screens }
+
+        return [first] + NSScreen.screens.filter { $0 !== first }
+    }
+
+    private func currentExpandCollapseGeometry() -> (frame: CGRect, screen: NSScreen)? {
+        if
+            let frame = btnExpandCollapse.button?.window?.frame,
+            let screen = btnExpandCollapse.button?.window?.screen
+        {
+            return (frame, screen)
+        }
+
+        guard let frame = activeExpandCollapseFrame else { return nil }
+        let screen = activeStatusItemScreen
+            ?? NSScreen.screens.first { $0.frame.intersects(frame) }
+            ?? NSScreen.main
+            ?? NSScreen.screens.first
+        guard let resolvedScreen = screen else { return nil }
+        return (frame, resolvedScreen)
+    }
+
+    private func statusItemQuartzRect(named name: String, statusItem: NSStatusItem, from windowList: [[String: Any]], on screen: NSScreen) -> CGRect? {
+        let screenQuartzRect = quartzRectFromAppKitRect(screen.frame)
+        let menuBarQuartzRect = quartzMenuBarRect(on: screen)
+        let appBundleIdentifier = Bundle.main.bundleIdentifier
+
+        let namedWindows = windowList.compactMap { info -> CGRect? in
+            guard
+                (info[kCGWindowName as String] as? String) == name,
+                let quartzRect = statusItemWindowQuartzRect(from: info, screenQuartzRect: screenQuartzRect, menuBarQuartzRect: menuBarQuartzRect)
+            else {
+                return nil
+            }
+
+            return quartzRect
+        }
+        if let namedWindow = namedWindows.sorted(by: { $0.minX < $1.minX }).first {
+            return namedWindow
+        }
+
+        guard let expectedFrame = statusItem.button?.window?.frame else { return nil }
+        let expectedQuartzRect = quartzRectFromAppKitRect(expectedFrame)
+        let bundleWindows = windowList.compactMap { info -> CGRect? in
+            guard
+                let title = info[kCGWindowName as String] as? String,
+                title == appBundleIdentifier || title.hasPrefix("hiddenbar_"),
+                let quartzRect = statusItemWindowQuartzRect(from: info, screenQuartzRect: screenQuartzRect, menuBarQuartzRect: menuBarQuartzRect)
+            else {
+                return nil
+            }
+
+            return quartzRect
+        }
+
+        return bundleWindows.sorted {
+            statusItemMatchScore($0, expectedQuartzRect: expectedQuartzRect) < statusItemMatchScore($1, expectedQuartzRect: expectedQuartzRect)
+        }.first
+    }
+
+    private func statusItemWindowQuartzRect(from info: [String: Any], screenQuartzRect: CGRect, menuBarQuartzRect: CGRect) -> CGRect? {
+        guard
+            let layer = info[kCGWindowLayer as String] as? Int,
+            layer == 25,
+            let bounds = info[kCGWindowBounds as String] as? [String: Any],
+            let quartzRect = rectFromWindowBounds(bounds),
+            quartzRect.intersects(screenQuartzRect),
+            quartzRect.intersects(menuBarQuartzRect)
+        else {
+            return nil
+        }
+
+        return quartzRect
+    }
+
+    private func statusItemMatchScore(_ quartzRect: CGRect, expectedQuartzRect: CGRect) -> CGFloat {
+        let centerDistance = abs(quartzRect.midX - expectedQuartzRect.midX) + abs(quartzRect.midY - expectedQuartzRect.midY)
+        let sizeDistance = abs(quartzRect.width - expectedQuartzRect.width) + abs(quartzRect.height - expectedQuartzRect.height)
+        return centerDistance + sizeDistance
+    }
+
+    private func quartzMenuBarRect(on screen: NSScreen) -> CGRect {
+        let screenQuartzRect = quartzRectFromAppKitRect(screen.frame)
         let menuBarHeight = max(22, screen.frame.maxY - screen.visibleFrame.maxY)
-        let menuBarFrame = CGRect(
-            x: screen.frame.minX,
-            y: screen.frame.maxY - menuBarHeight - 2,
+        return CGRect(
+            x: screenQuartzRect.minX,
+            y: screenQuartzRect.minY - 2,
             width: screen.frame.width,
             height: menuBarHeight + 4
         )
-        return frame.intersects(menuBarFrame)
     }
 
     private func isHiddenBarStatusWindow(_ info: [String: Any], appBundleIdentifier: String?) -> Bool {
@@ -564,6 +722,7 @@ extension StatusBarController {
         guard canForwardClicksToMenuBarItems() else { return }
 
         hiddenItemsBarController.hide()
+        hiddenItemsSeparatorOverlayController.hide()
         btnSeparate.length = btnHiddenLength
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage

@@ -10,11 +10,14 @@ import AppKit
 struct HiddenItemsBarCapture {
     let items: [HiddenItemsBarItem]
     let screen: NSScreen
+    let separatorFrame: CGRect
+    let menuBarOverlayFrame: CGRect
 }
 
 struct HiddenItemsBarItem {
     let image: NSImage
     let sourceRect: CGRect
+    let windowNumber: Int
 }
 
 final class HiddenItemsBarPanelController: NSObject {
@@ -137,6 +140,88 @@ final class HiddenItemsBarCaptureShieldController: NSObject {
 
     func hide() {
         panel.orderOut(nil)
+    }
+}
+
+final class HiddenItemsBarSeparatorOverlayController: NSObject {
+    private let panel: NSPanel
+    private let contentView: HiddenItemsBarSeparatorOverlayView
+
+    override init() {
+        contentView = HiddenItemsBarSeparatorOverlayView(frame: .zero)
+        panel = NSPanel(
+            contentRect: .zero,
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: true
+        )
+        super.init()
+
+        panel.contentView = contentView
+        panel.backgroundColor = .clear
+        panel.hasShadow = false
+        panel.hidesOnDeactivate = false
+        panel.isMovable = false
+        panel.isOpaque = false
+        panel.isReleasedWhenClosed = false
+        panel.level = .screenSaver
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
+        panel.ignoresMouseEvents = true
+    }
+
+    func show(frame: CGRect, separatorFrame: CGRect) {
+        guard frame.width > 1 && frame.height > 1 else {
+            hide()
+            return
+        }
+
+        contentView.frame = NSRect(origin: .zero, size: frame.size)
+        contentView.separatorFrame = separatorFrame.offsetBy(dx: -frame.minX, dy: -frame.minY)
+        contentView.needsDisplay = true
+        panel.setFrame(frame, display: true)
+        panel.orderFrontRegardless()
+    }
+
+    func hide() {
+        panel.orderOut(nil)
+    }
+}
+
+final class HiddenItemsBarSeparatorOverlayView: NSView {
+    var separatorFrame: CGRect = .zero
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+
+        overlayBackgroundColor.setFill()
+        dirtyRect.fill()
+
+        let attributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: separatorColor,
+            .font: NSFont.systemFont(ofSize: 18)
+        ]
+        let text = "|"
+        let size = text.size(withAttributes: attributes)
+        let targetFrame = separatorFrame.isEmpty ? bounds : separatorFrame
+        text.draw(
+            at: NSPoint(x: targetFrame.midX - size.width / 2, y: (bounds.height - size.height) / 2),
+            withAttributes: attributes
+        )
+    }
+
+    private var overlayBackgroundColor: NSColor {
+        isDarkAppearance ? NSColor.black : NSColor.windowBackgroundColor
+    }
+
+    private var separatorColor: NSColor {
+        isDarkAppearance ? NSColor.white : NSColor.labelColor
+    }
+
+    private var isDarkAppearance: Bool {
+        if #available(OSX 10.14, *) {
+            return effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        }
+        return false
     }
 }
 
