@@ -12,6 +12,7 @@ struct HiddenItemsBarCapture {
     let screen: NSScreen
     let separatorFrame: CGRect
     let menuBarOverlayFrame: CGRect
+    let prefersDarkBackground: Bool
 }
 
 struct HiddenItemsBarItem {
@@ -60,6 +61,7 @@ final class HiddenItemsBarPanelController: NSObject {
     }
 
     func show(capture: HiddenItemsBarCapture, clickHandler: @escaping (CGFloat) -> Void) {
+        contentView.prefersDarkBackground = capture.prefersDarkBackground
         contentView.configure(items: capture.items, clickHandler: clickHandler)
 
         let contentSize = contentView.preferredContentSize
@@ -169,7 +171,7 @@ final class HiddenItemsBarSeparatorOverlayController: NSObject {
         panel.ignoresMouseEvents = true
     }
 
-    func show(frame: CGRect, separatorFrame: CGRect) {
+    func show(frame: CGRect, separatorFrame: CGRect, prefersDarkBackground: Bool) {
         guard frame.width > 1 && frame.height > 1 else {
             hide()
             return
@@ -177,6 +179,7 @@ final class HiddenItemsBarSeparatorOverlayController: NSObject {
 
         contentView.frame = NSRect(origin: .zero, size: frame.size)
         contentView.separatorFrame = separatorFrame.offsetBy(dx: -frame.minX, dy: -frame.minY)
+        contentView.prefersDarkBackground = prefersDarkBackground
         contentView.needsDisplay = true
         panel.setFrame(frame, display: true)
         panel.orderFrontRegardless()
@@ -189,6 +192,7 @@ final class HiddenItemsBarSeparatorOverlayController: NSObject {
 
 final class HiddenItemsBarSeparatorOverlayView: NSView {
     var separatorFrame: CGRect = .zero
+    var prefersDarkBackground = false
 
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
@@ -210,11 +214,11 @@ final class HiddenItemsBarSeparatorOverlayView: NSView {
     }
 
     private var overlayBackgroundColor: NSColor {
-        isDarkAppearance ? NSColor.black : NSColor.windowBackgroundColor
+        prefersDarkBackground || isDarkAppearance ? NSColor.black : NSColor.windowBackgroundColor
     }
 
     private var separatorColor: NSColor {
-        isDarkAppearance ? NSColor.white : NSColor.labelColor
+        prefersDarkBackground || isDarkAppearance ? NSColor.white : NSColor.labelColor
     }
 
     private var isDarkAppearance: Bool {
@@ -236,6 +240,7 @@ final class HiddenItemsBarView: NSView {
     private var items: [HiddenItemsBarItem] = []
     private var itemRects: [CGRect] = []
     private var clickHandler: ((CGFloat) -> Void)?
+    var prefersDarkBackground = false
 
     var preferredContentSize: CGSize {
         let itemWidth = items.reduce(CGFloat(0)) { $0 + max($1.image.size.width, 1) }
@@ -258,12 +263,12 @@ final class HiddenItemsBarView: NSView {
         super.draw(dirtyRect)
 
         let path = NSBezierPath(roundedRect: bounds, xRadius: 8, yRadius: 8)
-        NSColor.windowBackgroundColor.withAlphaComponent(0.92).setFill()
+        panelBackgroundColor.setFill()
         path.fill()
 
         let strokeColor: NSColor
         if #available(OSX 10.14, *) {
-            strokeColor = NSColor.separatorColor
+            strokeColor = prefersDarkBackground ? NSColor.white.withAlphaComponent(0.28) : NSColor.separatorColor
         } else {
             strokeColor = NSColor.lightGray
         }
@@ -314,7 +319,7 @@ final class HiddenItemsBarView: NSView {
     private func drawEmptyState() {
         let text = "Hidden items unavailable".localized
         let attributes: [NSAttributedString.Key: Any] = [
-            .foregroundColor: NSColor.secondaryLabelColor,
+            .foregroundColor: prefersDarkBackground ? NSColor.white.withAlphaComponent(0.72) : NSColor.secondaryLabelColor,
             .font: NSFont.systemFont(ofSize: 12)
         ]
         let size = text.size(withAttributes: attributes)
@@ -322,5 +327,13 @@ final class HiddenItemsBarView: NSView {
             at: NSPoint(x: (bounds.width - size.width) / 2, y: (bounds.height - size.height) / 2),
             withAttributes: attributes
         )
+    }
+
+    private var panelBackgroundColor: NSColor {
+        if prefersDarkBackground {
+            return NSColor.black.withAlphaComponent(0.88)
+        }
+
+        return NSColor.windowBackgroundColor.withAlphaComponent(0.92)
     }
 }

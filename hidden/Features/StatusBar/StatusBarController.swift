@@ -358,7 +358,8 @@ extension StatusBarController {
                 }
                 self.hiddenItemsSeparatorOverlayController.show(
                     frame: capture.menuBarOverlayFrame,
-                    separatorFrame: capture.separatorFrame
+                    separatorFrame: capture.separatorFrame,
+                    prefersDarkBackground: capture.prefersDarkBackground
                 )
                 if let button = self.btnExpandCollapse.button {
                     button.image = Assets.collapseImage
@@ -436,7 +437,8 @@ extension StatusBarController {
                         for: separatorFrame,
                         covering: [],
                         on: screen
-                    )
+                    ),
+                    prefersDarkBackground: prefersDarkBackground(for: items)
                 )
             }
         }
@@ -510,8 +512,37 @@ extension StatusBarController {
                 for: capture.separatorFrame,
                 covering: visibleCapturedRects,
                 on: capture.screen
-            )
+            ),
+            prefersDarkBackground: capture.prefersDarkBackground
         )
+    }
+
+    private func prefersDarkBackground(for items: [HiddenItemsBarItem]) -> Bool {
+        var luminanceTotal: CGFloat = 0
+        var sampleCount: CGFloat = 0
+
+        for item in items {
+            guard let cgImage = item.image.cgImage(forProposedRect: nil, context: nil, hints: nil) else { continue }
+            let bitmap = NSBitmapImageRep(cgImage: cgImage)
+            let xStep = max(1, bitmap.pixelsWide / 8)
+            let yStep = max(1, bitmap.pixelsHigh / 8)
+
+            stride(from: 0, to: bitmap.pixelsWide, by: xStep).forEach { x in
+                stride(from: 0, to: bitmap.pixelsHigh, by: yStep).forEach { y in
+                    guard let color = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB),
+                          color.alphaComponent > 0.2
+                    else {
+                        return
+                    }
+
+                    luminanceTotal += 0.2126 * color.redComponent + 0.7152 * color.greenComponent + 0.0722 * color.blueComponent
+                    sampleCount += 1
+                }
+            }
+        }
+
+        guard sampleCount > 0 else { return false }
+        return (luminanceTotal / sampleCount) > 0.55
     }
 
     private func menuBarOverlayFrame(for separatorFrame: CGRect, covering itemFrames: [CGRect], on screen: NSScreen) -> CGRect {
