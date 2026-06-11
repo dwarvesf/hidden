@@ -60,6 +60,16 @@ class StatusBarController {
     }
     
     private var isToggle = false
+
+    // True while the pointer sits in any screen's menubar band (the strip between
+    // visibleFrame.maxY and frame.maxY, which is the menubar's exact height there).
+    private var isMouseInMenuBar: Bool {
+        let mouse = NSEvent.mouseLocation
+        return NSScreen.screens.contains { screen in
+            mouse.x >= screen.frame.minX && mouse.x <= screen.frame.maxX
+                && mouse.y >= screen.visibleFrame.maxY && mouse.y <= screen.frame.maxY
+        }
+    }
     
     //MARK: - Methods
     init() {
@@ -215,8 +225,13 @@ class StatusBarController {
     private func startTimerToAutoHide() {
         timer?.invalidate()
         self.timer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] _ in
-            if Preferences.isAutoHide {
-                self?.collapseMenuBar()
+            guard let self = self, Preferences.isAutoHide else { return }
+            // Don't yank the bar shut mid-interaction: while the pointer is in the
+            // menubar (hovering, clicking, dragging icons), defer and re-arm.
+            if self.isMouseInMenuBar {
+                self.startTimerToAutoHide()
+            } else {
+                self.collapseMenuBar()
             }
         }
     }
