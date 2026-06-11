@@ -221,11 +221,7 @@ extension PreferencesViewController {
                 image.heightAnchor.constraint(equalToConstant: imageWidth)
                 
             ])
-            if #available(OSX 10.14, *) {
-                image.contentTintColor = .labelColor
-            } else {
-                // Fallback on earlier versions
-            }
+            image.contentTintColor = .labelColor
         }
         let dateTimeLabel = NSTextField()
         dateTimeLabel.stringValue = Date.dateString() + " " + Date.timeString()
@@ -263,11 +259,7 @@ extension PreferencesViewController {
                 image.heightAnchor.constraint(equalToConstant: imageWidth)
                 
             ])
-            if #available(OSX 10.14, *) {
-                image.contentTintColor = .labelColor
-            } else {
-                // Fallback on earlier versions
-            }
+            image.contentTintColor = .labelColor
         }
         let dateTimeLabel = NSTextField()
         dateTimeLabel.stringValue = Date.dateString() + " " + Date.timeString()

@@ -125,3 +125,14 @@ DerivedData/
 **/xcshareddata/WorkspaceSettings.xcsettings
 
 # End of https://www.gitignore.io/api/macos,swift
+
+# Local agent/tooling layer (kept out of the repo)
+/.claude/
+/CLAUDE.local.md
+/AGENTS.md
+/CLAUDE.md
+/WORKFLOW.md
+/docs/verification/
+/_meta/
+/docs/specs/
+/.planning/

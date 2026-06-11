@@ -67,9 +67,9 @@ class StatusBarController {
         setupUI()
         setupAlwayHideStatusBar()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-            self.collapseMenuBar()
-        })
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            self?.collapseMenuBar()
+        }
         
         if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
@@ -157,8 +157,8 @@ class StatusBarController {
         if isToggle {return}
         isToggle = true
         self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            self.isToggle = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            self?.isToggle = false
         }
     }
     
@@ -202,10 +202,8 @@ class StatusBarController {
     private func startTimerToAutoHide() {
         timer?.invalidate()
         self.timer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] _ in
-            DispatchQueue.main.async {
-                if Preferences.isAutoHide {
-                    self?.collapseMenuBar()
-                }
+            if Preferences.isAutoHide {
+                self?.collapseMenuBar()
             }
         }
     }
@@ -261,7 +259,7 @@ extension StatusBarController {
     }
     @objc private func toggleStatusBarIfNeeded() {
         updateCollapsedLengths()
-        
+
         if Preferences.alwaysHiddenSectionEnabled {
             if let existing = self.btnAlwaysHidden {
                 NSStatusBar.system.removeStatusItem(existing)
