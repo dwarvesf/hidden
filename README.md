@@ -11,8 +11,8 @@
 	<a href="https://img.shields.io/badge/platform-macOS-lightgrey.svg">
  		<img src="https://img.shields.io/badge/platform-macOS-lightgrey.svg" alt="platform">
 	</a>
-	<a href="https://img.shields.io/badge/requirements-macOS High Sierra+-ff69b4.svg">
- 		<img src="https://img.shields.io/badge/requirements-macOS High Sierra+-ff69b4.svg" alt="systemrequirements">
+	<a href="https://img.shields.io/badge/requirements-macOS Ventura+-ff69b4.svg">
+ 		<img src="https://img.shields.io/badge/requirements-macOS Ventura+-ff69b4.svg" alt="systemrequirements">
 	</a>
 </p>
 
@@ -64,7 +64,12 @@ This project exists thanks to all the people who contribute. Thank you guys so m
 Please read [this](CONTRIBUTING.md) before you make a contribution.
 
 ## Requirements
-macOS version >= 10.13
+macOS version >= 13.0 (Ventura)
+
+Running an older macOS? The last release supporting macOS 10.13 High Sierra
+through 12 Monterey is [v1.10](https://github.com/dwarvesf/hidden/releases/tag/v1.10).
+Later versions require macOS 13 because autostart moved to the `SMAppService`
+API introduced there.
 
 ## You may also like
 - [Blurred](https://github.com/dwarvesf/Blurred) - A macOS utility that helps reduce distraction by dimming your inactive noise
