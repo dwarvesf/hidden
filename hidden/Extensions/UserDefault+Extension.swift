@@ -20,8 +20,4 @@ extension UserDefaults {
         static let useFullStatusBarOnExpandEnabled = "useFullStatusBarOnExpandEnabled"
         static let hoverToExpand = "hoverToExpand"
     }
-    
-    open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        print("hi!")
-    }
 }
