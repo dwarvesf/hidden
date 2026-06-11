@@ -65,6 +65,7 @@ class StatusBarController {
     init() {
         updateCollapsedLengths()
         setupUI()
+        restoreRemovedStatusItems()
         setupAlwayHideStatusBar()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
@@ -84,14 +85,26 @@ class StatusBarController {
     }
     
     private func updateCollapsedLengths() {
-        let screenWidth = NSScreen.main?.visibleFrame.width ?? 1728
+        // The menubar replicates across every attached display, so the collapse
+        // length must cover the WIDEST screen, not NSScreen.main (the focused one);
+        // sizing from a narrower screen leaks hidden icons on wider displays.
+        let screenWidth = NSScreen.screens.map { $0.visibleFrame.width }.max() ?? 1728
         // Keep collapse length bounded to avoid pathological layout/memory behavior
         // on newer macOS versions while still fully hiding the trailing section.
-        let boundedCollapseLength = max(500, min(screenWidth + 200, 4000))
+        // 6000 covers 5K2K ultrawides (5120pt); was 4000.
+        let boundedCollapseLength = max(500, min(screenWidth + 200, 6000))
         btnHiddenCollapseLength = boundedCollapseLength
         btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? boundedCollapseLength : 0
     }
     
+    private func restoreRemovedStatusItems() {
+        // Cmd-dragging a status item off the bar is persisted by macOS via
+        // autosaveName, leaving the app running but unreachable. These items are
+        // the app's only UI, so they self-restore at launch.
+        btnExpandCollapse.isVisible = true
+        btnSeparate.isVisible = true
+    }
+
     private func setupUI() {
         if let button = btnSeparate.button {
             button.image = self.imgIconLine
@@ -270,6 +283,7 @@ extension StatusBarController {
                 button.appearsDisabled = true
             }
             self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate"
+            self.btnAlwaysHidden?.isVisible = true
         } else {
             if let existing = self.btnAlwaysHidden {
                 NSStatusBar.system.removeStatusItem(existing)
