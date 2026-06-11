@@ -58,6 +58,18 @@ To undo any of them: `defaults delete com.dwarvesv.minimalbar <key>`.
 | A ghost "LauncherApplication" login item from old versions | Launch the current version once; it deauthorizes the legacy item automatically |
 | App language stuck | See the `AppleLanguages` command above, or System Settings > General > Language & Region > Applications |
 | Nothing hides on a macOS 27 beta | Known (issue #360); the menu bar re-architecture broke the hiding mechanism, fix under investigation |
+| A new or just-updated app's icon shows up already hidden | Expected, see "Why new icons start hidden" below; ⌘-drag it to the right of the separator once |
+
+### Why new icons start hidden
+
+Hidden Bar hides icons by widening its separator so everything to the *left* of
+it slides off-screen. macOS always inserts a brand-new menu-bar icon at the
+far-left slot, which is inside that hidden zone, so a freshly launched or updated
+app can appear "swallowed". This is macOS positioning behavior, not Hidden Bar
+moving your icon: there is no way for one app to reposition another app's menu-bar
+icon. The one-time fix is to ⌘-drag the icon to the right of the separator;
+macOS remembers that placement per app. A built-in way to keep chosen icons
+pinned is being explored as part of the larger menu-bar redesign.
 
 ## Requirements
 
