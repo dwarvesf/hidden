@@ -23,6 +23,15 @@ Everything Hidden Bar can do, including the parts with no UI.
 | Enable always hidden section | A second zone whose icons stay hidden even when expanded; revealed by option-clicking the arrow |
 | Use full menu bar on expanding | App becomes briefly "regular" while expanded (helps on tight menubars) |
 
+> **Always-hidden section, current behavior:** items in the always-hidden zone
+> are reliably pushed off-screen only when "hide separators" is also on
+> (option-click the arrow). With the separators visible, always-hidden items can
+> still appear after expanding. This coupling is a known limitation being
+> reworked alongside the menu-bar redesign; for now, option-click to hide the
+> separators if always-hidden items keep showing. Avoid placing critical icons in
+> the always-hidden zone until the rework lands, since a stuck off-screen item has
+> to be recovered by ⌘-dragging it back (macOS persists its position per app).
+
 ## Behaviors you get for free
 
 - **It won't collapse mid-use**: while your pointer is anywhere in the menu bar,
