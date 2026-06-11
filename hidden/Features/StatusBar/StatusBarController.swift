@@ -61,6 +61,9 @@ class StatusBarController {
     
     private var isToggle = false
 
+    private var hoverMonitor: Any?
+    private var hoverDwellTimer: Timer?
+
     // True while the pointer sits in any screen's menubar band (the strip between
     // visibleFrame.maxY and frame.maxY, which is the menubar's exact height there).
     private var isMouseInMenuBar: Bool {
@@ -77,6 +80,7 @@ class StatusBarController {
         setupUI()
         restoreRemovedStatusItems()
         setupAlwayHideStatusBar()
+        setupHoverToExpandIfEnabled()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             self?.collapseMenuBar()
@@ -88,6 +92,33 @@ class StatusBarController {
     
     deinit {
         NotificationCenter.default.removeObserver(self)
+        if let monitor = hoverMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
+    }
+
+    // Opt-in via `defaults write com.dwarvesv.minimalbar hoverToExpand -bool true`.
+    // No monitor is installed at all unless the pref is true at launch.
+    private func setupHoverToExpandIfEnabled() {
+        guard Preferences.hoverToExpand else { return }
+        NSLog("HoverToExpand: enabled, installing global mouse monitor")
+        hoverMonitor = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved) { [weak self] _ in
+            guard let self = self else { return }
+            guard self.isCollapsed && self.isMouseInMenuBar else {
+                self.hoverDwellTimer?.invalidate()
+                self.hoverDwellTimer = nil
+                return
+            }
+            // Short dwell so a pointer merely passing through doesn't expand.
+            guard self.hoverDwellTimer == nil else { return }
+            self.hoverDwellTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
+                guard let self = self else { return }
+                self.hoverDwellTimer = nil
+                if self.isCollapsed && self.isMouseInMenuBar {
+                    self.expandMenubar()
+                }
+            }
+        }
     }
     
     @objc private func handleScreenParametersChanged() {
