@@ -55,6 +55,12 @@ brew install --cask hiddenbar
 	<img src="img/tutorial.gif">
 </p>
 
+## 📚 Documentation
+
+- [Manual](docs/MANUAL.md): every setting, the hidden Terminal-only options, and troubleshooting.
+- [Architecture](docs/ARCHITECTURE.md): how the hiding trick works, topology, and known limits.
+- [Maintainer runbook](docs/RUNBOOK.md): build, behavioral verification, and release process.
+
 ## ✨<a href="https://github.com/dwarvesf/hidden/graphs/contributors">Contributors</a>
 
 This project exists thanks to all the people who contribute. Thank you guys so much 👏
