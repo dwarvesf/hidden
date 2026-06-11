@@ -66,6 +66,8 @@ class StatusBarController {
 
     // True while the pointer sits in any screen's menubar band (the strip between
     // visibleFrame.maxY and frame.maxY, which is the menubar's exact height there).
+    // On fullscreen spaces the menubar is hidden and the band collapses to ~zero,
+    // so this returns false there: intentional, no visible menubar = no deferral.
     private var isMouseInMenuBar: Bool {
         let mouse = NSEvent.mouseLocation
         return NSScreen.screens.contains { screen in
@@ -92,6 +94,7 @@ class StatusBarController {
     
     deinit {
         NotificationCenter.default.removeObserver(self)
+        hoverDwellTimer?.invalidate()
         if let monitor = hoverMonitor {
             NSEvent.removeMonitor(monitor)
         }
@@ -180,6 +183,7 @@ class StatusBarController {
                 // The separators/always-hidden toggle stays on option-click.
                 showContextMenu(from: sender)
             } else {
+                // Both option+left and option+right land here: separators toggle.
                 self.showHideSeparatorsAndAlwayHideArea()
             }
         }
@@ -269,6 +273,8 @@ class StatusBarController {
             guard let self = self, Preferences.isAutoHide else { return }
             // Don't yank the bar shut mid-interaction: while the pointer is in the
             // menubar (hovering, clicking, dragging icons), defer and re-arm.
+            // Intentionally unbounded; each re-arm invalidates the previous timer,
+            // so deferral never accumulates timers.
             if self.isMouseInMenuBar {
                 self.startTimerToAutoHide()
             } else {
