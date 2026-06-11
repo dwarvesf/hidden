@@ -169,15 +169,25 @@ class StatusBarController {
     
     @objc func btnExpandCollapsePressed(sender: NSStatusBarButton) {
         if let event = NSApp.currentEvent {
-            
+
             let isOptionKeyPressed = event.modifierFlags.contains(NSEvent.ModifierFlags.option)
-            
+
             if event.type == NSEvent.EventType.leftMouseUp && !isOptionKeyPressed{
                 self.expandCollapseIfNeeded()
+            } else if event.type == NSEvent.EventType.rightMouseUp && !isOptionKeyPressed {
+                // Right-click opens the same context menu the separator has (#356),
+                // making settings reachable from the control everyone clicks.
+                // The separators/always-hidden toggle stays on option-click.
+                showContextMenu(from: sender)
             } else {
                 self.showHideSeparatorsAndAlwayHideArea()
             }
         }
+    }
+
+    private func showContextMenu(from button: NSStatusBarButton) {
+        guard let menu = btnSeparate.menu else { return }
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.maxY + 5), in: button)
     }
     
     func showHideSeparatorsAndAlwayHideArea() {
