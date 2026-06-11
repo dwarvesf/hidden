@@ -28,7 +28,9 @@ class StatusBarController {
     private let imgIconLine = NSImage(named:NSImage.Name("ic_line"))
     
     private var isCollapsed: Bool {
-        return self.btnSeparate.length == self.btnHiddenCollapseLength
+        // Compare with > rather than == so the state survives updateCollapsedLengths
+        // changing btnHiddenCollapseLength while the bar is collapsed (PR #354).
+        return self.btnSeparate.length > self.btnHiddenLength
     }
     
     private var isBtnSeparateValidPosition: Bool {
@@ -125,18 +127,27 @@ class StatusBarController {
     }
     
     @objc private func handleScreenParametersChanged() {
+        // Re-apply the recomputed length to the LIVE item when collapsed, or a
+        // display hot-plug leaves the separator at a stale length (PR #354).
+        let wasCollapsed = isCollapsed
         updateCollapsedLengths()
+        if wasCollapsed {
+            btnSeparate.length = btnHiddenCollapseLength
+            if Preferences.areSeparatorsHidden {
+                btnAlwaysHidden?.length = btnAlwaysHiddenEnableExpandCollapseLength
+            }
+        }
     }
-    
+
     private func updateCollapsedLengths() {
         // The menubar replicates across every attached display, so the collapse
         // length must cover the WIDEST screen, not NSScreen.main (the focused one);
         // sizing from a narrower screen leaks hidden icons on wider displays.
-        let screenWidth = NSScreen.screens.map { $0.visibleFrame.width }.max() ?? 1728
-        // Keep collapse length bounded to avoid pathological layout/memory behavior
-        // on newer macOS versions while still fully hiding the trailing section.
-        // 6000 covers 5K2K ultrawides (5120pt); was 4000.
-        let boundedCollapseLength = max(500, min(screenWidth + 200, 6000))
+        // frame.width, not visibleFrame: the menubar spans the full frame width.
+        let screenWidth = NSScreen.screens.map { $0.frame.width }.max() ?? 1728
+        // Keep collapse length bounded to avoid pathological layout/memory behavior;
+        // macOS enforces a hard 10,000pt maximum on NSStatusItem.length (PR #354).
+        let boundedCollapseLength = max(500, min(screenWidth * 2, 10_000))
         btnHiddenCollapseLength = boundedCollapseLength
         btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? boundedCollapseLength : 0
     }
