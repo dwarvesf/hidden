@@ -77,6 +77,17 @@ class StatusBarController {
                 && mouse.y >= screen.visibleFrame.maxY && mouse.y <= screen.frame.maxY
         }
     }
+
+    // The preferences window is an ordinary app window, not in the menu bar, so
+    // the mouse-in-menubar guard does not cover it. With "use full menu bar on
+    // expanding" on, an auto-collapse deactivates the app and dismisses this
+    // window mid-edit (#170, same family as #66/#151). Defer the collapse while
+    // it is on screen. isWindowLoaded short-circuits without force-loading the
+    // window when preferences were never opened.
+    private var isPreferencesWindowVisible: Bool {
+        let wc = PreferencesWindowController.shared
+        return wc.isWindowLoaded && (wc.window?.isVisible ?? false)
+    }
     
     //MARK: - Methods
     init() {
@@ -286,7 +297,7 @@ class StatusBarController {
             // menubar (hovering, clicking, dragging icons), defer and re-arm.
             // Intentionally unbounded; each re-arm invalidates the previous timer,
             // so deferral never accumulates timers.
-            if self.isMouseInMenuBar {
+            if self.isMouseInMenuBar || self.isPreferencesWindowVisible {
                 self.startTimerToAutoHide()
             } else {
                 self.collapseMenuBar()
