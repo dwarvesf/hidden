@@ -9,25 +9,15 @@ Source of the current state: the v1.11 issue-clearing pass (2026-06-12), branch
 `fix/v1-11-batch` / draft PR #365, and SPEC-003. Core-model changes (separator length
 math, collapse state machine) are HIGH RISK and require a mandatory review-team pass.
 
-## Blocked on macOS 27 hardware (Han UAT)
+## macOS 27 follow-up
 
-- **macOS 27 hide-mechanism capture (#360).** Run the v1.11 build on real macOS 27,
-  trigger a collapse, capture the `HideMechanism:` NSLog (requested length / host-window
-  width / button width / actual length). This is the unblocker: it reveals which geometry
-  signal separates "honored" from "ignored" on 27. Diagnostic-only instrument already
-  shipped. See SPEC-003 + `StatusBarController.swift` (collapse path).
-- **Redesign the detection signal, then ship Option B (detect-and-degrade).** Review-team
-  found `btnSeparate.button?.window?.frame.width` reads the full menu-bar window width
-  (~1728pt on 26.5), so `honored` is trivially true on every OS. Switch to a positional
-  signal (separator button X-coordinate before vs after collapse). Once the 27 capture
-  calibrates it: re-add the one-shot post-collapse check, a one-time context-menu notice
-  linking #360, and stop re-inflating on confirmed failure. Depends on the capture above.
-- **Fix the 3 review bugs when re-enabling degrade.** (1) move the `hideMechanismChecked`
-  latch to AFTER `honored` is measured (a transient nil window currently burns the
-  one-shot check); (2) drop the `?? requested` nil-fallback that latches detection moot;
-  (3) `degradeHideUnavailable()` must restore the app activation policy under
-  "use full menu bar on expanding", or the bar shows while the app stays `.accessory`.
-  `StatusBarController.swift:316,318,329`.
+- **macOS 27 hide-mechanism capture (#360).** Captured on 27.0 (26A5353q):
+  the separator window grows from 17pt to ~3472pt, but separator/arrow X
+  positions stay fixed. That proves length inflation no longer displaces other
+  status items. Detect-and-degrade is now implemented in `StatusBarController`.
+- **Managed-overflow / second-bar redesign remains the real fix.** The graceful
+  degradation prevents a broken fake-collapsed state, but real hiding on macOS
+  27 still needs the larger #366 mechanism decision.
 
 ## Blocked on external-display hardware
 

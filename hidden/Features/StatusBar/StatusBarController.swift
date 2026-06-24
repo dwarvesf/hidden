@@ -64,17 +64,26 @@ class StatusBarController {
     private var isToggle = false
 
     // SPEC-003 (macOS 27 hide-mechanism). macOS 27 re-architected the menu bar so
-    // inflating the separator length may no longer push items off-screen (#360).
-    // This is DIAGNOSTIC ONLY: on the first collapse with the menu-bar window
-    // ready, log the separator geometry so a macOS 27 run reveals which signal
-    // (if any) distinguishes "length honored" from "ignored". No behavior change.
-    // The degrade ACTION is deliberately NOT shipped: review found the trigger
-    // unverifiable without 27 hardware, and a false positive would disable hiding
-    // for a working user. The action lands once this log calibrates the signal.
+    // inflating the separator length no longer pushes other status items
+    // off-screen (#360). The separator still grows, but its X position and
+    // neighboring items no longer move with it.
+    private struct HideMechanismGeometry {
+        let separatorMinX: CGFloat
+        let separatorWidth: CGFloat
+        let arrowMinX: CGFloat
+    }
+
     private var hideMechanismChecked = false
+    private var isHideMechanismUnavailable = false
+    private let hideMechanismNoticeTag = 27360
 
     private var hoverMonitor: Any?
     private var hoverDwellTimer: Timer?
+
+    private var needsHideMechanismVerification: Bool {
+        ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27
+            && ProcessInfo.processInfo.environment["HIDDENBAR_DIAG"] == nil
+    }
 
     // True while the pointer sits in any screen's menubar band (the strip between
     // visibleFrame.maxY and frame.maxY, which is the menubar's exact height there).
@@ -110,9 +119,48 @@ class StatusBarController {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             self?.collapseMenuBar()
         }
-        
+
         if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
+
+        if ProcessInfo.processInfo.environment["HIDDENBAR_DIAG"] != nil {
+            runHideMechanismDiagnostic()
+        }
+    }
+
+    // SPEC-003 / #360 capture. Self-triggering geometry probe, gated behind the
+    // HIDDENBAR_DIAG env var so it never runs for normal users. Waits for the
+    // status-item windows to exist, logs the EXPANDED geometry, forces a collapse,
+    // then logs the COLLAPSED geometry. On macOS 27, the width grows while the
+    // X positions stay fixed, so the old layout-displacement trick is unavailable.
+    private func runHideMechanismDiagnostic() {
+        func geom(_ label: String) {
+            let sepW = btnSeparate.button?.window?.frame.width ?? -1
+            let sepX = btnSeparate.button?.window?.frame.minX ?? -1
+            let arrW = btnExpandCollapse.button?.window?.frame.width ?? -1
+            let arrX = btnExpandCollapse.button?.window?.frame.minX ?? -1
+            NSLog("DIAG[\(label)]: separate.length=\(btnSeparate.length) requestedCollapse=\(btnHiddenCollapseLength) sepWinW=\(sepW) sepWinX=\(sepX) arrWinW=\(arrW) arrWinX=\(arrX) isCollapsed=\(isCollapsed)")
+        }
+        // Retry until the backing windows are up (they are nil right after launch).
+        func attempt(_ tries: Int) {
+            guard tries > 0 else { NSLog("DIAG: gave up waiting for status-item window"); return }
+            guard btnSeparate.button?.window != nil, btnExpandCollapse.button?.window != nil else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { attempt(tries - 1) }
+                return
+            }
+            let screens = NSScreen.screens.map { "\($0.frame.width)x\($0.frame.height)" }.joined(separator: ",")
+            NSLog("DIAG: macOS=\(ProcessInfo.processInfo.operatingSystemVersionString) screens=[\(screens)]")
+            // Ensure expanded baseline, measure, collapse, measure.
+            if isCollapsed { expandMenubar() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                geom("expanded")
+                self.btnSeparate.length = self.btnHiddenCollapseLength
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    geom("collapsed")
+                }
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { attempt(10) }
     }
     
     deinit {
@@ -152,6 +200,10 @@ class StatusBarController {
         // display hot-plug leaves the separator at a stale length (PR #354).
         let wasCollapsed = isCollapsed
         updateCollapsedLengths()
+        if isHideMechanismUnavailable {
+            restoreExpandedMenuBarState()
+            return
+        }
         if wasCollapsed {
             btnSeparate.length = btnHiddenCollapseLength
             if Preferences.areSeparatorsHidden {
@@ -249,6 +301,10 @@ class StatusBarController {
         if !self.isCollapsed {
             self.btnSeparate.length = self.btnHiddenLength
         }
+        guard !isHideMechanismUnavailable else {
+            self.btnAlwaysHidden?.length = self.btnAlwaysHiddenLength
+            return
+        }
         self.btnAlwaysHidden?.length = self.btnAlwaysHiddenEnableExpandCollapseLength
     }
     
@@ -263,11 +319,16 @@ class StatusBarController {
     }
     
     private func collapseMenuBar() {
+        guard !isHideMechanismUnavailable else {
+            addHideMechanismUnavailableNotice()
+            return
+        }
         guard self.isBtnSeparateValidPosition && !self.isCollapsed else {
             autoCollapseIfNeeded()
             return
         }
 
+        let before = hideMechanismGeometry()
         btnSeparate.length = self.btnHiddenCollapseLength
         if let button = btnExpandCollapse.button {
             button.image = Assets.expandImage
@@ -276,14 +337,11 @@ class StatusBarController {
             NSApp.setActivationPolicy(.accessory)
             NSApp.deactivate()
         }
-        verifyHideMechanismIfNeeded()
+        verifyHideMechanismIfNeeded(before: before)
     }
     private func expandMenubar() {
         guard self.isCollapsed else {return}
-        btnSeparate.length = btnHiddenLength
-        if let button = btnExpandCollapse.button {
-            button.image = Assets.collapseImage
-        }
+        restoreExpandedMenuBarState()
         autoCollapseIfNeeded()
         
         if Preferences.useFullStatusBarOnExpandEnabled {
@@ -300,30 +358,75 @@ class StatusBarController {
         startTimerToAutoHide()
     }
 
-    // After a collapse, confirm on the next runloop tick (so layout settles) that
-    // the separator actually claimed its inflated width. macOS <= 26 honors it;
-    // a macOS that ignores NSStatusItem.length leaves the slot narrow, meaning
-    // hiding did nothing. Checked once: cheap, and the OS behavior won't change
-    // mid-session.
-    private func verifyHideMechanismIfNeeded() {
-        guard !hideMechanismChecked else { return }
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self, self.isCollapsed else { return }
-            // Need the separator's backing window to measure. If it is not up yet
-            // (early launch), do NOT burn the one-shot check: return and let a
-            // later collapse retry once the window exists.
-            guard let separatorButton = self.btnSeparate.button,
-                  let window = separatorButton.window else { return }
-            self.hideMechanismChecked = true
-            // Log several geometry signals. On macOS <= 26 the inflation is
-            // honored; on macOS 27 it may be ignored. Which of these tracks the
-            // requested length is exactly what a 27 capture must reveal before any
-            // degrade action can trigger on a sound signal.
-            let requested = self.btnHiddenCollapseLength
-            let windowWidth = window.frame.width
-            let buttonWidth = separatorButton.frame.width
-            NSLog("HideMechanism: requested=\(requested) windowWidth=\(windowWidth) buttonWidth=\(buttonWidth) length=\(self.btnSeparate.length)")
+    private func restoreExpandedMenuBarState() {
+        btnSeparate.length = btnHiddenLength
+        btnAlwaysHidden?.length = btnAlwaysHiddenLength
+        if let button = btnExpandCollapse.button {
+            button.image = Assets.collapseImage
         }
+    }
+
+    private func hideMechanismGeometry() -> HideMechanismGeometry? {
+        guard
+            let separatorWindow = btnSeparate.button?.window,
+            let arrowWindow = btnExpandCollapse.button?.window
+        else { return nil }
+
+        return HideMechanismGeometry(
+            separatorMinX: separatorWindow.frame.minX,
+            separatorWidth: separatorWindow.frame.width,
+            arrowMinX: arrowWindow.frame.minX
+        )
+    }
+
+    // After a collapse, confirm that the inflated separator still participates
+    // in menu-bar layout. On macOS 27 it grows in place, so neighboring items do
+    // not move and hiding is unavailable.
+    private func verifyHideMechanismIfNeeded(before: HideMechanismGeometry?) {
+        guard needsHideMechanismVerification, !hideMechanismChecked else { return }
+        guard let before = before else { return }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            guard let self = self, self.isCollapsed else { return }
+            guard let after = self.hideMechanismGeometry() else { return }
+
+            self.hideMechanismChecked = true
+            let requested = self.btnHiddenCollapseLength
+            let separatorShift = abs(after.separatorMinX - before.separatorMinX)
+            let arrowShift = abs(after.arrowMinX - before.arrowMinX)
+            let requiredShift = min(100, requested * 0.1)
+            let didDisplaceItems = max(separatorShift, arrowShift) >= requiredShift
+
+            NSLog("HideMechanism: requested=\(requested) beforeSepX=\(before.separatorMinX) afterSepX=\(after.separatorMinX) beforeArrowX=\(before.arrowMinX) afterArrowX=\(after.arrowMinX) afterSepWidth=\(after.separatorWidth) displaced=\(didDisplaceItems)")
+
+            if !didDisplaceItems {
+                self.markHideMechanismUnavailable()
+            }
+        }
+    }
+
+    private func markHideMechanismUnavailable() {
+        isHideMechanismUnavailable = true
+        restoreExpandedMenuBarState()
+        addHideMechanismUnavailableNotice()
+
+        if Preferences.useFullStatusBarOnExpandEnabled {
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+
+        NSLog("HideMechanism: unavailable on this macOS version; restored expanded state")
+    }
+
+    private func addHideMechanismUnavailableNotice() {
+        guard let menu = btnSeparate.menu,
+              menu.item(withTag: hideMechanismNoticeTag) == nil
+        else { return }
+
+        let item = NSMenuItem(title: "Hiding is unavailable on this macOS version", action: nil, keyEquivalent: "")
+        item.tag = hideMechanismNoticeTag
+        item.isEnabled = false
+        menu.insertItem(item, at: min(2, menu.numberOfItems))
     }
     
     private func startTimerToAutoHide() {

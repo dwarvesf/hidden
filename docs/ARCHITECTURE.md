@@ -98,8 +98,10 @@ A full-tree audit (2026-06) scored 9/10 with hygiene-level findings only.
   trick cannot reveal them there. The real fix is a spillover/second-bar design
   (tracked in issues #357/#341/#148; candidate implementations in PRs #350/#358).
 - **macOS 27**: the menu bar re-architecture in macOS 27 betas
-  (`NSMenuBarNavigationSceneExtension`) breaks length-inflation hiding entirely
-  (issue #360). A different mechanism may be required.
+  (`NSMenuBarNavigationSceneExtension`) lets the separator grow without moving
+  neighboring status items, so length-inflation no longer hides icons. The app
+  detects that state and degrades to expanded mode; a different mechanism is
+  still required for real hiding (issue #360/#366).
 - **Other apps' open menus**: interaction-awareness is pointer-position-based;
   a pointer deep inside another app's open dropdown is below the menubar band,
   so the collapse can still fire there.
