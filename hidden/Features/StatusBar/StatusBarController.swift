@@ -76,6 +76,7 @@ class StatusBarController {
     private var hideMechanismChecked = false
     private var isHideMechanismUnavailable = false
     private let hideMechanismNoticeTag = 27360
+    private var contextMenu: NSMenu?
 
     private var hoverMonitor: Any?
     private var hoverDwellTimer: Timer?
@@ -234,10 +235,12 @@ class StatusBarController {
     }
 
     private func setupUI() {
+        btnSeparate.length = btnHiddenLength
         if let button = btnSeparate.button {
             button.image = self.imgIconLine
         }
         let menu = self.getContextMenu()
+        contextMenu = menu
         btnSeparate.menu = menu
 
         updateAutoCollapseMenuTitle()
@@ -255,26 +258,36 @@ class StatusBarController {
     }
     
     @objc func btnExpandCollapsePressed(sender: NSStatusBarButton) {
-        if let event = NSApp.currentEvent {
-
-            let isOptionKeyPressed = event.modifierFlags.contains(NSEvent.ModifierFlags.option)
-
-            if event.type == NSEvent.EventType.leftMouseUp && !isOptionKeyPressed{
-                self.expandCollapseIfNeeded()
-            } else if event.type == NSEvent.EventType.rightMouseUp && !isOptionKeyPressed {
-                // Right-click opens the same context menu the separator has (#356),
-                // making settings reachable from the control everyone clicks.
-                // The separators/always-hidden toggle stays on option-click.
-                showContextMenu(from: sender)
+        guard let event = NSApp.currentEvent else {
+            if isHideMechanismUnavailable {
+                openPreferenceViewControllerIfNeeded()
             } else {
-                // Both option+left and option+right land here: separators toggle.
-                self.showHideSeparatorsAndAlwayHideArea()
+                expandCollapseIfNeeded()
             }
+            return
+        }
+
+        let isOptionKeyPressed = event.modifierFlags.contains(NSEvent.ModifierFlags.option)
+
+        if event.type == NSEvent.EventType.leftMouseUp && !isOptionKeyPressed{
+            if isHideMechanismUnavailable {
+                openPreferenceViewControllerIfNeeded()
+            } else {
+                self.expandCollapseIfNeeded()
+            }
+        } else if event.type == NSEvent.EventType.rightMouseUp && !isOptionKeyPressed {
+            // Right-click opens the same context menu the separator has (#356),
+            // making settings reachable from the control everyone clicks.
+            // The separators/always-hidden toggle stays on option-click.
+            showContextMenu(from: sender)
+        } else {
+            // Both option+left and option+right land here: separators toggle.
+            self.showHideSeparatorsAndAlwayHideArea()
         }
     }
 
     private func showContextMenu(from button: NSStatusBarButton) {
-        guard let menu = btnSeparate.menu else { return }
+        guard let menu = contextMenu else { return }
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.maxY + 5), in: button)
     }
     
@@ -409,6 +422,7 @@ class StatusBarController {
         isHideMechanismUnavailable = true
         restoreExpandedMenuBarState()
         addHideMechanismUnavailableNotice()
+        routeSeparatorClicksThroughAction()
 
         if Preferences.useFullStatusBarOnExpandEnabled {
             NSApp.setActivationPolicy(.regular)
@@ -418,8 +432,35 @@ class StatusBarController {
         NSLog("HideMechanism: unavailable on this macOS version; restored expanded state")
     }
 
+    private func routeSeparatorClicksThroughAction() {
+        btnSeparate.menu = nil
+        guard let button = btnSeparate.button else { return }
+        button.target = self
+        button.action = #selector(btnSeparatePressed(sender:))
+        button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+    }
+
+    @objc private func btnSeparatePressed(sender: NSStatusBarButton) {
+        guard let event = NSApp.currentEvent else {
+            openPreferenceViewControllerIfNeeded()
+            return
+        }
+
+        let isOptionKeyPressed = event.modifierFlags.contains(NSEvent.ModifierFlags.option)
+
+        if event.type == NSEvent.EventType.leftMouseUp && !isOptionKeyPressed && isHideMechanismUnavailable {
+            openPreferenceViewControllerIfNeeded()
+        } else if event.type == NSEvent.EventType.rightMouseUp && !isOptionKeyPressed {
+            showContextMenu(from: sender)
+        } else if isOptionKeyPressed {
+            showHideSeparatorsAndAlwayHideArea()
+        } else {
+            showContextMenu(from: sender)
+        }
+    }
+
     private func addHideMechanismUnavailableNotice() {
-        guard let menu = btnSeparate.menu,
+        guard let menu = contextMenu,
               menu.item(withTag: hideMechanismNoticeTag) == nil
         else { return }
 
@@ -465,7 +506,7 @@ class StatusBarController {
     }
     
     private func updateAutoCollapseMenuTitle() {
-        guard let toggleAutoHideItem = btnSeparate.menu?.item(withTag: 1) else { return }
+        guard let toggleAutoHideItem = contextMenu?.item(withTag: 1) else { return }
         if Preferences.isAutoHide {
             toggleAutoHideItem.title = "Disable Auto Collapse".localized
         } else {

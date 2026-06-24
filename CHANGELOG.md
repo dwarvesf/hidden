@@ -13,7 +13,7 @@ Requires macOS 13 Ventura or later. (Pre-Ventura users: stay on
 - Multi-display: the collapse width is now sized for the widest attached screen, so icons no longer leak on wider external monitors; the width re-applies on display hot-plug.
 - Auto-collapse no longer fires while you are interacting with the menu bar (the timer defers and re-arms while the pointer is in the bar).
 - The Preferences window no longer closes when auto-collapse fires with "use full menu bar on expanding" enabled (#170, #66, #151).
-- macOS 27: Hidden Bar now detects when separator-length inflation no longer displaces menu-bar items and restores expanded state instead of staying fake-collapsed (#360).
+- macOS 27: Hidden Bar now detects when separator-length inflation no longer displaces menu-bar items, restores expanded state instead of staying fake-collapsed, and keeps Preferences reachable from the arrow (#360).
 - Status items that were dragged off the bar are restored at launch instead of leaving the app unreachable.
 - Fixed constraint and observer leaks in the tutorial view rebuild.
 - Tutorial strings and F-key shortcut labels now render correctly (no more private-use glyphs).

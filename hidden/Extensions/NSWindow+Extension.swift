@@ -11,7 +11,7 @@ import AppKit
 extension NSWindow {
     func bringToFront() {
         self.makeKeyAndOrderFront(nil)
+        self.orderFrontRegardless()
         NSApp.activate(ignoringOtherApps: true)
     }
 }
-
