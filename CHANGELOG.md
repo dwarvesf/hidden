@@ -16,11 +16,12 @@ Requires macOS 13 Ventura or later. (Pre-Ventura users: stay on
 - Status items that were dragged off the bar are restored at launch instead of leaving the app unreachable.
 - Fixed constraint and observer leaks in the tutorial view rebuild.
 - Tutorial strings and F-key shortcut labels now render correctly (no more private-use glyphs).
+- macOS 27: Hidden Bar now detects that collapsing no longer hides icons on the re-architected menu bar and degrades gracefully — it stops inflating the separator, keeps the menu bar usable, restores the app's activation policy, and shows a one-time notice linking #360 — instead of silently doing nothing.
 
 ### Changed
 - Start-at-login now uses `SMAppService` (macOS 13+); the legacy launcher helper was removed and any leftover login item is deauthorized automatically on first launch.
 - Pinned the HotKey dependency to an exact version and removed an unused file-access entitlement and dead code (no behavior change).
 
 ### Known / in progress
-- macOS 27: the hide mechanism (separator-length inflation) can stop working on the re-architected menu bar (#360). This build adds diagnostics to characterize the failure; the graceful-degrade behavior and the longer-term managed-overflow redesign are tracked separately.
+- macOS 27 (#360): restoring actual icon hiding on the re-architected menu bar needs the longer-term managed-overflow redesign (#366). This build detects the failure and degrades gracefully in the meantime (see Fixed).
 - New menu-bar icons can appear in the hidden zone because macOS inserts them at the far left; ⌘-drag them to the right of the separator (see the manual). A built-in pin is part of the planned redesign.

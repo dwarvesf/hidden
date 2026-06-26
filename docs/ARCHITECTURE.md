@@ -97,9 +97,16 @@ A full-tree audit (2026-06) scored 9/10 with hygiene-level findings only.
 - **The notch**: hidden icons sit "under" the notch area on notched Macs; the
   trick cannot reveal them there. The real fix is a spillover/second-bar design
   (tracked in issues #357/#341/#148; candidate implementations in PRs #350/#358).
-- **macOS 27**: the menu bar re-architecture in macOS 27 betas
-  (`NSMenuBarNavigationSceneExtension`) breaks length-inflation hiding entirely
-  (issue #360). A different mechanism may be required.
+- **macOS 27**: on macOS 27 ("Golden Gate") inflating the separator's length no
+  longer pushes neighboring icons off-screen — the separator's own backing window
+  simply grows wider than the screen while its neighbors stay put, so hiding
+  silently does nothing (issue #360). On macOS <= 26 a status item's backing window
+  is the shared, screen-wide menu-bar window, so lengthening the item reflows the
+  bar and pushes neighbors off-screen. The app detects the macOS 27 behavior on the
+  first collapse (the separator's backing window ends up wider than the screen) and
+  degrades gracefully: it stops inflating, restores the bar, and shows a one-time
+  notice. Restoring real hiding needs a different mechanism (the managed-overflow
+  redesign, #366).
 - **Other apps' open menus**: interaction-awareness is pointer-position-based;
   a pointer deep inside another app's open dropdown is below the menubar band,
   so the collapse can still fire there.

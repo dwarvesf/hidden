@@ -109,11 +109,23 @@ enum Preferences {
         get {
             UserDefaults.standard.bool(forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
         }
-        
+
         set {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
         }
     }
-    
-    
+
+    // Latches the one-time "hiding is unavailable on macOS 27" notice (#360) so it
+    // is shown at most once per user. No notification post: nothing observes it.
+    static var didShowMacOS27HideUnavailableNotice: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.didShowMacOS27HideUnavailableNotice)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.didShowMacOS27HideUnavailableNotice)
+        }
+    }
+
+
 }

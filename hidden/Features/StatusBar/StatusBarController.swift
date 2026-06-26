@@ -63,15 +63,20 @@ class StatusBarController {
     
     private var isToggle = false
 
-    // SPEC-003 (macOS 27 hide-mechanism). macOS 27 re-architected the menu bar so
-    // inflating the separator length may no longer push items off-screen (#360).
-    // This is DIAGNOSTIC ONLY: on the first collapse with the menu-bar window
-    // ready, log the separator geometry so a macOS 27 run reveals which signal
-    // (if any) distinguishes "length honored" from "ignored". No behavior change.
-    // The degrade ACTION is deliberately NOT shipped: review found the trigger
-    // unverifiable without 27 hardware, and a false positive would disable hiding
-    // for a working user. The action lands once this log calibrates the signal.
+    // macOS 27 hide-mechanism (#360). On macOS 27 ("Golden Gate") inflating the
+    // separator grows OUR item's own backing window wider than the screen without
+    // pushing neighboring icons off-screen: hiding silently does nothing. We detect
+    // that on the first collapse and degrade gracefully (stop inflating, restore the
+    // bar, notify once). The whole action is gated behind macOS >= 27, so macOS <= 26
+    // behavior is byte-identical.
     private var hideMechanismChecked = false
+    // Latched once the degrade has run, to stop any further collapse/auto-hide
+    // attempt from re-inflating the separator in a loop.
+    private var hideDegraded = false
+    // Context-menu item revealed only while degraded; links to #360.
+    private weak var macOS27NoticeMenuItem: NSMenuItem?
+
+    private static let macOS27IssueURL = "https://github.com/dwarvesf/hidden/issues/360"
 
     private var hoverMonitor: Any?
     private var hoverDwellTimer: Timer?
@@ -148,6 +153,8 @@ class StatusBarController {
     }
     
     @objc private func handleScreenParametersChanged() {
+        // Once degraded on macOS 27 there is nothing to re-apply; never re-inflate.
+        guard !hideDegraded else { return }
         // Re-apply the recomputed length to the LIVE item when collapsed, or a
         // display hot-plug leaves the separator at a stale length (PR #354).
         let wasCollapsed = isCollapsed
@@ -227,8 +234,11 @@ class StatusBarController {
     }
     
     func showHideSeparatorsAndAlwayHideArea() {
+        // After the macOS 27 degrade there is nothing to hide; don't re-inflate
+        // the always-hidden separator into a dead zone.
+        guard !hideDegraded else { return }
         Preferences.areSeparatorsHidden ? self.showSeparators() : self.hideSeparators()
-        
+
         if self.isCollapsed {self.expandMenubar()}
     }
     
@@ -263,6 +273,16 @@ class StatusBarController {
     }
     
     private func collapseMenuBar() {
+        // macOS 27 (#360): hiding has been confirmed unavailable, so do not inflate.
+        guard !hideDegraded else { return }
+        // If a previous launch already confirmed hiding is unavailable on macOS 27
+        // (the one-time notice was shown), degrade up front instead of inflating the
+        // separator first — otherwise it visibly stretches then snaps back on every
+        // launch. The notice flag is only ever set on macOS 27.
+        if ProcessInfo.processInfo.isMacOS27OrLater, Preferences.didShowMacOS27HideUnavailableNotice {
+            degradeHideUnavailable()
+            return
+        }
         guard self.isBtnSeparateValidPosition && !self.isCollapsed else {
             autoCollapseIfNeeded()
             return
@@ -294,36 +314,133 @@ class StatusBarController {
     }
     
     private func autoCollapseIfNeeded() {
+        guard !hideDegraded else { return }
         guard Preferences.isAutoHide else {return}
         guard !isCollapsed else { return }
 
         startTimerToAutoHide()
     }
 
-    // After a collapse, confirm on the next runloop tick (so layout settles) that
-    // the separator actually claimed its inflated width. macOS <= 26 honors it;
-    // a macOS that ignores NSStatusItem.length leaves the slot narrow, meaning
-    // hiding did nothing. Checked once: cheap, and the OS behavior won't change
-    // mid-session.
+    // After a collapse, confirm on the next runloop tick (so layout settles)
+    // whether inflating the separator actually hid neighbors. macOS <= 26 shares one
+    // menu-bar window across all items, so the separator's backing window stays
+    // screen-wide (honored). macOS 27 gives each item its own window, so inflating
+    // grows that window wider than the screen while neighbors stay put (ignored):
+    // hiding is a no-op. Checked once; the OS behavior won't change mid-session.
     private func verifyHideMechanismIfNeeded() {
         guard !hideMechanismChecked else { return }
         DispatchQueue.main.async { [weak self] in
             guard let self = self, self.isCollapsed else { return }
+            guard !self.hideMechanismChecked else { return }
             // Need the separator's backing window to measure. If it is not up yet
             // (early launch), do NOT burn the one-shot check: return and let a
             // later collapse retry once the window exists.
             guard let separatorButton = self.btnSeparate.button,
                   let window = separatorButton.window else { return }
+            // Latch only AFTER a real measurement is possible, so a transient nil
+            // window never burns the one-shot check.
             self.hideMechanismChecked = true
-            // Log several geometry signals. On macOS <= 26 the inflation is
-            // honored; on macOS 27 it may be ignored. Which of these tracks the
-            // requested length is exactly what a 27 capture must reveal before any
-            // degrade action can trigger on a sound signal.
+
             let requested = self.btnHiddenCollapseLength
             let windowWidth = window.frame.width
             let buttonWidth = separatorButton.frame.width
-            NSLog("HideMechanism: requested=\(requested) windowWidth=\(windowWidth) buttonWidth=\(buttonWidth) length=\(self.btnSeparate.length)")
+            let screenWidth = NSScreen.screens.map { $0.frame.width }.max() ?? 0
+            NSLog("HideMechanism: requested=\(requested) windowWidth=\(windowWidth) buttonWidth=\(buttonWidth) length=\(self.btnSeparate.length) screenWidth=\(screenWidth) os=\(ProcessInfo.processInfo.operatingSystemVersionString)")
+
+            // The degrade action is macOS-27-only: macOS <= 26 keeps the diagnostic
+            // log above and nothing else, so its behavior is byte-identical.
+            guard ProcessInfo.processInfo.isMacOS27OrLater else { return }
+
+            // No `?? requested` fallback: an unmeasurable outcome is never coerced
+            // to "honored". `ignored` and `inconclusive` both degrade (on macOS 27
+            // hiding is broken regardless, so a residual false positive is safe).
+            switch self.evaluateHideOutcome(separatorWindow: window, screenWidth: screenWidth) {
+            case .honored:
+                break // a macOS 27.x that restored the trick: keep hiding, do nothing
+            case .ignored, .inconclusive:
+                self.degradeHideUnavailable()
+            }
         }
+    }
+
+    private enum HideOutcome {
+        case honored      // inflation displaced neighbors -> hiding works
+        case ignored      // inflation only grew our own window -> hiding is a no-op (#360)
+        case inconclusive // could not measure
+    }
+
+    // Discriminate "hiding worked" from "hiding is a no-op" by whether the
+    // separator's backing window is wider than the screen. macOS <= 26 packs every
+    // status item into ONE shared menu-bar window whose width is the screen width,
+    // no matter how long our item is. macOS 27 gives each item its OWN window, so
+    // inflating grows that window far wider than the screen. A separator window
+    // wider than its screen therefore means the inflation stayed inside our own item
+    // and displaced nothing. (The system caps the inflated window near ~5000pt, so
+    // comparing against the requested length is unreliable; the screen width is the
+    // stable reference.) Only consulted under the macOS-27 gate.
+    private func evaluateHideOutcome(separatorWindow: NSWindow, screenWidth: CGFloat) -> HideOutcome {
+        guard screenWidth > 0 else { return .inconclusive }
+        let ownWindowExceedsScreen = separatorWindow.frame.width > screenWidth * 1.1
+        return ownWindowExceedsScreen ? .ignored : .honored
+    }
+
+    // macOS 27 (#360): stop the futile inflation, return the bar to its expanded
+    // state, and tell the user once. Idempotent.
+    private func degradeHideUnavailable() {
+        guard !hideDegraded else { return }
+        hideDegraded = true
+
+        // Undo the inflation so the bar looks normal instead of leaving a wide
+        // empty slot. isCollapsed derives from btnSeparate.length, so resetting it
+        // to btnHiddenLength makes isCollapsed == false: state stays consistent.
+        btnSeparate.length = btnHiddenLength
+        if Preferences.areSeparatorsHidden {
+            btnAlwaysHidden?.length = btnAlwaysHiddenLength
+        }
+        if let button = btnExpandCollapse.button {
+            button.image = Assets.collapseImage
+        }
+
+        // collapseMenuBar() switched the app to .accessory and deactivated it under
+        // "use full menu bar on expanding". Mirror expandMenubar()'s restore, or the
+        // bar shows while the app stays stuck in .accessory.
+        if Preferences.useFullStatusBarOnExpandEnabled {
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+
+        // Kill the auto-hide and hover timers so neither can re-enter collapse logic.
+        timer?.invalidate()
+        timer = nil
+        hoverDwellTimer?.invalidate()
+        hoverDwellTimer = nil
+
+        macOS27NoticeMenuItem?.isHidden = false
+        NSLog("HideMechanism: degraded - macOS 27 hide unavailable (#360)")
+
+        if !Preferences.didShowMacOS27HideUnavailableNotice {
+            Preferences.didShowMacOS27HideUnavailableNotice = true
+            presentMacOS27DegradeAlert()
+        }
+    }
+
+    private func presentMacOS27DegradeAlert() {
+        let alert = NSAlert()
+        alert.alertStyle = .informational
+        alert.messageText = "Menu bar hiding isn't available on macOS 27".localized
+        alert.informativeText = "macOS 27 changed how the menu bar works, so Hidden Bar can no longer hide other apps' icons by collapsing. This is a known limitation tracked on GitHub; Hidden Bar will stay out of the way until a compatible method is available.".localized
+        alert.addButton(withTitle: "Learn More".localized)
+        alert.addButton(withTitle: "OK".localized)
+        // Accessory apps don't own the active state; pull the alert to the front.
+        NSApp.activate(ignoringOtherApps: true)
+        if alert.runModal() == .alertFirstButtonReturn {
+            openMacOS27Notice()
+        }
+    }
+
+    @objc private func openMacOS27Notice() {
+        guard let url = URL(string: StatusBarController.macOS27IssueURL) else { return }
+        NSWorkspace.shared.open(url)
     }
     
     private func startTimerToAutoHide() {
@@ -345,6 +462,15 @@ class StatusBarController {
     private func getContextMenu() -> NSMenu {
         let menu = NSMenu()
         
+        // Hidden until the macOS 27 degrade runs; then it links to #360 so users
+        // understand why hiding stopped. A hidden item renders nothing, so the menu
+        // is unchanged on macOS <= 26 and before degrade.
+        let noticeItem = NSMenuItem(title: "Hiding unavailable on macOS 27 - Learn more".localized, action: #selector(openMacOS27Notice), keyEquivalent: "")
+        noticeItem.target = self
+        noticeItem.isHidden = true
+        menu.addItem(noticeItem)
+        self.macOS27NoticeMenuItem = noticeItem
+
         let prefItem = NSMenuItem(title: "Preferences...".localized, action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: "P")
         prefItem.target = self
         menu.addItem(prefItem)
