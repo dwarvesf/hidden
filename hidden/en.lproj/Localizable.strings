@@ -12,6 +12,13 @@
 "Disable Auto Collapse" = "Disable Auto Collapse";
 "Quit" = "Quit";
 "Set Shortcut" = "Set Shortcut";
+
+/* macOS 27 hide-mechanism degrade notice (#360). English-only for now; translations welcome. */
+"Hiding unavailable on macOS 27 - Learn more" = "Hiding unavailable on macOS 27 - Learn more";
+"Menu bar hiding isn't available on macOS 27" = "Menu bar hiding isn't available on macOS 27";
+"macOS 27 changed how the menu bar works, so Hidden Bar can no longer hide other apps' icons by collapsing. This is a known limitation tracked on GitHub; Hidden Bar will stay out of the way until a compatible method is available." = "macOS 27 changed how the menu bar works, so Hidden Bar can no longer hide other apps' icons by collapsing. This is a known limitation tracked on GitHub; Hidden Bar will stay out of the way until a compatible method is available.";
+"Learn More" = "Learn More";
+"OK" = "OK";
 "Tutorial text" = "
 Use the always hidden feature to keep your icons tidy. Here's how to set it
 Steps to enable:
