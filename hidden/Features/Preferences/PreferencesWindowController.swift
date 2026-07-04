@@ -32,7 +32,17 @@ class PreferencesWindowController: NSWindowController {
     
     override func windowDidLoad() {
         super.windowDidLoad()
+        configureWindowChrome()
         updateVC()
+    }
+
+    private func configureWindowChrome() {
+        guard let window = window else { return }
+
+        window.styleMask.remove(.fullSizeContentView)
+        window.titlebarAppearsTransparent = false
+        window.titleVisibility = .hidden
+        window.toolbar?.displayMode = .iconOnly
     }
     
     override func keyDown(with event: NSEvent) {

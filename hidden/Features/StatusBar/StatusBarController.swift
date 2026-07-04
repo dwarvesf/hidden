@@ -107,10 +107,6 @@ class StatusBarController {
         setupAlwayHideStatusBar()
         setupHoverToExpandIfEnabled()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            self?.collapseMenuBar()
-        }
-        
         if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
     }
@@ -277,6 +273,8 @@ class StatusBarController {
             NSApp.deactivate()
         }
         verifyHideMechanismIfNeeded()
+
+        SecondaryBarWindowController.shared.show()
     }
     private func expandMenubar() {
         guard self.isCollapsed else {return}
@@ -291,6 +289,8 @@ class StatusBarController {
             NSApp.activate(ignoringOtherApps: true)
             
         }
+
+        SecondaryBarWindowController.shared.hide()
     }
     
     private func autoCollapseIfNeeded() {
