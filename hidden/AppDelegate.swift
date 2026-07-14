@@ -27,11 +27,31 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        // Prevent multiple instances (issue #324)
+        guard ensureSingleInstance() else { return }
+
         setupAutoStartApp()
         registerDefaultValues()
         setupHotKey()
         openPreferencesIfNeeded()
         detectLTRLang()
+    }
+
+    /// Checks if another instance of Hidden Bar is already running.
+    /// If so, brings it to front and terminates this instance.
+    /// Returns `false` when terminating, `true` to continue launch.
+    private func ensureSingleInstance() -> Bool {
+        guard let bundleID = Bundle.main.bundleIdentifier else { return true }
+        let runningApps = NSWorkspace.shared.runningApplications
+
+        guard let existing = runningApps.first(where: {
+            $0.bundleIdentifier == bundleID && $0 != .current
+        }) else { return true }
+
+        NSLog("Multiple instances detected — bringing existing instance to front")
+        existing.activate(options: .activateIgnoringOtherApps)
+        NSApp.terminate(nil)
+        return false
     }
     
     func openPreferencesIfNeeded() {
