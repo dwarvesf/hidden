@@ -18,5 +18,16 @@ jobs:
           -scheme "Hidden Bar"
           -configuration Debug
           -destination "platform=macOS"
+          -derivedDataPath build/DerivedData
           CODE_SIGNING_ALLOWED=NO
           build
+      - name: Package app
+        run: >-
+          ditto -c -k --sequesterRsrc --keepParent
+          "build/DerivedData/Build/Products/Debug/Hidden Bar.app"
+          Hidden-Bar-notch-overflow.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Hidden-Bar-notch-overflow
+          path: Hidden-Bar-notch-overflow.zip
+          if-no-files-found: error
