@@ -22,10 +22,12 @@ jobs:
           CODE_SIGNING_ALLOWED=NO
           build
       - name: Package app
-        run: >-
-          ditto -c -k --sequesterRsrc --keepParent
-          "build/DerivedData/Build/Products/Debug/Hidden Bar.app"
-          Hidden-Bar-notch-overflow.zip
+        run: |
+          codesign --force --deep --sign - "build/DerivedData/Build/Products/Debug/Hidden Bar.app"
+          codesign --verify --deep --strict "build/DerivedData/Build/Products/Debug/Hidden Bar.app"
+          ditto -c -k --sequesterRsrc --keepParent \
+            "build/DerivedData/Build/Products/Debug/Hidden Bar.app" \
+            Hidden-Bar-notch-overflow.zip
       - uses: actions/upload-artifact@v4
         with:
           name: Hidden-Bar-notch-overflow
