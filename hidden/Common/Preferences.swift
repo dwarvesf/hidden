@@ -94,6 +94,15 @@ enum Preferences {
             NotificationCenter.default.post(Notification(name: .alwayHideToggle))
         }
     }
+    static var hoverToExpand: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.hoverToExpand)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.hoverToExpand)
+        }
+    }
 
     static var useFullStatusBarOnExpandEnabled: Bool {
         get {

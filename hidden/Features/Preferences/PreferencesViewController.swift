@@ -57,6 +57,10 @@ class PreferencesViewController: NSViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
     }
 
+    deinit {
+        // Balance the viewDidLoad observer (PRs #335/#346).
+        NotificationCenter.default.removeObserver(self, name: .prefsChanged, object: nil)
+    }
     static func initWithStoryboard() -> PreferencesViewController {
         let vc = NSStoryboard(name:"Main", bundle: nil).instantiateController(withIdentifier: "prefVC") as! PreferencesViewController
         return vc
@@ -227,11 +231,7 @@ extension PreferencesViewController {
                 image.heightAnchor.constraint(equalToConstant: imageWidth)
 
             ])
-            if #available(OSX 10.14, *) {
-                image.contentTintColor = .labelColor
-            } else {
-                // Fallback on earlier versions
-            }
+            image.contentTintColor = .labelColor
         }
         let dateTimeLabel = NSTextField()
         dateTimeLabel.stringValue = Date.dateString() + " " + Date.timeString()
@@ -269,11 +269,7 @@ extension PreferencesViewController {
                 image.heightAnchor.constraint(equalToConstant: imageWidth)
 
             ])
-            if #available(OSX 10.14, *) {
-                image.contentTintColor = .labelColor
-            } else {
-                // Fallback on earlier versions
-            }
+            image.contentTintColor = .labelColor
         }
         let dateTimeLabel = NSTextField()
         dateTimeLabel.stringValue = Date.dateString() + " " + Date.timeString()

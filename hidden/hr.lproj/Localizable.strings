@@ -15,9 +15,9 @@
 "Tutorial text" = "
  Koristi funkciju skrivanja ikona za održavanje reda u traci izbornika. Postavlja se na sljedeći način
  Koraci za uključivanje:
- 1. Uključi uvijek skriveno „􀥤” (poluprozirna okomita crta)
- 2. Pritisni i povuci 􀆔 na lijevu stranu standardne trake, zatim premjesti ikone koje želiš sakriti na lijevu stranu te trake.
- 3. Na kraju pritisni desnom tipkom miša na ikonu za sklapanje „􀆊” kako bi se ikone sakrile.
+ 1. Uključi uvijek skriveno „|” (poluprozirna okomita crta)
+ 2. Pritisni i povuci ⌘ na lijevu stranu standardne trake, zatim premjesti ikone koje želiš sakriti na lijevu stranu te trake.
+ 3. Na kraju pritisni desnom tipkom miša na ikonu za sklapanje „<” kako bi se ikone sakrile.
  Koraci za prikazivanje uvijek skrivenih ikona:
- 1. Pritisni desnom tipkom miša ponovo na ikonu „􀆊” i ponovi radnju za uključivanje funkcije. Uživaj 😉!
+ 1. Pritisni desnom tipkom miša ponovo na ikonu „<” i ponovi radnju za uključivanje funkcije. Uživaj 😉!
 ";
