@@ -22,6 +22,7 @@ Everything Hidden Bar can do, including the parts with no UI.
 | Global shortcut | System-wide expand/collapse hotkey (F-keys display as F18, not Fn18) |
 | Enable always hidden section | A second zone whose icons stay hidden even when expanded; revealed by option-clicking the arrow |
 | Use full menu bar on expanding | App becomes briefly "regular" while expanded (helps on tight menubars) |
+| Show hidden items in separate bar | Captures hidden icons into a floating row below the menu bar; requires Screen Recording, and Accessibility for click forwarding |
 
 > **Always-hidden section, current behavior:** items in the always-hidden zone
 > are reliably pushed off-screen only when "hide separators" is also on

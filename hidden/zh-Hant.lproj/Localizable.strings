@@ -11,6 +11,8 @@
 "Toggle Auto Collapse" = "開關自動收合";
 "Enable Auto Collapse" = "開啟自動收合";
 "Disable Auto Collapse" = "關閉自動收合";
+"Show hidden items in separate bar" = "在獨立的浮動列中顯示隱藏項目";
+"Hidden items unavailable" = "無法讀取隱藏項目";
 "Set Shortcut" = "設定快速鍵";
 "Tutorial text" = "
 「持續隱藏」功能讓您的圖示永保整潔。本文會引導您設定這個功能。

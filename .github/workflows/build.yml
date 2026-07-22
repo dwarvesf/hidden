@@ -1,0 +1,22 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - agent/notch-overflow-bar
+  pull_request:
+
+jobs:
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Hidden Bar
+        run: >-
+          xcodebuild
+          -project "Hidden Bar.xcodeproj"
+          -scheme "Hidden Bar"
+          -configuration Debug
+          -destination "platform=macOS"
+          CODE_SIGNING_ALLOWED=NO
+          build
