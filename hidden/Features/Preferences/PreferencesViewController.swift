@@ -90,7 +90,11 @@ class PreferencesViewController: NSViewController {
     }
 
     @IBAction func showHiddenItemsInSeparateBarChanged(_ sender: NSButton) {
-        Preferences.showHiddenItemsInSeparateBar = sender.state == .on
+        let isEnabled = sender.state == .on
+        Preferences.showHiddenItemsInSeparateBar = isEnabled
+        if isEnabled, #available(OSX 10.15, *), !CGPreflightScreenCaptureAccess() {
+            CGRequestScreenCaptureAccess()
+        }
     }
 
 

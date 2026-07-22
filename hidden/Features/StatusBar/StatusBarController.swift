@@ -606,10 +606,7 @@ extension StatusBarController {
 
     private func canCaptureScreenForSeparatePanel() -> Bool {
         if #available(OSX 10.15, *) {
-            guard CGPreflightScreenCaptureAccess() else {
-                CGRequestScreenCaptureAccess()
-                return false
-            }
+            return CGPreflightScreenCaptureAccess()
         }
         return true
     }
