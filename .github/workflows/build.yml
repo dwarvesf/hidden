@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - agent/notch-overflow-bar
+      - "agent/**"
   pull_request:
 
 jobs:
