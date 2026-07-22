@@ -97,13 +97,14 @@
                                 <toolbarItem implicitItemIdentifier="F7DA19CF-BC58-47E1-8140-D04939EE4CA7" label="Custom View" paletteLabel="Custom View" sizingBehavior="auto" id="NIO-JJ-pjq">
                                     <nil key="toolTip"/>
                                     <segmentedControl key="view" verticalHuggingPriority="750" id="wAJ-zO-0Lg">
-                                        <rect key="frame" x="0.0" y="14" width="145" height="23"/>
+                                        <rect key="frame" x="0.0" y="14" width="270" height="23"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <segmentedCell key="cell" borderStyle="border" alignment="left" segmentDistribution="fillEqually" style="texturedSquare" trackingMode="selectOne" id="B2x-1Q-Aei">
                                             <font key="font" metaFont="system"/>
                                             <segments>
                                                 <segment label="General" selected="YES"/>
-                                                <segment label="About" tag="1"/>
+                                                <segment label="Menu Bar Items" tag="1"/>
+                                                <segment label="About" tag="2"/>
                                             </segments>
                                         </segmentedCell>
                                         <connections>

@@ -11,12 +11,6 @@ import Carbon
 import HotKey
 
 class PreferencesViewController: NSViewController {
-    private lazy var manageItemsButton: NSButton = {
-        let button = NSButton(title: "Manage Menu Bar Items…".localized, target: self, action: #selector(openMenuBarItemManager))
-        button.bezelStyle = .rounded
-        button.autoresizingMask = [.minXMargin, .minYMargin]
-        return button
-    }()
 
 
     //MARK: - Outlets
@@ -57,17 +51,11 @@ class PreferencesViewController: NSViewController {
     //MARK: - VC Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        manageItemsButton.frame = NSRect(x: max(20, view.bounds.width - 220), y: 168, width: 200, height: 30)
-        view.addSubview(manageItemsButton)
         checkBoxShowHiddenItemsInSeparateBar.title = "Show hidden items in separate bar".localized
         updateData()
         loadHotkey()
         createTutorialView()
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
-    }
-
-    @objc private func openMenuBarItemManager() {
-        MenuBarItemManagerWindowController.shared.show()
     }
 
     deinit {
