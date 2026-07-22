@@ -1,0 +1,36 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - "agent/**"
+  pull_request:
+
+jobs:
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Hidden Bar
+        run: >-
+          xcodebuild
+          -project "Hidden Bar.xcodeproj"
+          -scheme "Hidden Bar"
+          -configuration Release
+          -destination "platform=macOS"
+          -derivedDataPath build/DerivedData
+          CODE_SIGNING_ALLOWED=NO
+          build
+      - name: Package app
+        run: |
+          xattr -cr "build/DerivedData/Build/Products/Release/Hidden Bar.app"
+          codesign --force --deep --sign - "build/DerivedData/Build/Products/Release/Hidden Bar.app"
+          codesign --verify --deep --strict "build/DerivedData/Build/Products/Release/Hidden Bar.app"
+          ditto -c -k --keepParent \
+            "build/DerivedData/Build/Products/Release/Hidden Bar.app" \
+            Hidden-Bar-notch-overflow.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Hidden-Bar-notch-overflow
+          path: Hidden-Bar-notch-overflow.zip
+          if-no-files-found: error

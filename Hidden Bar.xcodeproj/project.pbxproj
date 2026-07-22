@@ -11,6 +11,7 @@
 		00137CDF24A63DB1004AC855 /* Notification.Name+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00137CDE24A63DB1004AC855 /* Notification.Name+Extension.swift */; };
 		0842CDFB23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0842CDFA23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift */; };
 		08A5F85A23AA007A00981CA5 /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F85923AA007A00981CA5 /* PreferencesViewController.swift */; };
+		7A4D10012E10000100B4A001 /* MenuBarItemManagerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D10002E10000100B4A001 /* MenuBarItemManagerWindowController.swift */; };
 		08A5F85C23AA013100981CA5 /* SelectedSecond.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F85B23AA013100981CA5 /* SelectedSecond.swift */; };
 		08A5F85F23AA01EE00981CA5 /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 08A5F85E23AA01EE00981CA5 /* HotKey */; };
 		08A5F86123AA085B00981CA5 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F86023AA085B00981CA5 /* Preferences.swift */; };
@@ -22,6 +23,7 @@
 		3CF14C82221FA49D0083D42B /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */; };
 		55F3F1192608923B0054B881 /* Date+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F3F1182608923B0054B881 /* Date+Extension.swift */; };
 		55F3F11D2608925A0054B881 /* StackView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F3F11C2608925A0054B881 /* StackView+Extension.swift */; };
+		6C0A10012DEBF00100A5E001 /* HiddenItemsBarPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0A10002DEBF00100A5E001 /* HiddenItemsBarPanelController.swift */; };
 		929113F521F9D04100173149 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929113F421F9D04100173149 /* AppDelegate.swift */; };
 		929113F921F9D04200173149 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 929113F821F9D04200173149 /* Assets.xcassets */; };
 		929113FC21F9D04200173149 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 929113FA21F9D04200173149 /* Main.storyboard */; };
@@ -41,6 +43,7 @@
 		00137CDE24A63DB1004AC855 /* Notification.Name+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification.Name+Extension.swift"; sourceTree = "<group>"; };
 		0842CDFA23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalKeybindingPreferences.swift; sourceTree = "<group>"; };
 		08A5F85923AA007A00981CA5 /* PreferencesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
+		7A4D10002E10000100B4A001 /* MenuBarItemManagerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarItemManagerWindowController.swift; sourceTree = "<group>"; };
 		08A5F85B23AA013100981CA5 /* SelectedSecond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedSecond.swift; sourceTree = "<group>"; };
 		08A5F86023AA085B00981CA5 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		08A5F86323AA09F300981CA5 /* UserDefault+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefault+Extension.swift"; sourceTree = "<group>"; };
@@ -59,6 +62,7 @@
 		55D9B6BD2661DEE8007AF073 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		55F3F1182608923B0054B881 /* Date+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extension.swift"; sourceTree = "<group>"; };
 		55F3F11C2608925A0054B881 /* StackView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StackView+Extension.swift"; sourceTree = "<group>"; };
+		6C0A10002DEBF00100A5E001 /* HiddenItemsBarPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiddenItemsBarPanelController.swift; sourceTree = "<group>"; };
 		9220587D22127050008A8B03 /* Hidden.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Hidden.entitlements; path = Hidden/Hidden.entitlements; sourceTree = "<group>"; };
 		929113F121F9D04100173149 /* Hidden Bar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hidden Bar.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		929113F421F9D04100173149 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -121,6 +125,7 @@
 			isa = PBXGroup;
 			children = (
 				92C97B9022018C1F0007559C /* StatusBarController.swift */,
+				6C0A10002DEBF00100A5E001 /* HiddenItemsBarPanelController.swift */,
 			);
 			path = StatusBar;
 			sourceTree = "<group>";
@@ -129,6 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				08A5F85923AA007A00981CA5 /* PreferencesViewController.swift */,
+				7A4D10002E10000100B4A001 /* MenuBarItemManagerWindowController.swift */,
 				3CF14C81221FA49D0083D42B /* PreferencesWindowController.swift */,
 			);
 			path = Preferences;
@@ -317,6 +323,7 @@
 				08A5F85C23AA013100981CA5 /* SelectedSecond.swift in Sources */,
 				08A5F86123AA085B00981CA5 /* Preferences.swift in Sources */,
 				92C97B9122018C1F0007559C /* StatusBarController.swift in Sources */,
+				6C0A10012DEBF00100A5E001 /* HiddenItemsBarPanelController.swift in Sources */,
 				55F3F1192608923B0054B881 /* Date+Extension.swift in Sources */,
 				08B9F32C2411883300AA0551 /* NSWindow+Extension.swift in Sources */,
 				929113F521F9D04100173149 /* AppDelegate.swift in Sources */,
@@ -325,6 +332,7 @@
 				967F4B2524169BC800F18D3C /* String+Extension.swift in Sources */,
 				00117C4426600671005E517C /* Assets.swift in Sources */,
 				08A5F85A23AA007A00981CA5 /* PreferencesViewController.swift in Sources */,
+				7A4D10012E10000100B4A001 /* MenuBarItemManagerWindowController.swift in Sources */,
 				3CF14C82221FA49D0083D42B /* PreferencesWindowController.swift in Sources */,
 				92C97B8B220049D20007559C /* NSBarButtonItem+Extension.swift in Sources */,
 				92C97B8D220058740007559C /* NSView+Extension.swift in Sources */,

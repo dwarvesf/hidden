@@ -80,8 +80,11 @@
 /* Class = "NSSegmentedCell"; B2x-1Q-Aei.ibShadowedLabels[0] = "General"; ObjectID = "B2x-1Q-Aei"; */
 "B2x-1Q-Aei.ibShadowedLabels[0]" = "一般";
 
-/* Class = "NSSegmentedCell"; B2x-1Q-Aei.ibShadowedLabels[1] = "About"; ObjectID = "B2x-1Q-Aei"; */
-"B2x-1Q-Aei.ibShadowedLabels[1]" = "關於";
+/* Class = "NSSegmentedCell"; B2x-1Q-Aei.ibShadowedLabels[1] = "Menu Bar Items"; ObjectID = "B2x-1Q-Aei"; */
+"B2x-1Q-Aei.ibShadowedLabels[1]" = "選單列項目";
+
+/* Class = "NSSegmentedCell"; B2x-1Q-Aei.ibShadowedLabels[2] = "About"; ObjectID = "B2x-1Q-Aei"; */
+"B2x-1Q-Aei.ibShadowedLabels[2]" = "關於";
 
 /* Class = "NSMenuItem"; title = "Preferences…"; ObjectID = "BOF-NM-1cW"; */
 "BOF-NM-1cW.title" = "偏好設定⋯";

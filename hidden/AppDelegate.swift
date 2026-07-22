@@ -61,7 +61,9 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             UserDefaults.Key.isAutoHide: true,
             UserDefaults.Key.numberOfSecondForAutoHide: 10.0,
             UserDefaults.Key.areSeparatorsHidden: false,
-            UserDefaults.Key.alwaysHiddenSectionEnabled: false
+            UserDefaults.Key.alwaysHiddenSectionEnabled: false,
+            UserDefaults.Key.useFullStatusBarOnExpandEnabled: false,
+            UserDefaults.Key.showHiddenItemsInSeparateBar: false
          ])
     }
     
