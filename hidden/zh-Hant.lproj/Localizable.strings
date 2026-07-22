@@ -20,6 +20,8 @@
 "Hidden" = "隱藏";
 "Visible" = "顯示";
 "Refresh" = "重新整理";
+"Grant Access" = "授予權限";
+"Enable Hidden Bar in System Settings, then return and refresh." = "請在系統設定中啟用目前版本的 Hidden Bar，然後返回並重新整理。";
 "Scanning menu bar items…" = "正在掃描選單列項目…";
 "Accessibility permission is required to list and move menu bar items." = "列出和移動選單列項目需要輔助使用權限。";
 "No manageable menu bar items were found." = "找不到可管理的選單列項目。";

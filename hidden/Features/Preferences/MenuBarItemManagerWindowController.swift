@@ -67,6 +67,7 @@ final class MenuBarItemManagerViewController: NSViewController {
     private let hiddenCountLabel = NSTextField(labelWithString: "")
     private let visibleCountLabel = NSTextField(labelWithString: "")
     private let statusLabel = NSTextField(wrappingLabelWithString: "")
+    private let permissionButton = NSButton(title: "Grant Access".localized, target: nil, action: nil)
     private let refreshButton = NSButton(title: "Refresh".localized, target: nil, action: nil)
     private var hiddenItems: [ManagedMenuBarItem] = []
     private var visibleItems: [ManagedMenuBarItem] = []
@@ -113,13 +114,17 @@ final class MenuBarItemManagerViewController: NSViewController {
 
         refreshButton.target = self
         refreshButton.action = #selector(refreshPressed)
+        permissionButton.target = self
+        permissionButton.action = #selector(permissionPressed)
+        permissionButton.isHidden = true
         statusLabel.textColor = .secondaryLabelColor
         statusLabel.maximumNumberOfLines = 2
-        let footer = NSStackView(views: [statusLabel, refreshButton])
+        let footer = NSStackView(views: [statusLabel, permissionButton, refreshButton])
         footer.orientation = .horizontal
         footer.alignment = .centerY
         footer.spacing = 12
         statusLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        permissionButton.setContentHuggingPriority(.required, for: .horizontal)
         refreshButton.setContentHuggingPriority(.required, for: .horizontal)
 
         let root = NSStackView(views: [title, help, columns, footer])
@@ -134,7 +139,7 @@ final class MenuBarItemManagerViewController: NSViewController {
         NSLayoutConstraint.activate([
             root.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             root.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            root.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+            root.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 20),
             root.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
             columns.widthAnchor.constraint(equalTo: root.widthAnchor),
             columns.heightAnchor.constraint(greaterThanOrEqualToConstant: 260),
@@ -189,16 +194,25 @@ final class MenuBarItemManagerViewController: NSViewController {
         refresh()
     }
 
+    @objc private func permissionPressed() {
+        let prompt = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
+        AXIsProcessTrustedWithOptions(prompt)
+        statusLabel.stringValue = "Enable Hidden Bar in System Settings, then return and refresh.".localized
+    }
+
     private func refresh() {
         guard !isScanning,
               let appDelegate = NSApp.delegate as? AppDelegate
         else { return }
-        guard ensureAccessibilityPermission() else {
+        guard AXIsProcessTrusted() else {
             statusLabel.stringValue = "Accessibility permission is required to list and move menu bar items.".localized
+            permissionButton.isHidden = false
+            refreshButton.isEnabled = true
             return
         }
 
         isScanning = true
+        permissionButton.isHidden = true
         refreshButton.isEnabled = false
         statusLabel.stringValue = "Scanning menu bar items…".localized
         appDelegate.statusBarController.prepareForItemManagement { [weak self] layout in
@@ -275,13 +289,8 @@ final class MenuBarItemManagerViewController: NSViewController {
             ? "No manageable menu bar items were found.".localized
             : "Drop an item to apply the real menu bar position.".localized
         isScanning = false
+        permissionButton.isHidden = true
         refreshButton.isEnabled = true
-    }
-
-    private func ensureAccessibilityPermission() -> Bool {
-        if AXIsProcessTrusted() { return true }
-        let prompt = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
-        return AXIsProcessTrustedWithOptions(prompt)
     }
 
     private static func pointAttribute(_ attribute: CFString, of element: AXUIElement) -> CGPoint? {

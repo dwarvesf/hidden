@@ -19,6 +19,8 @@
 "Hidden" = "Hidden";
 "Visible" = "Visible";
 "Refresh" = "Refresh";
+"Grant Access" = "Grant Access";
+"Enable Hidden Bar in System Settings, then return and refresh." = "Enable Hidden Bar in System Settings, then return and refresh.";
 "Scanning menu bar items…" = "Scanning menu bar items…";
 "Accessibility permission is required to list and move menu bar items." = "Accessibility permission is required to list and move menu bar items.";
 "No manageable menu bar items were found." = "No manageable menu bar items were found.";

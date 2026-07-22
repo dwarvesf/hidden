@@ -19,6 +19,8 @@
 "Hidden" = "隐藏";
 "Visible" = "显示";
 "Refresh" = "刷新";
+"Grant Access" = "授予权限";
+"Enable Hidden Bar in System Settings, then return and refresh." = "请在系统设置中启用当前版本的 Hidden Bar，然后返回并刷新。";
 "Scanning menu bar items…" = "正在扫描菜单栏项目…";
 "Accessibility permission is required to list and move menu bar items." = "列出和移动菜单栏项目需要辅助功能权限。";
 "No manageable menu bar items were found." = "未找到可管理的菜单栏项目。";
