@@ -13,6 +13,18 @@
 "Disable Auto Collapse" = "關閉自動收合";
 "Show hidden items in separate bar" = "在獨立的浮動列中顯示隱藏項目";
 "Hidden items unavailable" = "無法讀取隱藏項目";
+"Manage Menu Bar Items…" = "管理選單列項目…";
+"Manage Menu Bar Items" = "管理選單列項目";
+"Menu Bar Items" = "選單列項目";
+"Drag items within a list to reorder them, or between lists to change visibility." = "在列表內拖曳可調整順序，在兩個列表之間拖曳可切換顯示或隱藏。";
+"Hidden" = "隱藏";
+"Visible" = "顯示";
+"Refresh" = "重新整理";
+"Scanning menu bar items…" = "正在掃描選單列項目…";
+"Accessibility permission is required to list and move menu bar items." = "列出和移動選單列項目需要輔助使用權限。";
+"No manageable menu bar items were found." = "找不到可管理的選單列項目。";
+"Drop an item to apply the real menu bar position." = "拖放後將直接修改實際選單列位置。";
+"Unknown" = "未知應用程式";
 "Set Shortcut" = "設定快速鍵";
 "Tutorial text" = "
 「持續隱藏」功能讓您的圖示永保整潔。本文會引導您設定這個功能。
