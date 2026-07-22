@@ -204,15 +204,8 @@ final class MenuBarItemManagerViewController: NSViewController {
         guard !isScanning,
               let appDelegate = NSApp.delegate as? AppDelegate
         else { return }
-        guard AXIsProcessTrusted() else {
-            statusLabel.stringValue = "Accessibility permission is required to list and move menu bar items.".localized
-            permissionButton.isHidden = false
-            refreshButton.isEnabled = true
-            return
-        }
-
         isScanning = true
-        permissionButton.isHidden = true
+        permissionButton.isHidden = AXIsProcessTrusted()
         refreshButton.isEnabled = false
         statusLabel.stringValue = "Scanning menu bar items…".localized
         appDelegate.statusBarController.prepareForItemManagement { [weak self] layout in
@@ -232,7 +225,7 @@ final class MenuBarItemManagerViewController: NSViewController {
             DispatchQueue.global(qos: .userInitiated).async {
                 let found = Self.scanItems(layout: layout, apps: apps)
                 DispatchQueue.main.async { [weak self] in
-                    self?.apply(found: found)
+                    self?.apply(found: found, accessibilityTrusted: AXIsProcessTrusted())
                 }
             }
         }
@@ -278,18 +271,23 @@ final class MenuBarItemManagerViewController: NSViewController {
         return found
     }
 
-    private func apply(found: [ManagedMenuBarItem]) {
+    private func apply(found: [ManagedMenuBarItem], accessibilityTrusted: Bool) {
         hiddenItems = found.filter { $0.section == .hidden }.sorted { $0.position.x < $1.position.x }
         visibleItems = found.filter { $0.section == .visible }.sorted { $0.position.x < $1.position.x }
         hiddenTable.reloadData()
         visibleTable.reloadData()
         hiddenCountLabel.stringValue = "\(hiddenItems.count)"
         visibleCountLabel.stringValue = "\(visibleItems.count)"
-        statusLabel.stringValue = found.isEmpty
-            ? "No manageable menu bar items were found.".localized
-            : "Drop an item to apply the real menu bar position.".localized
+        if found.isEmpty, !accessibilityTrusted {
+            statusLabel.stringValue = "Accessibility permission is required to list and move menu bar items.".localized
+            permissionButton.isHidden = false
+        } else {
+            statusLabel.stringValue = found.isEmpty
+                ? "No manageable menu bar items were found.".localized
+                : "Drop an item to apply the real menu bar position.".localized
+            permissionButton.isHidden = true
+        }
         isScanning = false
-        permissionButton.isHidden = true
         refreshButton.isEnabled = true
     }
 

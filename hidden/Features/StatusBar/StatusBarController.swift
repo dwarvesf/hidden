@@ -1021,13 +1021,7 @@ extension StatusBarController {
     }
 
     private func canForwardClicksToMenuBarItems() -> Bool {
-        guard !AXIsProcessTrusted() else { return true }
-
-        let options = [
-            kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true
-        ] as CFDictionary
-        AXIsProcessTrustedWithOptions(options)
-        return false
+        AXIsProcessTrusted()
     }
 }
 
