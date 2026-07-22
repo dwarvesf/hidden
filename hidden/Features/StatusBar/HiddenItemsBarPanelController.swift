@@ -23,7 +23,6 @@ struct HiddenItemsBarItem {
 
 final class HiddenItemsBarPanelController: NSObject {
     private let panel: NSPanel
-    private let backgroundView: NSVisualEffectView
     private let scrollView: NSScrollView
     private let contentView: HiddenItemsBarView
 
@@ -33,7 +32,6 @@ final class HiddenItemsBarPanelController: NSObject {
 
     override init() {
         contentView = HiddenItemsBarView(frame: .zero)
-        backgroundView = NSVisualEffectView(frame: .zero)
         scrollView = NSScrollView(frame: .zero)
         panel = NSPanel(
             contentRect: .zero,
@@ -51,17 +49,8 @@ final class HiddenItemsBarPanelController: NSObject {
         scrollView.autohidesScrollers = true
         scrollView.scrollerStyle = .overlay
 
-        backgroundView.material = .popover
-        backgroundView.blendingMode = .behindWindow
-        backgroundView.state = .active
-        backgroundView.wantsLayer = true
-        backgroundView.layer?.cornerRadius = 8
-        backgroundView.layer?.masksToBounds = true
-        backgroundView.addSubview(scrollView)
-
-        panel.contentView = backgroundView
+        panel.contentView = scrollView
         panel.backgroundColor = .clear
-        panel.isOpaque = false
         panel.hasShadow = true
         panel.hidesOnDeactivate = false
         panel.isMovable = false
@@ -92,7 +81,6 @@ final class HiddenItemsBarPanelController: NSObject {
         contentView.frame = NSRect(origin: .zero, size: contentSize)
         scrollView.hasHorizontalScroller = needsHorizontalScroll
         scrollView.frame = NSRect(origin: .zero, size: CGSize(width: panelWidth, height: panelHeight))
-        backgroundView.frame = scrollView.frame
         panel.setFrame(NSRect(x: panelX, y: panelY, width: panelWidth, height: panelHeight), display: true)
         panel.orderFrontRegardless()
     }
@@ -104,10 +92,8 @@ final class HiddenItemsBarPanelController: NSObject {
 
 final class HiddenItemsBarCaptureShieldController: NSObject {
     private let panel: NSPanel
-    private let backgroundView: NSVisualEffectView
 
     override init() {
-        backgroundView = NSVisualEffectView(frame: .zero)
         panel = NSPanel(
             contentRect: .zero,
             styleMask: [.borderless, .nonactivatingPanel],
@@ -116,12 +102,7 @@ final class HiddenItemsBarCaptureShieldController: NSObject {
         )
         super.init()
 
-        backgroundView.material = .menu
-        backgroundView.blendingMode = .behindWindow
-        backgroundView.state = .active
-        panel.contentView = backgroundView
-        panel.backgroundColor = .clear
-        panel.isOpaque = false
+        panel.backgroundColor = .black
         panel.hasShadow = false
         panel.hidesOnDeactivate = false
         panel.isMovable = false
@@ -156,7 +137,6 @@ final class HiddenItemsBarCaptureShieldController: NSObject {
         }
 
         guard shieldFrame.width > 1 && shieldFrame.height > 1 else { return }
-        backgroundView.frame = NSRect(origin: .zero, size: shieldFrame.size)
         panel.setFrame(shieldFrame, display: true)
         panel.orderFrontRegardless()
     }
@@ -351,6 +331,10 @@ final class HiddenItemsBarView: NSView {
     }
 
     private var panelBackgroundColor: NSColor {
-        return .clear
+        if prefersDarkBackground {
+            return NSColor.black.withAlphaComponent(0.88)
+        }
+
+        return NSColor.windowBackgroundColor.withAlphaComponent(0.92)
     }
 }
