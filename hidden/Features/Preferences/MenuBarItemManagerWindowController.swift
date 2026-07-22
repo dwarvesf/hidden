@@ -205,12 +205,12 @@ final class MenuBarItemManagerWindowController: NSWindowController {
             else { continue }
 
             for (index, element) in children.enumerated() {
-                guard let position = pointAttribute(kAXPositionAttribute, of: element),
-                      let size = sizeAttribute(kAXSizeAttribute, of: element),
+                guard let position = pointAttribute(kAXPositionAttribute as CFString, of: element),
+                      let size = sizeAttribute(kAXSizeAttribute as CFString, of: element),
                       size.width > 2, size.height > 2
                 else { continue }
-                let title = stringAttribute(kAXTitleAttribute, of: element)
-                    ?? stringAttribute(kAXDescriptionAttribute, of: element)
+                let title = stringAttribute(kAXTitleAttribute as CFString, of: element)
+                    ?? stringAttribute(kAXDescriptionAttribute as CFString, of: element)
                     ?? ""
                 let section: ManagedMenuBarItem.Section = position.x + size.width / 2 < separatorQuartzX ? .hidden : .visible
                 found.append(ManagedMenuBarItem(
