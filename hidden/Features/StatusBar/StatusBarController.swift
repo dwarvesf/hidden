@@ -8,6 +8,125 @@
 
 import AppKit
 
+// macOS persists where each status item sits as
+// "NSStatusItem Preferred Position <autosaveName>" in the app's own defaults, and
+// reads it when the item is created. A LARGER value places the item FURTHER LEFT
+// (verified on macOS 26.5). The app only works when the order is, left to right:
+// always-hidden, separator, arrow — the arrow has to stay to the right of the
+// separator or the collapse swallows it and the bar can no longer be reopened.
+//
+// Those values outlive an uninstall and can be left stale by an older build or by
+// a Cmd-drag, so validate them before the items exist. Nothing is rewritten while
+// the order is sound. A broken order is repaired around the separator, which keeps
+// its slot: that slot is what defines the hidden zone, so moving it would silently
+// un-hide everything the user had parked there.
+enum StatusItemPositions {
+    private static let arrowKey = "NSStatusItem Preferred Position hiddenbar_expandcollapse"
+    private static let separatorKey = "NSStatusItem Preferred Position hiddenbar_separate"
+    private static let alwaysHiddenKey = "NSStatusItem Preferred Position hiddenbar_terminate"
+
+    static func repairIfNeeded() {
+        let defaults = UserDefaults.standard
+        let arrow = defaults.object(forKey: arrowKey) as? Double
+        let separator = defaults.object(forKey: separatorKey) as? Double
+        let alwaysHidden = defaults.object(forKey: alwaysHiddenKey) as? Double
+
+        // Fresh install: nothing saved, creation order already gives the right layout.
+        if arrow == nil && separator == nil && alwaysHidden == nil { return }
+        if isOrderValid(arrow: arrow, separator: separator, alwaysHidden: alwaysHidden) { return }
+
+        func describe(_ value: Double?) -> String {
+            guard let value = value else { return "nil" }
+            return String(value)
+        }
+        // The separator is the anchor, never the thing that moves: its saved slot is
+        // what defines the hidden zone, and every icon the user parked outside it stays
+        // hidden only as long as the separator keeps that slot. Swapping slots around,
+        // or clearing them, drags the zone with it and hiding silently becomes a no-op.
+        // So leave the separator alone and pull the misplaced items to their own side.
+        guard let separator = separator else {
+            // No anchor. The separator will be placed by creation order, outside every
+            // item that owns a slot, so a slot on the always-hidden item puts it on the
+            // wrong side. Drop it and let creation order place that one too.
+            NSLog("StatusItemPositions: stale order (arrow=\(describe(arrow)) alwaysHidden=\(describe(alwaysHidden))) with no separator slot; clearing the always-hidden slot")
+            defaults.removeObject(forKey: alwaysHiddenKey)
+            return
+        }
+
+        let repairedArrow = isOuter(separator, than: arrow) ? arrow : inward(of: separator)
+        let repairedAlwaysHidden = alwaysHidden.map { isOuter($0, than: separator) ? $0 : outward(of: separator) }
+
+        NSLog("StatusItemPositions: stale order (arrow=\(describe(arrow)) separator=\(describe(separator)) alwaysHidden=\(describe(alwaysHidden))); repaired to (arrow=\(describe(repairedArrow)) separator=\(describe(separator)) alwaysHidden=\(describe(repairedAlwaysHidden)))")
+
+        if let repairedArrow = repairedArrow {
+            defaults.set(repairedArrow, forKey: arrowKey)
+        }
+        if let repairedAlwaysHidden = repairedAlwaysHidden {
+            defaults.set(repairedAlwaysHidden, forKey: alwaysHiddenKey)
+        }
+    }
+
+    // One icon slot is worth roughly 40 preferred-position units on macOS 26; a gap of
+    // 50 moves the item clear of its neighbour without hopping over a second one.
+    private static let slotGap: Double = 50
+
+    private static func inward(of position: Double) -> Double {
+        let isLTR = NSApplication.shared.userInterfaceLayoutDirection == .leftToRight
+        return isLTR ? position - slotGap : position + slotGap
+    }
+
+    private static func outward(of position: Double) -> Double {
+        let isLTR = NSApplication.shared.userInterfaceLayoutDirection == .leftToRight
+        return isLTR ? position + slotGap : position - slotGap
+    }
+
+    // Rescue path: the arrow was collapsed off-screen, so force it to the inner side of
+    // the separator. Falls back to clearing every slot when there is no separator slot
+    // to anchor to — that costs the hidden zone, but the arrow has to come back.
+    static func pullArrowInside() {
+        let defaults = UserDefaults.standard
+        guard let separator = defaults.object(forKey: separatorKey) as? Double else {
+            NSLog("StatusItemPositions: no separator slot to anchor the arrow to; clearing all slots")
+            reset()
+            return
+        }
+        let arrow = inward(of: separator)
+        NSLog("StatusItemPositions: pulling the arrow inside the separator (arrow=\(arrow) separator=\(separator))")
+        defaults.set(arrow, forKey: arrowKey)
+    }
+
+    static func reset() {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: arrowKey)
+        defaults.removeObject(forKey: separatorKey)
+        defaults.removeObject(forKey: alwaysHiddenKey)
+    }
+
+    private static func isOrderValid(arrow: Double?, separator: Double?, alwaysHidden: Double?) -> Bool {
+        // macOS only persists a position once an item has been placed or dragged, so a
+        // partially saved set is normal, not corruption. An item with no saved value is
+        // placed by creation order, at the outer end of the app's own group — exactly
+        // where the always-hidden item and the separator belong. Treat "missing" as
+        // "outermost" and require the group to read, outer to inner:
+        // always-hidden, separator, arrow.
+        return isOuter(alwaysHidden, than: separator) && isOuter(separator, than: arrow)
+    }
+
+    // True when `outer` sits further from the arrow than `inner`. A missing outer value
+    // is always fine (it lands outermost); a missing inner value under a saved outer one
+    // is not, because the inner item would be placed past the outer one.
+    private static func isOuter(_ outer: Double?, than inner: Double?) -> Bool {
+        guard let outer = outer else { return true }
+        guard let inner = inner else { return false }
+
+        // Constant.isUsingLTRLanguage is only assigned in applicationDidFinishLaunching,
+        // which runs after the status items are built. Read the direction directly.
+        // A larger preferred position means further left, so LTR wants outer > inner.
+        let isLTR = NSApplication.shared.userInterfaceLayoutDirection == .leftToRight
+        return isLTR ? outer > inner : outer < inner
+    }
+}
+
 class StatusBarController {
     
     //MARK: - Variables
@@ -15,8 +134,8 @@ class StatusBarController {
     
     //MARK: - BarItems
         
-    private let btnExpandCollapse = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private let btnSeparate = NSStatusBar.system.statusItem(withLength: 1)
+    private var btnExpandCollapse: NSStatusItem
+    private var btnSeparate: NSStatusItem
     private var btnAlwaysHidden:NSStatusItem? = nil
     
     private var btnHiddenLength: CGFloat = 20
@@ -33,27 +152,49 @@ class StatusBarController {
         return self.btnSeparate.length > self.btnHiddenLength
     }
     
+    // macOS 26 positions status-item windows asynchronously: for roughly the first
+    // second after launch every button window still reports origin (0,0). The order
+    // checks below compare those origins, and comparing zeros made them trivially
+    // true, so the app collapsed before it could tell the arrow from the separator.
+    // With a stale saved order that swallowed its own expand/collapse arrow and left
+    // the user with no way to bring the bar back (#336-family "no arrow" reports).
+    // Unplaced geometry is "unknown", never "valid".
+    private var isMenuBarGeometryReady: Bool {
+        guard
+            let btnExpandCollapseOrigin = self.btnExpandCollapse.button?.getOrigin,
+            let btnSeparateOrigin = self.btnSeparate.button?.getOrigin
+            else {return false}
+
+        return btnExpandCollapseOrigin != .zero && btnSeparateOrigin != .zero
+    }
+
     private var isBtnSeparateValidPosition: Bool {
+        guard self.isMenuBarGeometryReady else {return false}
+
         guard
             let btnExpandCollapseX = self.btnExpandCollapse.button?.getOrigin?.x,
             let btnSeparateX = self.btnSeparate.button?.getOrigin?.x
             else {return false}
-        
+
         if Constant.isUsingLTRLanguage {
             return btnExpandCollapseX >= btnSeparateX
         } else {
             return btnExpandCollapseX <= btnSeparateX
         }
     }
-    
+
     private var isBtnAlwaysHiddenValidPosition: Bool {
         if !Preferences.alwaysHiddenSectionEnabled { return true }
-        
+
+        guard self.isMenuBarGeometryReady else {return false}
+
         guard
             let btnSeparateX = self.btnSeparate.button?.getOrigin?.x,
-            let btnAlwaysHiddenX = self.btnAlwaysHidden?.button?.getOrigin?.x
+            let btnAlwaysHiddenOrigin = self.btnAlwaysHidden?.button?.getOrigin,
+            btnAlwaysHiddenOrigin != .zero
             else {return false}
-        
+
+        let btnAlwaysHiddenX = btnAlwaysHiddenOrigin.x
         if Constant.isUsingLTRLanguage {
             return btnSeparateX >= btnAlwaysHiddenX
         } else {
@@ -72,6 +213,8 @@ class StatusBarController {
     // unverifiable without 27 hardware, and a false positive would disable hiding
     // for a working user. The action lands once this log calibrates the signal.
     private var hideMechanismChecked = false
+
+    private var arrowRescueCount = 0
 
     private var hoverMonitor: Any?
     private var hoverDwellTimer: Timer?
@@ -101,18 +244,40 @@ class StatusBarController {
     
     //MARK: - Methods
     init() {
+        // Must run before the first statusItem() call: macOS reads the saved
+        // "NSStatusItem Preferred Position" when the item is created, so a stale
+        // order can only be corrected up front.
+        StatusItemPositions.repairIfNeeded()
+        btnExpandCollapse = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        btnSeparate = NSStatusBar.system.statusItem(withLength: 1)
+
         updateCollapsedLengths()
         setupUI()
         restoreRemovedStatusItems()
         setupAlwayHideStatusBar()
         setupHoverToExpandIfEnabled()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            self?.collapseMenuBar()
-        }
-        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
+        collapseWhenGeometryReady()
+
         if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
+    }
+
+    // The launch collapse used to fire on a flat 1s delay. On macOS 26 the status-item
+    // windows are not always placed by then, and collapsing before the order can be
+    // verified is exactly what hides the arrow. Wait for real geometry instead.
+    private func collapseWhenGeometryReady(attempt: Int = 0) {
+        let maxAttempts = 20
+        let delay = attempt == 0 ? 1.0 : 0.25
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            guard let self = self else { return }
+            if self.isMenuBarGeometryReady || attempt >= maxAttempts {
+                self.collapseMenuBar()
+            } else {
+                self.collapseWhenGeometryReady(attempt: attempt + 1)
+            }
+        }
     }
     
     deinit {
@@ -277,6 +442,44 @@ class StatusBarController {
             NSApp.deactivate()
         }
         verifyHideMechanismIfNeeded()
+        rescueArrowIfSwallowed()
+    }
+
+    // Last line of defence. If a collapse ever leaves the expand/collapse arrow off
+    // every screen, the app has hidden its own only control and the bar cannot be
+    // brought back by clicking. Undo the collapse, fix the stored order, and rebuild
+    // the items so the arrow comes back in this session rather than after a restart.
+    private func rescueArrowIfSwallowed() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, self.isCollapsed else { return }
+            guard let arrowFrame = self.btnExpandCollapse.button?.window?.frame,
+                  arrowFrame.origin != .zero else { return }
+            guard !NSScreen.screens.contains(where: { $0.frame.intersects(arrowFrame) }) else { return }
+
+            // Bounded: a reset that does not take must not turn into a collapse/rescue
+            // ping-pong. After the budget is spent the arrow simply stays put.
+            guard self.arrowRescueCount < 2 else {
+                NSLog("ArrowRescue: giving up after \(self.arrowRescueCount) attempts; leaving the bar expanded")
+                self.expandMenubar()
+                return
+            }
+            self.arrowRescueCount += 1
+
+            NSLog("ArrowRescue: arrow ended up off-screen at \(arrowFrame); expanding and rebuilding status items")
+            self.expandMenubar()
+            StatusItemPositions.pullArrowInside()
+            self.rebuildStatusItems()
+        }
+    }
+
+    private func rebuildStatusItems() {
+        NSStatusBar.system.removeStatusItem(btnExpandCollapse)
+        NSStatusBar.system.removeStatusItem(btnSeparate)
+        btnExpandCollapse = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        btnSeparate = NSStatusBar.system.statusItem(withLength: 1)
+        setupUI()
+        restoreRemovedStatusItems()
+        btnSeparate.length = btnHiddenLength
     }
     private func expandMenubar() {
         guard self.isCollapsed else {return}
@@ -322,7 +525,11 @@ class StatusBarController {
             let requested = self.btnHiddenCollapseLength
             let windowWidth = window.frame.width
             let buttonWidth = separatorButton.frame.width
-            NSLog("HideMechanism: requested=\(requested) windowWidth=\(windowWidth) buttonWidth=\(buttonWidth) length=\(self.btnSeparate.length)")
+            // The arrow's own frame is logged alongside: a collapse that pushes the
+            // arrow off every screen is the failure that leaves the bar unreopenable.
+            let arrowFrame = self.btnExpandCollapse.button?.window?.frame ?? .zero
+            let arrowOnScreen = NSScreen.screens.contains { $0.frame.intersects(arrowFrame) }
+            NSLog("HideMechanism: requested=\(requested) windowWidth=\(windowWidth) buttonWidth=\(buttonWidth) length=\(self.btnSeparate.length) arrowFrame=\(arrowFrame) arrowOnScreen=\(arrowOnScreen)")
         }
     }
     
@@ -352,7 +559,6 @@ class StatusBarController {
         let toggleAutoHideItem = NSMenuItem(title: "Toggle Auto Collapse".localized, action: #selector(toggleAutoHide), keyEquivalent: "t")
         toggleAutoHideItem.target = self
         toggleAutoHideItem.tag = 1
-        NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
         menu.addItem(toggleAutoHideItem)
 
         menu.addItem(NSMenuItem.separator())
