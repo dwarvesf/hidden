@@ -27,11 +27,27 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        guard ensureSingleInstance() else { return }
         setupAutoStartApp()
         registerDefaultValues()
         setupHotKey()
         openPreferencesIfNeeded()
         detectLTRLang()
+    }
+
+    /// Hidden Bar is a menu bar utility with no visible window, so launching it a
+    /// second time looks like a no-op while silently spawning a duplicate instance.
+    /// If another instance with the same bundle ID is already running, activate it
+    /// and terminate this one instead.
+    private func ensureSingleInstance() -> Bool {
+        let current = ProcessInfo.processInfo.processIdentifier
+        let existing = NSWorkspace.shared.runningApplications.first {
+            $0.bundleIdentifier == Bundle.main.bundleIdentifier && $0.processIdentifier != current
+        }
+        guard let existing else { return true }
+        existing.activate(options: [.activateIgnoringOtherApps])
+        NSApp.terminate(nil)
+        return false
     }
     
     func openPreferencesIfNeeded() {
