@@ -97,9 +97,33 @@ A full-tree audit (2026-06) scored 9/10 with hygiene-level findings only.
 - **The notch**: hidden icons sit "under" the notch area on notched Macs; the
   trick cannot reveal them there. The real fix is a spillover/second-bar design
   (tracked in issues #357/#341/#148; candidate implementations in PRs #350/#358).
-- **macOS 27**: the menu bar re-architecture in macOS 27 betas
-  (`NSMenuBarNavigationSceneExtension`) breaks length-inflation hiding entirely
-  (issue #360). A different mechanism may be required.
+- **macOS 27 length cliff**: 27 composites the whole bar into a single window
+  owned by `MenuBarAgent` and, unlike <= 26, **discards** a status item whose
+  length reaches half the display width instead of clamping it. The item simply
+  vanishes and displaces nothing, which is what broke hiding in #360. Measured
+  on 27.0 (26A5388g), 2056pt display: <= 1000pt hides correctly, 1028pt (exactly
+  half) and above are dropped. Below the cliff, 27 moves the icons the separator
+  displaces into its own native overflow menu (`«`) rather than merely
+  off-screen. The cliff is per item, so the always-hidden separator can be
+  inflated at the same time.
+- **Wide displays cannot hide at all on macOS 27.** A bar only clears if the
+  separator spans the whole distance from the icons to the overflow boundary
+  (just right of the frontmost app's menus). That distance grows with display
+  width while the cliff is only half of it, so past roughly 2800pt the two
+  cross: a 3840pt display needs ~2900pt and can never accept more than 1919pt.
+  Under the cliff such a display merely shoves its icons sideways, leaving a
+  gap; at or over the cliff the item is dropped and the bar is untouched.
+- **So a mixed-width setup must choose.** Only the narrowest display's cliff is
+  low enough for every bar to honour the item, so a hiding length is sized for
+  that display; wider ones then show their icons shifted left by it. Adding more
+  inflated items does not escape this: macOS overflows the bar from the left, so
+  extra items fall into the overflow themselves and leave the real icons alone
+  (measured). `updateCollapsedLengths` therefore defaults to staying ABOVE every
+  cliff when display widths differ — macOS drops the item and no bar changes —
+  and `Preferences.hideWithMixedDisplays` opts into hiding on the narrowest
+  instead. Both derive from the display configuration only; an earlier version
+  keyed on the pointer's display and made the bars flicker between arrangements
+  as the pointer moved. Only the managed-overflow redesign (#366) lifts this.
 - **Other apps' open menus**: interaction-awareness is pointer-position-based;
   a pointer deep inside another app's open dropdown is below the menubar band,
   so the collapse can still fire there.

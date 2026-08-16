@@ -19,5 +19,6 @@ extension UserDefaults {
         static let alwaysHiddenSectionEnabled = "alwaysHiddenSectionEnabled"
         static let useFullStatusBarOnExpandEnabled = "useFullStatusBarOnExpandEnabled"
         static let hoverToExpand = "hoverToExpand"
+        static let hideWithMixedDisplays = "hideWithMixedDisplays"
     }
 }

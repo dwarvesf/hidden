@@ -63,16 +63,6 @@ class StatusBarController {
     
     private var isToggle = false
 
-    // SPEC-003 (macOS 27 hide-mechanism). macOS 27 re-architected the menu bar so
-    // inflating the separator length may no longer push items off-screen (#360).
-    // This is DIAGNOSTIC ONLY: on the first collapse with the menu-bar window
-    // ready, log the separator geometry so a macOS 27 run reveals which signal
-    // (if any) distinguishes "length honored" from "ignored". No behavior change.
-    // The degrade ACTION is deliberately NOT shipped: review found the trigger
-    // unverifiable without 27 hardware, and a false positive would disable hiding
-    // for a working user. The action lands once this log calibrates the signal.
-    private var hideMechanismChecked = false
-
     private var hoverMonitor: Any?
     private var hoverDwellTimer: Timer?
 
@@ -161,14 +151,59 @@ class StatusBarController {
     }
 
     private func updateCollapsedLengths() {
-        // The menubar replicates across every attached display, so the collapse
-        // length must cover the WIDEST screen, not NSScreen.main (the focused one);
-        // sizing from a narrower screen leaks hidden icons on wider displays.
-        // frame.width, not visibleFrame: the menubar spans the full frame width.
-        let screenWidth = NSScreen.screens.map { $0.frame.width }.max() ?? 1728
-        // Keep collapse length bounded to avoid pathological layout/memory behavior;
-        // macOS enforces a hard 10,000pt maximum on NSStatusItem.length (PR #354).
-        let boundedCollapseLength = max(500, min(screenWidth * 2, 10_000))
+        let boundedCollapseLength: CGFloat
+        if #available(macOS 27.0, *) {
+            // macOS 27 DISCARDS a status item whose length reaches half the
+            // display width instead of clamping it (#360). Below that cliff it
+            // moves the icons the separator displaces into its own native
+            // overflow menu; at or above it, the item is dropped and the bar is
+            // left exactly as it was. Measured on 27.0: a 2056pt display hides
+            // at <= 1000pt and drops from 1028pt, a 3840pt display drops from
+            // 1920pt.
+            //
+            // A bar only clears if the separator can span the whole distance
+            // from the icons to the overflow boundary, and that distance grows
+            // with display width while the cliff is only half of it: a 3840pt
+            // display needs ~2900pt but can never accept more than 1919pt, so
+            // wide displays cannot hide at all. Under the cliff they merely
+            // shove the icons sideways, which looks broken.
+            //
+            // One length is applied to the item on every attached display's bar,
+            // and only the NARROWEST display's cliff is low enough for every bar
+            // to honour it — so that is what a hiding length must be sized for.
+            // Anything wider cannot be cleared at any length (its icons are
+            // further from the overflow boundary than its own cliff allows) and
+            // instead shows them shifted left by whatever we ask for. Adding
+            // more inflated items does not help: macOS overflows the bar from
+            // the left, so the extra items fall into the overflow themselves and
+            // leave the real icons untouched (measured).
+            //
+            // A mixed-width setup therefore has to choose between hiding on the
+            // narrowest display and leaving the wider ones undisturbed. Default
+            // to not disturbing them: stay above every cliff so macOS drops the
+            // item and no bar changes at all. Opt in to the other side with
+            // `defaults write com.dwarvesv.minimalbar hideWithMixedDisplays
+            // -bool true`. Derived from the display configuration only, so it
+            // stays put; an earlier version keyed on the pointer's display and
+            // made the bars flicker between arrangements as the pointer moved.
+            let widths = NSScreen.screens.map { $0.frame.width }
+            let narrowest = widths.min() ?? 1728
+            let widest = widths.max() ?? narrowest
+            if widest > narrowest && !Preferences.hideWithMixedDisplays {
+                boundedCollapseLength = (widest / 2 + 64).rounded(.down)
+            } else {
+                boundedCollapseLength = max(200, (narrowest / 2 - 64).rounded(.down))
+            }
+        } else {
+            // The menubar replicates across every attached display, so the collapse
+            // length must cover the WIDEST screen, not NSScreen.main (the focused one);
+            // sizing from a narrower screen leaks hidden icons on wider displays.
+            // frame.width, not visibleFrame: the menubar spans the full frame width.
+            let screenWidth = NSScreen.screens.map { $0.frame.width }.max() ?? 1728
+            // Keep collapse length bounded to avoid pathological layout/memory behavior;
+            // macOS enforces a hard 10,000pt maximum on NSStatusItem.length (PR #354).
+            boundedCollapseLength = max(500, min(screenWidth * 2, 10_000))
+        }
         btnHiddenCollapseLength = boundedCollapseLength
         btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? boundedCollapseLength : 0
     }
@@ -269,6 +304,7 @@ class StatusBarController {
         }
 
         btnSeparate.length = self.btnHiddenCollapseLength
+        setSeparatorGlyphVisible(false)
         if let button = btnExpandCollapse.button {
             button.image = Assets.expandImage
         }
@@ -276,11 +312,11 @@ class StatusBarController {
             NSApp.setActivationPolicy(.accessory)
             NSApp.deactivate()
         }
-        verifyHideMechanismIfNeeded()
     }
     private func expandMenubar() {
         guard self.isCollapsed else {return}
         btnSeparate.length = btnHiddenLength
+        setSeparatorGlyphVisible(true)
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
         }
@@ -300,32 +336,14 @@ class StatusBarController {
         startTimerToAutoHide()
     }
 
-    // After a collapse, confirm on the next runloop tick (so layout settles) that
-    // the separator actually claimed its inflated width. macOS <= 26 honors it;
-    // a macOS that ignores NSStatusItem.length leaves the slot narrow, meaning
-    // hiding did nothing. Checked once: cheap, and the OS behavior won't change
-    // mid-session.
-    private func verifyHideMechanismIfNeeded() {
-        guard !hideMechanismChecked else { return }
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self, self.isCollapsed else { return }
-            // Need the separator's backing window to measure. If it is not up yet
-            // (early launch), do NOT burn the one-shot check: return and let a
-            // later collapse retry once the window exists.
-            guard let separatorButton = self.btnSeparate.button,
-                  let window = separatorButton.window else { return }
-            self.hideMechanismChecked = true
-            // Log several geometry signals. On macOS <= 26 the inflation is
-            // honored; on macOS 27 it may be ignored. Which of these tracks the
-            // requested length is exactly what a 27 capture must reveal before any
-            // degrade action can trigger on a sound signal.
-            let requested = self.btnHiddenCollapseLength
-            let windowWidth = window.frame.width
-            let buttonWidth = separatorButton.frame.width
-            NSLog("HideMechanism: requested=\(requested) windowWidth=\(windowWidth) buttonWidth=\(buttonWidth) length=\(self.btnSeparate.length)")
-        }
+    // The button draws the "|" glyph centered in the item's span. On macOS <= 26
+    // that span is off-screen while collapsed; on 27 it is on-screen, showing a
+    // stray line mid-menu-bar (#360). Clicks still land on the item.
+    private func setSeparatorGlyphVisible(_ visible: Bool) {
+        guard #available(macOS 27.0, *) else { return }
+        btnSeparate.button?.image = visible ? imgIconLine : nil
     }
-    
+
     private func startTimerToAutoHide() {
         timer?.invalidate()
         self.timer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] _ in

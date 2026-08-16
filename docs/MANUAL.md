@@ -54,6 +54,11 @@ defaults write com.dwarvesv.minimalbar numberOfSecondForAutoHide -float 5
 
 # force the app language regardless of system order (issue #287)
 defaults write com.dwarvesv.minimalbar AppleLanguages '(en)'
+
+# macOS 27 with displays of different widths: hide on the narrowest display and
+# accept that wider ones show their icons shifted sideways (off by default, see
+# "Several displays on macOS 27" below)
+defaults write com.dwarvesv.minimalbar hideWithMixedDisplays -bool true
 ```
 
 To undo any of them: `defaults delete com.dwarvesv.minimalbar <key>`.
@@ -66,8 +71,24 @@ To undo any of them: `defaults delete com.dwarvesv.minimalbar <key>`.
 | Login item missing after denying it once | System Settings > General > Login Items: re-enable Hidden Bar, then toggle the pref off/on |
 | A ghost "LauncherApplication" login item from old versions | Launch the current version once; it deauthorizes the legacy item automatically |
 | App language stuck | See the `AppleLanguages` command above, or System Settings > General > Language & Region > Applications |
-| Nothing hides on a macOS 27 beta | Known (issue #360); the menu bar re-architecture broke the hiding mechanism, fix under investigation |
+| Nothing hides while a second, wider display is attached (macOS 27) | Expected, see "Several displays on macOS 27" below |
 | A new or just-updated app's icon shows up already hidden | Expected, see "Why new icons start hidden" below; ⌘-drag it to the right of the separator once |
+
+### Several displays on macOS 27
+
+macOS 27 refuses any separator wider than half the display it is drawn on, and a
+wide display needs a *longer* separator than a narrow one to push icons away —
+so on a large external monitor no separator is ever long enough to hide anything.
+Because one separator length is shared by every menu bar, a mixed-width setup can
+have one or the other, never both:
+
+- **Default:** nothing is hidden while displays of different widths are attached,
+  and every menu bar is left exactly as it was.
+- **`hideWithMixedDisplays`:** hides on the narrowest display, at the cost of
+  wider displays showing their icons shifted sideways with a gap while collapsed.
+
+Either way, hiding returns to normal as soon as only one display (or displays of
+equal width) is connected — no relaunch needed.
 
 ### Why new icons start hidden
 

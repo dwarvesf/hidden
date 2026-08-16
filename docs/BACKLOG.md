@@ -9,25 +9,52 @@ Source of the current state: the v1.11 issue-clearing pass (2026-06-12), branch
 `fix/v1-11-batch` / draft PR #365, and SPEC-003. Core-model changes (separator length
 math, collapse state machine) are HIGH RISK and require a mandatory review-team pass.
 
-## Blocked on macOS 27 hardware (Han UAT)
+## macOS 27 cluster (#360) — FIXED 2026-07-29 (hiding works again)
 
-- **macOS 27 hide-mechanism capture (#360).** Run the v1.11 build on real macOS 27,
-  trigger a collapse, capture the `HideMechanism:` NSLog (requested length / host-window
-  width / button width / actual length). This is the unblocker: it reveals which geometry
-  signal separates "honored" from "ignored" on 27. Diagnostic-only instrument already
-  shipped. See SPEC-003 + `StatusBarController.swift` (collapse path).
-- **Redesign the detection signal, then ship Option B (detect-and-degrade).** Review-team
-  found `btnSeparate.button?.window?.frame.width` reads the full menu-bar window width
-  (~1728pt on 26.5), so `honored` is trivially true on every OS. Switch to a positional
-  signal (separator button X-coordinate before vs after collapse). Once the 27 capture
-  calibrates it: re-add the one-shot post-collapse check, a one-time context-menu notice
-  linking #360, and stop re-inflating on confirmed failure. Depends on the capture above.
-- **Fix the 3 review bugs when re-enabling degrade.** (1) move the `hideMechanismChecked`
-  latch to AFTER `honored` is measured (a transient nil window currently burns the
-  one-shot check); (2) drop the `?? requested` nil-fallback that latches detection moot;
-  (3) `degradeHideUnavailable()` must restore the app activation policy under
-  "use full menu bar on expanding", or the bar shows while the app stays `.accessory`.
-  `StatusBarController.swift:316,318,329`.
+- **DONE: root cause found on 27.0 hardware (26A5388g).** macOS 27 *discards* a
+  status item whose length reaches half the display width, instead of clamping
+  it as <= 26 did. Hidden Bar requested `widestScreen * 2`, so the separator was
+  dropped on every Mac and hid nothing. Measured on a 2056pt display by sweeping
+  the length and photographing the real `MenuBarAgent` window: 600/900/1000pt
+  hide correctly, 1028pt (= width/2) and above show everything and the separator
+  itself disappears. Neither in-process signal distinguishes the regimes
+  (`origin.x` clamps to the region edge either way), so the earlier
+  detect-and-degrade heuristic was unsound and has been removed.
+- **DONE: the fix.** `updateCollapsedLengths` sizes the collapse length at half
+  the width of the display under the pointer, minus a margin, recomputed at each
+  collapse. Displaced icons land in 27's native overflow menu. The cliff is per
+  item, so the always-hidden separator still works alongside it (verified). The
+  separator glyph is suppressed while collapsed on 27, where its span is
+  on-screen.
+- **PARTIAL: wide displays cannot hide (measured 2026-08-16, 2056pt built-in +
+  3840pt external).** A bar clears only if the separator spans icons -> overflow
+  boundary; that distance grows with width while the cliff is width/2, so they
+  cross around ~2800pt. The 3840pt external needs ~2900pt and drops at 1920pt:
+  no length hides there. Under the cliff it displaces icons into mid-bar; at or
+  over the cliff the item is dropped and the bar is untouched. Two dead ends were
+  tried on hardware first: keying the length on the pointer's display made the
+  bars flicker between arrangements as the pointer moved, and dropping the item
+  whenever a second display was attached stopped hiding everywhere. Shipping
+  rule is narrowest-display sizing — stable, hides on the narrow display,
+  wider displays show the shift. Cumulative displacement across two items DOES add up, but any
+  item we create lands leftmost where inflation pushes nothing, and inflating the
+  arrow shoves the visible-zone icons around. Real fix is #366.
+- **Verification trap that produced a false "fixed" claim:** the external bar was
+  captured right-half only, so icons displaced LEFT fell outside the crop and
+  read as hidden. Always capture the FULL bar width per display
+  (`screencapture -x -R <x>,<y>,<w>,<h>`, global CG coords, negative origins for
+  displays above/left of the main one).
+- **Verification method worth reusing:** the menu bar cannot be photographed with
+  a plain `screencapture` when a fullscreen space covers it; capture the
+  `MenuBarAgent` window by ID instead (`CGWindowListCopyWindowInfo` →
+  `screencapture -l <id>`), which works even when that window is offscreen.
+- **Still open: #366 managed-overflow redesign.** Unchanged in scope, but no
+  longer urgent. For that design: `MenuBarAgent` persists per-item positions in
+  the `com.apple.MenuBarAgent` domain (`TrailingItemPreferredPositions`,
+  `status:<bundle-id>::<autosave>` keys); unsandboxed managers manipulate that
+  layer via a private assertion API not available to a sandboxed App Store app.
+- **Untested on hardware we lack:** multi-display (the narrowest-screen rule) and
+  notched Macs.
 
 ## Blocked on external-display hardware
 
