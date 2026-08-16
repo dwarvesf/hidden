@@ -105,6 +105,21 @@ enum Preferences {
         }
     }
 
+    // macOS 27 only. Displays wider than the narrowest cannot hide at any length
+    // and instead show their icons shifted left while collapsed (#360), so by
+    // default a mixed-width setup collapses nothing and leaves every bar alone.
+    // Opt in with `defaults write com.dwarvesv.minimalbar hideWithMixedDisplays
+    // -bool true` to hide on the narrowest display and accept that shift.
+    static var hideWithMixedDisplays: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.hideWithMixedDisplays)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.hideWithMixedDisplays)
+        }
+    }
+
     static var useFullStatusBarOnExpandEnabled: Bool {
         get {
             UserDefaults.standard.bool(forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
