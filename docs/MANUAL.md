@@ -54,6 +54,10 @@ defaults write com.dwarvesv.minimalbar numberOfSecondForAutoHide -float 5
 
 # force the app language regardless of system order (issue #287)
 defaults write com.dwarvesv.minimalbar AppleLanguages '(en)'
+
+# macOS 27 with displays of different widths: hide on the narrowest display
+# and accept shifted icons on wider displays (off by default)
+defaults write com.dwarvesv.minimalbar hideWithMixedDisplays -bool true
 ```
 
 To undo any of them: `defaults delete com.dwarvesv.minimalbar <key>`.
@@ -66,7 +70,7 @@ To undo any of them: `defaults delete com.dwarvesv.minimalbar <key>`.
 | Login item missing after denying it once | System Settings > General > Login Items: re-enable Hidden Bar, then toggle the pref off/on |
 | A ghost "LauncherApplication" login item from old versions | Launch the current version once; it deauthorizes the legacy item automatically |
 | App language stuck | See the `AppleLanguages` command above, or System Settings > General > Language & Region > Applications |
-| Nothing hides on a macOS 27 beta | Known (issue #360); the menu bar re-architecture broke the hiding mechanism, fix under investigation |
+| Nothing hides with different-width displays on macOS 27 | Expected by default; set `hideWithMixedDisplays` to hide on the narrowest display |
 | A new or just-updated app's icon shows up already hidden | Expected, see "Why new icons start hidden" below; ⌘-drag it to the right of the separator once |
 
 ### Why new icons start hidden

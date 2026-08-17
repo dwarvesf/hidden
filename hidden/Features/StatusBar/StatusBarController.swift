@@ -161,16 +161,14 @@ class StatusBarController {
     }
 
     private func updateCollapsedLengths() {
-        // The menubar replicates across every attached display, so the collapse
-        // length must cover the WIDEST screen, not NSScreen.main (the focused one);
-        // sizing from a narrower screen leaks hidden icons on wider displays.
-        // frame.width, not visibleFrame: the menubar spans the full frame width.
-        let screenWidth = NSScreen.screens.map { $0.frame.width }.max() ?? 1728
-        // Keep collapse length bounded to avoid pathological layout/memory behavior;
-        // macOS enforces a hard 10,000pt maximum on NSStatusItem.length (PR #354).
-        let boundedCollapseLength = max(500, min(screenWidth * 2, 10_000))
-        btnHiddenCollapseLength = boundedCollapseLength
-        btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? boundedCollapseLength : 0
+        let screenWidths = NSScreen.screens.map { Double($0.frame.width) }
+        let collapsedLength = CollapseLengthPolicy.collapsedLength(
+            screenWidths: screenWidths,
+            macOSMajorVersion: ProcessInfo.processInfo.operatingSystemVersion.majorVersion,
+            hideWithMixedDisplays: Preferences.hideWithMixedDisplays
+        )
+        btnHiddenCollapseLength = CGFloat(collapsedLength)
+        btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? CGFloat(collapsedLength) : 0
     }
     
     private func restoreRemovedStatusItems() {
@@ -269,6 +267,7 @@ class StatusBarController {
         }
 
         btnSeparate.length = self.btnHiddenCollapseLength
+        setSeparatorGlyphVisible(false)
         if let button = btnExpandCollapse.button {
             button.image = Assets.expandImage
         }
@@ -281,6 +280,7 @@ class StatusBarController {
     private func expandMenubar() {
         guard self.isCollapsed else {return}
         btnSeparate.length = btnHiddenLength
+        setSeparatorGlyphVisible(true)
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
         }
@@ -324,6 +324,11 @@ class StatusBarController {
             let buttonWidth = separatorButton.frame.width
             NSLog("HideMechanism: requested=\(requested) windowWidth=\(windowWidth) buttonWidth=\(buttonWidth) length=\(self.btnSeparate.length)")
         }
+    }
+
+    private func setSeparatorGlyphVisible(_ visible: Bool) {
+        guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 else { return }
+        btnSeparate.button?.image = visible ? imgIconLine : nil
     }
     
     private func startTimerToAutoHide() {

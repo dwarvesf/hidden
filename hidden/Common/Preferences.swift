@@ -105,6 +105,16 @@ enum Preferences {
         }
     }
 
+    static var hideWithMixedDisplays: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.hideWithMixedDisplays)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.hideWithMixedDisplays)
+        }
+    }
+
     static var useFullStatusBarOnExpandEnabled: Bool {
         get {
             UserDefaults.standard.bool(forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
