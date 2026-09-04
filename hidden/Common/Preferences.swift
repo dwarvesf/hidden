@@ -122,7 +122,6 @@ enum Preferences {
 
         set {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.notchOverflowEnabled)
-            NotificationCenter.default.post(Notification(name: .notchOverflowToggle))
         }
     }
 }

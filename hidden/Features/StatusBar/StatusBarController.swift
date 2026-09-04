@@ -110,21 +110,13 @@ class StatusBarController {
         setupAlwayHideStatusBar()
         setupHoverToExpandIfEnabled()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             self?.collapseMenuBar()
         }
-        
+
         if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
-
-        NotificationCenter.default.addObserver(self, selector: #selector(handleNotchOverflowToggle), name: .notchOverflowToggle, object: nil)
-    }
-
-    // Rebuilds the separator's menu so the "Show Notch Items" entry appears
-    // or disappears immediately when the preference is toggled, rather than
-    // only taking effect after the next relaunch.
-    @objc private func handleNotchOverflowToggle() {
-        btnSeparate.menu = getContextMenu()
     }
 
     deinit {
@@ -196,12 +188,11 @@ class StatusBarController {
     private func setupUI() {
         if let button = btnSeparate.button {
             button.image = self.imgIconLine
+            button.target = self
+            button.action = #selector(self.showContextMenuFromSeparator(sender:))
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
-        let menu = self.getContextMenu()
-        btnSeparate.menu = menu
 
-        updateAutoCollapseMenuTitle()
-        
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
             button.target = self
@@ -233,9 +224,37 @@ class StatusBarController {
         }
     }
 
+    @objc private func showContextMenuFromSeparator(sender: NSStatusBarButton) {
+        showContextMenu(from: sender)
+    }
+
+    // Builds a brand-new NSMenu for every presentation rather than mutating
+    // a reused one via a delegate callback (content changes on an
+    // already-displayed-before NSMenu instance could leave its backing
+    // window at a stale size until an unrelated redraw corrected it).
+    //
+    // Uses popUp(at:), not performClick(nil): this method is ITSELF called
+    // from this same button's own action handler (a real click already in
+    // progress). performClick(nil) here re-entered NSStatusBarButtonCell's
+    // own sendAction dispatch, recursing into this handler again and
+    // stack-overflowing (SIGSEGV, confirmed via crash report) - unlike
+    // NotchOverflowController.showOverflowMenuFromSeparator, which is safe
+    // because it's invoked from a *different* control's action (a menu
+    // item), not from btnExpandCollapse's own click handler.
+    //
+    // Previously anchored at `button.bounds.maxY + 5` (5pt above the
+    // button's TOP edge). For a menu-bar item that's essentially the
+    // physical top of the screen, so once "Show Notch Items" made the menu
+    // one row taller, that top row landed in the sliver above the visible
+    // screen and AppKit showed its standard "content doesn't fit here"
+    // scroll-indicator caret instead of rendering it - hovering over the
+    // indicator scrolled the whole menu into view, which is what looked
+    // like the item "appearing on hover". Anchoring at the button's BOTTOM
+    // edge instead (y: 0, not bounds.maxY) keeps the menu entirely within
+    // on-screen space, growing downward from below the button.
     private func showContextMenu(from button: NSStatusBarButton) {
-        guard let menu = btnSeparate.menu else { return }
-        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.maxY + 5), in: button)
+        let menu = getContextMenu()
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: 0), in: button)
     }
     
     func showHideSeparatorsAndAlwayHideArea() {
@@ -354,6 +373,9 @@ class StatusBarController {
         }
     }
     
+    // Built fresh on every call (see showContextMenu(from:)), so every field
+    // below reflects state as of THIS presentation - no separate "patch the
+    // title after the fact" step is needed for the auto-collapse item.
     private func getContextMenu() -> NSMenu {
         let menu = NSMenu()
 
@@ -369,29 +391,18 @@ class StatusBarController {
         prefItem.target = self
         menu.addItem(prefItem)
 
-        let toggleAutoHideItem = NSMenuItem(title: "Toggle Auto Collapse".localized, action: #selector(toggleAutoHide), keyEquivalent: "t")
+        let toggleAutoHideTitle = Preferences.isAutoHide ? "Disable Auto Collapse" : "Enable Auto Collapse"
+        let toggleAutoHideItem = NSMenuItem(title: toggleAutoHideTitle.localized, action: #selector(toggleAutoHide), keyEquivalent: "t")
         toggleAutoHideItem.target = self
-        toggleAutoHideItem.tag = 1
-        NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
         menu.addItem(toggleAutoHideItem)
 
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit".localized, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-        
+
         return menu
     }
-    
-    private func updateAutoCollapseMenuTitle() {
-        guard let toggleAutoHideItem = btnSeparate.menu?.item(withTag: 1) else { return }
-        if Preferences.isAutoHide {
-            toggleAutoHideItem.title = "Disable Auto Collapse".localized
-        } else {
-            toggleAutoHideItem.title = "Enable Auto Collapse".localized
-        }
-    }
-    
+
     @objc func updateAutoHide() {
-        updateAutoCollapseMenuTitle()
         autoCollapseIfNeeded()
     }
     
