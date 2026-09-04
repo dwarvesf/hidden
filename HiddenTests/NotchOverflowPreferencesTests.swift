@@ -7,16 +7,16 @@ import XCTest
 /// flagged ("should we have a way to enable/disable this feature
 /// manually?") that the original PR never actually wired into any UI.
 /// Serves: the Preferences checkbox (PreferencesViewController) and
-/// StatusBarController's context-menu rebuild, both of which depend on this
-/// preference's get/set/notify contract.
-/// Behaviors covered (3): fresh-install default is `true`, setting the
-/// preference persists the new value, and setting it posts the
-/// `.notchOverflowToggle` notification StatusBarController listens for.
-/// Mock boundary: none — exercises the real `UserDefaults.standard` and
-/// `NotificationCenter.default`, saving/restoring prior state around each
-/// test since this preference is process-wide shared state, matching how
-/// the rest of this codebase's Preferences enum already works (no DI seam
-/// exists there to mock against).
+/// StatusBarController's context menu, which reads this preference fresh
+/// every time getContextMenu() builds a new menu for the next presentation
+/// (see showContextMenu(from:)) rather than needing a push notification to
+/// stay in sync.
+/// Behaviors covered (2): fresh-install default is `true`, and setting the
+/// preference persists the new value.
+/// Mock boundary: none — exercises the real `UserDefaults.standard`, saving/
+/// restoring prior state around each test since this preference is
+/// process-wide shared state, matching how the rest of this codebase's
+/// Preferences enum already works (no DI seam exists there to mock against).
 final class NotchOverflowPreferencesTests: XCTestCase {
 
     private var priorValue: Bool!
@@ -48,16 +48,5 @@ final class NotchOverflowPreferencesTests: XCTestCase {
         Preferences.notchOverflowEnabled = false
 
         XCTAssertFalse(Preferences.notchOverflowEnabled, "the preference must persist the value it was set to")
-    }
-
-    // Given an observer registered for the toggle notification
-    // When the preference is set
-    // Then the .notchOverflowToggle notification fires
-    func test_settingPreference_postsNotchOverflowToggleNotification() {
-        let expectation = expectation(forNotification: .notchOverflowToggle, object: nil)
-
-        Preferences.notchOverflowEnabled = !priorValue
-
-        wait(for: [expectation], timeout: 1.0)
     }
 }
