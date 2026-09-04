@@ -134,26 +134,12 @@ class NotchOverflowController: NSObject {
     menu.autoenablesItems = false
 
     // Title
-    let titleItem = NSMenuItem(title: "Notch Overflow".localized, action: nil, keyEquivalent: "")
-    titleItem.isEnabled = false
-    if #available(macOS 10.14, *) {
-      titleItem.attributedTitle = NSAttributedString(
-        string: titleItem.title,
-        attributes: [
-          .font: NSFont.systemFont(ofSize: 12, weight: .bold),
-          .foregroundColor: NSColor.secondaryLabelColor
-        ])
-    }
-    menu.addItem(titleItem)
+    menu.addItem(makeSectionHeader(title: "Notch Overflow".localized, fontSize: 12))
     menu.addItem(NSMenuItem.separator())
 
     // Hidden section
     if !hiddenExtras.isEmpty {
-      let header = NSMenuItem(
-        title: String(format: "Hidden Behind Notch (%d)".localized, hiddenExtras.count),
-        action: nil, keyEquivalent: "")
-      header.isEnabled = false
-      menu.addItem(header)
+      menu.addItem(makeSectionHeader(title: String(format: "Hidden Behind Notch (%d)".localized, hiddenExtras.count)))
       menu.addItem(NSMenuItem.separator())
 
       for info in hiddenExtras {
@@ -164,11 +150,7 @@ class NotchOverflowController: NSObject {
     // Visible section
     if !visibleExtras.isEmpty {
       if !hiddenExtras.isEmpty { menu.addItem(NSMenuItem.separator()) }
-      let header = NSMenuItem(
-        title: String(format: "Visible (%d)".localized, visibleExtras.count),
-        action: nil, keyEquivalent: "")
-      header.isEnabled = false
-      menu.addItem(header)
+      menu.addItem(makeSectionHeader(title: String(format: "Visible (%d)".localized, visibleExtras.count)))
       menu.addItem(NSMenuItem.separator())
 
       for info in visibleExtras {
@@ -188,21 +170,35 @@ class NotchOverflowController: NSObject {
     return menu
   }
 
+  // Disabled, non-interactive label. Bold + labelColor (full contrast) rather
+  // than secondaryLabelColor/AppKit's default disabled-item dimming, which
+  // read poorly against a dark selection highlight.
+  private func makeSectionHeader(title: String, fontSize: CGFloat = 13) -> NSMenuItem {
+    let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+    item.isEnabled = false
+    item.attributedTitle = NSAttributedString(
+      string: title,
+      attributes: [
+        .font: NSFont.systemFont(ofSize: fontSize, weight: .bold),
+        .foregroundColor: NSColor.labelColor
+      ])
+    return item
+  }
+
   private func makeMenuItem(for info: MenuBarExtraInfo, hidden: Bool = false) -> NSMenuItem {
     let item = NSMenuItem()
     let displayTitle = (info.title?.isEmpty == false) ? info.title! : info.appName
 
     if hidden {
-      if #available(macOS 10.14, *) {
-        item.attributedTitle = NSAttributedString(
-          string: displayTitle,
-          attributes: [
-            .font: NSFont.systemFont(ofSize: 13),
-            .foregroundColor: NSColor.systemOrange
-          ])
-      } else {
-        item.title = displayTitle
-      }
+      // Color alone isn't an accessible way to convey "hidden" (colorblind
+      // users get nothing from it, and systemOrange reads poorly against a
+      // dark selection highlight). A glyph + bold weight works in any theme.
+      item.attributedTitle = NSAttributedString(
+        string: "\u{26A0}\u{FE0F} \(displayTitle)",
+        attributes: [
+          .font: NSFont.boldSystemFont(ofSize: 13),
+          .foregroundColor: NSColor.labelColor
+        ])
     } else {
       item.title = displayTitle
     }
