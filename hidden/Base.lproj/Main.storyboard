@@ -755,6 +755,16 @@ between sections to configure Hidden Bar.</string>
                                                     <real value="3.4028234663852886e+38"/>
                                                 </customSpacing>
                                             </stackView>
+                                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ntc-Ov-Bx1" userLabel="Check Box Notch Overflow">
+                                                <rect key="frame" x="-2" y="-25" width="320" height="18"/>
+                                                <buttonCell key="cell" type="check" title="Enable Notch Overflow (right-click &#8249; to access hidden icons)" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Ntc-Ov-Cl1">
+                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                    <font key="font" metaFont="system"/>
+                                                </buttonCell>
+                                                <connections>
+                                                    <action selector="notchOverflowCheckChanged:" target="XfG-lQ-9wD" id="Ntc-Ov-Ac1"/>
+                                                </connections>
+                                            </button>
                                         </subviews>
                                         <visibilityPriorities>
                                             <integer value="1000"/>
@@ -762,8 +772,10 @@ between sections to configure Hidden Bar.</string>
                                             <integer value="1000"/>
                                             <integer value="1000"/>
                                             <integer value="1000"/>
+                                            <integer value="1000"/>
                                         </visibilityPriorities>
                                         <customSpacing>
+                                            <real value="3.4028234663852886e+38"/>
                                             <real value="3.4028234663852886e+38"/>
                                             <real value="3.4028234663852886e+38"/>
                                             <real value="3.4028234663852886e+38"/>
@@ -862,6 +874,7 @@ between sections to configure Hidden Bar.</string>
                         <outlet property="btnShortcut" destination="yKf-P1-I45" id="AFr-y7-VbP"/>
                         <outlet property="checkBoxAutoHide" destination="gj1-Ms-4No" id="Ibl-5H-2vh"/>
                         <outlet property="checkBoxLogin" destination="cbR-Jv-adm" id="DFO-De-0KU"/>
+                        <outlet property="checkBoxNotchOverflow" destination="Ntc-Ov-Bx1" id="Ntc-Ov-Ot1"/>
                         <outlet property="checkBoxShowAlwaysHiddenSection" destination="yaS-iD-h7g" id="T5N-bN-yl2"/>
                         <outlet property="checkBoxShowPreferences" destination="gWT-L1-Xdf" id="sC8-cw-Fmh"/>
                         <outlet property="checkBoxUseFullStatusbar" destination="EQP-7r-FSu" id="Vll-3t-F9V"/>
