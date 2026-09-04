@@ -36,7 +36,12 @@ class PreferencesViewController: NSViewController {
     
     @IBOutlet weak var btnClear: NSButton!
     @IBOutlet weak var btnShortcut: NSButton!
-    
+
+    // Not IB-managed: the notch overflow section is only relevant on notched
+    // Macs, so it's added programmatically rather than always present in the
+    // storyboard (see addNotchOverflowSection).
+    private var checkBoxNotchOverflow: NSButton?
+
     public var listening = false {
         didSet {
             let isHighlight = listening
@@ -163,6 +168,7 @@ class PreferencesViewController: NSViewController {
         checkBoxShowPreferences.state = Preferences.isShowPreference ? .on : .off
         checkBoxShowAlwaysHiddenSection.state = Preferences.alwaysHiddenSectionEnabled ? .on : .off
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Preferences.numberOfSecondForAutoHide))
+        checkBoxNotchOverflow?.state = Preferences.notchOverflowEnabled ? .on : .off
     }
     
     private func loadHotkey() {
@@ -202,23 +208,28 @@ extension PreferencesViewController {
     func addNotchOverflowSection() {
         guard NotchOverflowController.hasNotch else { return }
 
-        // Add compact info below the tutorial area, anchored to statusBarStackView
-        let infoLabel = NSTextField(labelWithString:
-            "Notch Overflow:  \u{2318}\u{21E7}B  or  right-click \u{2039}  to access hidden icons")
-        infoLabel.font = NSFont.systemFont(ofSize: 10.5)
-        if #available(macOS 10.14, *) {
-            infoLabel.textColor = .secondaryLabelColor
-        }
-        infoLabel.alignment = .center
-        infoLabel.translatesAutoresizingMaskIntoConstraints = false
-        self.view.addSubview(infoLabel)
+        // Reviewer feedback on #350: enabling Accessibility access for this
+        // feature should be an explicit, reversible user choice, not silent.
+        let checkbox = NSButton(
+            checkboxWithTitle: "Enable Notch Overflow (right-click \u{2039} to access hidden icons)".localized,
+            target: self,
+            action: #selector(notchOverflowCheckChanged(_:)))
+        checkbox.state = Preferences.notchOverflowEnabled ? .on : .off
+        checkbox.font = NSFont.systemFont(ofSize: 10.5)
+        checkbox.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(checkbox)
+        self.checkBoxNotchOverflow = checkbox
 
-        // Position centered, between tutorial text and Settings divider
-        // statusBarStackView is near the top; we go well below it
+        // Positioned centered, between tutorial text and Settings divider;
+        // statusBarStackView is near the top, so this sits well below it.
         NSLayoutConstraint.activate([
-            infoLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            infoLabel.topAnchor.constraint(equalTo: statusBarStackView.bottomAnchor, constant: 78)
+            checkbox.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            checkbox.topAnchor.constraint(equalTo: statusBarStackView.bottomAnchor, constant: 78)
         ])
+    }
+
+    @IBAction func notchOverflowCheckChanged(_ sender: NSButton) {
+        Preferences.notchOverflowEnabled = sender.state == .on
     }
 
 }

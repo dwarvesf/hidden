@@ -20,7 +20,7 @@ class StatusBarController {
     private var btnAlwaysHidden:NSStatusItem? = nil
 
     //MARK: - Notch Overflow
-    private(set) var notchOverflowController = NotchOverflowController()
+    private var notchOverflowController = NotchOverflowController()
     
     private var btnHiddenLength: CGFloat = 20
     private var btnHiddenCollapseLength: CGFloat = 2000
@@ -120,19 +120,13 @@ class StatusBarController {
         NotificationCenter.default.addObserver(self, selector: #selector(handleNotchOverflowToggle), name: .notchOverflowToggle, object: nil)
     }
 
-    /// Called from AppDelegate after defaults are registered
-    func setupNotchOverflow() {
-        notchOverflowController.setup()
+    // Rebuilds the separator's menu so the "Show Notch Items" entry appears
+    // or disappears immediately when the preference is toggled, rather than
+    // only taking effect after the next relaunch.
+    @objc private func handleNotchOverflowToggle() {
+        btnSeparate.menu = getContextMenu()
     }
 
-    @objc private func handleNotchOverflowToggle() {
-        if Preferences.notchOverflowEnabled {
-            notchOverflowController.setup()
-        } else {
-            notchOverflowController.teardown()
-        }
-    }
-    
     deinit {
         NotificationCenter.default.removeObserver(self)
         hoverDwellTimer?.invalidate()
@@ -363,9 +357,9 @@ class StatusBarController {
     private func getContextMenu() -> NSMenu {
         let menu = NSMenu()
 
-        // Notch overflow menu item (only on notch Macs)
-        if NotchOverflowController.hasNotch {
-            let overflowItem = NSMenuItem(title: "Show Notch Items (\u{2318}\u{21E7}B)", action: #selector(showNotchOverflow), keyEquivalent: "")
+        // Notch overflow menu item (only on notch Macs, and only when enabled)
+        if NotchOverflowController.hasNotch && Preferences.notchOverflowEnabled {
+            let overflowItem = NSMenuItem(title: "Show Notch Items".localized, action: #selector(showNotchOverflow), keyEquivalent: "")
             overflowItem.target = self
             menu.addItem(overflowItem)
             menu.addItem(NSMenuItem.separator())

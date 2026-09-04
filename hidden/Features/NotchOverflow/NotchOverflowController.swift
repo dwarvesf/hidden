@@ -21,42 +21,92 @@ struct MenuBarExtraInfo {
   let size: CGSize
 }
 
+// MARK: - Notch Geometry
+
+/// Pure geometry: where the notch is and which X coordinates on the menu-bar
+/// row it makes unreachable. Kept free of NSScreen/AppKit calls so it can be
+/// unit-tested with synthetic screen values instead of live hardware.
+struct NotchBoundary: Equatable {
+  let hasNotch: Bool
+  /// The leftmost X, in screen coordinates, at which a status item is
+  /// guaranteed clear of the notch. Items positioned left of this are
+  /// either under the notch or squeezed off past its left edge.
+  let overflowThresholdX: CGFloat
+}
+
+enum NotchGeometry {
+  // Matches the pre-fix behavior's default (half of a common 1728pt-wide
+  // screen) so a screen that unexpectedly can't report safeAreaInsets still
+  // gets a sane threshold instead of 0.
+  static let fallbackThresholdX: CGFloat = 972
+
+  /// - Parameters:
+  ///   - screenFrame: the candidate screen's full frame (`NSScreen.frame`).
+  ///   - safeAreaInsetsTop: `NSScreen.safeAreaInsets.top`; > 0 on notched Macs.
+  ///   - auxiliaryTopRightAreaMinX: `NSScreen.auxiliaryTopRightArea?.minX`,
+  ///     Apple's own safe-rect boundary for content right of the notch.
+  static func computeBoundary(
+    screenFrame: CGRect,
+    safeAreaInsetsTop: CGFloat,
+    auxiliaryTopRightAreaMinX: CGFloat?
+  ) -> NotchBoundary {
+    let hasNotch = safeAreaInsetsTop > 0
+    guard hasNotch, let thresholdX = auxiliaryTopRightAreaMinX else {
+      return NotchBoundary(hasNotch: hasNotch, overflowThresholdX: fallbackThresholdX)
+    }
+    return NotchBoundary(hasNotch: true, overflowThresholdX: thresholdX)
+  }
+}
+
+// MARK: - Extras Classification
+
+/// Pure classification of already-fetched extras against a boundary. Split
+/// from AX enumeration so the sorting/filtering rules are testable without
+/// a live Accessibility permission or other running apps.
+enum MenuBarExtraClassifier {
+  static func classify(
+    _ extras: [MenuBarExtraInfo],
+    boundary: CGFloat
+  ) -> (hidden: [MenuBarExtraInfo], visible: [MenuBarExtraInfo]) {
+    let renderable = extras.filter { $0.size.width > 0 && $0.size.height > 0 }
+    let hidden = renderable
+      .filter { $0.position.x < boundary }
+      .sorted { $0.position.x > $1.position.x }
+    let visible = renderable
+      .filter { $0.position.x >= boundary }
+      .sorted { $0.position.x > $1.position.x }
+    return (hidden, visible)
+  }
+}
+
 // MARK: - NotchOverflowController
 
 class NotchOverflowController: NSObject {
 
-  // MARK: - Properties
-
-  /// Right edge of the notch in screen X coordinates
-  private var notchRightEdge: CGFloat {
-    guard let screen = NSScreen.main else { return 972 }
-    let notchWidth = screen.frame.width / 8
-    return screen.frame.width / 2 + notchWidth / 2
-  }
-
   // MARK: - Notch Detection
 
-  static var hasNotch: Bool {
-    if #available(macOS 12.0, *) {
-      guard let screen = NSScreen.main else { return false }
-      return screen.safeAreaInsets.top > 0
+  private static func currentBoundary() -> NotchBoundary {
+    guard let screen = NSScreen.main else {
+      return NotchBoundary(hasNotch: false, overflowThresholdX: NotchGeometry.fallbackThresholdX)
     }
-    return false
+    let safeAreaTop: CGFloat
+    let auxRightMinX: CGFloat?
+    if #available(macOS 12.0, *) {
+      safeAreaTop = screen.safeAreaInsets.top
+      auxRightMinX = screen.auxiliaryTopRightArea?.minX
+    } else {
+      safeAreaTop = 0
+      auxRightMinX = nil
+    }
+    return NotchGeometry.computeBoundary(
+      screenFrame: screen.frame,
+      safeAreaInsetsTop: safeAreaTop,
+      auxiliaryTopRightAreaMinX: auxRightMinX
+    )
   }
 
-  // MARK: - Setup
-
-  func setup() {
-    // No-op; hotkey is set up in AppDelegate
-  }
-
-  func teardown() {
-    // No-op
-  }
-
-  // MARK: - Public: called from hotkey handler
-  func triggerOverflow() {
-    showOverflowMenuAtCursor()
+  static var hasNotch: Bool {
+    currentBoundary().hasNotch
   }
 
   /// Show overflow menu anchored to a status item (called from StatusBarController)
@@ -70,51 +120,21 @@ class NotchOverflowController: NSObject {
     }
   }
 
-  // MARK: - Show Menu at Cursor
-
-  private func showOverflowMenuAtCursor() {
-    guard ensureAccessibility() else { return }
-
-    let menu = buildOverflowMenu()
-    let mouseLocation = NSEvent.mouseLocation
-
-    // Create a temporary invisible window at mouse location to anchor the menu
-    let tmpWindow = NSWindow(
-      contentRect: NSRect(x: mouseLocation.x - 1, y: mouseLocation.y - 1, width: 2, height: 2),
-      styleMask: [.borderless],
-      backing: .buffered,
-      defer: false
-    )
-    tmpWindow.level = .popUpMenu
-    tmpWindow.backgroundColor = .clear
-    tmpWindow.isOpaque = false
-    tmpWindow.orderFrontRegardless()
-
-    menu.popUp(positioning: nil, at: NSPoint(x: 1, y: 1), in: tmpWindow.contentView)
-
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-      tmpWindow.orderOut(nil)
-    }
-  }
-
   // MARK: - Menu Building
 
-  private func buildOverflowMenu() -> NSMenu {
-    let allExtras = getAllMenuBarExtras()
-
-    let rightEdge = notchRightEdge
-    let hiddenExtras = allExtras.filter {
-      $0.size.width > 0 && $0.size.height > 0 && $0.position.x < rightEdge
-    }
-    let visibleExtras = allExtras.filter {
-      $0.size.width > 0 && $0.size.height > 0 && $0.position.x >= rightEdge
-    }
+  func buildOverflowMenu(
+    extras: [MenuBarExtraInfo]? = nil,
+    boundary: CGFloat? = nil
+  ) -> NSMenu {
+    let allExtras = extras ?? getAllMenuBarExtras()
+    let resolvedBoundary = boundary ?? Self.currentBoundary().overflowThresholdX
+    let (hiddenExtras, visibleExtras) = MenuBarExtraClassifier.classify(allExtras, boundary: resolvedBoundary)
 
     let menu = NSMenu()
     menu.autoenablesItems = false
 
     // Title
-    let titleItem = NSMenuItem(title: "Notch Overflow  \u{2318}\u{21E7}B", action: nil, keyEquivalent: "")
+    let titleItem = NSMenuItem(title: "Notch Overflow".localized, action: nil, keyEquivalent: "")
     titleItem.isEnabled = false
     if #available(macOS 10.14, *) {
       titleItem.attributedTitle = NSAttributedString(
@@ -130,13 +150,13 @@ class NotchOverflowController: NSObject {
     // Hidden section
     if !hiddenExtras.isEmpty {
       let header = NSMenuItem(
-        title: "\u{26A0} Hidden Behind Notch (\(hiddenExtras.count))",
+        title: String(format: "Hidden Behind Notch (%d)".localized, hiddenExtras.count),
         action: nil, keyEquivalent: "")
       header.isEnabled = false
       menu.addItem(header)
       menu.addItem(NSMenuItem.separator())
 
-      for info in hiddenExtras.sorted(by: { $0.position.x > $1.position.x }) {
+      for info in hiddenExtras {
         menu.addItem(makeMenuItem(for: info, hidden: true))
       }
     }
@@ -145,13 +165,13 @@ class NotchOverflowController: NSObject {
     if !visibleExtras.isEmpty {
       if !hiddenExtras.isEmpty { menu.addItem(NSMenuItem.separator()) }
       let header = NSMenuItem(
-        title: "Visible (\(visibleExtras.count))",
+        title: String(format: "Visible (%d)".localized, visibleExtras.count),
         action: nil, keyEquivalent: "")
       header.isEnabled = false
       menu.addItem(header)
       menu.addItem(NSMenuItem.separator())
 
-      for info in visibleExtras.sorted(by: { $0.position.x > $1.position.x }) {
+      for info in visibleExtras {
         menu.addItem(makeMenuItem(for: info, hidden: false))
       }
     }
@@ -159,7 +179,7 @@ class NotchOverflowController: NSObject {
     // Empty state
     if hiddenExtras.isEmpty && visibleExtras.isEmpty {
       let emptyItem = NSMenuItem(
-        title: "No items found (grant Accessibility permission)",
+        title: "No items found (grant Accessibility permission)".localized,
         action: nil, keyEquivalent: "")
       emptyItem.isEnabled = false
       menu.addItem(emptyItem)
@@ -268,12 +288,11 @@ class NotchOverflowController: NSObject {
 private extension NSImage {
   func resizedForMenu(tinted: Bool = false) -> NSImage {
     let target = NSSize(width: 18, height: 18)
-    let img = NSImage(size: target)
-    img.lockFocus()
-    self.draw(in: NSRect(origin: .zero, size: target),
-              from: NSRect(origin: .zero, size: self.size),
-              operation: .sourceOver, fraction: tinted ? 0.5 : 1.0)
-    img.unlockFocus()
-    return img
+    return NSImage(size: target, flipped: false) { rect in
+      self.draw(in: rect,
+                from: NSRect(origin: .zero, size: self.size),
+                operation: .sourceOver, fraction: tinted ? 0.5 : 1.0)
+      return true
+    }
   }
 }

@@ -7,7 +7,6 @@
 //
 
 import AppKit
-import Carbon
 import HotKey
 import ServiceManagement
 
@@ -27,29 +26,15 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         }
     }
 
-    // Notch overflow hotkey: Cmd+Shift+B
-    var notchOverflowHotKey: HotKey?
-
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         setupAutoStartApp()
         registerDefaultValues()
         setupHotKey()
         openPreferencesIfNeeded()
         detectLTRLang()
-        statusBarController.setupNotchOverflow()
-        setupNotchOverflowHotKey()
     }
 
-    func setupNotchOverflowHotKey() {
-        guard NotchOverflowController.hasNotch else { return }
-        // Cmd+Shift+B (keyCode 11 = B)
-        let carbonMods = UInt32(cmdKey | shiftKey)
-        notchOverflowHotKey = HotKey(keyCombo: KeyCombo(carbonKeyCode: 11, carbonModifiers: carbonMods))
-        notchOverflowHotKey?.keyDownHandler = { [weak self] in
-            self?.statusBarController.notchOverflowController.triggerOverflow()
-        }
-    }
-    
+
     func openPreferencesIfNeeded() {
         if Preferences.isShowPreference {
             Util.showPrefWindow()
@@ -70,16 +55,21 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         UserDefaults.standard.set(true, forKey: migratedKey)
     }
     
+    // A plain value, separate from the side-effecting `register(defaults:)`
+    // call, so the "what are the defaults" behavior is testable without
+    // spinning up an AppDelegate (which creates real status bar items).
+    static let defaultPreferenceValues: [String: Any] = [
+        UserDefaults.Key.isAutoStart: false,
+        UserDefaults.Key.isShowPreference: true,
+        UserDefaults.Key.isAutoHide: true,
+        UserDefaults.Key.numberOfSecondForAutoHide: 10.0,
+        UserDefaults.Key.areSeparatorsHidden: false,
+        UserDefaults.Key.alwaysHiddenSectionEnabled: false,
+        UserDefaults.Key.notchOverflowEnabled: true
+    ]
+
     func registerDefaultValues() {
-         UserDefaults.standard.register(defaults: [
-            UserDefaults.Key.isAutoStart: false,
-            UserDefaults.Key.isShowPreference: true,
-            UserDefaults.Key.isAutoHide: true,
-            UserDefaults.Key.numberOfSecondForAutoHide: 10.0,
-            UserDefaults.Key.areSeparatorsHidden: false,
-            UserDefaults.Key.alwaysHiddenSectionEnabled: false,
-            UserDefaults.Key.notchOverflowEnabled: true
-         ])
+        UserDefaults.standard.register(defaults: AppDelegate.defaultPreferenceValues)
     }
     
     func setupHotKey() {
