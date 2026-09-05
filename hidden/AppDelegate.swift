@@ -15,11 +15,11 @@ import ServiceManagement
 class AppDelegate: NSObject, NSApplicationDelegate{
     
     var statusBarController = StatusBarController()
-    
+
     var hotKey: HotKey? {
         didSet {
             guard let hotKey = hotKey else { return }
-            
+
             hotKey.keyDownHandler = { [weak self] in
                 self?.statusBarController.expandCollapseIfNeeded()
             }
@@ -33,7 +33,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         openPreferencesIfNeeded()
         detectLTRLang()
     }
-    
+
+
     func openPreferencesIfNeeded() {
         if Preferences.isShowPreference {
             Util.showPrefWindow()
@@ -54,15 +55,21 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         UserDefaults.standard.set(true, forKey: migratedKey)
     }
     
+    // A plain value, separate from the side-effecting `register(defaults:)`
+    // call, so the "what are the defaults" behavior is testable without
+    // spinning up an AppDelegate (which creates real status bar items).
+    static let defaultPreferenceValues: [String: Any] = [
+        UserDefaults.Key.isAutoStart: false,
+        UserDefaults.Key.isShowPreference: true,
+        UserDefaults.Key.isAutoHide: true,
+        UserDefaults.Key.numberOfSecondForAutoHide: 10.0,
+        UserDefaults.Key.areSeparatorsHidden: false,
+        UserDefaults.Key.alwaysHiddenSectionEnabled: false,
+        UserDefaults.Key.notchOverflowEnabled: true
+    ]
+
     func registerDefaultValues() {
-         UserDefaults.standard.register(defaults: [
-            UserDefaults.Key.isAutoStart: false,
-            UserDefaults.Key.isShowPreference: true,
-            UserDefaults.Key.isAutoHide: true,
-            UserDefaults.Key.numberOfSecondForAutoHide: 10.0,
-            UserDefaults.Key.areSeparatorsHidden: false,
-            UserDefaults.Key.alwaysHiddenSectionEnabled: false
-         ])
+        UserDefaults.standard.register(defaults: AppDelegate.defaultPreferenceValues)
     }
     
     func setupHotKey() {
