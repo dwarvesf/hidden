@@ -15,8 +15,12 @@ class StatusBarController {
     
     //MARK: - BarItems
         
-    private let btnExpandCollapse = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private let btnSeparate = NSStatusBar.system.statusItem(withLength: 1)
+    // Created and named in declaration order on purpose: a status item registers
+    // with the menu bar under its autosave name, and on macOS 27 every new name
+    // lands left of the previous one, so the bar reads separator, spacers, arrow.
+    private let btnExpandCollapse = StatusBarController.makeItem("hiddenbar_expandcollapse", length: NSStatusItem.variableLength)
+    private let spacers: [NSStatusItem] = StatusBarController.makeSpacers()  // macOS 27 only, empty elsewhere
+    private let btnSeparate = StatusBarController.makeItem("hiddenbar_separate", length: 1)
     private var btnAlwaysHidden:NSStatusItem? = nil
     
     private var btnHiddenLength: CGFloat = 20
@@ -62,6 +66,61 @@ class StatusBarController {
     }
     
     private var isToggle = false
+
+    // macOS 27 keeps every item's position in its own layout table, keyed by
+    // autosave name, and the app can neither read nor seed it. A new item always
+    // lands leftmost. The spacers can therefore only end up between the arrow
+    // and the separator if all three are registered fresh, in order, so on 27 the
+    // items use new names. Upgraders drag their icons past the separator once,
+    // as on a fresh install.
+    private static let autosaveSuffix: String = {
+        if #available(macOS 27.0, *) { return "_v27" }
+        return ""
+    }()
+
+    // macOS 27 drops a status item whose length reaches half the display width
+    // instead of clamping it (#360). Measured on 27.0: a 3008pt display keeps
+    // 1480pt and drops 1500pt. One length is applied on every display's bar, so
+    // the unit is sized under the NARROWEST display's cliff.
+    @available(macOS 27.0, *)
+    private static var collapseUnit: CGFloat {
+        let narrowest = NSScreen.screens.map { $0.frame.width }.min() ?? 1728
+        return max(200, (narrowest / 2 - 64).rounded(.down))
+    }
+
+    private static func makeItem(_ name: String, length: CGFloat) -> NSStatusItem {
+        let item = NSStatusBar.system.statusItem(withLength: length)
+        item.autosaveName = name + autosaveSuffix
+        return item
+    }
+
+    // Below the cliff macOS 27 pushes the icons left of the separator into its
+    // native overflow menu, but only once they reach the frontmost app's menus.
+    // One unit does not span that distance on wide displays, so the separator
+    // gets company: zero-length items to its right that inflate with it. macOS
+    // overflows from the left, so the icons go first and the spacers stay;
+    // surplus spacers overflow themselves, which is harmless (measured on an
+    // 1800pt display). The count is fixed so every launch registers the same
+    // names: a name first seen on a later launch would land leftmost, outside
+    // the block. Seven units cover a 5800pt display next to an 1800pt one.
+    private static func makeSpacers() -> [NSStatusItem] {
+        guard #available(macOS 27.0, *) else { return [] }
+        return (0..<6).map { index in
+            let item = makeItem("hiddenbar_spacer\(index)", length: 0)
+            item.button?.isEnabled = false
+            return item
+        }
+    }
+
+    // Spacers are visible only while collapsed. isVisible keeps the item's slot
+    // in the layout table (measured), so they come back between the arrow and
+    // the separator and take no room in the expanded bar.
+    private func setSpacersInflated(_ inflated: Bool) {
+        for spacer in spacers {
+            spacer.isVisible = inflated
+            spacer.length = inflated ? btnHiddenCollapseLength : 0
+        }
+    }
 
     private var hoverMonitor: Any?
     private var hoverDwellTimer: Timer?
@@ -144,6 +203,7 @@ class StatusBarController {
         updateCollapsedLengths()
         if wasCollapsed {
             btnSeparate.length = btnHiddenCollapseLength
+            setSpacersInflated(true)
             if Preferences.areSeparatorsHidden {
                 btnAlwaysHidden?.length = btnAlwaysHiddenEnableExpandCollapseLength
             }
@@ -153,47 +213,9 @@ class StatusBarController {
     private func updateCollapsedLengths() {
         let boundedCollapseLength: CGFloat
         if #available(macOS 27.0, *) {
-            // macOS 27 DISCARDS a status item whose length reaches half the
-            // display width instead of clamping it (#360). Below that cliff it
-            // moves the icons the separator displaces into its own native
-            // overflow menu; at or above it, the item is dropped and the bar is
-            // left exactly as it was. Measured on 27.0: a 2056pt display hides
-            // at <= 1000pt and drops from 1028pt, a 3840pt display drops from
-            // 1920pt.
-            //
-            // A bar only clears if the separator can span the whole distance
-            // from the icons to the overflow boundary, and that distance grows
-            // with display width while the cliff is only half of it: a 3840pt
-            // display needs ~2900pt but can never accept more than 1919pt, so
-            // wide displays cannot hide at all. Under the cliff they merely
-            // shove the icons sideways, which looks broken.
-            //
-            // One length is applied to the item on every attached display's bar,
-            // and only the NARROWEST display's cliff is low enough for every bar
-            // to honour it — so that is what a hiding length must be sized for.
-            // Anything wider cannot be cleared at any length (its icons are
-            // further from the overflow boundary than its own cliff allows) and
-            // instead shows them shifted left by whatever we ask for. Adding
-            // more inflated items does not help: macOS overflows the bar from
-            // the left, so the extra items fall into the overflow themselves and
-            // leave the real icons untouched (measured).
-            //
-            // A mixed-width setup therefore has to choose between hiding on the
-            // narrowest display and leaving the wider ones undisturbed. Default
-            // to not disturbing them: stay above every cliff so macOS drops the
-            // item and no bar changes at all. Opt in to the other side with
-            // `defaults write com.dwarvesv.minimalbar hideWithMixedDisplays
-            // -bool true`. Derived from the display configuration only, so it
-            // stays put; an earlier version keyed on the pointer's display and
-            // made the bars flicker between arrangements as the pointer moved.
-            let widths = NSScreen.screens.map { $0.frame.width }
-            let narrowest = widths.min() ?? 1728
-            let widest = widths.max() ?? narrowest
-            if widest > narrowest && !Preferences.hideWithMixedDisplays {
-                boundedCollapseLength = (widest / 2 + 64).rounded(.down)
-            } else {
-                boundedCollapseLength = max(200, (narrowest / 2 - 64).rounded(.down))
-            }
+            // See collapseUnit and makeSpacers: one unit per item, spacers make
+            // up the rest of the span.
+            boundedCollapseLength = StatusBarController.collapseUnit
         } else {
             // The menubar replicates across every attached display, so the collapse
             // length must cover the WIDEST screen, not NSScreen.main (the focused one);
@@ -233,8 +255,6 @@ class StatusBarController {
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
         
-        btnExpandCollapse.autosaveName = "hiddenbar_expandcollapse";
-        btnSeparate.autosaveName = "hiddenbar_separate";
     }
     
     @objc func btnExpandCollapsePressed(sender: NSStatusBarButton) {
@@ -304,6 +324,7 @@ class StatusBarController {
         }
 
         btnSeparate.length = self.btnHiddenCollapseLength
+        setSpacersInflated(true)
         setSeparatorGlyphVisible(false)
         if let button = btnExpandCollapse.button {
             button.image = Assets.expandImage
@@ -316,6 +337,7 @@ class StatusBarController {
     private func expandMenubar() {
         guard self.isCollapsed else {return}
         btnSeparate.length = btnHiddenLength
+        setSpacersInflated(false)
         setSeparatorGlyphVisible(true)
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
@@ -421,7 +443,7 @@ extension StatusBarController {
                 button.image = self.imgIconLine
                 button.appearsDisabled = true
             }
-            self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate"
+            self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate" + StatusBarController.autosaveSuffix
             self.btnAlwaysHidden?.isVisible = true
         } else {
             if let existing = self.btnAlwaysHidden {

@@ -106,24 +106,27 @@ A full-tree audit (2026-06) scored 9/10 with hygiene-level findings only.
   displaces into its own native overflow menu (`«`) rather than merely
   off-screen. The cliff is per item, so the always-hidden separator can be
   inflated at the same time.
-- **Wide displays cannot hide at all on macOS 27.** A bar only clears if the
-  separator spans the whole distance from the icons to the overflow boundary
-  (just right of the frontmost app's menus). That distance grows with display
-  width while the cliff is only half of it, so past roughly 2800pt the two
-  cross: a 3840pt display needs ~2900pt and can never accept more than 1919pt.
-  Under the cliff such a display merely shoves its icons sideways, leaving a
-  gap; at or over the cliff the item is dropped and the bar is untouched.
-- **So a mixed-width setup must choose.** Only the narrowest display's cliff is
-  low enough for every bar to honour the item, so a hiding length is sized for
-  that display; wider ones then show their icons shifted left by it. Adding more
-  inflated items does not escape this: macOS overflows the bar from the left, so
-  extra items fall into the overflow themselves and leave the real icons alone
-  (measured). `updateCollapsedLengths` therefore defaults to staying ABOVE every
-  cliff when display widths differ — macOS drops the item and no bar changes —
-  and `Preferences.hideWithMixedDisplays` opts into hiding on the narrowest
-  instead. Both derive from the display configuration only; an earlier version
-  keyed on the pointer's display and made the bars flicker between arrangements
-  as the pointer moved. Only the managed-overflow redesign (#366) lifts this.
+- **One item does not span a wide display on macOS 27.** A bar only clears
+  once the icons reach the overflow boundary, just right of the frontmost app's
+  menus. That distance grows with display width while the cliff is only half of
+  it, so a single item cannot clear a 3008pt display (needs ~1500pt with short
+  app menus, cliff at 1480). One length is applied on every attached display's
+  bar, so the unit is sized under the NARROWEST display's cliff. The rest of the
+  span comes from zero-length spacer items between the separator and the arrow:
+  enough that, inflated together with the separator, they cover the widest
+  display. macOS overflows from the left, so the icons go first and the spacers
+  stay. Six spacers always, so every launch registers the same names; on a
+  narrower display the surplus spacers overflow themselves, which is harmless.
+  The always-hidden separator still inflates alone, one unit, so with the
+  regular section expanded its icons can show on a wide display. Spacers exist only while collapsed: `isVisible` keeps their slot in
+  the layout table (measured), so they take no room in the expanded bar.
+- **Item positions live in the host on macOS 27.** The app's own defaults no
+  longer carry `NSStatusItem Preferred Position`, the private getters return
+  nothing, and a brand-new autosave name always lands at the far left of the
+  bar. The spacers can therefore only sit between the arrow and the separator
+  if all three register fresh, in declaration order, so on 27 every item's
+  autosave name carries a `_v27` suffix. Upgraders drag their icons past the
+  separator once, as on a fresh install.
 - **Other apps' open menus**: interaction-awareness is pointer-position-based;
   a pointer deep inside another app's open dropdown is below the menubar band,
   so the collapse can still fire there.

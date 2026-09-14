@@ -26,19 +26,20 @@ math, collapse state machine) are HIGH RISK and require a mandatory review-team 
   item, so the always-hidden separator still works alongside it (verified). The
   separator glyph is suppressed while collapsed on 27, where its span is
   on-screen.
-- **PARTIAL: wide displays cannot hide (measured 2026-08-16, 2056pt built-in +
-  3840pt external).** A bar clears only if the separator spans icons -> overflow
-  boundary; that distance grows with width while the cliff is width/2, so they
-  cross around ~2800pt. The 3840pt external needs ~2900pt and drops at 1920pt:
-  no length hides there. Under the cliff it displaces icons into mid-bar; at or
-  over the cliff the item is dropped and the bar is untouched. Two dead ends were
-  tried on hardware first: keying the length on the pointer's display made the
-  bars flicker between arrangements as the pointer moved, and dropping the item
-  whenever a second display was attached stopped hiding everywhere. Shipping
-  rule is narrowest-display sizing — stable, hides on the narrow display,
-  wider displays show the shift. Cumulative displacement across two items DOES add up, but any
-  item we create lands leftmost where inflation pushes nothing, and inflating the
-  arrow shoves the visible-zone icons around. Real fix is #366.
+- **DONE: wide and mixed-width displays (measured 2026-09-14, 1800 + 3008 +
+  2x1920pt).** A bar clears only if the inflated span reaches from the icons to
+  the overflow boundary, and one item stops at half the display width (3008pt
+  display keeps 1480, drops 1500). Cumulative displacement across items does add
+  up, and a new autosave name always lands leftmost, so on 27 all items register
+  under `_v27` names in declaration order: arrow, zero-length spacers, separator.
+  Spacers inflate with the separator on collapse and hide via `isVisible` on
+  expand, which keeps their slot. Verified with a test app whose items sat in the
+  hidden zone: while collapsed they are absent from the main display's
+  accessibility tree, the `«` chevron appears and a click at their reported
+  position hits nothing; expanded, the click fires. Upgraders re-drag once.
+  Six spacers always, so every launch registers the same names. Known
+  limitation: the always-hidden separator still gets one unit, so with the
+  regular section expanded its icons can show on a wide display.
 - **Verification trap that produced a false "fixed" claim:** the external bar was
   captured right-half only, so icons displaced LEFT fell outside the crop and
   read as hidden. Always capture the FULL bar width per display
