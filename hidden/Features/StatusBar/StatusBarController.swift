@@ -26,6 +26,36 @@ class StatusBarController {
     private var btnAlwaysHiddenEnableExpandCollapseLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 2000 : 0
     
     private let imgIconLine = NSImage(named:NSImage.Name("ic_line"))
+
+    // MARK: - macOS 27 collapse length (#360)
+    //
+    // macOS 27 discards any single NSStatusItem whose length reaches roughly HALF
+    // the width of the display it's drawn on, instead of clamping it the way
+    // macOS <= 26 did. Hidden Bar inflated the separator to widestScreen * 2,
+    // which is over that limit on every Mac, so on 27 the item was dropped
+    // outright: it displaced no icons and its own "|" glyph vanished. That is
+    // both symptoms reported in #360 (hiding doing nothing, stray separator
+    // visible mid-menu-bar).
+    //
+    // Fix: keep the collapsed length under the per-display cliff, sized from the
+    // NARROWEST attached screen (every display's copy of the separator has to
+    // clear its own cliff). A chained-multi-item approach was tried first
+    // (inflation also applied to spacer items so the span reached across the
+    // WIDEST screen), but macOS 27 animates each item's own scene-host window
+    // independently, so the extras desynced from the separator; the single
+    // under-cliff separator is what carries the collapse. On macOS <= 26 the
+    // original widestScreen * 2 sizing is unchanged, so this is additive, not a
+    // behavior change for existing users.
+    private static let isMacOS27OrLater: Bool = {
+        if #available(macOS 27, *) { return true }
+        return false
+    }()
+
+    // Fraction of the narrowest screen the collapsed separator is allowed to
+    // reach. macOS 27's cliff sits at ~50%; 45% leaves headroom for
+    // rounding/backing-scale so the item isn't dropped by a hair over the line
+    // (matches upstream PR #382's hardware-verified figure).
+    private static let perItemCliffFraction: CGFloat = 0.45
     
     private var isCollapsed: Bool {
         // Compare with > rather than == so the state survives updateCollapsedLengths
@@ -153,7 +183,7 @@ class StatusBarController {
         let wasCollapsed = isCollapsed
         updateCollapsedLengths()
         if wasCollapsed {
-            btnSeparate.length = btnHiddenCollapseLength
+            snapLengths(separator: btnHiddenCollapseLength)
             if Preferences.areSeparatorsHidden {
                 btnAlwaysHidden?.length = btnAlwaysHiddenEnableExpandCollapseLength
             }
@@ -161,16 +191,28 @@ class StatusBarController {
     }
 
     private func updateCollapsedLengths() {
-        // The menubar replicates across every attached display, so the collapse
-        // length must cover the WIDEST screen, not NSScreen.main (the focused one);
-        // sizing from a narrower screen leaks hidden icons on wider displays.
+        // The menubar replicates across every attached display. Pre-27, sizing
+        // from the WIDEST screen (never NSScreen.main, the focused one) was
+        // enough: macOS clamped an oversized length instead of dropping the
+        // item, so an over-wide separator was harmless, just capped.
         // frame.width, not visibleFrame: the menubar spans the full frame width.
-        let screenWidth = NSScreen.screens.map { $0.frame.width }.max() ?? 1728
-        // Keep collapse length bounded to avoid pathological layout/memory behavior;
-        // macOS enforces a hard 10,000pt maximum on NSStatusItem.length (PR #354).
-        let boundedCollapseLength = max(500, min(screenWidth * 2, 10_000))
-        btnHiddenCollapseLength = boundedCollapseLength
-        btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? boundedCollapseLength : 0
+        let widths = NSScreen.screens.map { $0.frame.width }
+        let widestScreenWidth = widths.max() ?? 1728
+        let narrowestScreenWidth = widths.min() ?? widestScreenWidth
+
+        if Self.isMacOS27OrLater {
+            // The separator must clear its own cliff on the NARROWEST screen
+            // it's drawn on (every display gets a copy of the same item).
+            btnHiddenCollapseLength = max(200, narrowestScreenWidth * Self.perItemCliffFraction)
+        } else {
+            // Keep collapse length bounded to avoid pathological layout/memory
+            // behavior; macOS enforces a hard 10,000pt maximum on
+            // NSStatusItem.length (PR #354). Unchanged from pre-#360 behavior.
+            let boundedCollapseLength = max(500, min(widestScreenWidth * 2, 10_000))
+            btnHiddenCollapseLength = boundedCollapseLength
+        }
+
+        btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? btnHiddenCollapseLength : 0
     }
     
     private func restoreRemovedStatusItems() {
@@ -253,12 +295,20 @@ class StatusBarController {
     }
     
     func expandCollapseIfNeeded() {
-        //prevented rapid click cause icon show many in Dock
-        if isToggle {return}
-        isToggle = true
+        // Rapid-click guard (lowercase Dock-flicker bug on <= 26): macOS <= 26
+        // can spawn multiple Dock icons when the activation policy flips fast
+        // with useFullStatusBarOnExpandEnabled. On macOS 27 each status item is
+        // an independent scene host (no policy-driven Dock dance needed), so the
+        // guard is skipped entirely and every click toggles immediately (#360).
+        if !Self.isMacOS27OrLater {
+            if isToggle {return}
+            isToggle = true
+        }
         self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            self?.isToggle = false
+        if !Self.isMacOS27OrLater {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.isToggle = false
+            }
         }
     }
     
@@ -268,7 +318,13 @@ class StatusBarController {
             return
         }
 
-        btnSeparate.length = self.btnHiddenCollapseLength
+        snapLengths(separator: self.btnHiddenCollapseLength)
+        if Self.isMacOS27OrLater {
+            // On macOS 27 the separator's own "|" glyph is drawn oversized /
+            // stray once the item is below the old widestScreen*2 length it
+            // was designed to render at; hide it while collapsed instead (#360).
+            btnSeparate.button?.image = nil
+        }
         if let button = btnExpandCollapse.button {
             button.image = Assets.expandImage
         }
@@ -280,7 +336,10 @@ class StatusBarController {
     }
     private func expandMenubar() {
         guard self.isCollapsed else {return}
-        btnSeparate.length = btnHiddenLength
+        snapLengths(separator: btnHiddenLength)
+        if Self.isMacOS27OrLater {
+            btnSeparate.button?.image = self.imgIconLine
+        }
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
         }
@@ -291,6 +350,16 @@ class StatusBarController {
             NSApp.activate(ignoringOtherApps: true)
             
         }
+    }
+
+    // A plain length assignment so macOS animates ALL affected items in one
+    // coordinated pass (the separator itself plus the neighbor items that must
+    // re-flow to make room). Disabling actions / snapping the commit makes the
+    // separator jump instantly while neighbors re-flow later, which reads as a
+    // "delay in the apps" (#360). NSStatusItem.length has no animated: variant
+    // in the SDK, so the system pass is the closest to a unified motion.
+    private func snapLengths(separator: CGFloat) {
+        btnSeparate.length = separator
     }
     
     private func autoCollapseIfNeeded() {
