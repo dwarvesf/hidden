@@ -63,15 +63,9 @@ class StatusBarController {
     
     private var isToggle = false
 
-    // SPEC-003 (macOS 27 hide-mechanism). macOS 27 re-architected the menu bar so
-    // inflating the separator length may no longer push items off-screen (#360).
-    // This is DIAGNOSTIC ONLY: on the first collapse with the menu-bar window
-    // ready, log the separator geometry so a macOS 27 run reveals which signal
-    // (if any) distinguishes "length honored" from "ignored". No behavior change.
-    // The degrade ACTION is deliberately NOT shipped: review found the trigger
-    // unverifiable without 27 hardware, and a false positive would disable hiding
-    // for a working user. The action lands once this log calibrates the signal.
-    private var hideMechanismChecked = false
+    // Serial number of the newest length ramp per status item; any later length change
+    // to the same item bumps it, which makes an in-flight ramp stop on its next step.
+    private var lengthRampGenerations: [ObjectIdentifier: Int] = [:]
 
     private var hoverMonitor: Any?
     private var hoverDwellTimer: Timer?
@@ -153,24 +147,58 @@ class StatusBarController {
         let wasCollapsed = isCollapsed
         updateCollapsedLengths()
         if wasCollapsed {
-            btnSeparate.length = btnHiddenCollapseLength
-            if Preferences.areSeparatorsHidden {
-                btnAlwaysHidden?.length = btnAlwaysHiddenEnableExpandCollapseLength
+            setLength(btnSeparate, to: btnHiddenCollapseLength)
+            if Preferences.areSeparatorsHidden, let alwaysHidden = btnAlwaysHidden {
+                setLength(alwaysHidden, to: btnAlwaysHiddenEnableExpandCollapseLength)
             }
         }
     }
 
     private func updateCollapsedLengths() {
-        // The menubar replicates across every attached display, so the collapse
-        // length must cover the WIDEST screen, not NSScreen.main (the focused one);
-        // sizing from a narrower screen leaks hidden icons on wider displays.
-        // frame.width, not visibleFrame: the menubar spans the full frame width.
-        let screenWidth = NSScreen.screens.map { $0.frame.width }.max() ?? 1728
-        // Keep collapse length bounded to avoid pathological layout/memory behavior;
-        // macOS enforces a hard 10,000pt maximum on NSStatusItem.length (PR #354).
-        let boundedCollapseLength = max(500, min(screenWidth * 2, 10_000))
+        let boundedCollapseLength: CGFloat
+        if #available(macOS 27.0, *) {
+            boundedCollapseLength = Self.macOS27CollapseLength()
+        } else {
+            // The menubar replicates across every attached display, so the collapse
+            // length must cover the WIDEST screen, not NSScreen.main (the focused one);
+            // sizing from a narrower screen leaks hidden icons on wider displays.
+            // frame.width, not visibleFrame: the menubar spans the full frame width.
+            let screenWidth = NSScreen.screens.map { $0.frame.width }.max() ?? 1728
+            // Keep collapse length bounded to avoid pathological layout/memory behavior;
+            // macOS enforces a hard 10,000pt maximum on NSStatusItem.length (PR #354).
+            boundedCollapseLength = max(500, min(screenWidth * 2, 10_000))
+        }
         btnHiddenCollapseLength = boundedCollapseLength
         btnAlwaysHiddenEnableExpandCollapseLength = Preferences.alwaysHiddenSectionEnabled ? boundedCollapseLength : 0
+    }
+
+    // macOS 27 re-architected the menu bar and now DROPS a status item whose backing
+    // window reaches half the width of the display (#360). The pre-27 length (twice the
+    // widest screen) is over that limit on every Mac, so the separator was silently
+    // ejected from the layout: it displaced nothing and hiding stopped working entirely.
+    // Nothing in-process reports the ejection -- the item keeps reporting the length it
+    // was asked for -- so the fix is to stay under the limit by construction.
+    //
+    // Measured on macOS 27.0 (26A428), 1728pt display, by reading foreign status items'
+    // AXPosition while sweeping the length: 848pt hides them, 849pt hides nothing.
+    // 848 + statusItemWindowChrome == 864 == 1728 / 2, i.e. the limit applies to the
+    // item's WINDOW (length plus chrome), not to the length alone. The same arithmetic
+    // fits the 3008pt-display report in PR #392 (honored at 1480pt, dropped at 1500pt).
+    private static let statusItemWindowChrome: CGFloat = 16
+    // Headroom under the measured cliff, so rounding or a chrome change on a later macOS
+    // 27 build degrades the push a little instead of silently disabling hiding again.
+    private static let macOS27Headroom: CGFloat = 24
+
+    private static func macOS27CollapseLength() -> CGFloat {
+        // One length is applied to the item on every display's copy of the menu bar and
+        // the limit is per display, so the NARROWEST attached screen sets the cap --
+        // the inverse of the pre-27 widest-screen rule. A length sized for a wide screen
+        // would be over the limit on a narrow one and would hide nothing anywhere.
+        let narrowestScreenWidth = NSScreen.screens.map { $0.frame.width }.min() ?? 1728
+        let cap = narrowestScreenWidth / 2 - statusItemWindowChrome - macOS27Headroom
+        // Never fall to or below the expanded length: isCollapsed is derived from
+        // `length > btnHiddenLength`, so a degenerate cap would make the bar untoggleable.
+        return max(120, cap)
     }
     
     private func restoreRemovedStatusItems() {
@@ -236,9 +264,11 @@ class StatusBarController {
         Preferences.areSeparatorsHidden = false
         
         if !self.isCollapsed {
-            self.btnSeparate.length = self.btnHiddenLength
+            setLength(btnSeparate, to: btnHiddenLength)
         }
-        self.btnAlwaysHidden?.length = self.btnAlwaysHiddenLength
+        if let alwaysHidden = btnAlwaysHidden {
+            setLength(alwaysHidden, to: btnAlwaysHiddenLength)
+        }
     }
     
     private func hideSeparators() {
@@ -247,9 +277,11 @@ class StatusBarController {
         Preferences.areSeparatorsHidden = true
         
         if !self.isCollapsed {
-            self.btnSeparate.length = self.btnHiddenLength
+            setLength(btnSeparate, to: btnHiddenLength)
         }
-        self.btnAlwaysHidden?.length = self.btnAlwaysHiddenEnableExpandCollapseLength
+        if let alwaysHidden = btnAlwaysHidden {
+            setLength(alwaysHidden, to: btnAlwaysHiddenEnableExpandCollapseLength)
+        }
     }
     
     func expandCollapseIfNeeded() {
@@ -268,7 +300,7 @@ class StatusBarController {
             return
         }
 
-        btnSeparate.length = self.btnHiddenCollapseLength
+        setLength(btnSeparate, to: self.btnHiddenCollapseLength)
         if let button = btnExpandCollapse.button {
             button.image = Assets.expandImage
         }
@@ -276,11 +308,10 @@ class StatusBarController {
             NSApp.setActivationPolicy(.accessory)
             NSApp.deactivate()
         }
-        verifyHideMechanismIfNeeded()
     }
     private func expandMenubar() {
         guard self.isCollapsed else {return}
-        btnSeparate.length = btnHiddenLength
+        setLength(btnSeparate, to: btnHiddenLength)
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
         }
@@ -293,6 +324,45 @@ class StatusBarController {
         }
     }
     
+    // macOS 27 will not evict a seated neighbour to make room for an item that grows:
+    // assigning the collapsed length in one jump leaves every icon exactly where it was,
+    // which is the second half of #360 and is invisible to the length API (the item still
+    // reports the length it was given). Measured on 27.0 (26A428): the same total applied
+    // in small steps DOES carry the neighbours along -- foreign status items went from a
+    // laid-out row to the parked position, and the icons left of the separator leave the
+    // bar -- while a single jump moved them 0pt. Steps of 10 and 40pt both worked; 100pt
+    // was already too coarse.
+    //
+    // Shrinking needs none of this: room becomes free and the host repacks on its own,
+    // on every macOS. Pre-27 grows in one assignment as they always have.
+    private static let lengthRampStep: CGFloat = 40
+    private static let lengthRampInterval: TimeInterval = 0.016
+
+    /// Sets a status item's length, ramping a macOS 27 GROWTH so the host carries the
+    /// neighbouring icons along. Always cancels an in-flight ramp on the same item.
+    private func setLength(_ item: NSStatusItem, to target: CGFloat) {
+        let key = ObjectIdentifier(item)
+        let generation = (lengthRampGenerations[key] ?? 0) &+ 1
+        lengthRampGenerations[key] = generation
+
+        guard #available(macOS 27.0, *), target > item.length else {
+            item.length = target
+            return
+        }
+
+        func advance() {
+            // Abandon a ramp the user has already overtaken with another toggle.
+            guard self.lengthRampGenerations[key] == generation else { return }
+            let next = min(item.length + Self.lengthRampStep, target)
+            item.length = next
+            guard next < target else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.lengthRampInterval) {
+                advance()
+            }
+        }
+        advance()
+    }
+
     private func autoCollapseIfNeeded() {
         guard Preferences.isAutoHide else {return}
         guard !isCollapsed else { return }
@@ -300,32 +370,6 @@ class StatusBarController {
         startTimerToAutoHide()
     }
 
-    // After a collapse, confirm on the next runloop tick (so layout settles) that
-    // the separator actually claimed its inflated width. macOS <= 26 honors it;
-    // a macOS that ignores NSStatusItem.length leaves the slot narrow, meaning
-    // hiding did nothing. Checked once: cheap, and the OS behavior won't change
-    // mid-session.
-    private func verifyHideMechanismIfNeeded() {
-        guard !hideMechanismChecked else { return }
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self, self.isCollapsed else { return }
-            // Need the separator's backing window to measure. If it is not up yet
-            // (early launch), do NOT burn the one-shot check: return and let a
-            // later collapse retry once the window exists.
-            guard let separatorButton = self.btnSeparate.button,
-                  let window = separatorButton.window else { return }
-            self.hideMechanismChecked = true
-            // Log several geometry signals. On macOS <= 26 the inflation is
-            // honored; on macOS 27 it may be ignored. Which of these tracks the
-            // requested length is exactly what a 27 capture must reveal before any
-            // degrade action can trigger on a sound signal.
-            let requested = self.btnHiddenCollapseLength
-            let windowWidth = window.frame.width
-            let buttonWidth = separatorButton.frame.width
-            NSLog("HideMechanism: requested=\(requested) windowWidth=\(windowWidth) buttonWidth=\(buttonWidth) length=\(self.btnSeparate.length)")
-        }
-    }
-    
     private func startTimerToAutoHide() {
         timer?.invalidate()
         self.timer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] _ in
@@ -396,6 +440,7 @@ extension StatusBarController {
 
         if Preferences.alwaysHiddenSectionEnabled {
             if let existing = self.btnAlwaysHidden {
+                lengthRampGenerations.removeValue(forKey: ObjectIdentifier(existing))
                 NSStatusBar.system.removeStatusItem(existing)
             }
             self.btnAlwaysHidden = NSStatusBar.system.statusItem(withLength: btnAlwaysHiddenLength)
@@ -407,6 +452,7 @@ extension StatusBarController {
             self.btnAlwaysHidden?.isVisible = true
         } else {
             if let existing = self.btnAlwaysHidden {
+                lengthRampGenerations.removeValue(forKey: ObjectIdentifier(existing))
                 NSStatusBar.system.removeStatusItem(existing)
             }
             self.btnAlwaysHidden = nil

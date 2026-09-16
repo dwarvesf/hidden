@@ -66,8 +66,27 @@ To undo any of them: `defaults delete com.dwarvesv.minimalbar <key>`.
 | Login item missing after denying it once | System Settings > General > Login Items: re-enable Hidden Bar, then toggle the pref off/on |
 | A ghost "LauncherApplication" login item from old versions | Launch the current version once; it deauthorizes the legacy item automatically |
 | App language stuck | See the `AppleLanguages` command above, or System Settings > General > Language & Region > Applications |
-| Nothing hides on a macOS 27 beta | Known (issue #360); the menu bar re-architecture broke the hiding mechanism, fix under investigation |
+| Nothing hides on macOS 27 | Fixed in v1.11. If it still does nothing, the separator is probably in the wrong place: see "Finding the separator on macOS 27" below |
+| I cannot find the `\|` separator on macOS 27 | It is likely inside the system overflow menu (`»`). See "Finding the separator on macOS 27" below |
 | A new or just-updated app's icon shows up already hidden | Expected, see "Why new icons start hidden" below; ⌘-drag it to the right of the separator once |
+
+### Finding the separator on macOS 27
+
+macOS 27 moved menu-bar item positions into the system, and apps can no longer
+read or set where their own icons sit. After upgrading, Hidden Bar's separator
+can land anywhere -- including inside the system's native overflow menu (`»`),
+where you cannot see it at all. Hiding then appears broken, because the icons you
+want hidden are no longer to the *left* of the separator.
+
+To fix it once:
+
+1. Click the `»` chevron in the menu bar to open the overflow list.
+2. Find the thin `|` separator.
+3. Hold **⌘** and drag it onto the visible bar, so the icons you want hidden sit
+   to its left and the `>` arrow stays to its right.
+
+macOS remembers the placement. On a Mac with a notch, icons pushed past the
+separator end up behind the notch, which is where they disappear from view.
 
 ### Why new icons start hidden
 
