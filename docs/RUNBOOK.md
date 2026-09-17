@@ -47,6 +47,24 @@ Standard checks before any release:
   off -> `= 0` (run the binary directly to capture stderr);
 - localization tables stay parseable: `plutil -lint hidden/*.lproj/*.strings`.
 
+### macOS 27 assessment-mode verification
+
+The macOS 27 backend does not inflate the separator, so AX size is not a truth
+signal on that OS. Test it on real displays instead:
+
+1. Start with both bars expanded and note that the Hidden Bar arrow, battery,
+   Wi-Fi, Control Centre, and clock are visible.
+2. Collapse and verify third-party icons disappear on every attached display,
+   without a wide blank span or native `«` overflow control.
+3. Expand, collapse again, then change the active display or attach/detach an
+   external display. Every system control and the Hidden Bar arrow must remain
+   reachable. If a policy assertion is rejected or the runtime classes are
+   missing, verify the geometry fallback rather than shipping a hidden control.
+
+The assessment-mode path uses an undocumented Apple runtime interface. It is a
+GitHub/Developer-ID-only feature until a release owner explicitly accepts the
+Mac App Store compatibility consequence.
+
 When testing on a machine that runs Hidden Bar daily: export the prefs domain
 first (`defaults export com.dwarvesv.minimalbar backup.plist`), quit the
 installed app, test the dev build, then re-import and relaunch.
