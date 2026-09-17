@@ -7,11 +7,63 @@
 //
 
 import AppKit
+import Darwin
+
+// macOS 27's status-item widths are shared by every attached display.  Assessment
+// mode is a policy applied by MenuBarAgent instead, so it hides third-party items
+// without allocating a fake span on either menu bar.  The framework is private:
+// resolve it at runtime and keep the established path as the fallback.
+private final class MenuBarAssessmentMode {
+    private let framework = "/System/Library/PrivateFrameworks/MenuBarClientCore.framework/MenuBarClientCore"
+    private let configure = NSSelectorFromString("initWithAllowedSystemItems:allowedBundleIdentifiers:")
+    private let activate = NSSelectorFromString("activateWithConfiguration:completionHandler:")
+    private let invalidate = NSSelectorFromString("invalidate")
+    private var assertion: AnyObject?
+
+    var isActive: Bool { assertion != nil }
+
+    var isAvailable: Bool {
+        guard #available(macOS 27.0, *) else { return false }
+        guard dlopen(framework, RTLD_NOW | RTLD_LOCAL) != nil,
+              let configuration = NSClassFromString("MBAssessmentModeConfiguration"),
+              let candidate = NSClassFromString("MBAssessmentModeAssertion") else { return false }
+        return configuration.instancesRespond(to: configure)
+            && candidate.instancesRespond(to: activate)
+            && candidate.instancesRespond(to: invalidate)
+    }
+
+    func hideThirdPartyItems() {
+        guard isAvailable else { return }
+        showAllItems()
+        guard let configurationClass = NSClassFromString("MBAssessmentModeConfiguration"),
+              let assertionClass = NSClassFromString("MBAssessmentModeAssertion") else { return }
+        // Keep the complete system row.  The policy hides only non-allowed app bundles.
+        let systemItems = (0...63).map { NSNumber(value: $0) } as NSArray
+        let ownBundle = Bundle.main.bundleIdentifier ?? "com.dwarvesv.minimalbar"
+        guard let configuration = (configurationClass.alloc() as AnyObject)
+            .perform(configure, with: systemItems, with: [ownBundle] as NSArray)?
+            .takeUnretainedValue(),
+              let newAssertion = (assertionClass.alloc() as AnyObject)
+                .perform(NSSelectorFromString("init"))?.takeUnretainedValue() else { return }
+        let completion: @convention(block) (AnyObject?) -> Void = { error in
+            if let error { NSLog("Hidden Bar assessment mode rejected: \(error)") }
+        }
+        _ = newAssertion.perform(activate, with: configuration, with: completion)
+        assertion = newAssertion
+    }
+
+    func showAllItems() {
+        guard let assertion else { return }
+        _ = assertion.perform(invalidate)
+        self.assertion = nil
+    }
+}
 
 class StatusBarController {
     
     //MARK: - Variables
     private var timer:Timer? = nil
+    private let assessmentMode = MenuBarAssessmentMode()
     
     //MARK: - BarItems
 
@@ -34,7 +86,7 @@ class StatusBarController {
     private var isCollapsed: Bool {
         // Compare with > rather than == so the state survives updateCollapsedLengths
         // changing btnHiddenCollapseLength while the bar is collapsed (PR #354).
-        return self.btnSeparate.length > self.btnHiddenLength
+        return assessmentMode.isActive || self.btnSeparate.length > self.btnHiddenLength
     }
     
     private var isBtnSeparateValidPosition: Bool {
@@ -338,9 +390,16 @@ class StatusBarController {
             return
         }
 
-        btnSeparate.length = self.btnHiddenCollapseLength
-        setSpacersInflated(true)
-        setSeparatorGlyphVisible(false)
+        if assessmentMode.isAvailable {
+            btnSeparate.length = btnHiddenLength
+            setSpacersInflated(false)
+            assessmentMode.hideThirdPartyItems()
+            setSeparatorGlyphVisible(false)
+        } else {
+            btnSeparate.length = self.btnHiddenCollapseLength
+            setSpacersInflated(true)
+            setSeparatorGlyphVisible(false)
+        }
         if let button = btnExpandCollapse.button {
             button.image = Assets.expandImage
         }
@@ -351,6 +410,7 @@ class StatusBarController {
     }
     private func expandMenubar() {
         guard self.isCollapsed else {return}
+        assessmentMode.showAllItems()
         btnSeparate.length = btnHiddenLength
         setSpacersInflated(false)
         setSeparatorGlyphVisible(true)
