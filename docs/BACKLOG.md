@@ -8,31 +8,26 @@ short: one line per item, pointing at the issue, SPEC, or file that holds the de
 Source of the current state: the v1.11 issue-clearing pass (2026-06-12), branch
 `fix/v1-11-batch` / draft PR #365, and SPEC-003. Core-model changes (separator length
 math, collapse state machine) are HIGH RISK and require a mandatory review-team pass.
-The macOS 27 hide mechanism was diagnosed and fixed on hardware on 2026-09-17.
 
-## macOS 27 (#360)
+## Blocked on macOS 27 hardware (Han UAT)
 
-The mechanism is fixed and verified on real hardware (27.0 build 26A428, 1728pt
-notched display); see "macOS 27 adjustments" in ARCHITECTURE.md for the measurements.
-What remains:
-
-- **Verify on a second display and on a non-notched Mac.** The collapse length is
-  derived from the narrowest attached screen because the limit is per display; that
-  rule is measured on one display only. A wide single display may also need more push
-  than one sub-limit item can deliver -- PR #392 measured ~1500pt needed on a 3008pt
-  display against a 1488pt cap, and solved it with extra spacer items. Decide whether
-  to adopt spacers after measuring.
-- **Always-hidden section on 27.** It routes through the same ramped `setLength`, but
-  was not exercised on hardware (enabling it would have disturbed the test machine's
-  hand-arranged bar).
-- **Item placement is the remaining user-visible defect.** Positions now live in the
-  host's layout table: `NSStatusItem Preferred Position ...` is gone from the app's
-  defaults, a re-registered item lands far left, and on a busy bar the separator can
-  land inside the system overflow (`»`) where the user cannot see it. Today's answer
-  is a one-time ⌘-drag, documented in MANUAL.md. A real fix (pin/seed positions) is
-  part of #366.
-- **Close the duplicate reports** once v1.11 ships: #377, #391, #394, #398 all
-  duplicate #360. Community fix attempts to credit/close: #382, #396, #400, #392.
+- **macOS 27 hide-mechanism capture (#360).** Run the v1.11 build on real macOS 27,
+  trigger a collapse, capture the `HideMechanism:` NSLog (requested length / host-window
+  width / button width / actual length). This is the unblocker: it reveals which geometry
+  signal separates "honored" from "ignored" on 27. Diagnostic-only instrument already
+  shipped. See SPEC-003 + `StatusBarController.swift` (collapse path).
+- **Redesign the detection signal, then ship Option B (detect-and-degrade).** Review-team
+  found `btnSeparate.button?.window?.frame.width` reads the full menu-bar window width
+  (~1728pt on 26.5), so `honored` is trivially true on every OS. Switch to a positional
+  signal (separator button X-coordinate before vs after collapse). Once the 27 capture
+  calibrates it: re-add the one-shot post-collapse check, a one-time context-menu notice
+  linking #360, and stop re-inflating on confirmed failure. Depends on the capture above.
+- **Fix the 3 review bugs when re-enabling degrade.** (1) move the `hideMechanismChecked`
+  latch to AFTER `honored` is measured (a transient nil window currently burns the
+  one-shot check); (2) drop the `?? requested` nil-fallback that latches detection moot;
+  (3) `degradeHideUnavailable()` must restore the app activation policy under
+  "use full menu bar on expanding", or the bar shows while the app stays `.accessory`.
+  `StatusBarController.swift:316,318,329`.
 
 ## Blocked on external-display hardware
 

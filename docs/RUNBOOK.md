@@ -25,20 +25,7 @@ menu bar. Two building blocks make that scriptable:
 
 1. **Truth signal**: the separator's AX size.
    `osascript -e 'tell application "System Events" to tell process "Hidden Bar" to get size of menu bar item 2 of menu bar 2'`
-   reads ~20pt expanded vs the collapsed length. Item 1 is the arrow.
-
-   On macOS 27 this proves only that the item took the length, NOT that anything was
-   hidden -- an item can hold its length and still displace nothing. Verify hiding
-   itself by asking the system what occupies the bar, which is owner-attributed:
-
-   - per-app items and positions: `AXUIElementCreateApplication(pid)` ->
-     `AXExtrasMenuBar` -> `AXChildren` -> `AXPosition` / `AXSize`, over every running
-     app. Beware: these positions stay stale for items pushed out of the bar.
-   - what is actually on the visible bar: `AXUIElementCopyElementAtPosition` swept
-     across the bar, printing the owning app at each x. This is the signal that
-     settles "did the icon leave the bar", and it is read-only.
-
-   Do not drive the session with synthetic keystrokes to set up these tests.
+   reads ~20pt expanded vs ~2x-screen-width collapsed. Item 1 is the arrow.
 2. **Real clicks, not AXPress**: `AXPress` on the arrow is a no-op because the
    action handler reads `NSApp.currentEvent` (nil under assistive synthesis;
    known accessibility defect). Post real `CGEvent` mouse clicks at the arrow's
@@ -47,9 +34,6 @@ menu bar. Two building blocks make that scriptable:
 Standard checks before any release:
 
 - expand/collapse toggle flips the separator size both ways;
-- on macOS 27, a *second* collapse after an expand still removes the icons left of
-  the separator (the one-jump growth regression in #360 only showed up there: the
-  first collapse at launch hid icons even while re-collapse did nothing);
 - with `numberOfSecondForAutoHide` set to 3, an expanded bar survives 2x the
   window while the pointer is parked in the menubar band, collapses within the
   window once the pointer leaves, and collapses normally if the pointer never
