@@ -2,50 +2,37 @@
 
 Hidden Bar is a single-process, sandboxed AppKit menubar utility (~1.5k lines of
 Swift, one dependency: [HotKey](https://github.com/soffes/HotKey)). There is no
-helper app, no daemon, no network. Everything happens inside a handful of
-`NSStatusItem`s (arrow, separator, optional always-hidden, plus macOS 27
-spacers) and one window.
+helper app, no daemon, no network. Everything happens inside three
+`NSStatusItem`s and one window.
 
 ## The core trick
 
 macOS offers no API to hide other apps' menubar icons. Hidden Bar fakes it with
-geometry: a separator status item whose **length is inflated**, shoving every
-icon to its left out of the visible bar. Collapsing and expanding is just
-flipping that length between ~20pt and the inflated value.
-
-On macOS 26 and earlier the inflated length is roughly twice the widest
-attached screen, which pushes those icons off the left edge. On macOS 27 the
-menu bar is one window with a native overflow (`«`), and the system **drops**
-a status item whose length reaches half the display width. The collapse unit
-is therefore sized just under half the **narrowest** attached screen, and
-zero-length spacer items between the separator and the arrow inflate with it
-so the total span still covers a wide or mixed-width setup. Icons the
-separator displaces go into the system overflow menu rather than off-screen.
+geometry: a separator status item whose **length is inflated to roughly the
+width of the widest attached screen**, shoving every icon to its left off-screen.
+Collapsing and expanding is just flipping that length between ~20pt and the
+inflated value.
 
 ```mermaid
 flowchart LR
     subgraph menubar [menu bar, right to left]
         direction RL
         ARROW["arrow item\n(toggle, variable length)"]
-        SPACERS["macOS 27 spacers\n(hidden expanded / collapse-unit collapsed)"]
-        SEP["separator item\n20pt expanded / collapse-unit collapsed"]
-        HIDDEN["other apps' icons\noff-screen (pre-27) or native overflow (27)"]
+        SEP["separator item\n20pt expanded / ~2x screen width collapsed"]
+        HIDDEN["other apps' icons\npushed off-screen when collapsed"]
         ALWAYS["always-hidden separator\n(optional)"]
     end
-    ARROW --- SPACERS --- SEP --- HIDDEN --- ALWAYS
+    ARROW --- SEP --- HIDDEN --- ALWAYS
 ```
 
 Key consequences of this design:
 
-- The menubar replicates on every display. On macOS 26 and earlier the collapse
-  length derives from the **widest** screen (`NSScreen.screens`), never
-  `NSScreen.main`. On macOS 27 it derives from the **narrowest** (the only cliff
-  every bar's copy of the item can clear), with spacers covering the rest. It is
+- The menubar replicates on every display, so the collapse length derives from
+  the **widest** screen (`NSScreen.screens`), never `NSScreen.main`, and is
   re-applied to the live item on `didChangeScreenParametersNotification`
   (display hot-plug).
-- Pre-27 the length is bounded: `max(500, min(widestFrameWidth * 2, 10_000))`.
-  macOS enforces a hard 10,000pt maximum on `NSStatusItem.length`. On 27 each
-  item stays under `narrowest/2 - 64`.
+- The length is bounded: `max(500, min(widestFrameWidth * 2, 10_000))`. macOS
+  enforces a hard 10,000pt maximum on `NSStatusItem.length`.
 - `isCollapsed` is derived state: `separator.length > 20`, deliberately not an
   equality check, so it survives the length being recomputed while collapsed.
 - Icons macOS inserts to the LEFT of the separator (where new status items
@@ -110,12 +97,9 @@ A full-tree audit (2026-06) scored 9/10 with hygiene-level findings only.
 - **The notch**: hidden icons sit "under" the notch area on notched Macs; the
   trick cannot reveal them there. The real fix is a spillover/second-bar design
   (tracked in issues #357/#341/#148; candidate implementations in PRs #350/#358).
-- **macOS 27 always-hidden on wide displays**: the always-hidden separator
-  still inflates as a single unit, so with the regular section expanded its
-  icons can show on a display wider than twice that unit.
-- **macOS 27 first launch after upgrade**: items register under `_v27` autosave
-  names so spacers land between the arrow and the separator. Icons may need a
-  one-time ⌘-drag past the separator, as on a fresh install.
+- **macOS 27**: the menu bar re-architecture in macOS 27 betas
+  (`NSMenuBarNavigationSceneExtension`) breaks length-inflation hiding entirely
+  (issue #360). A different mechanism may be required.
 - **Other apps' open menus**: interaction-awareness is pointer-position-based;
   a pointer deep inside another app's open dropdown is below the menubar band,
   so the collapse can still fire there.

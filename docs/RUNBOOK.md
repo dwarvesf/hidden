@@ -25,9 +25,7 @@ menu bar. Two building blocks make that scriptable:
 
 1. **Truth signal**: the separator's AX size.
    `osascript -e 'tell application "System Events" to tell process "Hidden Bar" to get size of menu bar item 2 of menu bar 2'`
-   reads ~20pt expanded vs the collapse length (pre-27: ~2x-screen-width;
-   macOS 27: just under half the narrowest screen, with extra spacer items).
-   Item 1 is the arrow.
+   reads ~20pt expanded vs ~2x-screen-width collapsed. Item 1 is the arrow.
 2. **Real clicks, not AXPress**: `AXPress` on the arrow is a no-op because the
    action handler reads `NSApp.currentEvent` (nil under assistive synthesis;
    known accessibility defect). Post real `CGEvent` mouse clicks at the arrow's
