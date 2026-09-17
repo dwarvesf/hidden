@@ -11,7 +11,6 @@ Requires macOS 13 Ventura or later. (Pre-Ventura users: stay on
 
 ### Fixed
 - macOS 27: hiding works again (#360). The collapsed separator is sized to stay under macOS 27's new per-display limit (it used to be silently dropped from the menu bar), and it grows in steps so already-placed icons move with it instead of staying put. macOS 26 and earlier are unchanged.
-- macOS 27: the first collapse on each display now verifies that hiding actually happened, and falls back to a shorter separator if it did not, so a display whose limit differs from the computed one no longer fails silently.
 - Multi-display: the collapse width is now sized for the widest attached screen, so icons no longer leak on wider external monitors; the width re-applies on display hot-plug.
 - Auto-collapse no longer fires while you are interacting with the menu bar (the timer defers and re-arms while the pointer is in the bar).
 - The Preferences window no longer closes when auto-collapse fires with "use full menu bar on expanding" enabled (#170, #66, #151).

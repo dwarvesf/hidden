@@ -18,21 +18,13 @@ What remains:
 
 - **Verify on a second display and on a non-notched Mac.** The collapse length is
   derived from the narrowest attached screen because the limit is per display; that
-  rule is measured on one display only. The canary now catches a formula that
-  overshoots on an unmeasured display (proven by forcing the formula over the cliff:
-  964pt was rejected and 723pt verified), so the remaining risk is the opposite case --
-  a wide single display needing more push than one sub-limit item can deliver. PR #392
-  measured ~1500pt needed on a 3008pt display against a 1488pt cap and solved it with
-  extra spacer items; the canary would report "hiding unavailable" there rather than
-  fix it. Decide whether to adopt spacers after measuring.
-- **Canary on a full bar.** A bar with no room parks the canary on arrival, which it
-  detects (`canaryStartedAtClamp`) and then leaves the length unproven. Not yet seen on
-  hardware except when three extra test items were added deliberately.
-- **Always-hidden section on 27.** It routes through the same ramped `setLength` and
-  reuses the separator's proven length, but was not exercised on hardware (enabling it
-  would have disturbed the test machine's hand-arranged bar). Verification is skipped
-  entirely while that section is collapsed, because its separator is what parks the
-  leftmost items and the canary would prove the wrong thing.
+  rule is measured on one display only. A wide single display may also need more push
+  than one sub-limit item can deliver -- PR #392 measured ~1500pt needed on a 3008pt
+  display against a 1488pt cap, and solved it with extra spacer items. Decide whether
+  to adopt spacers after measuring.
+- **Always-hidden section on 27.** It routes through the same ramped `setLength`, but
+  was not exercised on hardware (enabling it would have disturbed the test machine's
+  hand-arranged bar).
 - **Item placement is the remaining user-visible defect.** Positions now live in the
   host's layout table: `NSStatusItem Preferred Position ...` is gone from the app's
   defaults, a re-registered item lands far left, and on a busy bar the separator can
