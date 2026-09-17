@@ -64,6 +64,33 @@ Measured on 27.0 build 26A428, 1728pt display: 848pt hides, 849pt hides nothing
 10pt and 40pt steps moved them out of the bar. The same arithmetic fits the
 3008pt-display report in PR #392 (honored at 1480pt, dropped at 1500pt).
 
+#### Proving the length instead of trusting it
+
+That cliff has only been measured on two display widths, and a formula that
+overshoots it fails the way #360 failed: silently. So the first collapse on each
+display configuration *proves* the length with a *canary* -- a one-point,
+transparent status item registered last, which lands among the icons the collapse
+has to clear. An honored length carries it to the region's left edge; an ejected
+one leaves it where it sat. Failing that, the request drops by a quarter and the
+collapse is retried, up to six times.
+
+Two things make the canary work, and both cost a measurement to learn:
+
+- **Travel is the signal, not position.** When the separator clamps against the
+  region's left edge, a canary holding a live slot and a parked one come to rest
+  within a few points of each other. The edge-jump signal proposed in PR #400 is
+  likewise unusable: the separator's arrow-facing edge starts moving at 600pt on a
+  bar that still hides correctly at 840pt, because a clamped item grows out past
+  the arrow.
+- **The canary must seat first.** A freshly registered item yields to the
+  separator's claimed span whether or not that span is honored. At 0.35s the canary
+  travelled on a 964pt request that hid nothing; at 1.0s it stayed put and the
+  retry found 723pt.
+
+The canary is removed as soon as the answer is in, so it is never in the bar while
+the app is idle. A bar too full to give it a slot leaves the length unproven and
+the formula stands (`canaryStartedAtClamp`).
+
 ## Topology
 
 ```mermaid
