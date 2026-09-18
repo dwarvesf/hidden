@@ -22,7 +22,9 @@ class StatusBarController {
     private var btnHiddenLength: CGFloat = 20
     private var btnHiddenCollapseLength: CGFloat = 2000
     
-    private var btnAlwaysHiddenLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 20 : 0
+    // Read live, not captured at init: enabling the section at runtime otherwise
+    // creates its separator at 0pt, invisible until the next launch.
+    private var btnAlwaysHiddenLength: CGFloat { Preferences.alwaysHiddenSectionEnabled ? 20 : 0 }
     private var btnAlwaysHiddenEnableExpandCollapseLength: CGFloat = Preferences.alwaysHiddenSectionEnabled ? 2000 : 0
     
     private let imgIconLine = NSImage(named:NSImage.Name("ic_line"))
