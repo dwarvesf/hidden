@@ -37,6 +37,20 @@
 		B0934CB18EB875D05B3EF781 /* MenuBarEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DDBB306F3907BFB2D9E6DCF /* MenuBarEngine.swift */; };
 		800F5C1749A0BF5F18E5CB1E /* MenuBarEngineFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DFDDDEF0042F0DBA1F3307 /* MenuBarEngineFactory.swift */; };
 		7B3502A74602F87B6207E929 /* LegacyLengthEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47BB7E409FBDF2230E9FB31C /* LegacyLengthEngine.swift */; };
+		BBA01366FE8989DC002AC9DF /* MenuBarLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 092D9DE26A006349D87B304D /* MenuBarLayout.swift */; };
+		C54910547530FE2FA3D252A6 /* AccessibilityMenuBarInventory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */; };
+		A8B03FA8D4CF2DDD0EBB3056 /* NativeVisibilityEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F248811CF183BD0A4D71C4C6 /* NativeVisibilityEngine.swift */; };
+		09B2F44606065391084C0231 /* NativeVisibilityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0070AA937997995EA799D01A /* NativeVisibilityBridge.swift */; };
+		51977397CC1141721E72D40E /* HBNativeVisibilityShim.m in Sources */ = {isa = PBXBuildFile; fileRef = D1484680F97D4EF3661639C5 /* HBNativeVisibilityShim.m */; };
+		78703EDD27C9AA283482C1E3 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B8E220147FE0007559C /* Constant.swift */; };
+		8835DF2D3C3ECAE4C7766945 /* MenuBarEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DDBB306F3907BFB2D9E6DCF /* MenuBarEngine.swift */; };
+		D098DA3D69DAABA3A931202C /* LegacyLengthEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47BB7E409FBDF2230E9FB31C /* LegacyLengthEngine.swift */; };
+		4B5A38D6B3BEBF31D9920742 /* MenuBarLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 092D9DE26A006349D87B304D /* MenuBarLayout.swift */; };
+		A554D3CDC5D46BD58888E63F /* AccessibilityMenuBarInventory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */; };
+		869644DE3B6CBE7AE976E88A /* NativeVisibilityEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F248811CF183BD0A4D71C4C6 /* NativeVisibilityEngine.swift */; };
+		F6918B5DB22F557F7D83F739 /* NativeVisibilityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0070AA937997995EA799D01A /* NativeVisibilityBridge.swift */; };
+		A6BC2D15D7C6BDBC5F894D62 /* HBNativeVisibilityShim.m in Sources */ = {isa = PBXBuildFile; fileRef = D1484680F97D4EF3661639C5 /* HBNativeVisibilityShim.m */; };
+		2CEFC27766BCEA39CD11079F /* MenuBarEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57343F39835408A99E25A6E /* MenuBarEngineTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -88,6 +102,16 @@
 		8DDBB306F3907BFB2D9E6DCF /* MenuBarEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarEngine.swift; sourceTree = "<group>"; };
 		56DFDDDEF0042F0DBA1F3307 /* MenuBarEngineFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarEngineFactory.swift; sourceTree = "<group>"; };
 		47BB7E409FBDF2230E9FB31C /* LegacyLengthEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyLengthEngine.swift; sourceTree = "<group>"; };
+		092D9DE26A006349D87B304D /* MenuBarLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLayout.swift; sourceTree = "<group>"; };
+		FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityMenuBarInventory.swift; sourceTree = "<group>"; };
+		F248811CF183BD0A4D71C4C6 /* NativeVisibilityEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeVisibilityEngine.swift; sourceTree = "<group>"; };
+		0070AA937997995EA799D01A /* NativeVisibilityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeVisibilityBridge.swift; sourceTree = "<group>"; };
+		4158264A15719D4233497425 /* HBNativeVisibilityShim.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HBNativeVisibilityShim.h; sourceTree = "<group>"; };
+		D1484680F97D4EF3661639C5 /* HBNativeVisibilityShim.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HBNativeVisibilityShim.m; sourceTree = "<group>"; };
+		C26FA55CE7C1DDA6A96F4B92 /* Hidden-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Hidden-Bridging-Header.h; sourceTree = "<group>"; };
+		22254D038882D5996C96A287 /* Hidden-Direct.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hidden-Direct.entitlements; sourceTree = "<group>"; };
+		27A530C718790900F466C145 /* HiddenBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HiddenBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C57343F39835408A99E25A6E /* MenuBarEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarEngineTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +122,13 @@
 				08A5F85F23AA01EE00981CA5 /* HotKey in Frameworks */,
 				92C5058121FEC2590084719A /* Cocoa.framework in Frameworks */,
 				92C5057F21FEC24C0084719A /* ServiceManagement.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F4BF4BB2D325FB6EE08DF9AD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -126,6 +157,7 @@
 		0842CDFD23A9FF7500D14BD4 /* StatusBar */ = {
 			isa = PBXGroup;
 			children = (
+				A56D368B6ABF45B5283FE4FA /* Layout */,
 				DC851BF8D5E527666907BC71 /* Engine */,
 				92C97B9022018C1F0007559C /* StatusBarController.swift */,
 			);
@@ -135,6 +167,8 @@
 		DC851BF8D5E527666907BC71 /* Engine */ = {
 			isa = PBXGroup;
 			children = (
+				F248811CF183BD0A4D71C4C6 /* NativeVisibilityEngine.swift */,
+				71BED8094EA85DBC0A218F23 /* Native */,
 				47BB7E409FBDF2230E9FB31C /* LegacyLengthEngine.swift */,
 				8DDBB306F3907BFB2D9E6DCF /* MenuBarEngine.swift */,
 				56DFDDDEF0042F0DBA1F3307 /* MenuBarEngineFactory.swift */,
@@ -187,6 +221,7 @@
 		929113E821F9D04100173149 = {
 			isa = PBXGroup;
 			children = (
+				7EEDF61C103DD183FF180F32 /* HiddenBarTests */,
 				9220587D22127050008A8B03 /* Hidden.entitlements */,
 				929113F321F9D04100173149 /* hidden */,
 				929113F221F9D04100173149 /* Products */,
@@ -198,6 +233,7 @@
 			isa = PBXGroup;
 			children = (
 				929113F121F9D04100173149 /* Hidden Bar.app */,
+				27A530C718790900F466C145 /* HiddenBarTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -205,6 +241,8 @@
 		929113F321F9D04100173149 /* hidden */ = {
 			isa = PBXGroup;
 			children = (
+				22254D038882D5996C96A287 /* Hidden-Direct.entitlements */,
+				C26FA55CE7C1DDA6A96F4B92 /* Hidden-Bridging-Header.h */,
 				08A5F86223AA09D900981CA5 /* Extensions */,
 				0842CDFC23A9FF6D00D14BD4 /* Features */,
 				0842CDF923A9FDB900D14BD4 /* Models */,
@@ -238,6 +276,33 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		A56D368B6ABF45B5283FE4FA /* Layout */ = {
+			isa = PBXGroup;
+			children = (
+				FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */,
+				092D9DE26A006349D87B304D /* MenuBarLayout.swift */,
+			);
+			path = Layout;
+			sourceTree = "<group>";
+		};
+		71BED8094EA85DBC0A218F23 /* Native */ = {
+			isa = PBXGroup;
+			children = (
+				D1484680F97D4EF3661639C5 /* HBNativeVisibilityShim.m */,
+				4158264A15719D4233497425 /* HBNativeVisibilityShim.h */,
+				0070AA937997995EA799D01A /* NativeVisibilityBridge.swift */,
+			);
+			path = Native;
+			sourceTree = "<group>";
+		};
+		7EEDF61C103DD183FF180F32 /* HiddenBarTests */ = {
+			isa = PBXGroup;
+			children = (
+				C57343F39835408A99E25A6E /* MenuBarEngineTests.swift */,
+			);
+			path = HiddenBarTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -261,6 +326,22 @@
 			productReference = 929113F121F9D04100173149 /* Hidden Bar.app */;
 			productType = "com.apple.product-type.application";
 		};
+		38276456C8B72E6FF49DF8FB /* HiddenBarTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3A686D31BAC6830A55C8DBBC /* Build configuration list for PBXNativeTarget "HiddenBarTests" */;
+			buildPhases = (
+				9E2CDE524C042CAB55337770 /* Sources */,
+				F4BF4BB2D325FB6EE08DF9AD /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HiddenBarTests;
+			productName = HiddenBarTests;
+			productReference = 27A530C718790900F466C145 /* HiddenBarTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -271,6 +352,9 @@
 				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = "Dwarves Foundation";
 				TargetAttributes = {
+					38276456C8B72E6FF49DF8FB = {
+						CreatedOnToolsVersion = 26.3;
+					};
 					929113F021F9D04100173149 = {
 						CreatedOnToolsVersion = 10.1;
 						LastSwiftMigration = 1130;
@@ -307,6 +391,7 @@
 			projectRoot = "";
 			targets = (
 				929113F021F9D04100173149 /* Hidden Bar */,
+				38276456C8B72E6FF49DF8FB /* HiddenBarTests */,
 			);
 		};
 /* End PBXProject section */
@@ -334,6 +419,11 @@
 				08A5F85C23AA013100981CA5 /* SelectedSecond.swift in Sources */,
 				08A5F86123AA085B00981CA5 /* Preferences.swift in Sources */,
 				92C97B9122018C1F0007559C /* StatusBarController.swift in Sources */,
+				51977397CC1141721E72D40E /* HBNativeVisibilityShim.m in Sources */,
+				09B2F44606065391084C0231 /* NativeVisibilityBridge.swift in Sources */,
+				A8B03FA8D4CF2DDD0EBB3056 /* NativeVisibilityEngine.swift in Sources */,
+				C54910547530FE2FA3D252A6 /* AccessibilityMenuBarInventory.swift in Sources */,
+				BBA01366FE8989DC002AC9DF /* MenuBarLayout.swift in Sources */,
 				B0934CB18EB875D05B3EF781 /* MenuBarEngine.swift in Sources */,
 				800F5C1749A0BF5F18E5CB1E /* MenuBarEngineFactory.swift in Sources */,
 				7B3502A74602F87B6207E929 /* LegacyLengthEngine.swift in Sources */,
@@ -353,6 +443,22 @@
 				08C20FE223AB452C0035D978 /* AboutViewController.swift in Sources */,
 				00137CDF24A63DB1004AC855 /* Notification.Name+Extension.swift in Sources */,
 				08A5F86423AA09F300981CA5 /* UserDefault+Extension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9E2CDE524C042CAB55337770 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				78703EDD27C9AA283482C1E3 /* Constant.swift in Sources */,
+				8835DF2D3C3ECAE4C7766945 /* MenuBarEngine.swift in Sources */,
+				D098DA3D69DAABA3A931202C /* LegacyLengthEngine.swift in Sources */,
+				4B5A38D6B3BEBF31D9920742 /* MenuBarLayout.swift in Sources */,
+				A554D3CDC5D46BD58888E63F /* AccessibilityMenuBarInventory.swift in Sources */,
+				869644DE3B6CBE7AE976E88A /* NativeVisibilityEngine.swift in Sources */,
+				F6918B5DB22F557F7D83F739 /* NativeVisibilityBridge.swift in Sources */,
+				A6BC2D15D7C6BDBC5F894D62 /* HBNativeVisibilityShim.m in Sources */,
+				2CEFC27766BCEA39CD11079F /* MenuBarEngineTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -514,6 +620,7 @@
 		9291141821F9D04200173149 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				SWIFT_OBJC_BRIDGING_HEADER = "hidden/Hidden-Bridging-Header.h";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hidden/Hidden.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -539,6 +646,7 @@
 		9291141921F9D04200173149 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				SWIFT_OBJC_BRIDGING_HEADER = "hidden/Hidden-Bridging-Header.h";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hidden/Hidden.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -561,12 +669,261 @@
 			};
 			name = Release;
 		};
+		C6A0A5144F4A0528C597A2FF /* Debug-Direct */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+					"HIDDENBAR_NATIVE_VISIBILITY=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG HIDDENBAR_NATIVE_VISIBILITY";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = "Debug-Direct";
+		};
+		78EC373C2B38BFDD74419186 /* Debug-Direct */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				SWIFT_OBJC_BRIDGING_HEADER = "hidden/Hidden-Bridging-Header.h";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = hidden/Hidden-Direct.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 14;
+				DEVELOPMENT_TEAM = W777S7V8TN;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = hidden/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.11;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_VERSION = 5.0;
+			};
+			name = "Debug-Direct";
+		};
+		E0B4F4FBADE5A80104D67BFF /* Release-Direct */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"HIDDENBAR_NATIVE_VISIBILITY=1",
+				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) HIDDENBAR_NATIVE_VISIBILITY";
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = "Release-Direct";
+		};
+		E9DFD295D467717BFB7FFCBD /* Release-Direct */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				SWIFT_OBJC_BRIDGING_HEADER = "hidden/Hidden-Bridging-Header.h";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = hidden/Hidden-Direct.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 14;
+				DEVELOPMENT_TEAM = W777S7V8TN;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = hidden/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.11;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_VERSION = 5.0;
+			};
+			name = "Release-Direct";
+		};
+		111758211714EB769234B6A9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.HiddenBarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "hidden/Hidden-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		B2930E9E52D0BFFDD57DFC27 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.HiddenBarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "hidden/Hidden-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		B06BDDDC4C6087DAF0C9AA29 /* Debug-Direct */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.HiddenBarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "hidden/Hidden-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = "Debug-Direct";
+		};
+		3BD277C6EC2B3D6EDCAAA119 /* Release-Direct */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.HiddenBarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "hidden/Hidden-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = "Release-Direct";
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
 		929113EC21F9D04100173149 /* Build configuration list for PBXProject "Hidden Bar" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
+				E0B4F4FBADE5A80104D67BFF /* Release-Direct */,
+				C6A0A5144F4A0528C597A2FF /* Debug-Direct */,
 				9291141521F9D04200173149 /* Debug */,
 				9291141621F9D04200173149 /* Release */,
 			);
@@ -576,8 +933,21 @@
 		9291141721F9D04200173149 /* Build configuration list for PBXNativeTarget "Hidden Bar" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
+				E9DFD295D467717BFB7FFCBD /* Release-Direct */,
+				78EC373C2B38BFDD74419186 /* Debug-Direct */,
 				9291141821F9D04200173149 /* Debug */,
 				9291141921F9D04200173149 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3A686D31BAC6830A55C8DBBC /* Build configuration list for PBXNativeTarget "HiddenBarTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				111758211714EB769234B6A9 /* Debug */,
+				B2930E9E52D0BFFDD57DFC27 /* Release */,
+				B06BDDDC4C6087DAF0C9AA29 /* Debug-Direct */,
+				3BD277C6EC2B3D6EDCAAA119 /* Release-Direct */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -33,32 +33,9 @@ class StatusBarController: MenuBarItemProvider {
         return menuBarEngine.state == .collapsed
     }
     
-    private var isBtnSeparateValidPosition: Bool {
-        guard
-            let btnExpandCollapseX = self.btnExpandCollapse.button?.getOrigin?.x,
-            let btnSeparateX = self.btnSeparate.button?.getOrigin?.x
-            else {return false}
-        
-        if Constant.isUsingLTRLanguage {
-            return btnExpandCollapseX >= btnSeparateX
-        } else {
-            return btnExpandCollapseX <= btnSeparateX
-        }
-    }
-    
     private var isBtnAlwaysHiddenValidPosition: Bool {
         if !Preferences.alwaysHiddenSectionEnabled { return true }
-        
-        guard
-            let btnSeparateX = self.btnSeparate.button?.getOrigin?.x,
-            let btnAlwaysHiddenX = self.btnAlwaysHidden?.button?.getOrigin?.x
-            else {return false}
-        
-        if Constant.isUsingLTRLanguage {
-            return btnSeparateX >= btnAlwaysHiddenX
-        } else {
-            return btnSeparateX <= btnAlwaysHiddenX
-        }
+        return menuBarEngine.isAlwaysHiddenSeparatorPlaced
     }
     
     private var isToggle = false
@@ -152,6 +129,9 @@ class StatusBarController: MenuBarItemProvider {
         // the app's only UI, so they self-restore at launch.
         btnExpandCollapse.isVisible = true
         btnSeparate.isVisible = true
+        // Create the engine now so one that does not use the separator (macOS 27
+        // native hiding) takes it back out before it is ever drawn.
+        _ = menuBarEngine
     }
 
     private func setupUI() {
@@ -236,7 +216,7 @@ class StatusBarController: MenuBarItemProvider {
     }
     
     private func collapseMenuBar() {
-        guard self.isBtnSeparateValidPosition && !self.isCollapsed else {
+        guard menuBarEngine.isArrangementValid && !self.isCollapsed else {
             autoCollapseIfNeeded()
             return
         }
@@ -247,11 +227,20 @@ class StatusBarController: MenuBarItemProvider {
             case .collapsed:
                 self.didCollapseMenuBar()
             case .unavailable:
-                // Only an adaptive engine can fail to hide; the legacy engine
-                // always reports .collapsed. Nothing was hidden, so the UI
-                // stays expanded.
-                break
+                self.didFailToCollapseMenuBar()
             }
+        }
+    }
+
+    // Nothing was hidden (the engine cannot hide on this system, or is waiting for
+    // a permission), so show the bar as expanded, and restore the activation
+    // policy in case the UI had already switched to collapsed.
+    private func didFailToCollapseMenuBar() {
+        if let button = btnExpandCollapse.button {
+            button.image = Assets.collapseImage
+        }
+        if Preferences.useFullStatusBarOnExpandEnabled {
+            NSApp.setActivationPolicy(.regular)
         }
     }
 
