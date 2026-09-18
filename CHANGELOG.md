@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.11.1 (2026-09-18)
+
+### Fixed
+- macOS 27: the Preferences window showed a "Custom View" placeholder instead of the General/About tabs, and the label overlapped the window once clicked (#406).
+
 ## v1.11 (2026-09-18)
 
 Requires macOS 13 Ventura or later. (Pre-Ventura users: stay on
