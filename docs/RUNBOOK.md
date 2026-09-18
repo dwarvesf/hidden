@@ -54,18 +54,19 @@ installed app, test the dev build, then re-import and relaunch.
 1. Verify the stack: every PR reviewed, builds green, behavioral checks above run.
 2. Bump `MARKETING_VERSION` (all four Hidden Bar configurations) and
    `CURRENT_PROJECT_VERSION` in the project file.
-3. Archive the GitHub build with the **Hidden Bar Direct** scheme
+3. Archive the GitHub build with the **Hidden Bar** scheme
    (`Release-Direct`), then notarize (Developer ID), staple, zip, and publish a
-   GitHub release with notes listing closed issues. The **Hidden Bar** scheme
-   archives `Release`, the sandboxed App Store build, which cannot hide on
-   macOS 27. v1.11 shipped that build by mistake. Before zipping, confirm the
-   app is unsandboxed:
+   GitHub release with notes listing closed issues. The **Hidden Bar App Store**
+   scheme archives `Release`, the sandboxed App Store build, which cannot hide
+   on macOS 27. v1.11 shipped that build to GitHub by mistake. Before zipping,
+   confirm the app is unsandboxed:
 
    ```sh
    codesign -d --entitlements - 'Hidden Bar.app' | grep app-sandbox  # must print nothing
    ```
-4. App Store (separate lane): the MAS listing has lagged GitHub since v1.8
-   (issues #281/#202); decide deliberately whether a release goes there too.
+4. App Store (separate lane, **Hidden Bar App Store** scheme): the MAS listing
+   has lagged GitHub since v1.8 (issues #281/#202); decide deliberately whether
+   a release goes there too.
 5. Homebrew cask (`brew install --cask hiddenbar`) follows the GitHub release
    artifact; notarization matters (issue #219).
 6. Before any public release after the SMAppService migration: one
