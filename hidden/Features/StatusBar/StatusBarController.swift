@@ -247,11 +247,20 @@ class StatusBarController: MenuBarItemProvider {
             case .collapsed:
                 self.didCollapseMenuBar()
             case .unavailable:
-                // Only an adaptive engine can fail to hide; the legacy engine
-                // always reports .collapsed. Nothing was hidden, so the UI
-                // stays expanded.
-                break
+                self.didFailToCollapseMenuBar()
             }
+        }
+    }
+
+    // Nothing was hidden (the engine cannot hide on this system, or is waiting for
+    // a permission), so show the bar as expanded, and restore the activation
+    // policy in case the UI had already switched to collapsed.
+    private func didFailToCollapseMenuBar() {
+        if let button = btnExpandCollapse.button {
+            button.image = Assets.collapseImage
+        }
+        if Preferences.useFullStatusBarOnExpandEnabled {
+            NSApp.setActivationPolicy(.regular)
         }
     }
 
