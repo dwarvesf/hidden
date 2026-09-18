@@ -7,7 +7,149 @@
 //
 
 import AppKit
+import ApplicationServices
 import Darwin
+
+// Assessment mode can express the policy as bundle identifiers and a small set
+// of Apple menu-item identifiers, but it cannot read Hidden Bar's dividers.
+// Accessibility supplies the missing layout snapshot while the bar is expanded.
+// The snapshot is deliberately best-effort: a denied or incomplete tree falls
+// back to Hidden Bar's original "hide third-party items" policy.
+private struct MenuBarLayoutSnapshot {
+    let allowedBundleIdentifiers: [String]
+    let allowedSystemItems: [Int]
+
+    static let allSystemItems = Array(0...63)
+}
+
+private final class MenuBarLayoutReader {
+    private struct Item {
+        let midX: CGFloat
+        let bundleIdentifier: String?
+        let systemItem: Int?
+    }
+
+    func snapshot(separatorX: CGFloat) -> MenuBarLayoutSnapshot? {
+        // Ask macOS to show its standard consent prompt when this build has
+        // not yet been granted Accessibility access. Without it, there is no
+        // supported way to recover a user's custom divider layout.
+        let trustOptions = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        guard AXIsProcessTrustedWithOptions(trustOptions),
+              separatorX.isFinite,
+              let agent = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.MenuBarAgent").first else {
+            return nil
+        }
+
+        let root = AXUIElementCreateApplication(agent.processIdentifier)
+        guard let windows: [AXUIElement] = attribute(kAXWindowsAttribute as CFString, from: root) else { return nil }
+        // A menu-bar window contains the divider's x coordinate. This chooses
+        // the correct AX window even when a second display has a different
+        // origin or scale.
+        // MenuBarAgent returns one AX window per display/space. A single
+        // window can briefly be stale during a display change, so merge every
+        // window containing the divider rather than trusting the first one.
+        let matchingWindows = windows.filter {
+            guard let frame = frame(of: $0) else { return false }
+            return frame.minX <= separatorX && separatorX <= frame.maxX
+        }
+        let items = matchingWindows.flatMap { window in
+            let groups: [AXUIElement] = attribute(kAXChildrenAttribute as CFString, from: window) ?? []
+            return groups.compactMap(makeItem)
+        }
+        guard !items.isEmpty else { return nil }
+
+        let ownBundle = Bundle.main.bundleIdentifier ?? "com.dwarvesv.minimalbar"
+        let runningBundles = Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
+        var hiddenBundles = Set<String>()
+        var visibleBundles = Set<String>()
+        var visibleSystemItems = Set<Int>()
+
+        for item in items {
+            let isVisible = Constant.isUsingLTRLanguage ? item.midX > separatorX : item.midX < separatorX
+            if let bundle = item.bundleIdentifier, bundle != ownBundle {
+                if isVisible {
+                    visibleBundles.insert(bundle)
+                } else {
+                    hiddenBundles.insert(bundle)
+                }
+            }
+            if isVisible, let system = item.systemItem {
+                visibleSystemItems.insert(system)
+            }
+        }
+
+        // A bundle appearing on both sides remains visible. This matches the
+        // native policy's bundle granularity and avoids incorrectly hiding an
+        // app with multiple menu-bar items.
+        let leftOnly = hiddenBundles.subtracting(visibleBundles)
+        let allowedBundles = Array(runningBundles.subtracting(leftOnly).union(visibleBundles).union([ownBundle])).sorted()
+        // An empty system set is only valid when AX genuinely found no system
+        // controls. In a partial tree we keep the system row intact.
+        let allowedSystem = visibleSystemItems.isEmpty ? MenuBarLayoutSnapshot.allSystemItems : Array(visibleSystemItems).sorted()
+        NSLog("Hidden Bar layout snapshot: visible bundles=%@, visible system items=%@", allowedBundles, allowedSystem)
+        return MenuBarLayoutSnapshot(allowedBundleIdentifiers: allowedBundles, allowedSystemItems: allowedSystem)
+    }
+
+    private func makeItem(_ group: AXUIElement) -> Item? {
+        guard let frame = frame(of: group), frame.width > 0 else { return nil }
+        let children: [AXUIElement] = attribute(kAXChildrenAttribute as CFString, from: group) ?? []
+        let bundle = bundleIdentifier(for: group) ?? children.compactMap(bundleIdentifier).first
+        return Item(midX: frame.midX, bundleIdentifier: bundle, systemItem: bundle == nil ? systemItem(in: children) : nil)
+    }
+
+    private func systemItem(in children: [AXUIElement]) -> Int? {
+        for child in children {
+            if let result = systemItem(in: child) { return result }
+        }
+        return nil
+    }
+
+    private func systemItem(in element: AXUIElement) -> Int? {
+        let values = [stringValue(of: element, attribute: kAXIdentifierAttribute as CFString), stringValue(of: element, attribute: kAXTitleAttribute as CFString), stringValue(of: element, attribute: kAXDescriptionAttribute as CFString)]
+            .compactMap { $0 }.joined(separator: " ").lowercased().replacingOccurrences(of: "-", with: "").replacingOccurrences(of: " ", with: "")
+        if values.contains("battery") { return 0 }
+        if values.contains("bluetooth") { return 1 }
+        if values.contains("clock") || values.contains("datetime") { return 2 }
+        if values.contains("display") && !values.contains("mirroring") { return 3 }
+        if values.contains("keyboard") || values.contains("textinput") || values.contains("inputmenu") { return 4 }
+        if values.contains("volume") || values.contains("sound") { return 5 }
+        if values.contains("wifi") || values.contains("airport") { return 6 }
+        if values.contains("mirroring") { return 7 }
+        if values.contains("controlcenter") || values.contains("bento") { return 8 }
+        let children: [AXUIElement] = attribute(kAXChildrenAttribute as CFString, from: element) ?? []
+        return systemItem(in: children)
+    }
+
+    private func bundleIdentifier(for element: AXUIElement) -> String? {
+        var pid: pid_t = 0
+        guard AXUIElementGetPid(element, &pid) == .success,
+              let bundle = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier,
+              bundle != "com.apple.MenuBarAgent" else { return nil }
+        return bundle
+    }
+
+    private func frame(of element: AXUIElement) -> CGRect? {
+        guard let position: AXValue = attribute(kAXPositionAttribute as CFString, from: element),
+              let size: AXValue = attribute(kAXSizeAttribute as CFString, from: element),
+              AXValueGetType(position) == .cgPoint, AXValueGetType(size) == .cgSize else { return nil }
+        var point = CGPoint.zero
+        var dimensions = CGSize.zero
+        guard AXValueGetValue(position, .cgPoint, &point), AXValueGetValue(size, .cgSize, &dimensions) else { return nil }
+        return CGRect(origin: point, size: dimensions)
+    }
+
+    private func stringValue(of element: AXUIElement, attribute: CFString) -> String? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, attribute, &value) == .success else { return nil }
+        return value as? String
+    }
+
+    private func attribute<T>(_ attribute: CFString, from element: AXUIElement) -> T? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, attribute, &value) == .success else { return nil }
+        return value as? T
+    }
+}
 
 // macOS 27's status-item widths are shared by every attached display.  Assessment
 // mode is a policy applied by MenuBarAgent instead, so it hides third-party items
@@ -32,16 +174,17 @@ private final class MenuBarAssessmentMode {
             && candidate.instancesRespond(to: invalidate)
     }
 
-    func hideThirdPartyItems() {
+    func hideItems(using snapshot: MenuBarLayoutSnapshot?) {
         guard isAvailable else { return }
         showAllItems()
         guard let configurationClass = NSClassFromString("MBAssessmentModeConfiguration"),
               let assertionClass = NSClassFromString("MBAssessmentModeAssertion") else { return }
-        // Keep the complete system row.  The policy hides only non-allowed app bundles.
-        let systemItems = (0...63).map { NSNumber(value: $0) } as NSArray
+        let systemItems = (snapshot?.allowedSystemItems ?? MenuBarLayoutSnapshot.allSystemItems)
+            .map { NSNumber(value: $0) } as NSArray
         let ownBundle = Bundle.main.bundleIdentifier ?? "com.dwarvesv.minimalbar"
+        let allowedBundles = snapshot?.allowedBundleIdentifiers ?? [ownBundle]
         guard let configuration = (configurationClass.alloc() as AnyObject)
-            .perform(configure, with: systemItems, with: [ownBundle] as NSArray)?
+            .perform(configure, with: systemItems, with: allowedBundles as NSArray)?
             .takeUnretainedValue(),
               let newAssertion = (assertionClass.alloc() as AnyObject)
                 .perform(NSSelectorFromString("init"))?.takeUnretainedValue() else { return }
@@ -64,6 +207,7 @@ class StatusBarController {
     //MARK: - Variables
     private var timer:Timer? = nil
     private let assessmentMode = MenuBarAssessmentMode()
+    private let layoutReader = MenuBarLayoutReader()
     
     //MARK: - BarItems
 
@@ -391,10 +535,23 @@ class StatusBarController {
         }
 
         if assessmentMode.isAvailable {
-            btnSeparate.length = btnHiddenLength
-            setSpacersInflated(false)
-            assessmentMode.hideThirdPartyItems()
-            setSeparatorGlyphVisible(false)
+            let separatorX = btnSeparate.button?.window?.convertToScreen(
+                btnSeparate.button?.convert(btnSeparate.button?.bounds ?? .zero, to: nil) ?? .zero
+            ).minX ?? btnSeparate.button?.getOrigin?.x ?? 0
+            if let snapshot = layoutReader.snapshot(separatorX: separatorX) {
+                btnSeparate.length = btnHiddenLength
+                setSpacersInflated(false)
+                assessmentMode.hideItems(using: snapshot)
+                setSeparatorGlyphVisible(false)
+            } else {
+                // Never turn an unreadable layout into "hide every app".
+                // The established spacer implementation preserves the user's
+                // physical divider arrangement until a complete AX snapshot is
+                // available.
+                btnSeparate.length = self.btnHiddenCollapseLength
+                setSpacersInflated(true)
+                setSeparatorGlyphVisible(false)
+            }
         } else {
             btnSeparate.length = self.btnHiddenCollapseLength
             setSpacersInflated(true)
