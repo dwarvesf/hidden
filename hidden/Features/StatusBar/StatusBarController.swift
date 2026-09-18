@@ -30,11 +30,9 @@ private final class MenuBarLayoutReader {
     }
 
     func snapshot(separatorX: CGFloat) -> MenuBarLayoutSnapshot? {
-        // Ask macOS to show its standard consent prompt when this build has
-        // not yet been granted Accessibility access. Without it, there is no
-        // supported way to recover a user's custom divider layout.
-        let trustOptions = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        guard AXIsProcessTrustedWithOptions(trustOptions),
+        // Toggling the bar must never open System Settings. If access was not
+        // granted, collapse falls back to the established divider behavior.
+        guard AXIsProcessTrusted(),
               separatorX.isFinite,
               let agent = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.MenuBarAgent").first else {
             return nil
