@@ -33,9 +33,10 @@ struct MenuBarInventoryItem: Equatable {
 protocol MenuBarInventoryProviding: AnyObject {
     var isAuthorized: Bool { get }
     func requestAuthorization()
-    // Every other app's status items. Only meaningful while nothing is hidden: once
-    // a native visibility assertion is active, hidden items report stale frames.
-    func snapshot() -> [MenuBarInventoryItem]
+    // Every other app's status items, delivered on the main queue. Only meaningful
+    // while nothing is hidden: once a native visibility assertion is active,
+    // hidden items report stale frames.
+    func snapshot(completion: @escaping ([MenuBarInventoryItem]) -> Void)
 }
 
 struct MenuBarLayout: Equatable {

@@ -37,9 +37,9 @@ private final class FakeInventory: MenuBarInventoryProviding {
         authorizationRequests += 1
     }
 
-    func snapshot() -> [MenuBarInventoryItem] {
+    func snapshot(completion: @escaping ([MenuBarInventoryItem]) -> Void) {
         snapshots += 1
-        return items
+        completion(items)
     }
 }
 
@@ -183,11 +183,31 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertEqual(engine.state, .calibrating)
         XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.visible"])
         XCTAssertEqual(visibility.requests.first?.systemItems, NativeVisibilityEngine.systemItemsToKeep)
-        XCTAssertEqual(items.separatorItem.length, 20, "separators stay at their normal width")
+        XCTAssertEqual(items.separatorItem.length, 20, "normal width until hiding succeeds")
 
         visibility.succeed(0)
         XCTAssertEqual(engine.state, .collapsed)
         XCTAssertEqual(results, [.collapsed])
+        XCTAssertEqual(items.separatorItem.length, 0, "nothing left to separate while collapsed")
+
+        engine.expand()
+        XCTAssertEqual(items.separatorItem.length, 20)
+    }
+
+    func testAlwaysHiddenSeparatorFollowsTheSectionSetting() {
+        let engine = makeEngine()
+        engine.updateAlwaysHiddenSection(enabled: false, separatorHidden: false)
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 0)
+
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: false)
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 20)
+
+        engine.collapse { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 0)
+
+        engine.expand()
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 20)
     }
 
     func testUnavailableAPIFailsOpen() {
@@ -224,6 +244,7 @@ final class NativeVisibilityEngineTests: XCTestCase {
 
         XCTAssertEqual(result, .unavailable)
         XCTAssertEqual(engine.state, .expanded)
+        XCTAssertEqual(items.separatorItem.length, 20, "separators stay usable when nothing was hidden")
     }
 
     func testExpandDropsTheRestriction() {

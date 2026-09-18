@@ -14,7 +14,9 @@ import AppKit
 // assessment mode. macOS then hides the rest and reflows the bar itself, so the
 // result does not depend on display width, the notch or the frontmost app's menus.
 //
-// The separators stay at their normal width and only mark section boundaries.
+// The separators only mark section boundaries: normal width while expanded so
+// they can be ⌘-dragged, zero width while collapsed, where macOS has already
+// removed everything they would separate.
 //
 // Limits, all from what macOS 27 exposes:
 // - Hiding is per app: an app with several icons hides or shows them together
@@ -47,7 +49,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // Bumped whenever a pending activation must no longer win (an expand, a newer
     // activation); a late success is then invalidated straight away.
     private var generation = 0
-    private var hasLoggedUnavailable = false
+    private var lastUnavailableReason: String?
 
     private var alwaysHiddenEnabled = false
     private var alwaysHiddenSeparatorHidden = false
@@ -76,7 +78,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         case .expanded, .unavailable:
             break
         }
-        items?.separatorItem.length = expandedLength
+        setSeparatorsVisible(true)
 
         guard visibility.isAvailable else {
             logUnavailableOnce("the native menu-bar visibility API is not available in this build or on this macOS")
@@ -91,23 +93,27 @@ final class NativeVisibilityEngine: MenuBarEngine {
             logUnavailableOnce("Accessibility permission is needed to read the menu-bar sections")
             return completion(.unavailable)
         }
-        if assertion == nil {
-            layout = resolveLayout()
-        }
-        guard let layout = layout else {
-            return completion(.unavailable)
-        }
-
         state = .calibrating
-        activate(allowing: layout.bundles(in: [.visible])) { [weak self] succeeded in
+        withLayout { [weak self] layout in
             guard let self = self else { return }
-            self.state = succeeded ? .collapsed : .expanded
-            completion(succeeded ? .collapsed : .unavailable)
+            guard let layout = layout else {
+                self.logUnavailableOnce("the separator's position cannot be read yet")
+                self.state = .expanded
+                return completion(.unavailable)
+            }
+            self.activate(allowing: layout.bundles(in: [.visible])) { [weak self] succeeded in
+                guard let self = self else { return }
+                self.state = succeeded ? .collapsed : .expanded
+                if succeeded {
+                    self.setSeparatorsVisible(false)
+                }
+                completion(succeeded ? .collapsed : .unavailable)
+            }
         }
     }
 
     func expand() {
-        items?.separatorItem.length = expandedLength
+        setSeparatorsVisible(true)
         state = .expanded
         applyExpandedPresentation()
     }
@@ -115,7 +121,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
     func updateAlwaysHiddenSection(enabled: Bool, separatorHidden: Bool) {
         alwaysHiddenEnabled = enabled
         alwaysHiddenSeparatorHidden = separatorHidden
-        items?.alwaysHiddenItem?.length = enabled ? expandedLength : 0
+        if state != .collapsed {
+            setSeparatorsVisible(true)
+        }
         if state == .expanded {
             applyExpandedPresentation()
         }
@@ -136,24 +144,39 @@ final class NativeVisibilityEngine: MenuBarEngine {
         guard alwaysHiddenEnabled && alwaysHiddenSeparatorHidden, visibility.isAvailable, inventory.isAuthorized else {
             return releaseAssertion()
         }
-        if assertion == nil {
-            layout = resolveLayout()
+        withLayout { [weak self] layout in
+            guard let self = self else { return }
+            guard let layout = layout else {
+                return self.releaseAssertion()
+            }
+            self.activate(allowing: layout.bundles(in: [.visible, .hidden])) { _ in }
         }
-        guard let layout = layout else {
-            return releaseAssertion()
-        }
-        activate(allowing: layout.bundles(in: [.visible, .hidden])) { _ in }
     }
 
-    private func resolveLayout() -> MenuBarLayout? {
+    // The sections as the user arranged them. Read fresh only from an
+    // unrestricted bar; while a restriction is active the cached ones stand in.
+    // Superseded by any later expand or activation, like an activation is.
+    private func withLayout(_ body: @escaping (MenuBarLayout?) -> Void) {
+        if assertion != nil {
+            return body(layout)
+        }
         guard let separator = items?.separatorItem,
-              let boundary = separatorFrame(separator) else { return nil }
+              let boundary = separatorFrame(separator) else { return body(nil) }
         let alwaysHiddenFrame = alwaysHiddenEnabled ? items?.alwaysHiddenItem.flatMap(separatorFrame) : nil
-        return MenuBarLayoutResolver.resolve(inventory: inventory.snapshot(),
-                                             separatorFrame: boundary,
-                                             alwaysHiddenSeparatorFrame: alwaysHiddenFrame,
-                                             isLTR: isLTR(),
-                                             excludingBundle: ownBundleIdentifier)
+        let isLTR = self.isLTR()
+        generation += 1
+        let generation = self.generation
+        inventory.snapshot { [weak self] inventory in
+            guard let self = self, generation == self.generation else { return }
+            let layout = MenuBarLayoutResolver.resolve(inventory: inventory,
+                                                       separatorFrame: boundary,
+                                                       alwaysHiddenSeparatorFrame: alwaysHiddenFrame,
+                                                       isLTR: isLTR,
+                                                       excludingBundle: self.ownBundleIdentifier)
+            NSLog("NativeVisibility: separator at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
+            self.layout = layout
+            body(layout)
+        }
     }
 
     // Activates the new restriction before dropping the old one, so switching
@@ -183,15 +206,23 @@ final class NativeVisibilityEngine: MenuBarEngine {
         }
     }
 
+    // Zero width rather than isVisible = false: hiding an item makes macOS forget
+    // where the user placed it.
+    private func setSeparatorsVisible(_ visible: Bool) {
+        items?.separatorItem.length = visible ? expandedLength : 0
+        items?.alwaysHiddenItem?.length = visible && alwaysHiddenEnabled ? expandedLength : 0
+    }
+
     private func releaseAssertion() {
         generation += 1
         assertion?.invalidate()
         assertion = nil
     }
 
+    // Logged when the reason changes, so a retried collapse does not spam.
     private func logUnavailableOnce(_ reason: String) {
-        guard !hasLoggedUnavailable else { return }
-        hasLoggedUnavailable = true
+        guard reason != lastUnavailableReason else { return }
+        lastUnavailableReason = reason
         NSLog("NativeVisibility: hiding unavailable: \(reason)")
     }
 }
