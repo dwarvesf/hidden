@@ -15,11 +15,12 @@ import AppKit
 // result does not depend on display width, the notch or the frontmost app's menus.
 //
 // The arrow is the boundary: apps left of it (LTR) are hidden, apps right of it
-// stay visible. The regular separator is not needed and stays at zero width
-// (not removed, so macOS keeps its saved position for the legacy engine). The
-// always-hidden separator, when enabled, marks the third section; it shows
-// while expanded so it can be ⌘-dragged, and drops to zero width while
-// collapsed, where macOS has already removed everything it would separate.
+// stay visible. The regular separator is not needed and is taken out of the
+// bar; even at zero width macOS keeps a gap for it. The always-hidden
+// separator, when enabled, marks the third section; it shows while expanded so
+// it can be ⌘-dragged, and drops to zero width while collapsed, where macOS
+// has already removed everything it would separate. It keeps its slot because
+// its position is what defines that section.
 //
 // Limits, all from what macOS 27 exposes:
 // - Hiding is per app: an app with several icons hides or shows them together
@@ -69,6 +70,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         self.ownBundleIdentifier = ownBundleIdentifier
         self.itemFrame = itemFrame
         self.isLTR = isLTR
+        items.separatorItem.isVisible = false
     }
 
     func collapse(completion: @escaping (CollapseResult) -> Void) {
@@ -209,10 +211,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
         }
     }
 
-    // Zero width rather than isVisible = false: hiding an item makes macOS forget
-    // where the user placed it.
+    // The always-hidden separator goes to zero width rather than isVisible =
+    // false, which would make macOS forget where the user placed it.
     private func setSeparatorsVisible(_ visible: Bool) {
-        items?.separatorItem.length = 0
+        items?.separatorItem.isVisible = false
         items?.alwaysHiddenItem?.length = visible && alwaysHiddenEnabled ? expandedLength : 0
     }
 

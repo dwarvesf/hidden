@@ -183,14 +183,14 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertEqual(engine.state, .calibrating)
         XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.visible"])
         XCTAssertEqual(visibility.requests.first?.systemItems, NativeVisibilityEngine.systemItemsToKeep)
-        XCTAssertEqual(items.separatorItem.length, 0, "the arrow is the boundary; no separator needed")
+        XCTAssertFalse(items.separatorItem.isVisible, "the arrow is the boundary; no separator needed")
 
         visibility.succeed(0)
         XCTAssertEqual(engine.state, .collapsed)
         XCTAssertEqual(results, [.collapsed])
 
         engine.expand()
-        XCTAssertEqual(items.separatorItem.length, 0)
+        XCTAssertFalse(items.separatorItem.isVisible)
     }
 
     func testAlwaysHiddenSeparatorFollowsTheSectionSetting() {
