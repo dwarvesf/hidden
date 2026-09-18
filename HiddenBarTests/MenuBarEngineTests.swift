@@ -91,8 +91,8 @@ private func item(_ bundle: String?, x: CGFloat, width: CGFloat = 24) -> MenuBar
     return MenuBarInventoryItem(bundleIdentifier: bundle, frame: CGRect(x: x, y: 0, width: width, height: 24))
 }
 
-// LTR bar used throughout: always-hidden separator at 1000, separator at 1300,
-// arrow just right of it.
+// LTR bar used throughout: always-hidden separator at 1000, the boundary at 1300
+// (the separator for the resolver, the arrow for the native engine).
 private let alwaysHiddenSeparator = CGRect(x: 1000, y: 0, width: 20, height: 24)
 private let separator = CGRect(x: 1300, y: 0, width: 20, height: 24)
 
@@ -171,7 +171,7 @@ final class NativeVisibilityEngineTests: XCTestCase {
         let items = self.items!
         return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                       ownBundleIdentifier: "com.dwarvesv.minimalbar",
-                                      separatorFrame: { $0 === items.separatorItem ? separator : alwaysHiddenSeparator },
+                                      itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
                                       isLTR: { true })
     }
 
@@ -183,15 +183,14 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertEqual(engine.state, .calibrating)
         XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.visible"])
         XCTAssertEqual(visibility.requests.first?.systemItems, NativeVisibilityEngine.systemItemsToKeep)
-        XCTAssertEqual(items.separatorItem.length, 20, "normal width until hiding succeeds")
+        XCTAssertEqual(items.separatorItem.length, 0, "the arrow is the boundary; no separator needed")
 
         visibility.succeed(0)
         XCTAssertEqual(engine.state, .collapsed)
         XCTAssertEqual(results, [.collapsed])
-        XCTAssertEqual(items.separatorItem.length, 0, "nothing left to separate while collapsed")
 
         engine.expand()
-        XCTAssertEqual(items.separatorItem.length, 20)
+        XCTAssertEqual(items.separatorItem.length, 0)
     }
 
     func testAlwaysHiddenSeparatorFollowsTheSectionSetting() {
@@ -244,7 +243,7 @@ final class NativeVisibilityEngineTests: XCTestCase {
 
         XCTAssertEqual(result, .unavailable)
         XCTAssertEqual(engine.state, .expanded)
-        XCTAssertEqual(items.separatorItem.length, 20, "separators stay usable when nothing was hidden")
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 0, "the always-hidden separator only shows when enabled")
     }
 
     func testExpandDropsTheRestriction() {

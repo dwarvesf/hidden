@@ -68,6 +68,16 @@ final class LegacyLengthEngine: MenuBarEngine {
         items?.alwaysHiddenItem?.length = length
     }
 
+    // The separator is what widens, so it must sit between the hidden icons and
+    // the arrow, and the always-hidden separator further out still.
+    var isArrangementValid: Bool {
+        return MenuBarOrder.isItem(items?.separatorItem, onHiddenSideOf: items?.toggleItem)
+    }
+
+    var isAlwaysHiddenSeparatorPlaced: Bool {
+        return MenuBarOrder.isItem(items?.alwaysHiddenItem, onHiddenSideOf: items?.separatorItem)
+    }
+
     func invalidateLayout() {
         guard state == .collapsed else { return }
         items?.separatorItem.length = collapsedLength

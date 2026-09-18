@@ -12,6 +12,22 @@ Everything Hidden Bar can do, including the parts with no UI.
 - **Option-click the arrow**: show/hide the separators and the always-hidden
   area without expanding.
 
+### macOS 27, direct download build
+
+The direct (non-App Store) build hides icons natively on macOS 27, and the
+**arrow itself is the boundary**: there is no `|` separator. ⌘-drag icons to
+the arrow's left to hide them when collapsed, to its right to keep them
+visible. The always-hidden separator still appears (while expanded) when that
+section is enabled.
+
+- Needs **Accessibility** permission (System Settings › Privacy & Security ›
+  Accessibility) to see where your icons are. Without it the bar stays
+  expanded.
+- Hiding is per app: an app with several icons hides or shows them together.
+- macOS's own items (clock, Wi-Fi, Sound, Control Center) always stay visible.
+- Run Hidden Bar from `/Applications`; macOS only recognizes that copy as
+  Hidden Bar, and a copy elsewhere hides its own arrow.
+
 ## Preferences window
 
 | Setting | What it does |

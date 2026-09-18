@@ -14,9 +14,12 @@ import AppKit
 // assessment mode. macOS then hides the rest and reflows the bar itself, so the
 // result does not depend on display width, the notch or the frontmost app's menus.
 //
-// The separators only mark section boundaries: normal width while expanded so
-// they can be ⌘-dragged, zero width while collapsed, where macOS has already
-// removed everything they would separate.
+// The arrow is the boundary: apps left of it (LTR) are hidden, apps right of it
+// stay visible. The regular separator is not needed and stays at zero width
+// (not removed, so macOS keeps its saved position for the legacy engine). The
+// always-hidden separator, when enabled, marks the third section; it shows
+// while expanded so it can be ⌘-dragged, and drops to zero width while
+// collapsed, where macOS has already removed everything it would separate.
 //
 // Limits, all from what macOS 27 exposes:
 // - Hiding is per app: an app with several icons hides or shows them together
@@ -36,7 +39,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private let inventory: MenuBarInventoryProviding
     private let visibility: NativeVisibilityProviding
     private let ownBundleIdentifier: String?
-    private let separatorFrame: (NSStatusItem) -> CGRect?
+    private let itemFrame: (NSStatusItem) -> CGRect?
     private let isLTR: () -> Bool
 
     private let expandedLength: CGFloat = 20
@@ -58,13 +61,13 @@ final class NativeVisibilityEngine: MenuBarEngine {
          inventory: MenuBarInventoryProviding = AccessibilityMenuBarInventory(),
          visibility: NativeVisibilityProviding = NativeVisibilityBridge(),
          ownBundleIdentifier: String? = Bundle.main.bundleIdentifier,
-         separatorFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
+         itemFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
          isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage }) {
         self.items = items
         self.inventory = inventory
         self.visibility = visibility
         self.ownBundleIdentifier = ownBundleIdentifier
-        self.separatorFrame = separatorFrame
+        self.itemFrame = itemFrame
         self.isLTR = isLTR
     }
 
@@ -97,7 +100,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         withLayout { [weak self] layout in
             guard let self = self else { return }
             guard let layout = layout else {
-                self.logUnavailableOnce("the separator's position cannot be read yet")
+                self.logUnavailableOnce("the arrow's position cannot be read yet")
                 self.state = .expanded
                 return completion(.unavailable)
             }
@@ -160,9 +163,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
         if assertion != nil {
             return body(layout)
         }
-        guard let separator = items?.separatorItem,
-              let boundary = separatorFrame(separator) else { return body(nil) }
-        let alwaysHiddenFrame = alwaysHiddenEnabled ? items?.alwaysHiddenItem.flatMap(separatorFrame) : nil
+        guard let arrow = items?.toggleItem,
+              let boundary = itemFrame(arrow) else { return body(nil) }
+        let alwaysHiddenFrame = alwaysHiddenEnabled ? items?.alwaysHiddenItem.flatMap(itemFrame) : nil
         let isLTR = self.isLTR()
         generation += 1
         let generation = self.generation
@@ -173,7 +176,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
                                                        alwaysHiddenSeparatorFrame: alwaysHiddenFrame,
                                                        isLTR: isLTR,
                                                        excludingBundle: self.ownBundleIdentifier)
-            NSLog("NativeVisibility: separator at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
+            NSLog("NativeVisibility: arrow at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
             self.layout = layout
             body(layout)
         }
@@ -209,8 +212,17 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // Zero width rather than isVisible = false: hiding an item makes macOS forget
     // where the user placed it.
     private func setSeparatorsVisible(_ visible: Bool) {
-        items?.separatorItem.length = visible ? expandedLength : 0
+        items?.separatorItem.length = 0
         items?.alwaysHiddenItem?.length = visible && alwaysHiddenEnabled ? expandedLength : 0
+    }
+
+    // Any arrangement works: whatever sits left of the arrow is the hidden section.
+    var isArrangementValid: Bool {
+        return true
+    }
+
+    var isAlwaysHiddenSeparatorPlaced: Bool {
+        return MenuBarOrder.isItem(items?.alwaysHiddenItem, onHiddenSideOf: items?.toggleItem)
     }
 
     private func releaseAssertion() {

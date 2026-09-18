@@ -33,32 +33,9 @@ class StatusBarController: MenuBarItemProvider {
         return menuBarEngine.state == .collapsed
     }
     
-    private var isBtnSeparateValidPosition: Bool {
-        guard
-            let btnExpandCollapseX = self.btnExpandCollapse.button?.getOrigin?.x,
-            let btnSeparateX = self.btnSeparate.button?.getOrigin?.x
-            else {return false}
-        
-        if Constant.isUsingLTRLanguage {
-            return btnExpandCollapseX >= btnSeparateX
-        } else {
-            return btnExpandCollapseX <= btnSeparateX
-        }
-    }
-    
     private var isBtnAlwaysHiddenValidPosition: Bool {
         if !Preferences.alwaysHiddenSectionEnabled { return true }
-        
-        guard
-            let btnSeparateX = self.btnSeparate.button?.getOrigin?.x,
-            let btnAlwaysHiddenX = self.btnAlwaysHidden?.button?.getOrigin?.x
-            else {return false}
-        
-        if Constant.isUsingLTRLanguage {
-            return btnSeparateX >= btnAlwaysHiddenX
-        } else {
-            return btnSeparateX <= btnAlwaysHiddenX
-        }
+        return menuBarEngine.isAlwaysHiddenSeparatorPlaced
     }
     
     private var isToggle = false
@@ -236,7 +213,7 @@ class StatusBarController: MenuBarItemProvider {
     }
     
     private func collapseMenuBar() {
-        guard self.isBtnSeparateValidPosition && !self.isCollapsed else {
+        guard menuBarEngine.isArrangementValid && !self.isCollapsed else {
             autoCollapseIfNeeded()
             return
         }
