@@ -58,7 +58,7 @@ flowchart TD
 - **`AppDelegate`** (entry): registers default prefs, sets up the global hotkey,
   runs the one-shot legacy login-item migration, owns the `StatusBarController`.
 - **`StatusBarController`** (the product, ~370 lines): the three status items,
-  collapse/expand, auto-hide timer, interaction-awareness, hover-to-expand,
+  when to collapse/expand, auto-hide timer, interaction-awareness, hover-to-expand,
   self-restore of dragged-off items.
 - **`MenuBarEngine`** (`Features/StatusBar/Engine/`): how hiding is achieved.
   The controller calls `collapse` / `expand` / `updateAlwaysHiddenSection` /

@@ -15,7 +15,7 @@ math, collapse state machine) are HIGH RISK and require a mandatory review-team 
   trigger a collapse, capture the `HideMechanism:` NSLog (requested length / host-window
   width / button width / actual length). This is the unblocker: it reveals which geometry
   signal separates "honored" from "ignored" on 27. Diagnostic-only instrument already
-  shipped. See SPEC-003 + `StatusBarController.swift` (collapse path).
+  shipped. See SPEC-003 + `Engine/LegacyLengthEngine.swift` (collapse path).
 - **Redesign the detection signal, then ship Option B (detect-and-degrade).** Review-team
   found `btnSeparate.button?.window?.frame.width` reads the full menu-bar window width
   (~1728pt on 26.5), so `honored` is trivially true on every OS. Switch to a positional
@@ -27,7 +27,7 @@ math, collapse state machine) are HIGH RISK and require a mandatory review-team 
   one-shot check); (2) drop the `?? requested` nil-fallback that latches detection moot;
   (3) `degradeHideUnavailable()` must restore the app activation policy under
   "use full menu bar on expanding", or the bar shows while the app stays `.accessory`.
-  `StatusBarController.swift:316,318,329`.
+  `Engine/LegacyLengthEngine.swift` (`verifyHideMechanismIfNeeded`).
 
 ## Blocked on external-display hardware
 
