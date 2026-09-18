@@ -1,0 +1,146 @@
+/* Class = "NSTextFieldCell"; title = "Settings"; ObjectID = "1Is-Ut-a9h"; */
+"1Is-Ut-a9h.title" = "Ustawienia";
+
+/* Class = "NSMenuItem"; title = "Hidden Bar"; ObjectID = "1Xt-HY-uBw"; */
+"1Xt-HY-uBw.title" = "Hidden Bar";
+
+/* Class = "NSTextFieldCell"; title = "⭐️Always Hidden"; ObjectID = "1jU-1x-cFf"; */
+"1jU-1x-cFf.title" = "⭐️Zawsze ukryte";
+
+/* Class = "NSTextFieldCell"; title = "Hidden Bar"; ObjectID = "2xp-Ht-xa6"; */
+"2xp-Ht-xa6.title" = "Hidden Bar";
+
+/* Class = "NSTextFieldCell"; title = "Version"; ObjectID = "4Au-5A-dYq"; */
+"4Au-5A-dYq.title" = "Wersja";
+
+/* Class = "NSMenuItem"; title = "Quit Hidden Bar"; ObjectID = "4sb-4s-VLi"; */
+"4sb-4s-VLi.title" = "Zakończ Hidden Bar";
+
+/* Class = "NSMenuItem"; title = "About Hidden Bar"; ObjectID = "5kV-Vb-QxS"; */
+"5kV-Vb-QxS.title" = "Informacje o Hidden Bar";
+
+/* Class = "NSButtonCell"; title = "Use the full MenuBar on expanding"; ObjectID = "8z8-6N-wnc"; */
+"8z8-6N-wnc.title" = "Po rozwinięciu używaj całego paska menu";
+
+/* Class = "NSMenu"; title = "Main Menu"; ObjectID = "AYu-sK-qS6"; */
+"AYu-sK-qS6.title" = "Menu główne";
+
+/* Class = "NSSegmentedCell"; B2x-1Q-Aei.ibShadowedLabels[0] = "General"; ObjectID = "B2x-1Q-Aei"; */
+"B2x-1Q-Aei.ibShadowedLabels[0]" = "Ogólne";
+
+/* Class = "NSSegmentedCell"; B2x-1Q-Aei.ibShadowedLabels[1] = "About"; ObjectID = "B2x-1Q-Aei"; */
+"B2x-1Q-Aei.ibShadowedLabels[1]" = "O aplikacji";
+
+/* Class = "NSMenuItem"; title = "Preferences…"; ObjectID = "BOF-NM-1cW"; */
+"BOF-NM-1cW.title" = "Preferencje…";
+
+/* Class = "NSMenuItem"; title = "30 seconds"; ObjectID = "Ch6-Z2-LyX"; */
+"Ch6-Z2-LyX.title" = "30 s";
+
+/* Class = "NSTextFieldCell"; title = " "; ObjectID = "ERh-JM-snt"; */
+"ERh-JM-snt.title" = " ";
+
+/* Class = "NSTextFieldCell"; title = "Global Shortcut"; ObjectID = "HJP-Lf-rxm"; */
+"HJP-Lf-rxm.title" = "Skrót globalny";
+
+/* Class = "NSButtonCell"; title = "⌫"; ObjectID = "IId-1b-leb"; */
+"IId-1b-leb.title" = "⌫";
+
+/* Class = "NSBox"; title = "Box"; ObjectID = "Jjd-1G-63n"; */
+"Jjd-1G-63n.title" = "Pole";
+
+/* Class = "NSMenuItem"; title = "Show All"; ObjectID = "Kd2-mp-pUS"; */
+"Kd2-mp-pUS.title" = "Pokaż wszystkie";
+
+/* Class = "NSToolbarItem"; label = "Custom View"; ObjectID = "ML6-W4-U8X"; */
+"ML6-W4-U8X.label" = "Widok niestandardowy";
+
+/* Class = "NSToolbarItem"; paletteLabel = "Custom View"; ObjectID = "ML6-W4-U8X"; */
+"ML6-W4-U8X.paletteLabel" = "Widok niestandardowy";
+
+/* Class = "NSToolbarItem"; label = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
+"NIO-JJ-pjq.label" = "Widok niestandardowy";
+
+/* Class = "NSToolbarItem"; paletteLabel = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
+"NIO-JJ-pjq.paletteLabel" = "Widok niestandardowy";
+
+/* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
+"NMo-om-nkz.title" = "Usługi";
+
+/* Class = "NSButtonCell"; title = "Enable always hidden section"; ObjectID = "Nhn-ch-1f7"; */
+"Nhn-ch-1f7.title" = "Włącz sekcję \"Zawsze ukryte\"";
+
+/* Class = "NSMenuItem"; title = "Hide Hidden Bar"; ObjectID = "Olw-nP-bQN"; */
+"Olw-nP-bQN.title" = "Ukryj Hidden Bar";
+
+/* Class = "NSTextFieldCell"; title = "Follow us on Twitter"; ObjectID = "Tba-C7-Zr8"; */
+"Tba-C7-Zr8.title" = "Obserwuj nas na Twitterze";
+
+/* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "Vdr-fp-XzO"; */
+"Vdr-fp-XzO.title" = "Ukryj pozostałe";
+
+/* Class = "NSButtonCell"; title = "Start Hidden Bar when I log in"; ObjectID = "W1G-55-zGo"; */
+"W1G-55-zGo.title" = "Uruchamiaj Hidden Bar po zalogowaniu";
+
+/* Class = "NSTextFieldCell"; title = "Menu bar cleaner"; ObjectID = "X4W-sr-Z32"; */
+"X4W-sr-Z32.title" = "Porządkowanie paska menu";
+
+/* Class = "NSTextFieldCell"; title = "Know more about us"; ObjectID = "Xb1-xM-sYy"; */
+"Xb1-xM-sYy.title" = "Dowiedz się o nas więcej";
+
+/* Class = "NSMenuItem"; title = "1 minute"; ObjectID = "Zkr-Xd-Ffh"; */
+"Zkr-Xd-Ffh.title" = "1 min";
+
+/* Class = "NSTextFieldCell"; title = "MIT © Dwarves Foundation"; ObjectID = "b1t-QR-iSj"; */
+"b1t-QR-iSj.title" = "MIT © Dwarves Foundation";
+
+/* Class = "NSBox"; title = "Box"; ObjectID = "bFi-aV-ejJ"; */
+"bFi-aV-ejJ.title" = "Pole";
+
+/* Class = "NSMenuItem"; title = "5 seconds"; ObjectID = "bzS-lm-JvT"; */
+"bzS-lm-JvT.title" = "5 s";
+
+/* Class = "NSTextFieldCell"; title = "Hidden"; ObjectID = "cXt-8R-PHo"; */
+"cXt-8R-PHo.title" = "Ukryte";
+
+/* Class = "NSButtonCell"; title = "Set Shortcut"; ObjectID = "fc2-jD-QNf"; */
+"fc2-jD-QNf.title" = "Ustaw skrót";
+
+/* Class = "NSTextFieldCell"; title = "This app is fully open source"; ObjectID = "fqc-io-QOP"; */
+"fqc-io-QOP.title" = "Ta aplikacja ma w pełni otwarty kod źródłowy";
+
+/* Class = "NSButtonCell"; title = "Show preferences on launch"; ObjectID = "hCh-Ue-NgH"; */
+"hCh-Ue-NgH.title" = "Pokazuj \"Preferencje...\" po uruchomieniu";
+
+/* Class = "NSMenu"; title = "Services"; ObjectID = "hz9-B4-Xy5"; */
+"hz9-B4-Xy5.title" = "Usługi";
+
+/* Class = "NSTextFieldCell"; title = "Shown"; ObjectID = "iyS-g5-5mk"; */
+"iyS-g5-5mk.title" = "Widoczne";
+
+/* Class = "NSTextFieldCell"; title = "In your Mac's menu bar, hold ⌘ and drag icons\nbetween sections to configure Hidden Bar."; ObjectID = "k7C-e5-6a0"; */
+"k7C-e5-6a0.title" = "Na pasku menu Maca przytrzymaj klawisz ⌘ i przeciągaj ikony\nmiędzy sekcjami, aby skonfigurować Hidden Bar.";
+
+/* Class = "NSButtonCell"; title = "Automatically hide icon after: "; ObjectID = "kg8-rW-srh"; */
+"kg8-rW-srh.title" = "Automatycznie ukrywaj ikony po: ";
+
+/* Class = "NSBox"; title = "Box"; ObjectID = "mtL-vU-2iq"; */
+"mtL-vU-2iq.title" = "Pole";
+
+/* Class = "NSMenuItem"; title = "15 seconds"; ObjectID = "rdn-Xm-fZD"; */
+"rdn-Xm-fZD.title" = "15 s";
+
+/* Class = "NSTextFieldCell"; title = "Email us"; ObjectID = "sRr-sO-uV0"; */
+"sRr-sO-uV0.title" = "Napisz do nas";
+
+/* Class = "NSMenu"; title = "Hidden Bar"; ObjectID = "uQy-DD-JDr"; */
+"uQy-DD-JDr.title" = "Hidden Bar";
+
+/* Class = "NSMenuItem"; title = "10 seconds"; ObjectID = "z2X-nw-vxX"; */
+"z2X-nw-vxX.title" = "10 s";
+
+/* Class = "NSTextFieldCell"; title = "Monday 08 Mar 9:00AM"; ObjectID = "zAH-cs-dar"; */
+"zAH-cs-dar.title" = "Poniedziałek, 8 mar, 9:00";
+
+/* Class = "NSTextFieldCell"; title = "General"; ObjectID = "zAf-vj-OOZ"; */
+"zAf-vj-OOZ.title" = "Ogólne";
