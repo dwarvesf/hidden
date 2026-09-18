@@ -23,9 +23,13 @@ deprecated `SMLoginItemSetEnabled(false)` call that cleans up legacy installs.
 The repo has no unit-test infrastructure; behavior is verified against the real
 menu bar. Two building blocks make that scriptable:
 
-1. **Truth signal**: the separator's AX size.
+1. **Geometry signal**: the separator's AX size.
    `osascript -e 'tell application "System Events" to tell process "Hidden Bar" to get size of menu bar item 2 of menu bar 2'`
-   reads ~20pt expanded vs ~2x-screen-width collapsed. Item 1 is the arrow.
+   reads ~20pt expanded vs ~2x-screen-width collapsed on macOS 26 and earlier.
+   On macOS 27 the separator stays below half the narrowest screen width and
+   any adjacent spacers grow with it. Geometry alone does not prove that other
+   apps' icons left the bar; inspect the visible menu bar before and after.
+   Item 1 is the arrow on older systems; macOS 27 may expose a different AX tree.
 2. **Real clicks, not AXPress**: `AXPress` on the arrow is a no-op because the
    action handler reads `NSApp.currentEvent` (nil under assistive synthesis;
    known accessibility defect). Post real `CGEvent` mouse clicks at the arrow's
