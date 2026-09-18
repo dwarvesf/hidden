@@ -76,7 +76,7 @@
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" fullSizeContentView="YES"/>
                         <rect key="contentRect" x="196" y="240" width="450" height="270"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1440" height="875"/>
-                        <toolbar key="toolbar" implicitIdentifier="47B2E2C2-82B2-4C57-9EBF-6C8AE0786C9B" autosavesConfiguration="NO" allowsUserCustomization="NO" displayMode="labelOnly" sizeMode="regular" id="iQ4-lw-FIM">
+                        <toolbar key="toolbar" implicitIdentifier="47B2E2C2-82B2-4C57-9EBF-6C8AE0786C9B" autosavesConfiguration="NO" allowsUserCustomization="NO" displayMode="iconOnly" sizeMode="regular" id="iQ4-lw-FIM">
                             <allowedToolbarItems>
                                 <toolbarItem implicitItemIdentifier="NSToolbarShowColorsItem" id="F4y-kl-D2f"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarShowFontsItem" id="f59-7u-RLJ"/>
