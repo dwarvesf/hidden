@@ -2,23 +2,25 @@
 
 Hidden Bar is a single-process, sandboxed AppKit menubar utility (~1.5k lines of
 Swift, one dependency: [HotKey](https://github.com/soffes/HotKey)). There is no
-helper app, no daemon, no network. Everything happens inside three
-`NSStatusItem`s and one window.
+helper app, no daemon, no network. The menu-bar controls and one preferences
+window contain the app's behavior.
 
 ## The core trick
 
-macOS offers no API to hide other apps' menubar icons. Hidden Bar fakes it with
-geometry: a separator status item whose **length is inflated to roughly the
-width of the widest attached screen**, shoving every icon to its left off-screen.
-Collapsing and expanding is just flipping that length between ~20pt and the
-inflated value.
+macOS offers no public API to hide other apps' menubar icons. Hidden Bar uses
+status-item geometry to move icons left of its separator out of the visible bar.
+On macOS 26 and earlier the separator grows to twice the widest screen width.
+On macOS 27 each item must stay below roughly half the narrowest screen width;
+additional status items supply the rest of the displacement on wide screens.
+macOS 27 moves displaced icons into its native overflow. Expanding returns the
+separator to 20pt and the extra items to zero requested width.
 
 ```mermaid
 flowchart LR
     subgraph menubar [menu bar, right to left]
         direction RL
         ARROW["arrow item\n(toggle, variable length)"]
-        SEP["separator item\n20pt expanded / ~2x screen width collapsed"]
+        SEP["separator item\n20pt expanded / inflated when collapsed"]
         HIDDEN["other apps' icons\npushed off-screen when collapsed"]
         ALWAYS["always-hidden separator\n(optional)"]
     end
@@ -27,12 +29,15 @@ flowchart LR
 
 Key consequences of this design:
 
-- The menubar replicates on every display, so the collapse length derives from
-  the **widest** screen (`NSScreen.screens`), never `NSScreen.main`, and is
-  re-applied to the live item on `didChangeScreenParametersNotification`
-  (display hot-plug).
-- The length is bounded: `max(500, min(widestFrameWidth * 2, 10_000))`. macOS
-  enforces a hard 10,000pt maximum on `NSStatusItem.length`.
+- The menubar replicates on every display. Before macOS 27 the collapse length
+  derives from the **widest** screen and is bounded at 10,000pt. On macOS 27
+  each item's length derives from the **narrowest** screen so it stays below the
+  per-display rejection threshold. The live lengths are recomputed after display
+  changes.
+- macOS 27's extra items are created only for wide screen layouts. They retain
+  their native slots at zero requested width when expanded; toggling
+  `isVisible` would reorder them on that system. The number is chosen at launch,
+  so a screen width change that needs more slots requires a restart.
 - `isCollapsed` is derived state: `separator.length > 20`, deliberately not an
   equality check, so it survives the length being recomputed while collapsed.
 - Icons macOS inserts to the LEFT of the separator (where new status items
@@ -45,7 +50,7 @@ flowchart TD
     AD[AppDelegate] -->|owns| SBC[StatusBarController]
     AD -->|registers| SM["SMAppService.mainApp\n(login item, macOS 13+)"]
     AD -->|global hotkey| HK[HotKey lib]
-    SBC -->|3 status items| NSB[NSStatusBar.system]
+    SBC -->|status items| NSB[NSStatusBar.system]
     SBC -->|auto-hide| T["one-shot Timer\n(re-arms while pointer in menubar)"]
     SBC -->|opt-in| HM["global mouseMoved monitor\n(hover-to-expand, only if pref on)"]
     PREFS[Preferences facade] -->|UserDefaults| UD[(UserDefaults)]
@@ -57,7 +62,7 @@ flowchart TD
 
 - **`AppDelegate`** (entry): registers default prefs, sets up the global hotkey,
   runs the one-shot legacy login-item migration, owns the `StatusBarController`.
-- **`StatusBarController`** (the product, ~370 lines): the three status items,
+- **`StatusBarController`** (the product): the status items,
   collapse/expand, auto-hide timer, interaction-awareness, hover-to-expand,
   self-restore of dragged-off items.
 - **`Preferences`** (facade enum): typed accessors over `UserDefaults`; setters
@@ -97,9 +102,11 @@ A full-tree audit (2026-06) scored 9/10 with hygiene-level findings only.
 - **The notch**: hidden icons sit "under" the notch area on notched Macs; the
   trick cannot reveal them there. The real fix is a spillover/second-bar design
   (tracked in issues #357/#341/#148; candidate implementations in PRs #350/#358).
-- **macOS 27**: the menu bar re-architecture in macOS 27 betas
-  (`NSMenuBarNavigationSceneExtension`) breaks length-inflation hiding entirely
-  (issue #360). A different mechanism may be required.
+- **macOS 27**: a single oversized status item is discarded. The smaller-item
+  approach restores ordinary hiding on a 1728pt display, but wide, mixed-width,
+  notched and right-to-left layouts still need physical verification. The
+  optional always-hidden separator has no additional spacer group and may not
+  hide its section on a wide display while the ordinary section is expanded.
 - **Other apps' open menus**: interaction-awareness is pointer-position-based;
   a pointer deep inside another app's open dropdown is below the menubar band,
   so the collapse can still fire there.
