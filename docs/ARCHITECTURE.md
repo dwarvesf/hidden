@@ -60,6 +60,11 @@ flowchart TD
 - **`StatusBarController`** (the product, ~370 lines): the three status items,
   collapse/expand, auto-hide timer, interaction-awareness, hover-to-expand,
   self-restore of dragged-off items.
+- **`MenuBarEngine`** (`Features/StatusBar/Engine/`): how hiding is achieved.
+  The controller calls `collapse` / `expand` / `updateAlwaysHiddenSection` /
+  `invalidateLayout` and never writes a status-item length itself.
+  `MenuBarEngineFactory` is the one place that picks an engine for the running
+  OS; today that is always `LegacyLengthEngine` (the length trick below).
 - **`Preferences`** (facade enum): typed accessors over `UserDefaults`; setters
   post `NotificationCenter` notifications that the controller and prefs window
   observe. There is no other state store.
