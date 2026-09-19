@@ -36,7 +36,9 @@ class PreferencesViewController: NSViewController {
     
     @IBOutlet weak var btnClear: NSButton!
     @IBOutlet weak var btnShortcut: NSButton!
-    
+
+    @IBOutlet weak var checkBoxNotchOverflow: NSButton!
+
     public var listening = false {
         didSet {
             let isHighlight = listening
@@ -53,6 +55,10 @@ class PreferencesViewController: NSViewController {
         updateData()
         loadHotkey()
         createTutorialView()
+        // The row lives in the storyboard alongside the other Settings
+        // checkboxes; hide it on hardware where the feature can't apply.
+        // The containing stack view (detachesHiddenViews) reflows on its own.
+        checkBoxNotchOverflow.isHidden = !NotchOverflowController.hasNotch
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
     }
 
@@ -162,6 +168,7 @@ class PreferencesViewController: NSViewController {
         checkBoxShowPreferences.state = Preferences.isShowPreference ? .on : .off
         checkBoxShowAlwaysHiddenSection.state = Preferences.alwaysHiddenSectionEnabled ? .on : .off
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Preferences.numberOfSecondForAutoHide))
+        checkBoxNotchOverflow.state = Preferences.notchOverflowEnabled ? .on : .off
     }
     
     private func loadHotkey() {
@@ -193,6 +200,15 @@ class PreferencesViewController: NSViewController {
     private func updateClearButton(_ globalKeybindPreference : GlobalKeybindPreferences?) {
         btnClear.isEnabled = globalKeybindPreference != nil
     }
+}
+
+//MARK: - Notch Overflow Section
+extension PreferencesViewController {
+
+    @IBAction func notchOverflowCheckChanged(_ sender: NSButton) {
+        Preferences.notchOverflowEnabled = sender.state == .on
+    }
+
 }
 
 //MARK: - Show tutorial
