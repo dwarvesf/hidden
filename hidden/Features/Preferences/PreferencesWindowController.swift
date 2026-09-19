@@ -41,6 +41,23 @@ class PreferencesWindowController: NSWindowController {
             vc.updateGlobalShortcut(event)
         }
     }
+
+    // Cmd+W closes the prefs window. The main menu has no File > Close item, so
+    // the key equivalent falls through to the responder chain. While the
+    // shortcut recorder is listening it keeps the event, so the user can still
+    // bind Cmd+W as the global hotkey.
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        let listening = (contentViewController as? PreferencesViewController)?.listening ?? false
+        let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if !listening,
+           mods.isSubset(of: [.command, .shift]),
+           mods.contains(.command),
+           event.charactersIgnoringModifiers == "w" {
+            window?.performClose(nil)
+            return true
+        }
+        return super.performKeyEquivalent(with: event)
+    }
     
     override func flagsChanged(with event: NSEvent) {
         super.flagsChanged(with: event)
