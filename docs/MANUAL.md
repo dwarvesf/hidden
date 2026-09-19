@@ -25,6 +25,10 @@ section is enabled.
   expanded.
 - Hiding is per app: an app with several icons hides or shows them together.
 - macOS's own items (clock, Wi-Fi, Sound, Control Center) always stay visible.
+- With more than one display, an app stays visible if it is on the arrow's
+  visible side on **any** display. If Hidden Bar cannot read a complete display
+  layout after a monitor change, wake, or app launch, it leaves the bar expanded
+  until it can safely read it again.
 - Run Hidden Bar from `/Applications`; macOS only recognizes that copy as
   Hidden Bar, and a copy elsewhere hides its own arrow.
 
@@ -78,7 +82,7 @@ To undo any of them: `defaults delete com.dwarvesv.minimalbar <key>`.
 
 | Symptom | Fix |
 |---|---|
-| Icons I want visible got hidden after an update | ⌘-drag them to the right of the separator |
+| Icons I want visible got hidden after an update | On macOS 27 direct builds, ⌘-drag them to the arrow's right; on earlier builds, drag them right of the separator |
 | Login item missing after denying it once | System Settings > General > Login Items: re-enable Hidden Bar, then toggle the pref off/on |
 | A ghost "LauncherApplication" login item from old versions | Launch the current version once; it deauthorizes the legacy item automatically |
 | App language stuck | See the `AppleLanguages` command above, or System Settings > General > Language & Region > Applications |

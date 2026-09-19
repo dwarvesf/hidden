@@ -8,6 +8,26 @@
 import AppKit
 import ApplicationServices
 
+enum MenuBarDisplayInventory {
+    // AX uses a desktop-wide top-left origin; AppKit uses bottom-left.  Use the
+    // top of the entire desktop rather than the main display so stacked and
+    // offset external displays map to the same coordinate system as AX.
+    static func current() -> [MenuBarDisplay] {
+        let screens = NSScreen.screens
+        guard let desktopTop = screens.map(\.frame.maxY).max() else { return [] }
+        return screens.enumerated().map { index, screen in
+            let identifier = (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)
+                .map { String($0.uint32Value) } ?? "screen-\(index)"
+            let frame = screen.frame
+            let accessibilityFrame = CGRect(x: frame.minX,
+                                            y: desktopTop - frame.maxY,
+                                            width: frame.width,
+                                            height: frame.height)
+            return MenuBarDisplay(identifier: identifier, appKitFrame: frame, accessibilityFrame: accessibilityFrame)
+        }
+    }
+}
+
 // Lists other apps' status items through public Accessibility API: every running
 // app's AXExtrasMenuBar children, with the owning bundle from the process.
 // Needs the Accessibility permission, and does not work inside the App Sandbox

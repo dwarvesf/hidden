@@ -76,6 +76,8 @@ class StatusBarController: MenuBarItemProvider {
         setupAlwayHideStatusBar()
         setupHoverToExpandIfEnabled()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(handleWorkspaceMenuBarChange), name: NSWorkspace.didLaunchApplicationNotification, object: nil)
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(handleWorkspaceMenuBarChange), name: NSWorkspace.didWakeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             self?.collapseMenuBar()
@@ -118,10 +120,22 @@ class StatusBarController: MenuBarItemProvider {
     }
     
     @objc private func handleScreenParametersChanged() {
-        // Re-apply the recomputed length to the LIVE item when collapsed, or a
-        // display hot-plug leaves the separator at a stale length (PR #354).
+        invalidateNativeLayoutAfterEnvironmentChange()
+    }
+
+    // A new status item or a wake can change the Accessibility inventory just
+    // as much as a monitor hot-plug.  The native engine releases its global
+    // restriction here instead of applying a stale per-display classification.
+    @objc private func handleWorkspaceMenuBarChange() {
+        invalidateNativeLayoutAfterEnvironmentChange()
+    }
+
+    private func invalidateNativeLayoutAfterEnvironmentChange() {
         let wasCollapsed = isCollapsed
         menuBarEngine.invalidateLayout()
+        if wasCollapsed && !isCollapsed {
+            didFailToCollapseMenuBar()
+        }
         if wasCollapsed && Preferences.areSeparatorsHidden {
             menuBarEngine.updateAlwaysHiddenSection(enabled: Preferences.alwaysHiddenSectionEnabled, separatorHidden: true)
         }

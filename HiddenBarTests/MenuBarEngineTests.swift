@@ -95,6 +95,9 @@ private func item(_ bundle: String?, x: CGFloat, width: CGFloat = 24) -> MenuBar
 // (the separator for the resolver, the arrow for the native engine).
 private let alwaysHiddenSeparator = CGRect(x: 1000, y: 0, width: 20, height: 24)
 private let separator = CGRect(x: 1300, y: 0, width: 20, height: 24)
+private let mainDisplay = MenuBarDisplay(identifier: "main",
+                                         appKitFrame: CGRect(x: 0, y: 0, width: 2000, height: 1000),
+                                         accessibilityFrame: CGRect(x: 0, y: 0, width: 2000, height: 1000))
 
 // MARK: - Layout resolver
 
@@ -102,9 +105,9 @@ final class MenuBarLayoutResolverTests: XCTestCase {
     func testLTRSectionsFollowSeparators() {
         let layout = MenuBarLayoutResolver.resolve(
             inventory: [item("com.always", x: 900), item("com.hidden", x: 1100), item("com.visible", x: 1400)],
-            separatorFrame: separator, alwaysHiddenSeparatorFrame: alwaysHiddenSeparator,
+            separatorFrame: separator, alwaysHiddenSeparatorFrame: alwaysHiddenSeparator, displays: [mainDisplay],
             isLTR: true, excludingBundle: nil)
-        XCTAssertEqual(layout.sections, ["com.always": .alwaysHidden, "com.hidden": .hidden, "com.visible": .visible])
+        XCTAssertEqual(layout?.sections, ["com.always": .alwaysHidden, "com.hidden": .hidden, "com.visible": .visible])
     }
 
     func testRTLSectionsAreMirrored() {
@@ -113,42 +116,71 @@ final class MenuBarLayoutResolverTests: XCTestCase {
         let rtlAlwaysHidden = CGRect(x: 600, y: 0, width: 20, height: 24)
         let layout = MenuBarLayoutResolver.resolve(
             inventory: [item("com.visible", x: 200), item("com.hidden", x: 450), item("com.always", x: 700)],
-            separatorFrame: rtlSeparator, alwaysHiddenSeparatorFrame: rtlAlwaysHidden,
+            separatorFrame: rtlSeparator, alwaysHiddenSeparatorFrame: rtlAlwaysHidden, displays: [mainDisplay],
             isLTR: false, excludingBundle: nil)
-        XCTAssertEqual(layout.sections, ["com.always": .alwaysHidden, "com.hidden": .hidden, "com.visible": .visible])
+        XCTAssertEqual(layout?.sections, ["com.always": .alwaysHidden, "com.hidden": .hidden, "com.visible": .visible])
     }
 
     func testWithoutAlwaysHiddenSeparatorEverythingLeftIsHidden() {
         let layout = MenuBarLayoutResolver.resolve(
             inventory: [item("com.far", x: 100), item("com.near", x: 1200)],
-            separatorFrame: separator, alwaysHiddenSeparatorFrame: nil,
+            separatorFrame: separator, alwaysHiddenSeparatorFrame: nil, displays: [mainDisplay],
             isLTR: true, excludingBundle: nil)
-        XCTAssertEqual(layout.sections, ["com.far": .hidden, "com.near": .hidden])
+        XCTAssertEqual(layout?.sections, ["com.far": .hidden, "com.near": .hidden])
     }
 
     func testMostVisibleItemWinsForABundle() {
         let layout = MenuBarLayoutResolver.resolve(
             inventory: [item("com.split", x: 1100), item("com.split", x: 1400),
                         item("com.pair", x: 900), item("com.pair", x: 1100)],
-            separatorFrame: separator, alwaysHiddenSeparatorFrame: alwaysHiddenSeparator,
+            separatorFrame: separator, alwaysHiddenSeparatorFrame: alwaysHiddenSeparator, displays: [mainDisplay],
             isLTR: true, excludingBundle: nil)
-        XCTAssertEqual(layout.sections["com.split"], .visible)
-        XCTAssertEqual(layout.sections["com.pair"], .hidden)
+        XCTAssertEqual(layout?.sections["com.split"], .visible)
+        XCTAssertEqual(layout?.sections["com.pair"], .hidden)
     }
 
     func testSkipsOwnSystemAndUnidentifiedItems() {
         let layout = MenuBarLayoutResolver.resolve(
             inventory: [item("com.dwarvesv.minimalbar", x: 1100), item("com.apple.MenuBarAgent", x: 1100),
                         item(nil, x: 1100), item("com.app", x: 1100)],
-            separatorFrame: separator, alwaysHiddenSeparatorFrame: nil,
+            separatorFrame: separator, alwaysHiddenSeparatorFrame: nil, displays: [mainDisplay],
             isLTR: true, excludingBundle: "com.dwarvesv.minimalbar")
-        XCTAssertEqual(layout.sections, ["com.app": .hidden])
+        XCTAssertEqual(layout?.sections, ["com.app": .hidden])
     }
 
     func testBundlesAreFilteredAndSorted() {
         let layout = MenuBarLayout(sections: ["b": .visible, "a": .visible, "c": .hidden, "d": .alwaysHidden])
         XCTAssertEqual(layout.bundles(in: [.visible]), ["a", "b"])
         XCTAssertEqual(layout.bundles(in: [.visible, .hidden]), ["a", "b", "c"])
+    }
+
+    func testVisibleOnEitherDisplayWinsForABundle() {
+        let builtIn = MenuBarDisplay(identifier: "built-in",
+                                     appKitFrame: CGRect(x: 0, y: 0, width: 1512, height: 982),
+                                     accessibilityFrame: CGRect(x: 0, y: 0, width: 1512, height: 982))
+        let external = MenuBarDisplay(identifier: "external",
+                                     appKitFrame: CGRect(x: 1512, y: 0, width: 2560, height: 1440),
+                                     accessibilityFrame: CGRect(x: 1512, y: 0, width: 2560, height: 1440))
+        // The arrow is 200 points from the right edge of the built-in display.
+        // It therefore projects to x=3872 on the external display, not x=1310.
+        let boundary = CGRect(x: 1300, y: 950, width: 20, height: 24)
+        let layout = MenuBarLayoutResolver.resolve(
+            inventory: [item("com.visible.somewhere", x: 1400),
+                        MenuBarInventoryItem(bundleIdentifier: "com.visible.somewhere", frame: CGRect(x: 3900, y: 12, width: 24, height: 24)),
+                        MenuBarInventoryItem(bundleIdentifier: "com.hidden.everywhere", frame: CGRect(x: 3700, y: 12, width: 24, height: 24))],
+            separatorFrame: boundary, alwaysHiddenSeparatorFrame: nil,
+            displays: [builtIn, external], isLTR: true, excludingBundle: nil)
+
+        XCTAssertEqual(layout?.sections["com.visible.somewhere"], .visible)
+        XCTAssertEqual(layout?.sections["com.hidden.everywhere"], .hidden)
+    }
+
+    func testUnassignedThirdPartyItemMakesLayoutUnavailable() {
+        let layout = MenuBarLayoutResolver.resolve(
+            inventory: [MenuBarInventoryItem(bundleIdentifier: "com.unknown", frame: CGRect(x: 5000, y: 0, width: 24, height: 24))],
+            separatorFrame: separator, alwaysHiddenSeparatorFrame: nil,
+            displays: [mainDisplay], isLTR: true, excludingBundle: nil)
+        XCTAssertNil(layout)
     }
 }
 
@@ -172,6 +204,7 @@ final class NativeVisibilityEngineTests: XCTestCase {
         return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                       ownBundleIdentifier: "com.dwarvesv.minimalbar",
                                       itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                      displays: { [mainDisplay] },
                                       isLTR: { true })
     }
 
@@ -305,14 +338,14 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertEqual(results, [])
     }
 
-    func testDisplayChangeKeepsTheBarCollapsed() {
+    func testDisplayChangeFailsOpenUntilTheNextFreshSnapshot() {
         let engine = makeEngine()
         engine.collapse { _ in }
         let collapsed = visibility.succeed(0)
 
         engine.invalidateLayout()
-        XCTAssertEqual(engine.state, .collapsed)
-        XCTAssertFalse(collapsed.isInvalidated)
+        XCTAssertEqual(engine.state, .expanded)
+        XCTAssertTrue(collapsed.isInvalidated)
     }
 }
 
