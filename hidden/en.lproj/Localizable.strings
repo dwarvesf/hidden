@@ -12,6 +12,12 @@
 "Disable Auto Collapse" = "Disable Auto Collapse";
 "Quit" = "Quit";
 "Set Shortcut" = "Set Shortcut";
+"Show Notch Items" = "Show Notch Items";
+"Notch Overflow" = "Notch Overflow";
+"Hidden Behind Notch (%d)" = "Hidden Behind Notch (%d)";
+"Visible (%d)" = "Visible (%d)";
+"No items found (grant Accessibility permission)" = "No items found (grant Accessibility permission)";
+"Enable Notch Overflow (right-click ‹ to access hidden icons)" = "Enable Notch Overflow (right-click ‹ to access hidden icons)";
 "Tutorial text" = "
 Use the always hidden feature to keep your icons tidy. Here's how to set it
 Steps to enable:
