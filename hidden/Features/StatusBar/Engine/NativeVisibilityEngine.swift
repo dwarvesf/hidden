@@ -41,6 +41,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private let visibility: NativeVisibilityProviding
     private let ownBundleIdentifier: String?
     private let itemFrame: (NSStatusItem) -> CGRect?
+    private let displays: () -> [MenuBarDisplay]
     private let isLTR: () -> Bool
 
     private let expandedLength: CGFloat = 20
@@ -63,12 +64,14 @@ final class NativeVisibilityEngine: MenuBarEngine {
          visibility: NativeVisibilityProviding = NativeVisibilityBridge(),
          ownBundleIdentifier: String? = Bundle.main.bundleIdentifier,
          itemFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
+         displays: @escaping () -> [MenuBarDisplay] = MenuBarDisplayInventory.current,
          isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage }) {
         self.items = items
         self.inventory = inventory
         self.visibility = visibility
         self.ownBundleIdentifier = ownBundleIdentifier
         self.itemFrame = itemFrame
+        self.displays = displays
         self.isLTR = isLTR
         items.separatorItem.isVisible = false
     }
@@ -134,11 +137,17 @@ final class NativeVisibilityEngine: MenuBarEngine {
         }
     }
 
-    // Native hiding does not depend on display geometry, so only drop the cached
-    // sections; the next read from an unrestricted bar replaces them.
+    // A native visibility assertion is global, while AppKit may hand us the arrow
+    // frame from any connected screen.  On a display or workspace change there is
+    // no safe cached answer: release the restriction and wait for the next fresh
+    // expanded snapshot instead of hiding an icon from the wrong side.
     func invalidateLayout() {
-        if assertion == nil {
-            layout = nil
+        layout = nil
+        if assertion != nil {
+            releaseAssertion()
+            state = .expanded
+            setSeparatorsVisible(true)
+            NSLog("NativeVisibility: released restriction while menu-bar layout is changing")
         }
     }
 
@@ -173,11 +182,17 @@ final class NativeVisibilityEngine: MenuBarEngine {
         let generation = self.generation
         inventory.snapshot { [weak self] inventory in
             guard let self = self, generation == self.generation else { return }
+            let displaySnapshot = self.displays()
             let layout = MenuBarLayoutResolver.resolve(inventory: inventory,
                                                        separatorFrame: boundary,
                                                        alwaysHiddenSeparatorFrame: alwaysHiddenFrame,
+                                                       displays: displaySnapshot,
                                                        isLTR: isLTR,
                                                        excludingBundle: self.ownBundleIdentifier)
+            guard let layout = layout else {
+                NSLog("NativeVisibility: layout is incomplete for the connected displays; leaving the bar expanded")
+                return body(nil)
+            }
             NSLog("NativeVisibility: arrow at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
             self.layout = layout
             body(layout)
