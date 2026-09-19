@@ -1,0 +1,23 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+
+"Preferences..." = "Preferencje...";
+"Toggle Auto Collapse" = "Przełącz automatyczne zwijanie";
+"Enable Auto Collapse" = "Włącz automatyczne zwijanie";
+"Disable Auto Collapse" = "Wyłącz automatyczne zwijanie";
+"Quit" = "Zakończ";
+"Set Shortcut" = "Ustaw skrót";
+"Tutorial text" = "
+Użyj funkcji „Zawsze ukryte”, aby uporządkować ikony. Oto jak ją skonfigurować.
+Jak włączyć tę funkcję:
+1. Włącz pasek „Zawsze ukryte” oznaczony symbolem „|” (półprzezroczysty kolorowy pasek).
+2. Przytrzymaj klawisz ⌘ i przeciągnij go na lewą stronę zwykłego paska. Następnie przenieś na lewo od tego symbolu wszystkie ikony, które chcesz zawsze ukrywać.
+3. Na koniec kliknij prawym przyciskiem myszy ikonę zwijania „>”, aby je ukryć.
+Jak wyświetlić zawsze ukryte ikony:
+1. Ponownie kliknij prawym przyciskiem myszy ikonę „<”, aby wyświetlić ukryte ikony. Powtórz tę czynność, aby ponownie je ukryć. Gotowe 😉!
+";
