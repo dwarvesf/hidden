@@ -68,7 +68,17 @@ class PreferencesViewController: NSViewController {
     
     //MARK: - Actions
     @IBAction func loginCheckChanged(_ sender: NSButton) {
-        Preferences.isAutoStart = sender.state == .on
+        let wanted = sender.state == .on
+        Preferences.isAutoStart = wanted
+        // On failure the pref reverts (the checkbox already snapped back via
+        // prefsChanged); tell the user why instead of swallowing the error.
+        if Preferences.isAutoStart != wanted {
+            let alert = NSAlert()
+            alert.messageText = "Could not update the login item".localized
+            alert.informativeText = "Check System Settings > General > Login Items and make sure Hidden Bar is allowed.".localized
+            alert.alertStyle = .warning
+            alert.runModal()
+        }
     }
     
     @IBAction func autoHideCheckChanged(_ sender: NSButton) {
