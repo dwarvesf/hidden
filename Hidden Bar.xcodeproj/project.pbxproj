@@ -51,6 +51,9 @@
 		F6918B5DB22F557F7D83F739 /* NativeVisibilityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0070AA937997995EA799D01A /* NativeVisibilityBridge.swift */; };
 		A6BC2D15D7C6BDBC5F894D62 /* HBNativeVisibilityShim.m in Sources */ = {isa = PBXBuildFile; fileRef = D1484680F97D4EF3661639C5 /* HBNativeVisibilityShim.m */; };
 		2CEFC27766BCEA39CD11079F /* MenuBarEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57343F39835408A99E25A6E /* MenuBarEngineTests.swift */; };
+		62C8B44F0D264D96B75FF0FC /* ExpandCollapseAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6171C0428FE84918BC3FBD91 /* ExpandCollapseAction.swift */; };
+		B5435023F0224141B232FCC9 /* ExpandCollapseAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6171C0428FE84918BC3FBD91 /* ExpandCollapseAction.swift */; };
+		B12AD86D3E924502860225CC /* ExpandCollapseActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764544B7EDBB41A18087ED6F /* ExpandCollapseActionTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -112,6 +115,8 @@
 		22254D038882D5996C96A287 /* Hidden-Direct.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hidden-Direct.entitlements; sourceTree = "<group>"; };
 		27A530C718790900F466C145 /* HiddenBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HiddenBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C57343F39835408A99E25A6E /* MenuBarEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarEngineTests.swift; sourceTree = "<group>"; };
+		6171C0428FE84918BC3FBD91 /* ExpandCollapseAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandCollapseAction.swift; sourceTree = "<group>"; };
+		764544B7EDBB41A18087ED6F /* ExpandCollapseActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandCollapseActionTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -160,6 +165,7 @@
 				A56D368B6ABF45B5283FE4FA /* Layout */,
 				DC851BF8D5E527666907BC71 /* Engine */,
 				92C97B9022018C1F0007559C /* StatusBarController.swift */,
+				6171C0428FE84918BC3FBD91 /* ExpandCollapseAction.swift */,
 			);
 			path = StatusBar;
 			sourceTree = "<group>";
@@ -299,6 +305,7 @@
 			isa = PBXGroup;
 			children = (
 				C57343F39835408A99E25A6E /* MenuBarEngineTests.swift */,
+				764544B7EDBB41A18087ED6F /* ExpandCollapseActionTests.swift */,
 			);
 			path = HiddenBarTests;
 			sourceTree = "<group>";
@@ -419,6 +426,7 @@
 				08A5F85C23AA013100981CA5 /* SelectedSecond.swift in Sources */,
 				08A5F86123AA085B00981CA5 /* Preferences.swift in Sources */,
 				92C97B9122018C1F0007559C /* StatusBarController.swift in Sources */,
+				62C8B44F0D264D96B75FF0FC /* ExpandCollapseAction.swift in Sources */,
 				51977397CC1141721E72D40E /* HBNativeVisibilityShim.m in Sources */,
 				09B2F44606065391084C0231 /* NativeVisibilityBridge.swift in Sources */,
 				A8B03FA8D4CF2DDD0EBB3056 /* NativeVisibilityEngine.swift in Sources */,
@@ -458,7 +466,9 @@
 				869644DE3B6CBE7AE976E88A /* NativeVisibilityEngine.swift in Sources */,
 				F6918B5DB22F557F7D83F739 /* NativeVisibilityBridge.swift in Sources */,
 				A6BC2D15D7C6BDBC5F894D62 /* HBNativeVisibilityShim.m in Sources */,
+				B5435023F0224141B232FCC9 /* ExpandCollapseAction.swift in Sources */,
 				2CEFC27766BCEA39CD11079F /* MenuBarEngineTests.swift in Sources */,
+				B12AD86D3E924502860225CC /* ExpandCollapseActionTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
