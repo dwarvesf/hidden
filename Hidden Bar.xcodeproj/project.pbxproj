@@ -54,6 +54,9 @@
 		62C8B44F0D264D96B75FF0FC /* ExpandCollapseAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6171C0428FE84918BC3FBD91 /* ExpandCollapseAction.swift */; };
 		B5435023F0224141B232FCC9 /* ExpandCollapseAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6171C0428FE84918BC3FBD91 /* ExpandCollapseAction.swift */; };
 		B12AD86D3E924502860225CC /* ExpandCollapseActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764544B7EDBB41A18087ED6F /* ExpandCollapseActionTests.swift */; };
+		83E0D6A1FA184019932AECA5 /* AutoStart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A329E615845473D946DA3C2 /* AutoStart.swift */; };
+		160B7980C8A44829A864BBA6 /* AutoStart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A329E615845473D946DA3C2 /* AutoStart.swift */; };
+		9B1765C0B5634CFABD06A916 /* AutoStartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F013C3E5499B4EA7B816F7A8 /* AutoStartTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -117,6 +120,8 @@
 		C57343F39835408A99E25A6E /* MenuBarEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarEngineTests.swift; sourceTree = "<group>"; };
 		6171C0428FE84918BC3FBD91 /* ExpandCollapseAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandCollapseAction.swift; sourceTree = "<group>"; };
 		764544B7EDBB41A18087ED6F /* ExpandCollapseActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandCollapseActionTests.swift; sourceTree = "<group>"; };
+		9A329E615845473D946DA3C2 /* AutoStart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoStart.swift; sourceTree = "<group>"; };
+		F013C3E5499B4EA7B816F7A8 /* AutoStartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoStartTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -220,6 +225,7 @@
 				00117C4326600671005E517C /* Assets.swift */,
 				92C97B8E220147FE0007559C /* Constant.swift */,
 				08A5F86023AA085B00981CA5 /* Preferences.swift */,
+				9A329E615845473D946DA3C2 /* AutoStart.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -306,6 +312,7 @@
 			children = (
 				C57343F39835408A99E25A6E /* MenuBarEngineTests.swift */,
 				764544B7EDBB41A18087ED6F /* ExpandCollapseActionTests.swift */,
+				F013C3E5499B4EA7B816F7A8 /* AutoStartTests.swift */,
 			);
 			path = HiddenBarTests;
 			sourceTree = "<group>";
@@ -440,6 +447,7 @@
 				929113F521F9D04100173149 /* AppDelegate.swift in Sources */,
 				08C20FDE23AABDD10035D978 /* HyperlinkTextField.swift in Sources */,
 				92C97B88220032ED0007559C /* Util.swift in Sources */,
+				83E0D6A1FA184019932AECA5 /* AutoStart.swift in Sources */,
 				967F4B2524169BC800F18D3C /* String+Extension.swift in Sources */,
 				00117C4426600671005E517C /* Assets.swift in Sources */,
 				08A5F85A23AA007A00981CA5 /* PreferencesViewController.swift in Sources */,
@@ -467,8 +475,10 @@
 				F6918B5DB22F557F7D83F739 /* NativeVisibilityBridge.swift in Sources */,
 				A6BC2D15D7C6BDBC5F894D62 /* HBNativeVisibilityShim.m in Sources */,
 				B5435023F0224141B232FCC9 /* ExpandCollapseAction.swift in Sources */,
+				160B7980C8A44829A864BBA6 /* AutoStart.swift in Sources */,
 				2CEFC27766BCEA39CD11079F /* MenuBarEngineTests.swift in Sources */,
 				B12AD86D3E924502860225CC /* ExpandCollapseActionTests.swift in Sources */,
+				9B1765C0B5634CFABD06A916 /* AutoStartTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
