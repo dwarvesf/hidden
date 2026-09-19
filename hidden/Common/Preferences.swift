@@ -30,10 +30,12 @@ enum Preferences {
         }
         
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isAutoStart)
-            
-            Util.setUpAutoStart(isAutoStart: newValue)
-            
+            // Apply first, then persist the outcome: on failure the stored value
+            // stays at the previous state so the prefs checkbox shows reality
+            // instead of the intent.
+            let applied = Util.setUpAutoStart(isAutoStart: newValue)
+            UserDefaults.standard.set(applied ? newValue : isAutoStart, forKey: UserDefaults.Key.isAutoStart)
+
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }

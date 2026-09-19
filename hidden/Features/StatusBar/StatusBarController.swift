@@ -159,21 +159,20 @@ class StatusBarController: MenuBarItemProvider {
     }
     
     @objc func btnExpandCollapsePressed(sender: NSStatusBarButton) {
-        if let event = NSApp.currentEvent {
-
-            let isOptionKeyPressed = event.modifierFlags.contains(NSEvent.ModifierFlags.option)
-
-            if event.type == NSEvent.EventType.leftMouseUp && !isOptionKeyPressed {
-                self.expandCollapseIfNeeded()
-            } else if event.type == NSEvent.EventType.rightMouseUp && !isOptionKeyPressed {
-                // Right-click opens the same context menu the separator has (#356),
-                // making settings reachable from the control everyone clicks.
-                // The separators/always-hidden toggle stays on option-click.
-                showContextMenu(from: sender)
-            } else {
-                // Both option+left and option+right land here: separators toggle.
-                self.showHideSeparatorsAndAlwayHideArea()
-            }
+        let event = NSApp.currentEvent
+        // AXPress synthesis carries no NSEvent; the resolver maps nil to .toggle
+        // so VoiceOver can operate the bar.
+        switch ExpandCollapseActionResolver.action(eventType: event?.type, optionPressed: event?.modifierFlags.contains(.option) ?? false) {
+        case .toggle:
+            self.expandCollapseIfNeeded()
+        case .contextMenu:
+            // Right-click opens the same context menu the separator has (#356),
+            // making settings reachable from the control everyone clicks.
+            // The separators/always-hidden toggle stays on option-click.
+            showContextMenu(from: sender)
+        case .toggleSeparators:
+            // Both option+left and option+right land here: separators toggle.
+            self.showHideSeparatorsAndAlwayHideArea()
         }
     }
 
