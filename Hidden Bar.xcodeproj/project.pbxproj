@@ -26,6 +26,7 @@
 		55F3F1192608923B0054B881 /* Date+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F3F1182608923B0054B881 /* Date+Extension.swift */; };
 		55F3F11D2608925A0054B881 /* StackView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F3F11C2608925A0054B881 /* StackView+Extension.swift */; };
 		70F996B8AD634F42175AE89C /* NotchOverflowPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06495EE4F823D325A44A357C /* NotchOverflowPreferencesTests.swift */; };
+		73B9E6554B24487EA995C7C3 /* MenuBarLayoutResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE30458A6074188B93CD466 /* MenuBarLayoutResolverTests.swift */; };
 		8557996B406181A91CBF5917 /* MenuBarExtraClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B6D80CB37CBB7622AC8455D /* MenuBarExtraClassifierTests.swift */; };
 		929113F521F9D04100173149 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929113F421F9D04100173149 /* AppDelegate.swift */; };
 		929113F921F9D04200173149 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 929113F821F9D04200173149 /* Assets.xcassets */; };
@@ -122,6 +123,7 @@
 		967F4B2C24169CB400F18D3C /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		9B44EDBC1C09AEF89C472D74 /* NotchGeometryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotchGeometryTests.swift; path = NotchGeometryTests.swift; sourceTree = "<group>"; };
 		9C7BF2ECD52E3E5C0D8D7556 /* HiddenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HiddenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		ACE30458A6074188B93CD466 /* MenuBarLayoutResolverTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarLayoutResolverTests.swift; sourceTree = "<group>"; };
 		B1326443261D7E0200319D35 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
 		B1326445261D7E0200319D35 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B350A2CC23AAFB47003A04AC /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
@@ -257,6 +259,7 @@
 			children = (
 				9B44EDBC1C09AEF89C472D74 /* NotchGeometryTests.swift */,
 				6B6D80CB37CBB7622AC8455D /* MenuBarExtraClassifierTests.swift */,
+				ACE30458A6074188B93CD466 /* MenuBarLayoutResolverTests.swift */,
 				E3BF69BE15B7DE0272612470 /* NotchOverflowMenuBuilderTests.swift */,
 				06495EE4F823D325A44A357C /* NotchOverflowPreferencesTests.swift */,
 			);
@@ -522,6 +525,7 @@
 			files = (
 				1A6C9D316FF97AF473765572 /* NotchGeometryTests.swift in Sources */,
 				8557996B406181A91CBF5917 /* MenuBarExtraClassifierTests.swift in Sources */,
+				73B9E6554B24487EA995C7C3 /* MenuBarLayoutResolverTests.swift in Sources */,
 				0C57EC38D13980EBF7C9BBDA /* NotchOverflowMenuBuilderTests.swift in Sources */,
 				70F996B8AD634F42175AE89C /* NotchOverflowPreferencesTests.swift in Sources */,
 			);

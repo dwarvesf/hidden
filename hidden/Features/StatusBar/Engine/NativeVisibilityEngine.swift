@@ -27,6 +27,9 @@ import AppKit
 //   (the most visible section wins).
 // - macOS's own items (clock, Wi-Fi, Control Center...) are always kept visible:
 //   Accessibility cannot tell them apart, so they cannot be mapped to sections.
+//   SystemUIServer's legacy Menu Extras (Time Machine...) are the exception:
+//   none was observed with a system item identifier, so they are sectioned
+//   per bundle instead.
 // - Sections are read only while nothing is hidden, because hidden items report
 //   stale positions. They are re-read on the next collapse from an unrestricted
 //   bar, so an app launched while collapsed stays hidden until then, the same
