@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- macOS 27 (direct download build): while any app uses the microphone or a camera, Hidden Bar stops hiding and shows the whole bar, then resumes when that stops. macOS 27's native hiding hides the menu-bar capsule that names the recording app (#437); the dot in the screen corner stays visible.
+
+### Known / in progress
+- macOS 27 (direct download build): native hiding is part of macOS's exam (assessment) mode, and macOS applies that mode's other restrictions while the arrow is collapsed (#437). Now Playing and Live Activities are hidden, and clicking the clock does not open Notification Center (the two-finger trackpad swipe still does). Hidden Bar cannot opt out; the manual lists the details.
+
+### Changed
+- Manual: macOS's own items that stay visible while collapsed on macOS 27 are the clock, Control Center, Wi-Fi, Bluetooth, Sound, Battery, Display, Keyboard and Screen Mirroring, not all of them as previously stated.
+
 ## v1.11.1 (2026-09-18)
 
 ### Fixed

@@ -13,6 +13,21 @@ math, collapse state machine) are HIGH RISK and require a mandatory review-team 
 
 - **Direct build ships native hiding** (`NativeVisibilityEngine`, Debug-Direct /
   Release-Direct configurations). Uses private `MenuBarClientCore`; not App Store safe.
+- **Assessment-mode side effects (#437) have no fix in MenuBarClientCore.** Measured
+  on 27.0 (26A428), 2026-09-25. `MBAssessmentModeAssertion` sends
+  `acquireAssertionWithID:origin:allowedSystemItems:allowedBundleIdentifiers:` to
+  MenuBarAgent (mach `com.apple.MenuBarAgent.systemservices`, service
+  `com.apple.MenuBarAgent.visibility-restriction`), with origin `@1`. The other origins:
+  `0` (userSessionTransition) is accepted but ignores the allow-list and hides nothing;
+  `2` (campoDrag) is rejected (`VisibilityRestrictionError.activation`). MenuBarAgent
+  ORs the origin flags of all live restrictions, so any assessment restriction brings the
+  side effects. The system-item range 0..<64 resolves to 9 names: battery, bluetooth,
+  clock, displays, keyboard, volume, wifi, screenMirroring, primaryBentoBox. The clock
+  and other MenuBarAgent items expose no AX actions, so the clock cannot be pressed
+  through Accessibility. Shipped mitigation: no restriction while a mic or camera is in
+  use (`CaptureActivityMonitor`). Still open: Now Playing / Live Activities hidden, clock
+  click inert, screen recording not detected (no public API). Revisit if Apple adds an
+  origin or a public API.
 - **App Store build still broken on 27.** The sandbox denies `mach-lookup
   com.apple.axserver`, so the sections cannot be read even with Accessibility granted
   (measured 2026-09-18). Options: a user-picked list of visible apps instead of ⌘-drag

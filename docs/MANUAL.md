@@ -24,9 +24,32 @@ section is enabled.
   Accessibility) to see where your icons are. Without it the bar stays
   expanded.
 - Hiding is per app: an app with several icons hides or shows them together.
-- macOS's own items (clock, Wi-Fi, Sound, Control Center) always stay visible.
+- These macOS items always stay visible: clock, Control Center, Wi-Fi,
+  Bluetooth, Sound, Battery, Display, Keyboard and Screen Mirroring.
 - Run Hidden Bar from `/Applications`; macOS only recognizes that copy as
   Hidden Bar, and a copy elsewhere hides its own arrow.
+
+#### While collapsed (macOS limitation, #437)
+
+macOS 27 offers this kind of hiding only as part of its exam-lockdown
+(assessment) mode, and turns on that mode's other restrictions too. Hidden Bar
+cannot opt out of them. While the arrow is collapsed:
+
+- **Now Playing and Live Activities are hidden**, even if you keep the app that
+  is playing to the right of the arrow.
+- **Clicking the clock does not open Notification Center.** Swipe left from the
+  right edge of the trackpad with two fingers instead, or expand the arrow first.
+- **Recording indicators:** macOS hides the menu-bar indicator that names the
+  app using the microphone or camera (the orange or green capsule). The small
+  colored dot in the top-right corner of the screen still shows. To keep the
+  capsule too, Hidden Bar stops hiding and shows the whole bar as soon as any
+  app starts using the microphone or a camera, and resumes when that stops.
+  The arrow keeps its collapsed look in the meantime.
+- **Screen recording: not covered.** macOS offers no public way to tell that
+  another app is recording the screen, so Hidden Bar keeps hiding. The purple
+  dot in the screen corner still shows.
+
+Expanding the arrow ends all of this immediately.
 
 ## Preferences window
 
