@@ -209,6 +209,40 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertEqual(items.alwaysHiddenItem?.length, 20)
     }
 
+    // Hiding the always-hidden section takes its separator with it, as it did
+    // before macOS 27; it only goes once the icons are actually hidden.
+    func testAlwaysHiddenSeparatorHidesWithItsSection() {
+        let engine = makeEngine()
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: false)
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 20)
+
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 20, "read where it is before hiding anything")
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 0)
+        XCTAssertEqual(items.alwaysHiddenItem?.isVisible, false, "out of the bar, not just zero width")
+
+        engine.collapse { _ in }
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 0, "does not flash while collapsing")
+        visibility.succeed(visibility.requests.count - 1)
+
+        engine.expand()
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 0, "does not flash while expanding")
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 0)
+
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: false)
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 20)
+        XCTAssertEqual(items.alwaysHiddenItem?.isVisible, true)
+    }
+
+    func testAlwaysHiddenSeparatorStaysWhenItsSectionCannotBeHidden() {
+        let engine = makeEngine()
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        visibility.fail(visibility.requests.count - 1)
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 20)
+    }
+
     func testUnavailableAPIFailsOpen() {
         visibility.isAvailable = false
         let engine = makeEngine()

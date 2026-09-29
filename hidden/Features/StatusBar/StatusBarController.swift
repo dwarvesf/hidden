@@ -77,11 +77,14 @@ class StatusBarController: MenuBarItemProvider {
         setupHoverToExpandIfEnabled()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
+        // Sections are read from where the items sit, so wait until macOS has put
+        // them back in place (the always-hidden separator may have been taken
+        // out of the bar when the app quit).
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            if Preferences.areSeparatorsHidden { self?.hideSeparators() }
             self?.collapseMenuBar()
         }
 
-        if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
     }
 

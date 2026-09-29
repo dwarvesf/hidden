@@ -17,10 +17,11 @@ import AppKit
 // The arrow is the boundary: apps left of it (LTR) are hidden, apps right of it
 // stay visible. The regular separator is not needed and is taken out of the
 // bar; even at zero width macOS keeps a gap for it. The always-hidden
-// separator, when enabled, marks the third section; it shows while expanded so
-// it can be ⌘-dragged, and drops to zero width while collapsed, where macOS
-// has already removed everything it would separate. It keeps its slot because
-// its position is what defines that section.
+// separator, when enabled, marks the third section; it shows while that section
+// is shown so it can be ⌘-dragged, and is taken out of the bar while the section
+// is hidden (collapsed, or expanded with "hide separators" on), where macOS has
+// already removed everything it would separate. macOS puts it back where the
+// user left it, which is what defines that section.
 //
 // Limits, all from what macOS 27 exposes:
 // - Hiding is per app: an app with several icons hides or shows them together
@@ -83,7 +84,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
         case .expanded, .unavailable:
             break
         }
-        setSeparatorsVisible(true)
+        if !hidesAlwaysHiddenSection {
+            setSeparatorsVisible(true)
+        }
 
         guard visibility.isAvailable else {
             logUnavailableOnce("the native menu-bar visibility API is not available in this build or on this macOS")
@@ -118,7 +121,6 @@ final class NativeVisibilityEngine: MenuBarEngine {
     }
 
     func expand() {
-        setSeparatorsVisible(true)
         state = .expanded
         applyExpandedPresentation()
     }
@@ -126,12 +128,18 @@ final class NativeVisibilityEngine: MenuBarEngine {
     func updateAlwaysHiddenSection(enabled: Bool, separatorHidden: Bool) {
         alwaysHiddenEnabled = enabled
         alwaysHiddenSeparatorHidden = separatorHidden
-        if state != .collapsed {
+        switch state {
+        case .collapsed:
+            break
+        case .expanded:
+            applyExpandedPresentation()
+        case .calibrating, .unavailable:
             setSeparatorsVisible(true)
         }
-        if state == .expanded {
-            applyExpandedPresentation()
-        }
+    }
+
+    private var hidesAlwaysHiddenSection: Bool {
+        return alwaysHiddenEnabled && alwaysHiddenSeparatorHidden
     }
 
     // Native hiding does not depend on display geometry, so only drop the cached
@@ -144,18 +152,26 @@ final class NativeVisibilityEngine: MenuBarEngine {
 
     // Expanded shows the hidden section; the always-hidden section stays hidden
     // while "hide separators" is on, otherwise everything is revealed by dropping
-    // the restriction altogether.
+    // the restriction altogether. Its separator goes and comes back with it, only
+    // once the icons are hidden, so it never disappears on its own.
     private func applyExpandedPresentation() {
-        guard alwaysHiddenEnabled && alwaysHiddenSeparatorHidden, visibility.isAvailable, inventory.isAuthorized else {
-            return releaseAssertion()
+        guard hidesAlwaysHiddenSection, visibility.isAvailable, inventory.isAuthorized else {
+            return revealAll()
         }
         withLayout { [weak self] layout in
             guard let self = self else { return }
             guard let layout = layout else {
-                return self.releaseAssertion()
+                return self.revealAll()
             }
-            self.activate(allowing: layout.bundles(in: [.visible, .hidden])) { _ in }
+            self.activate(allowing: layout.bundles(in: [.visible, .hidden])) { [weak self] succeeded in
+                self?.setSeparatorsVisible(!succeeded)
+            }
         }
+    }
+
+    private func revealAll() {
+        releaseAssertion()
+        setSeparatorsVisible(true)
     }
 
     // The sections as the user arranged them. Read fresh only from an
@@ -211,11 +227,13 @@ final class NativeVisibilityEngine: MenuBarEngine {
         }
     }
 
-    // The always-hidden separator goes to zero width rather than isVisible =
-    // false, which would make macOS forget where the user placed it.
+    // The always-hidden separator is taken out of the bar while its section is
+    // hidden; a zero-width item would still be there and clickable.
     private func setSeparatorsVisible(_ visible: Bool) {
         items?.separatorItem.isVisible = false
-        items?.alwaysHiddenItem?.length = visible && alwaysHiddenEnabled ? expandedLength : 0
+        let shown = visible && alwaysHiddenEnabled
+        items?.alwaysHiddenItem?.length = shown ? expandedLength : 0
+        items?.alwaysHiddenItem?.isVisible = shown
     }
 
     // Any arrangement works: whatever sits left of the arrow is the hidden section.
