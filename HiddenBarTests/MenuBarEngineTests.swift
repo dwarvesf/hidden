@@ -236,6 +236,23 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertEqual(items.alwaysHiddenItem?.isVisible, true)
     }
 
+    // Enabling the section while collapsed creates a fresh, visible separator;
+    // it must leave the bar like the rest of the collapsed section.
+    func testAlwaysHiddenSeparatorEnabledWhileCollapsedStaysOutOfTheBar() {
+        let engine = makeEngine()
+        engine.collapse { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+
+        items.alwaysHiddenItem?.isVisible = true
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: false)
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 0)
+        XCTAssertEqual(items.alwaysHiddenItem?.isVisible, false)
+
+        engine.expand()
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 20)
+        XCTAssertEqual(items.alwaysHiddenItem?.isVisible, true)
+    }
+
     func testAlwaysHiddenSeparatorStaysWhenItsSectionCannotBeHidden() {
         let engine = makeEngine()
         engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)

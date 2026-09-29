@@ -376,22 +376,34 @@ class StatusBarController: MenuBarItemProvider {
 //MARK: - Alway hide feature
 extension StatusBarController {
     private func setupAlwayHideStatusBar() {
-        NotificationCenter.default.addObserver(self, selector: #selector(toggleStatusBarIfNeeded), name: .alwayHideToggle, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(alwaysHiddenSectionToggled), name: .alwayHideToggle, object: nil)
         toggleStatusBarIfNeeded()
     }
-    @objc private func toggleStatusBarIfNeeded() {
+
+    // Turning the section on shows its separator so it can be ⌘-dragged into
+    // place; the saved "hide separators" state is reset to match, or the next
+    // Option-click would only flip the preference and appear to do nothing.
+    @objc private func alwaysHiddenSectionToggled() {
+        if Preferences.alwaysHiddenSectionEnabled {
+            Preferences.areSeparatorsHidden = false
+        }
+        toggleStatusBarIfNeeded()
+    }
+
+    private func toggleStatusBarIfNeeded() {
         if Preferences.alwaysHiddenSectionEnabled {
             if let existing = self.btnAlwaysHidden {
                 NSStatusBar.system.removeStatusItem(existing)
             }
             self.btnAlwaysHidden = NSStatusBar.system.statusItem(withLength: 0)
-            menuBarEngine.updateAlwaysHiddenSection(enabled: true, separatorHidden: false)
             if let button = btnAlwaysHidden?.button {
                 button.image = self.imgIconLine
                 button.appearsDisabled = true
             }
             self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate"
             self.btnAlwaysHidden?.isVisible = true
+            // Last, so the engine decides whether the new item stays in the bar.
+            menuBarEngine.updateAlwaysHiddenSection(enabled: true, separatorHidden: false)
         } else {
             if let existing = self.btnAlwaysHidden {
                 NSStatusBar.system.removeStatusItem(existing)

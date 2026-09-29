@@ -130,7 +130,8 @@ final class NativeVisibilityEngine: MenuBarEngine {
         alwaysHiddenSeparatorHidden = separatorHidden
         switch state {
         case .collapsed:
-            break
+            // A separator created while collapsed arrives visible.
+            setSeparatorsVisible(false)
         case .expanded:
             applyExpandedPresentation()
         case .calibrating, .unavailable:
