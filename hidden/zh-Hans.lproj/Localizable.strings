@@ -23,3 +23,28 @@
 （再次右键单击 “>” 按钮恢复显示 “持续隐藏区域” 中的图标。）
 祝您使用愉快 😉!
 ";
+
+/* General settings (moved from Main.storyboard) */
+"Start Hidden Bar when I log in" = "在登录时启动 Hidden Bar";
+"Show preferences on launch" = "在应用程序启动时显示偏好设置";
+"Use the full MenuBar on expanding" = "展开隐藏区域时使用完整的菜单栏";
+"Enable always hidden section" = "启用持续隐藏区域";
+"Automatically hide icon after: " = "等待";
+"Global Shortcut" = "全局快捷键";
+"Hidden" = "隐藏";
+"Shown" = "显示";
+"⭐️Always Hidden" = "⭐️持续隐藏";
+"In your Mac's menu bar, hold ⌘ and drag icons\nbetween sections to configure Hidden Bar." = "在 Mac 的菜单栏中，按住 ⌘ 并拖动图标\n以自定义菜单栏";
+"5 seconds" = "5 秒";
+"10 seconds" = "10 秒";
+"15 seconds" = "15 秒";
+"30 seconds" = "30 秒";
+"1 minute" = "1 分钟";
+
+"General" = "通用设置";
+
+"About" = "关于我们";
+
+"Menu bar cleaner" = "菜单栏管理器";
+
+"Version" = "版本";

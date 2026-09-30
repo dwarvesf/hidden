@@ -17,7 +17,7 @@
 "Hidden Behind Notch (%d)" = "Hidden Behind Notch (%d)";
 "Visible (%d)" = "Visible (%d)";
 "No items found (grant Accessibility permission)" = "No items found (grant Accessibility permission)";
-"Enable Notch Overflow (right-click ‹ to access hidden icons)" = "Enable Notch Overflow (right-click ‹ to access hidden icons)";
+"Enable Notch Overflow (right-click ‹ to access hidden icons)" = "Icons behind the notch";
 "Tutorial text" = "
 Use the always hidden feature to keep your icons tidy. Here's how to set it
 Steps to enable:
@@ -27,3 +27,26 @@ Steps to enable:
 Steps to view always hidden icons:
 1. You right-click on “<” icon again to view and repeat the action to enable the feature. Enjoy 😉!
 ";
+
+"Hidden Bar needs Accessibility access to hide icons." = "Hidden Bar needs Accessibility access to hide icons.";
+"Open Settings…" = "Open Settings…";
+"Hold ⌘ and drag icons to the left of the arrow to hide them." = "Hold ⌘ and drag icons to the left of the arrow to hide them.";
+"Accessibility access needed" = "Accessibility access needed";
+"Type Shortcut…" = "Type Shortcut…";
+"Clear" = "Clear";
+
+"Automatically hide icon after: " = "Hide after";
+"Use the full MenuBar on expanding" = "Expand across full menu bar";
+"Enable always hidden section" = "Always-hidden section";
+"Always-hidden section help" = "Always-hidden section help";
+"Right-click the arrow to access icons behind the notch." = "Right-click the arrow to access icons behind the notch.";
+
+"Startup" = "Startup";
+"Menu Bar" = "Menu Bar";
+
+"Shortcut" = "Shortcut";
+
+"Start Hidden Bar when I log in" = "Launch at login";
+"Show preferences on launch" = "Open settings on launch";
+
+"Auto-hide delay" = "Auto-hide delay";

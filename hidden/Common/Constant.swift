@@ -6,10 +6,10 @@
 //  Copyright © 2019 Dwarves Foundation. All rights reserved.
 //
 
-import Foundation
+import AppKit
 
 enum Constant {
     static let appName = "Hidden Bar"
 
-    static var isUsingLTRLanguage = false
+    static var isUsingLTRLanguage = NSApplication.shared.userInterfaceLayoutDirection == .leftToRight
 }

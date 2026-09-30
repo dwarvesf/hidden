@@ -29,3 +29,28 @@
 1. 重新對「<」圖示按下右鍵就能顯示「持續隱藏區域」中的圖示，
 再按一次就能隱藏。試試看吧 😉！
 ";
+
+/* General settings (moved from Main.storyboard) */
+"Start Hidden Bar when I log in" = "登入時啟動 Hidden Bar";
+"Show preferences on launch" = "啟動時顯示偏好設定";
+"Use the full MenuBar on expanding" = "展開隱藏區時淨空選單列";
+"Enable always hidden section" = "啟用持續隱藏區域";
+"Automatically hide icon after: " = "自動隱藏圖示的時間間隔：";
+"Global Shortcut" = "全域快捷鍵";
+"Hidden" = "隱藏區";
+"Shown" = "顯示區";
+"⭐️Always Hidden" = "⭐️ 持續隱藏";
+"In your Mac's menu bar, hold ⌘ and drag icons\nbetween sections to configure Hidden Bar." = "按住 ⌘ 並在區塊間拖曳 Mac 選單列的圖示\n就是 Hidden Bar 的設定方法。";
+"5 seconds" = "5 秒";
+"10 seconds" = "10 秒";
+"15 seconds" = "15 秒";
+"30 seconds" = "30 秒";
+"1 minute" = "1 分鐘";
+
+"General" = "一般";
+
+"About" = "關於";
+
+"Menu bar cleaner" = "選單列清道夫";
+
+"Version" = "版本";

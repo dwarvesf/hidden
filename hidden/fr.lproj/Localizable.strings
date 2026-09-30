@@ -23,3 +23,28 @@ Utilisez la fonction de section toujours cachée pour garder vos icônes bien ra
 1. Vous cliquez à nouveau avec le bouton droit de la souris sur l'icône «view» pour afficher et répéter l'action pour activer la fonction. Profitez 😉! 
 ";
 "Disable Auto Collapse" = "Désactiver la réduction automatique";
+
+/* General settings (moved from Main.storyboard) */
+"Start Hidden Bar when I log in" = "Démarrer automatiquement Hidden Bar lors de la connexion";
+"Show preferences on launch" = "Afficher les réglages au lancement";
+"Use the full MenuBar on expanding" = "Utiliser toute la barre de menu lors du développement";
+"Enable always hidden section" = "Activer la section toujours cachée";
+"Automatically hide icon after: " = "Masquer automatiquement l'icône après: ";
+"Global Shortcut" = "Raccourci global";
+"Hidden" = "Cachés";
+"Shown" = "Montrés";
+"⭐️Always Hidden" = "⭐️Always Hidden";
+"In your Mac's menu bar, hold ⌘ and drag icons\nbetween sections to configure Hidden Bar." = "Dans la barre des menus de votre Mac, maintenez la touche ⌘ et\nfaites glisser les icônes entre les sections pour configurer Hidden Bar.";
+"5 seconds" = "5 secondes";
+"10 seconds" = "10 secondes";
+"15 seconds" = "15 secondes";
+"30 seconds" = "30 secondes";
+"1 minute" = "1 minute";
+
+"General" = "Général";
+
+"About" = "À propos";
+
+"Menu bar cleaner" = "Nettoyeur de la barre de menu";
+
+"Version" = "Version";

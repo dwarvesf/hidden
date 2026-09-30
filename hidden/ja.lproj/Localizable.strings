@@ -20,3 +20,28 @@
 3. 最後は「＞」を右クリックすると，半透明「｜」より左にあるアイコンが常に非表示される．
 （もう一回「＞」を右クリックすると，常に非表示されたアイコンが表示される）
 ";
+
+/* General settings (moved from Main.storyboard) */
+"Start Hidden Bar when I log in" = "ログインする時 Hidden Bar を起動";
+"Show preferences on launch" = "起動時に環境設定を開く";
+"Use the full MenuBar on expanding" = "アイコンを表示する時に Hidden のメニューバーも表示";
+"Enable always hidden section" = "「アイコンを常に非表示機能」を有効にする";
+"Automatically hide icon after: " = "一定時間を経つと自動的にアイコンを非表示する: ";
+"Global Shortcut" = "グローバルショットキー";
+"Hidden" = "非表示";
+"Shown" = "表示";
+"⭐️Always Hidden" = "⭐️常に非表示";
+"In your Mac's menu bar, hold ⌘ and drag icons\nbetween sections to configure Hidden Bar." = "Mac のメニューバーに  ⌘ を押しながらアイコンを移動して \nメニューバーをカスタマイズする";
+"5 seconds" = "5秒";
+"10 seconds" = "10秒";
+"15 seconds" = "15秒";
+"30 seconds" = "30秒";
+"1 minute" = "1分";
+
+"General" = "一般";
+
+"About" = "About";
+
+"Menu bar cleaner" = "Menu bar cleaner";
+
+"Version" = "Version";

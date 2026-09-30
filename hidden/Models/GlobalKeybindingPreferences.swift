@@ -47,6 +47,13 @@ struct GlobalKeybindPreferences: Codable, CustomStringConvertible {
         }
     }
 
+    var isValidGlobalShortcut: Bool {
+        // Carbon's actual modifiers decide validity; caps lock and Fn alone
+        // must not turn ordinary typing into a system-wide shortcut.
+        let usableModifiers: UInt32 = (1 << 8) | (1 << 9) | (1 << 11) | (1 << 12)
+        return carbonFlags & usableModifiers != 0 || functionKeyName != nil
+    }
+
     var description: String {
         var stringBuilder = ""
         if self.function && functionKeyName == nil {

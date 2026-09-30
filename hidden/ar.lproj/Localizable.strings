@@ -22,3 +22,28 @@
 خطوات عرض الأيقونات المخفية دائما:
 أنقر بالزر الأيمن على أيقونة “<” ثاتية للعرض وكرر الإجراء لتمكين الميزة. استمتع 😉!
 ";
+
+/* General settings (moved from Main.storyboard) */
+"Start Hidden Bar when I log in" = "شغل الشريط المخفي عندما أقوم بتسجيل الدخول";
+"Show preferences on launch" = "إعرض التفضيلات عند بدء التشغيل";
+"Use the full MenuBar on expanding" = "استخدم كامل شريط القائمة عند التوسيع";
+"Enable always hidden section" = "تمكين القسم المخفي دائما";
+"Automatically hide icon after: " = "أخف الأيقونة تلقائيا بعد: ";
+"Global Shortcut" = "الاختصارات المعممة";
+"Hidden" = "مخفي";
+"Shown" = "ظاهر";
+"⭐️Always Hidden" = "⭐️مخفي دائما";
+"In your Mac's menu bar, hold ⌘ and drag icons\nbetween sections to configure Hidden Bar." = "في شريط القائمة الخاص بـMac الخاص بك، استمر بالضغط على ⌘ واسحب الأيقونات\nبين الأقسام لتكوين الشريط المخفي.";
+"5 seconds" = "5 ثوان";
+"10 seconds" = "١٠ ثوان";
+"15 seconds" = "١٥ ثانية";
+"30 seconds" = "30 ثانية";
+"1 minute" = "دقيقة واحدة";
+
+"General" = "عام";
+
+"About" = "حول";
+
+"Menu bar cleaner" = "منظف شريط القائمة";
+
+"Version" = "الإصدار";

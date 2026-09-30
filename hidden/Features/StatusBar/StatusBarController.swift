@@ -12,6 +12,9 @@ class StatusBarController: MenuBarItemProvider {
     
     //MARK: - Variables
     private var timer:Timer? = nil
+    private var accessibilityPermission = AccessibilityPermissionTransition(
+        isTrusted: !Util.isAccessibilityPermissionMissing
+    )
 
     //MARK: - BarItems
 
@@ -77,6 +80,10 @@ class StatusBarController: MenuBarItemProvider {
         setupHoverToExpandIfEnabled()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
+        if MenuBarEngineFactory.usesNativeVisibility {
+            Util.observeAccessibilityPermissionChanges()
+            NotificationCenter.default.addObserver(self, selector: #selector(handleAccessibilityPermissionChanged), name: .accessibilityPermissionChanged, object: nil)
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             self?.collapseMenuBar()
         }
@@ -127,6 +134,15 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
     
+    // Collapsing failed while the permission was missing; once it is granted,
+    // hide straight away instead of waiting for the next click or relaunch.
+    @objc private func handleAccessibilityPermissionChanged() {
+        guard accessibilityPermission.permissionWasRestored(
+            isTrusted: !Util.isAccessibilityPermissionMissing
+        ) else { return }
+        collapseMenuBar()
+    }
+
     private func restoreRemovedStatusItems() {
         // Cmd-dragging a status item off the bar is persisted by macOS via
         // autosaveName, leaving the app running but unreachable. These items are
@@ -239,6 +255,11 @@ class StatusBarController: MenuBarItemProvider {
         //prevented rapid click cause icon show many in Dock
         if isToggle {return}
         isToggle = true
+        // Without Accessibility the collapse below cannot hide anything; show
+        // the preferences, which explain what is missing, rather than no-op.
+        if !isCollapsed && Util.isAccessibilityPermissionMissing {
+            Util.showPrefWindow()
+        }
         self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             self?.isToggle = false

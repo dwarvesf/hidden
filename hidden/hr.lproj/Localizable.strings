@@ -21,3 +21,28 @@
  Koraci za prikazivanje uvijek skrivenih ikona:
  1. Pritisni desnom tipkom miša ponovo na ikonu „<” i ponovi radnju za uključivanje funkcije. Uživaj 😉!
 ";
+
+/* General settings (moved from Main.storyboard) */
+"Start Hidden Bar when I log in" = "Pokreni Hidden Bar nakon prijave";
+"Show preferences on launch" = "Prikaži postavke nakon pokretanja";
+"Use the full MenuBar on expanding" = "Koristi cijelu traku izbornika pri rasklapanju";
+"Enable always hidden section" = "Uključi uvijek skriveni odjeljak";
+"Automatically hide icon after: " = "Sakrij ikone automatski nakon: ";
+"Global Shortcut" = "Globalni prečac";
+"Hidden" = "Skriveno";
+"Shown" = "Prikazano";
+"⭐️Always Hidden" = "⭐️Uvijek skriveno";
+"In your Mac's menu bar, hold ⌘ and drag icons\nbetween sections to configure Hidden Bar." = "Za konfiguriranje programa Hidden Bar, u traci izbornika pritisni tipku ⌘ i povuci ikone između odjeljaka.";
+"5 seconds" = "5 s";
+"10 seconds" = "10 s";
+"15 seconds" = "15 s";
+"30 seconds" = "30 s";
+"1 minute" = "1 min";
+
+"General" = "Opće";
+
+"About" = "Informacije";
+
+"Menu bar cleaner" = "Čistač trake izbornika";
+
+"Version" = "Verzija";

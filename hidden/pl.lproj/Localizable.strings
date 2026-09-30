@@ -21,3 +21,28 @@ Jak włączyć tę funkcję:
 Jak wyświetlić zawsze ukryte ikony:
 1. Ponownie kliknij prawym przyciskiem myszy ikonę „<”, aby wyświetlić ukryte ikony. Powtórz tę czynność, aby ponownie je ukryć. Gotowe 😉!
 ";
+
+/* General settings (moved from Main.storyboard) */
+"Start Hidden Bar when I log in" = "Uruchamiaj Hidden Bar po zalogowaniu";
+"Show preferences on launch" = "Pokazuj \"Preferencje...\" po uruchomieniu";
+"Use the full MenuBar on expanding" = "Po rozwinięciu używaj całego paska menu";
+"Enable always hidden section" = "Włącz sekcję \"Zawsze ukryte\"";
+"Automatically hide icon after: " = "Automatycznie ukrywaj ikony po: ";
+"Global Shortcut" = "Skrót globalny";
+"Hidden" = "Ukryte";
+"Shown" = "Widoczne";
+"⭐️Always Hidden" = "⭐️Zawsze ukryte";
+"In your Mac's menu bar, hold ⌘ and drag icons\nbetween sections to configure Hidden Bar." = "Na pasku menu Maca przytrzymaj klawisz ⌘ i przeciągaj ikony\nmiędzy sekcjami, aby skonfigurować Hidden Bar.";
+"5 seconds" = "5 s";
+"10 seconds" = "10 s";
+"15 seconds" = "15 s";
+"30 seconds" = "30 s";
+"1 minute" = "1 min";
+
+"General" = "Ogólne";
+
+"About" = "O aplikacji";
+
+"Menu bar cleaner" = "Porządkowanie paska menu";
+
+"Version" = "Wersja";

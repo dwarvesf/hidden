@@ -21,3 +21,28 @@ Các bước thực hiện:
 Để hiện lại những icon luôn ẩn:
 1. Click phải vào nút “<” 😉!
 ";
+
+/* General settings (moved from Main.storyboard) */
+"Start Hidden Bar when I log in" = "Chạy Hidden Bar khi khởi động";
+"Show preferences on launch" = "Hiện tuỳ chọn lúc khởi chạy";
+"Use the full MenuBar on expanding" = "Sử dụng toàn thanh công cụ khi mở rộng";
+"Enable always hidden section" = "Bật tính năng luôn ẩn";
+"Automatically hide icon after: " = "Tự động ẩn sau: ";
+"Global Shortcut" = "Phím tắt";
+"Hidden" = "Ẩn";
+"Shown" = "Hiện";
+"⭐️Always Hidden" = "⭐️Luôn ẩn";
+"In your Mac's menu bar, hold ⌘ and drag icons\nbetween sections to configure Hidden Bar." = "Ở thanh menu hệ thống, giữ phím ⌘ và nhấn chuột kéo icons\n di chuyển đến vùng cần ẩn /hiện.";
+"5 seconds" = "5 giây";
+"10 seconds" = "10 giây";
+"15 seconds" = "15 giây";
+"30 seconds" = "30 giây";
+"1 minute" = "1 phút";
+
+"General" = "Bảng tuỳ chỉnh";
+
+"About" = "Về chúng tôi";
+
+"Menu bar cleaner" = "Menu bar cleaner";
+
+"Version" = "Phiên bản";

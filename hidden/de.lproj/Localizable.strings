@@ -11,7 +11,7 @@
 "Enable Auto Collapse" = "Automatisch einklappen einschalten";
 "Disable Auto Collapse" = "Automatisch einklappen ausschalten";
 "Quit" = "Beenden";
-"Set Shortcut" = "Shortcut einstellen";
+"Set Shortcut" = "Kurzbefehl festlegen";
 "Tutorial text" = "
 Verwende die “permanent ausgeblendet“ Funktion um deine Menüleistensymbole aufgeräumt zu halten.. Und so funktioniert es..
 Zum einschalten:
@@ -21,3 +21,50 @@ Zum einschalten:
 Zum Anzeigen der permanent ausgeblendeten Symbole:
 1. Klicke mit der rechten Maustaste nochmals auf das Einklappen Symbol “<” um sie anzuzeigen und wiederhole den Schritt um die Funktion zu aktivieren. Viel Spaß 😉!
 ";
+
+"Hidden Bar needs Accessibility access to hide icons." = "Hidden Bar benötigt Bedienungshilfen-Zugriff, um Symbole auszublenden.";
+"Open Settings…" = "Einstellungen öffnen…";
+
+/* General settings (moved from Main.storyboard) */
+"Start Hidden Bar when I log in" = "Beim Anmelden starten";
+"Show preferences on launch" = "Einstellungen beim Start öffnen";
+"Use the full MenuBar on expanding" = "Beim Erweitern die gesamte Menübreite benutzen";
+"Enable always hidden section" = "Dauerhaft ausgeblendeter Bereich";
+"Automatically hide icon after: " = "Ausblenden nach";
+"Global Shortcut" = "Globaler Shortcut";
+"Hidden" = "Ausgeblendet";
+"Shown" = "Sichtbar";
+"⭐️Always Hidden" = "⭐️Immer ausgeblendet";
+"In your Mac's menu bar, hold ⌘ and drag icons\nbetween sections to configure Hidden Bar." = "Halte ⌘ in der Menüleiste und verschiebe Symbole\nzwischen den Sektionen um Hidden Bar zu konfigurieren.";
+"5 seconds" = "5 Sekunden";
+"10 seconds" = "10 Sekunden";
+"15 seconds" = "15 Sekunden";
+"30 seconds" = "30 Sekunden";
+"1 minute" = "1 Minute";
+"Hold ⌘ and drag icons to the left of the arrow to hide them." = "Halte ⌘ gedrückt und ziehe Symbole links neben den Pfeil, um sie auszublenden.";
+"Accessibility access needed" = "Bedienungshilfen-Zugriff erforderlich";
+"Type Shortcut…" = "Tastenkombination drücken…";
+"Clear" = "Löschen";
+
+"General" = "Allgemein";
+
+"About" = "Über";
+
+"Menu bar cleaner" = "Aufgeräumte Menüleiste";
+
+"Version" = "Version";
+
+"Always-hidden section help" = "Hilfe zum dauerhaft ausgeblendeten Bereich";
+"Right-click the arrow to access icons behind the notch." = "Klicke mit der rechten Maustaste auf den Pfeil, um Symbole hinter der Notch anzuzeigen.";
+"Source code" = "Quellcode";
+"Report an issue" = "Problem melden";
+"Original project" = "Originalprojekt";
+"Place the always-hidden separator to the left of the arrow, then ⌘-drag icons to its left. Option-click the arrow to hide or reveal that section." = "Platziere den Trenner für dauerhaft ausgeblendete Symbole links vom Pfeil und ziehe mit ⌘ Symbole links davon. Klicke mit gedrückter Wahltaste auf den Pfeil, um diesen Bereich aus- oder einzublenden.";
+"Place the always-hidden separator to the left of the regular separator, then ⌘-drag icons to its left. Option-click the arrow to hide or reveal that section." = "Platziere den Trenner für dauerhaft ausgeblendete Symbole links vom normalen Trenner und ziehe mit ⌘ Symbole links davon. Klicke mit gedrückter Wahltaste auf den Pfeil, um diesen Bereich aus- oder einzublenden.";
+
+"Startup" = "Beim Start";
+"Menu Bar" = "Menüleiste";
+
+"Shortcut" = "Kurzbefehl";
+
+"Enable Notch Overflow (right-click ‹ to access hidden icons)" = "Symbole hinter der Notch anzeigen";

@@ -15,12 +15,16 @@ import XCTest
 // MARK: - Fakes
 
 private final class FakeItems: MenuBarItemProvider {
-    private let bar = NSStatusBar()
+    private let bar: NSStatusBar
     let toggleItem: NSStatusItem
     let separatorItem: NSStatusItem
     var alwaysHiddenItem: NSStatusItem?
 
     init() {
+        // This test bundle has no host app. Bootstrap AppKit before creating
+        // status items so older macOS versions have a WindowServer connection.
+        _ = NSApplication.shared
+        bar = NSStatusBar()
         toggleItem = bar.statusItem(withLength: NSStatusItem.variableLength)
         separatorItem = bar.statusItem(withLength: 1)
         alwaysHiddenItem = bar.statusItem(withLength: 20)
