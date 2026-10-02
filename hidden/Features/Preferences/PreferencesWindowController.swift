@@ -15,10 +15,20 @@ class PreferencesWindowController: NSWindowController {
         case about
     }
     
+    private static var sharedInstance: PreferencesWindowController?
+
     static let shared: PreferencesWindowController = {
         let wc = NSStoryboard(name:"Main", bundle: nil).instantiateController(withIdentifier: "MainWindow") as! PreferencesWindowController
+        sharedInstance = wc
         return wc
     }()
+
+    // Checking auto-hide must not instantiate a storyboard and two view
+    // controllers for a window the user has never opened.
+    static var isVisible: Bool {
+        guard let controller = sharedInstance, controller.isWindowLoaded else { return false }
+        return controller.window?.isVisible ?? false
+    }
     
     private var menuSegment: MenuSegment = .general {
         didSet {
@@ -26,9 +36,9 @@ class PreferencesWindowController: NSWindowController {
         }
     }
     
-    private let preferencesVC = PreferencesViewController.initWithStoryboard()
+    private lazy var preferencesVC = PreferencesViewController.initWithStoryboard()
     
-    private let aboutVC = AboutViewController.initWithStoryboard()
+    private lazy var aboutVC = AboutViewController.initWithStoryboard()
     
     override func windowDidLoad() {
         super.windowDidLoad()

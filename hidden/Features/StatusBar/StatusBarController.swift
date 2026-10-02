@@ -62,11 +62,10 @@ class StatusBarController: MenuBarItemProvider {
     // the mouse-in-menubar guard does not cover it. With "use full menu bar on
     // expanding" on, an auto-collapse deactivates the app and dismisses this
     // window mid-edit (#170, same family as #66/#151). Defer the collapse while
-    // it is on screen. isWindowLoaded short-circuits without force-loading the
-    // window when preferences were never opened.
+    // it is on screen, without creating the controller or loading its window
+    // when preferences were never opened.
     private var isPreferencesWindowVisible: Bool {
-        let wc = PreferencesWindowController.shared
-        return wc.isWindowLoaded && (wc.window?.isVisible ?? false)
+        return PreferencesWindowController.isVisible
     }
     
     //MARK: - Methods
