@@ -47,7 +47,7 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
         }
     }
 
-    private static func statusItems(of apps: [(pid: pid_t, bundleIdentifier: String?)]) -> [MenuBarInventoryItem] {
+    static func statusItems(of apps: [(pid: pid_t, bundleIdentifier: String?)]) -> [MenuBarInventoryItem] {
         var items: [MenuBarInventoryItem] = []
         for app in apps {
             let element = AXUIElementCreateApplication(app.pid)

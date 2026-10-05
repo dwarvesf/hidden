@@ -54,6 +54,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // activation); a late success is then invalidated straight away.
     private var generation = 0
     private var lastUnavailableReason: String?
+    private var clockClickMonitor: Any?
 
     private var alwaysHiddenEnabled = false
     private var alwaysHiddenSeparatorHidden = false
@@ -111,6 +112,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 self.state = succeeded ? .collapsed : .expanded
                 if succeeded {
                     self.setSeparatorsVisible(false)
+                    self.setClockClickPassthrough(true)
                 }
                 completion(succeeded ? .collapsed : .unavailable)
             }
@@ -118,6 +120,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     }
 
     func expand() {
+        setClockClickPassthrough(false)
         setSeparatorsVisible(true)
         state = .expanded
         applyExpandedPresentation()
@@ -209,6 +212,40 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 completion(false)
             }
         }
+    }
+
+    private func setClockClickPassthrough(_ enabled: Bool) {
+        if enabled, clockClickMonitor == nil {
+            clockClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseUp) { [weak self] event in
+                guard let point = event.cgEvent?.location else { return }
+                self?.replayClockClick(at: point)
+            }
+        } else if !enabled, let monitor = clockClickMonitor {
+            NSEvent.removeMonitor(monitor)
+            clockClickMonitor = nil
+        }
+    }
+
+    private func replayClockClick(at point: CGPoint) {
+        guard state == .collapsed, assertion != nil, let layout = layout,
+              clockFrame()?.contains(point) == true else { return }
+        releaseAssertion()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            for type in [CGEventType.leftMouseDown, .leftMouseUp] {
+                CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: point, mouseButton: .left)?
+                    .post(tap: .cghidEventTap)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                guard let self = self, self.state == .collapsed, self.assertion == nil else { return }
+                self.activate(allowing: layout.bundles(in: [.visible])) { _ in }
+            }
+        }
+    }
+
+    private func clockFrame() -> CGRect? {
+        guard let agent = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.MenuBarAgent").first else { return nil }
+        let frames = AccessibilityMenuBarInventory.statusItems(of: [(pid: agent.processIdentifier, bundleIdentifier: nil)]).map { $0.frame }
+        return isLTR() ? frames.max { $0.maxX < $1.maxX } : frames.min { $0.minX < $1.minX }
     }
 
     // The always-hidden separator goes to zero width rather than isVisible =
