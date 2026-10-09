@@ -30,6 +30,7 @@ class PreferencesWindowController: NSWindowController {
     
     private let aboutVC = AboutViewController.initWithStoryboard()
     private let pageContainer = NSViewController()
+    // Shared UI dimensions in AppKit points, independent of monitor resolution.
     private let contentSize = NSSize(width: 668, height: 520)
     
     override func windowDidLoad() {
