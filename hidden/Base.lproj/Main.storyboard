@@ -73,7 +73,7 @@
             <objects>
                 <windowController storyboardIdentifier="MainWindow" showSeguePresentationStyle="single" id="B8D-0N-5wS" customClass="PreferencesWindowController" customModule="Hidden_Bar" customModuleProvider="target" sceneMemberID="viewController">
                     <window key="window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" titlebarAppearsTransparent="YES" titleVisibility="hidden" id="IQv-IB-iLA">
-                        <windowStyleMask key="styleMask" titled="YES" closable="YES" fullSizeContentView="YES"/>
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
                         <rect key="contentRect" x="196" y="240" width="450" height="270"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1440" height="875"/>
                         <toolbar key="toolbar" implicitIdentifier="47B2E2C2-82B2-4C57-9EBF-6C8AE0786C9B" autosavesConfiguration="NO" allowsUserCustomization="NO" displayMode="iconOnly" sizeMode="regular" id="iQ4-lw-FIM">
@@ -114,9 +114,7 @@
                                 <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="jr4-A4-Yp1"/>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
-                                <toolbarItem reference="jr4-A4-Yp1"/>
                                 <toolbarItem reference="NIO-JJ-pjq"/>
-                                <toolbarItem reference="jr4-A4-Yp1"/>
                             </defaultToolbarItems>
                         </toolbar>
                         <connections>
@@ -223,11 +221,11 @@
                                     </constraints>
                                 </view>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="278" id="cYp-S3-ecl"/>
+                                    <constraint firstAttribute="height" constant="266" id="cYp-S3-ecl"/>
                                 </constraints>
                                 <color key="fillColor" name="quaternaryLabelColor" catalog="System" colorSpace="catalog"/>
                             </box>
-                            <stackView distribution="fill" orientation="vertical" alignment="centerX" spacing="22" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" fixedFrame="YES" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ve9-SV-zSn">
+                            <stackView distribution="fill" orientation="vertical" alignment="centerX" spacing="22" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ve9-SV-zSn">
                                 <rect key="frame" x="197" y="15" width="206" height="178"/>
                                 <subviews>
                                     <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="16" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="X4u-KC-g9w">
@@ -398,6 +396,9 @@
                             <constraint firstAttribute="trailing" secondItem="bFi-aV-ejJ" secondAttribute="trailing" id="8EJ-cF-Z18"/>
                             <constraint firstItem="bFi-aV-ejJ" firstAttribute="top" secondItem="PLL-3M-w8R" secondAttribute="top" id="8Up-AV-Bug"/>
                             <constraint firstItem="bFi-aV-ejJ" firstAttribute="leading" secondItem="PLL-3M-w8R" secondAttribute="leading" id="JRD-wf-dfa"/>
+                            <constraint firstItem="Ve9-SV-zSn" firstAttribute="centerX" secondItem="PLL-3M-w8R" secondAttribute="centerX" id="About-Links-Center"/>
+                            <constraint firstItem="Ve9-SV-zSn" firstAttribute="top" secondItem="bFi-aV-ejJ" secondAttribute="bottom" constant="20" id="About-Links-Top"/>
+                            <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="Ve9-SV-zSn" secondAttribute="bottom" constant="20" id="About-Links-Bottom"/>
                         </constraints>
                     </view>
                     <connections>
@@ -413,7 +414,7 @@
             <objects>
                 <viewController storyboardIdentifier="prefVC" showSeguePresentationStyle="single" id="XfG-lQ-9wD" customClass="PreferencesViewController" customModule="Hidden_Bar" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" wantsLayer="YES" id="m2S-Jp-Qdl">
-                        <rect key="frame" x="0.0" y="0.0" width="668" height="481"/>
+                        <rect key="frame" x="0.0" y="0.0" width="668" height="520"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <box autoresizesSubviews="NO" boxType="custom" borderType="none" title="Box" translatesAutoresizingMaskIntoConstraints="NO" id="Jjd-1G-63n">
@@ -611,6 +612,9 @@ between sections to configure Hidden Bar.</string>
                                         <constraint firstItem="pJz-eb-ydI" firstAttribute="centerX" secondItem="TZd-5p-NFL" secondAttribute="centerX" id="yqY-YO-f6B"/>
                                     </constraints>
                                 </view>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="266" id="Pref-Tutorial-Height"/>
+                                </constraints>
                                 <color key="fillColor" name="quaternaryLabelColor" catalog="System" colorSpace="catalog"/>
                             </box>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aZz-jM-wCs">
