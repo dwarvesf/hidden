@@ -319,6 +319,65 @@ final class NativeVisibilityEngineTests: XCTestCase {
 // MARK: - Legacy engine
 
 final class LegacyLengthEngineTests: XCTestCase {
+    func testUsesWidestScreenRegardlessOfDisplayOrder() {
+        for widths: [CGFloat] in [[1152, 2304, 1512], [2304, 1512, 1152]] {
+            let items = FakeItems()
+            let engine = LegacyLengthEngine(items: items, screenWidths: { widths })
+            engine.collapse { _ in }
+            XCTAssertEqual(items.separatorItem.length, 4608)
+        }
+    }
+
+    func testDisplayChangesRefreshHiddenSectionsIndependently() {
+        // Ordinary expansion must not prevent the always-hidden section from
+        // adapting to a newly connected wider display, or to its removal.
+        for collapsed in [false, true] {
+            for alwaysHiddenEnabled in [false, true] {
+                for separatorHidden in [false, true] {
+                    let items = FakeItems()
+                    var widths: [CGFloat] = [1152]
+                    let engine = LegacyLengthEngine(items: items, screenWidths: { widths })
+                    engine.expand()
+                    if collapsed { engine.collapse { _ in } }
+                    engine.updateAlwaysHiddenSection(enabled: alwaysHiddenEnabled, separatorHidden: separatorHidden)
+
+                    for nextWidths: [CGFloat] in [[1152, 2304, 1512], [1152]] {
+                        widths = nextWidths
+                        engine.invalidateLayout()
+                        let hiddenLength = (widths.max() ?? 1728) * 2
+                        let context = "collapsed=\(collapsed), alwaysHidden=\(alwaysHiddenEnabled), separatorHidden=\(separatorHidden), screens=\(widths)"
+                        XCTAssertEqual(items.separatorItem.length, collapsed ? hiddenLength : 20, context)
+                        XCTAssertEqual(items.alwaysHiddenItem?.length,
+                                       alwaysHiddenEnabled ? (separatorHidden ? hiddenLength : 20) : 0, context)
+                        XCTAssertEqual(engine.state, collapsed ? .collapsed : .expanded, context)
+                    }
+                }
+            }
+        }
+    }
+
+    func testRotationAndScalingChangesUseLatestWidths() {
+        let items = FakeItems()
+        var widths: [CGFloat] = [2304, 1152]
+        let engine = LegacyLengthEngine(items: items, screenWidths: { widths })
+        engine.collapse { _ in }
+        widths = [1296, 2048]
+        engine.invalidateLayout()
+        XCTAssertEqual(items.separatorItem.length, 4096)
+        widths = [1728, 1024]
+        engine.invalidateLayout()
+        XCTAssertEqual(items.separatorItem.length, 3456)
+    }
+
+    func testMissingScreensAndExtremeWidthsStayBounded() {
+        for (widths, expected): ([CGFloat], CGFloat) in [([], 3456), ([100], 500), ([8000], 10000)] {
+            let items = FakeItems()
+            let engine = LegacyLengthEngine(items: items, screenWidths: { widths })
+            engine.collapse { _ in }
+            XCTAssertEqual(items.separatorItem.length, expected)
+        }
+    }
+
     func testCollapseAndExpandFlipSeparatorLength() {
         let items = FakeItems()
         let engine = LegacyLengthEngine(items: items)

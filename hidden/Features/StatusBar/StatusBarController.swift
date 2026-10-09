@@ -118,13 +118,9 @@ class StatusBarController: MenuBarItemProvider {
     }
     
     @objc private func handleScreenParametersChanged() {
-        // Re-apply the recomputed length to the LIVE item when collapsed, or a
-        // display hot-plug leaves the separator at a stale length (PR #354).
-        let wasCollapsed = isCollapsed
+        // The engine refreshes both sections independently: the always-hidden
+        // section can still need a wider spacer while the ordinary one is open.
         menuBarEngine.invalidateLayout()
-        if wasCollapsed && Preferences.areSeparatorsHidden {
-            menuBarEngine.updateAlwaysHiddenSection(enabled: Preferences.alwaysHiddenSectionEnabled, separatorHidden: true)
-        }
     }
     
     private func restoreRemovedStatusItems() {
