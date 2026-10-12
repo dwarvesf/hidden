@@ -25,6 +25,10 @@ section is enabled.
   expanded.
 - Hiding is per app: an app with several icons hides or shows them together.
 - macOS's own items (clock, Wi-Fi, Sound, Control Center) always stay visible.
+- Clicking the clock opens Notification Center as usual. macOS ignores the
+  clock while it hides icons this way, so Hidden Bar lifts the hiding for a
+  moment and clicks the clock for you; the hidden icons show for under a
+  second while it does.
 - Run Hidden Bar from `/Applications`; macOS only recognizes that copy as
   Hidden Bar, and a copy elsewhere hides its own arrow.
 

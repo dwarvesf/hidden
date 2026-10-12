@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- macOS 27 (direct download build): clicking the clock opens Notification Center again while icons are hidden (#410, #421, #435). macOS's native hiding is its exam (assessment) mode, which ignores the clock, so Hidden Bar lifts the hiding for a moment and presses the clock itself; the hidden icons show for under a second while it does. This also covers the expanded bar when the always-hidden section is hidden.
+
 ## v1.11.1 (2026-09-18)
 
 ### Fixed

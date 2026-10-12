@@ -70,7 +70,7 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
 
     // Accessibility frames use a top-left origin, AppKit's bottom-left. Only the
     // horizontal position matters for sections, and x is the same in both.
-    private static func frame(of element: AXUIElement) -> CGRect? {
+    static func frame(of element: AXUIElement) -> CGRect? {
         var positionValue: CFTypeRef?
         var sizeValue: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, kAXPositionAttribute as CFString, &positionValue) == .success,
