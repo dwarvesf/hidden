@@ -20,8 +20,11 @@ math, collapse state machine) are HIGH RISK and require a mandatory review-team 
 - **Direct build bundle id.** Tested as `com.dwarvesv.minimalbar.direct`; decide whether
   release keeps `com.dwarvesv.minimalbar` (shared prefs, cannot coexist with the App
   Store copy) or ships separately.
-- **Tutorial text** still describes the `|` separator; the direct build on 27 uses the
-  arrow as the boundary. Needs a per-build string.
+- **macOS 27 separator regression verification.** The direct engine now retains the
+  `|` separator as its boundary, matching the tutorial. On hardware, verify that an
+  app between `|` and the arrow stays visible when collapsed, an app on the hidden
+  side disappears, and both remain correctly classified after expanding and ⌘-dragging.
+  Also verify the always-hidden section and restoration of the separator after upgrade.
 - **Adaptive-width experiment** (`fix/macos27-adaptive-engine`, local only): calibrating
   the separator width does not hide on a 1920pt non-notched display. Kept for reference.
 

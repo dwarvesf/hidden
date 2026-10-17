@@ -133,8 +133,7 @@ class StatusBarController: MenuBarItemProvider {
         // the app's only UI, so they self-restore at launch.
         btnExpandCollapse.isVisible = true
         btnSeparate.isVisible = true
-        // Create the engine now so one that does not use the separator (macOS 27
-        // native hiding) takes it back out before it is ever drawn.
+        // Create the engine now so it configures the separator before drawing.
         _ = menuBarEngine
     }
 

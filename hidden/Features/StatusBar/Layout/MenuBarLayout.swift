@@ -10,9 +10,9 @@ import AppKit
 // Which of Hidden Bar's sections a menu-bar item belongs to, read from where the
 // user ⌘-dragged it relative to the separators:
 //
-//     LTR:  [ always hidden ] | [ hidden ] | > [ visible ]
+//     LTR:  [ always hidden ] | [ hidden ] | [ visible ] >
 //                             ^            ^
-//                  always-hidden separator  separator (beside the arrow)
+//                  always-hidden separator  separator (before the visible section)
 enum MenuBarSection: Int, Comparable {
     case visible
     case hidden

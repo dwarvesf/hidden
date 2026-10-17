@@ -91,8 +91,8 @@ private func item(_ bundle: String?, x: CGFloat, width: CGFloat = 24) -> MenuBar
     return MenuBarInventoryItem(bundleIdentifier: bundle, frame: CGRect(x: x, y: 0, width: width, height: 24))
 }
 
-// LTR bar used throughout: always-hidden separator at 1000, the boundary at 1300
-// (the separator for the resolver, the arrow for the native engine).
+// LTR bar: always-hidden separator at 1000, regular separator at 1300,
+// arrow at 1500. The visible app at 1400 sits BETWEEN the separator and arrow.
 private let alwaysHiddenSeparator = CGRect(x: 1000, y: 0, width: 20, height: 24)
 private let separator = CGRect(x: 1300, y: 0, width: 20, height: 24)
 
@@ -167,12 +167,18 @@ final class NativeVisibilityEngineTests: XCTestCase {
         visibility = FakeVisibility()
     }
 
-    private func makeEngine() -> NativeVisibilityEngine {
+    private func makeEngine(isLTR: Bool = true, separatorFrame: CGRect? = separator,
+                            arrowFrame: CGRect = CGRect(x: 1500, y: 0, width: 24, height: 24),
+                            alwaysHiddenFrame: CGRect = alwaysHiddenSeparator) -> NativeVisibilityEngine {
         let items = self.items!
         return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                       ownBundleIdentifier: "com.dwarvesv.minimalbar",
-                                      itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
-                                      isLTR: { true })
+                                      itemFrame: {
+                                          if $0 === items.separatorItem { return separatorFrame }
+                                          if $0 === items.toggleItem { return arrowFrame }
+                                          return alwaysHiddenFrame
+                                      },
+                                      isLTR: { isLTR })
     }
 
     func testCollapseKeepsOnlyVisibleAppsAndSystemItems() {
@@ -183,14 +189,47 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertEqual(engine.state, .calibrating)
         XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.visible"])
         XCTAssertEqual(visibility.requests.first?.systemItems, NativeVisibilityEngine.systemItemsToKeep)
-        XCTAssertFalse(items.separatorItem.isVisible, "the arrow is the boundary; no separator needed")
+        XCTAssertTrue(items.separatorItem.isVisible)
+        XCTAssertEqual(items.separatorItem.length, 20)
 
         visibility.succeed(0)
         XCTAssertEqual(engine.state, .collapsed)
         XCTAssertEqual(results, [.collapsed])
+        XCTAssertTrue(items.separatorItem.isVisible, "retain the saved slot while hiding the separator")
+        XCTAssertEqual(items.separatorItem.length, 0)
 
         engine.expand()
-        XCTAssertFalse(items.separatorItem.isVisible)
+        XCTAssertTrue(items.separatorItem.isVisible)
+        XCTAssertEqual(items.separatorItem.length, 20)
+    }
+
+    func testRTLVisibleSectionBetweenArrowAndSeparatorIsKept() {
+        inventory.items = [item("com.visible", x: 400), item("com.hidden", x: 600)]
+        let engine = makeEngine(isLTR: false,
+                                separatorFrame: CGRect(x: 500, y: 0, width: 20, height: 24),
+                                arrowFrame: CGRect(x: 300, y: 0, width: 24, height: 24),
+                                alwaysHiddenFrame: CGRect(x: 700, y: 0, width: 20, height: 24))
+        XCTAssertTrue(engine.isArrangementValid)
+        XCTAssertTrue(engine.isAlwaysHiddenSeparatorPlaced)
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.visible"])
+    }
+
+    func testArrangementUsesRegularSeparatorInsteadOfArrow() {
+        XCTAssertTrue(makeEngine().isArrangementValid)
+        let misplaced = CGRect(x: 1400, y: 0, width: 20, height: 24)
+        XCTAssertFalse(makeEngine(alwaysHiddenFrame: misplaced).isAlwaysHiddenSeparatorPlaced)
+        XCTAssertFalse(makeEngine(arrowFrame: CGRect(x: 1200, y: 0, width: 24, height: 24)).isArrangementValid)
+    }
+
+    func testMissingSeparatorFrameDoesNotFallBackToArrow() {
+        let engine = makeEngine(separatorFrame: nil)
+        var result: CollapseResult?
+        engine.collapse { result = $0 }
+        XCTAssertEqual(result, .unavailable)
+        XCTAssertEqual(engine.state, .expanded)
+        XCTAssertFalse(engine.isArrangementValid)
+        XCTAssertTrue(visibility.requests.isEmpty)
     }
 
     func testAlwaysHiddenSeparatorFollowsTheSectionSetting() {
