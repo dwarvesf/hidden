@@ -191,12 +191,6 @@
 /* Class = "NSMenuItem"; title = "Copy Ruler"; ObjectID = "MkV-Pr-PK5"; */
 "MkV-Pr-PK5.title" = "Copy Ruler";
 
-/* Class = "NSToolbarItem"; label = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
-"NIO-JJ-pjq.label" = "Custom View";
-
-/* Class = "NSToolbarItem"; paletteLabel = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
-"NIO-JJ-pjq.paletteLabel" = "Custom View";
-
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
 "NMo-om-nkz.title" = "サービス";
 
@@ -340,9 +334,6 @@
 
 /* Class = "NSMenuItem"; title = "Use None"; ObjectID = "cDB-IK-hbR"; */
 "cDB-IK-hbR.title" = "Use None";
-
-/* Class = "NSButtonCell"; title = "Keep icon in dock"; ObjectID = "cUd-D7-0WY"; */
-"cUd-D7-0WY.title" = "ドックにアイコンを隠さない";
 
 /* Class = "NSTextFieldCell"; title = "Hidden"; ObjectID = "cXt-8R-PHo"; */
 "cXt-8R-PHo.title" = "非表示";
