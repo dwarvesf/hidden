@@ -22,7 +22,9 @@ class PreferencesWindowController: NSWindowController {
     
     private var menuSegment: MenuSegment = .general {
         didSet {
+            let size = window?.contentView?.frame.size
             updateVC()
+            if let size { window?.setContentSize(size) }
         }
     }
     
