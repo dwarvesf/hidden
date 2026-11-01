@@ -335,9 +335,6 @@
 /* Class = "NSMenuItem"; title = "Use None"; ObjectID = "cDB-IK-hbR"; */
 "cDB-IK-hbR.title" = "Use None";
 
-/* Class = "NSButtonCell"; title = "Keep icon in dock"; ObjectID = "cUd-D7-0WY"; */
-"cUd-D7-0WY.title" = "在程序坞中保留图标";
-
 /* Class = "NSTextFieldCell"; title = "Hidden"; ObjectID = "cXt-8R-PHo"; */
 "cXt-8R-PHo.title" = "隐藏";
 
