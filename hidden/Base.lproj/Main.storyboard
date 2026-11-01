@@ -602,7 +602,7 @@ between sections to configure Hidden Bar.</string>
                                         <constraint firstAttribute="bottom" secondItem="RGE-Xv-zm5" secondAttribute="bottom" constant="8" id="BvJ-gy-2qG"/>
                                         <constraint firstItem="EVs-2B-Bqx" firstAttribute="top" secondItem="pJz-eb-ydI" secondAttribute="bottom" constant="16" id="Hpj-p4-UQa"/>
                                         <constraint firstItem="U3K-oK-4ET" firstAttribute="centerY" secondItem="EVs-2B-Bqx" secondAttribute="centerY" id="Mmr-8O-VNL"/>
-                                        <constraint firstItem="pJz-eb-ydI" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="38" id="Rdj-2r-VTd"/>
+                                        <constraint firstItem="pJz-eb-ydI" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="38" priority="250" id="Rdj-2r-VTd"/>
                                         <constraint firstItem="uBw-I6-e5a" firstAttribute="leading" secondItem="eBG-Wk-IXv" secondAttribute="trailing" constant="4" id="W2B-29-wzv"/>
                                         <constraint firstItem="eBG-Wk-IXv" firstAttribute="centerY" secondItem="uBw-I6-e5a" secondAttribute="centerY" id="a1h-Oc-pu4"/>
                                         <constraint firstItem="uBw-I6-e5a" firstAttribute="top" secondItem="pJz-eb-ydI" secondAttribute="bottom" constant="16" id="ap3-hF-i14"/>

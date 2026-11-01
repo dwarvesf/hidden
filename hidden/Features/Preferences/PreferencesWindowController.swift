@@ -75,6 +75,8 @@ class PreferencesWindowController: NSWindowController {
         switch menuSegment {
         case .general:
             self.window?.contentViewController = preferencesVC
+            // Pin before the first draw; doing it in viewDidAppear flickers.
+            if let window { preferencesVC.pinStatusBarBelowToolbar(of: window) }
         case .about:
             self.window?.contentViewController = aboutVC
         }
