@@ -77,6 +77,7 @@ class StatusBarController: MenuBarItemProvider {
         setupHoverToExpandIfEnabled()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(syncActivationPolicyWithFullStatusBar), name: .useFullStatusBarToggle, object: nil)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             self?.collapseMenuBar()
         }
@@ -299,6 +300,21 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
     
+    // Expand/collapse skips the policy change when the option is off, so sync it on toggle.
+    @objc private func syncActivationPolicyWithFullStatusBar() {
+        let wantsRegular = Preferences.useFullStatusBarOnExpandEnabled && !isCollapsed
+        let policy: NSApplication.ActivationPolicy = wantsRegular ? .regular : .accessory
+        guard NSApp.activationPolicy() != policy else { return }
+        let keyWindow = NSApp.isActive ? NSApp.keyWindow : nil
+        NSApp.setActivationPolicy(policy)
+        if wantsRegular {
+            NSApp.activate(ignoringOtherApps: true)
+        } else if let keyWindow {
+            // Dropping to .accessory deactivates the app, so bring back the window in use.
+            DispatchQueue.main.async { keyWindow.bringToFront() }
+        }
+    }
+
     private func autoCollapseIfNeeded() {
         guard Preferences.isAutoHide else {return}
         guard !isCollapsed else { return }
