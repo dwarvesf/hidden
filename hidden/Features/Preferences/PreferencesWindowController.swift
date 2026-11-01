@@ -34,6 +34,7 @@ class PreferencesWindowController: NSWindowController {
     
     override func windowDidLoad() {
         super.windowDidLoad()
+        window?.toolbar?.centeredItemIdentifier = NSToolbarItem.Identifier("F7DA19CF-BC58-47E1-8140-D04939EE4CA7")
         updateVC()
     }
     
