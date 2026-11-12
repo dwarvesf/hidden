@@ -31,6 +31,10 @@ import AppKit
 //   stale positions. They are re-read on the next collapse from an unrestricted
 //   bar, so an app launched while collapsed stays hidden until then, the same
 //   as a new icon landing in the hidden section under the old mechanism.
+// - The restriction is assessment mode, which makes macOS ignore the clock, so
+//   Notification Center cannot open from it (#410). A click on the clock lifts
+//   the restriction for a moment and presses it (MenuBarClock); hidden icons
+//   can flash while it is lifted.
 final class NativeVisibilityEngine: MenuBarEngine {
     // System item identifiers to keep visible. Unknown identifiers are ignored,
     // so the range covers items a given Mac does not have (0-63 checked on 27.0).
@@ -39,6 +43,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private weak var items: MenuBarItemProvider?
     private let inventory: MenuBarInventoryProviding
     private let visibility: NativeVisibilityProviding
+    private let clock: MenuBarClockProviding
     private let ownBundleIdentifier: String?
     private let itemFrame: (NSStatusItem) -> CGRect?
     private let isLTR: () -> Bool
@@ -50,6 +55,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private(set) var layout: MenuBarLayout?
 
     private var assertion: NativeVisibilityAssertion?
+    // What the held assertion allows besides Hidden Bar, and the generation it was
+    // activated in, which stays current while nothing newer is in flight.
+    private var assertionBundles: [String] = []
+    private var assertionGeneration = 0
     // Bumped whenever a pending activation must no longer win (an expand, a newer
     // activation); a late success is then invalidated straight away.
     private var generation = 0
@@ -61,12 +70,14 @@ final class NativeVisibilityEngine: MenuBarEngine {
     init(items: MenuBarItemProvider,
          inventory: MenuBarInventoryProviding = AccessibilityMenuBarInventory(),
          visibility: NativeVisibilityProviding = NativeVisibilityBridge(),
+         clock: MenuBarClockProviding = SystemMenuBarClock(),
          ownBundleIdentifier: String? = Bundle.main.bundleIdentifier,
          itemFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
          isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage }) {
         self.items = items
         self.inventory = inventory
         self.visibility = visibility
+        self.clock = clock
         self.ownBundleIdentifier = ownBundleIdentifier
         self.itemFrame = itemFrame
         self.isLTR = isLTR
@@ -200,7 +211,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
             case .success(let newAssertion):
                 let old = self.assertion
                 self.assertion = newAssertion
+                self.assertionBundles = bundles
+                self.assertionGeneration = generation
                 old?.invalidate()
+                self.watchClock()
                 completion(true)
             case .failure(let error):
                 // Fail open: never leave icons hidden after an error.
@@ -231,6 +245,33 @@ final class NativeVisibilityEngine: MenuBarEngine {
         generation += 1
         assertion?.invalidate()
         assertion = nil
+        watchClock()
+    }
+
+    // Any held restriction, collapsed or expanded with the always-hidden section
+    // hidden, stops the clock from opening Notification Center.
+    private func watchClock() {
+        clock.onClick = assertion == nil ? nil : { [weak self] location in
+            self?.openNotificationCenter(from: location)
+        }
+    }
+
+    // macOS ignores the clock while a restriction is held, so lift it just long
+    // enough for a press to land, then put the same one back. The panel stays
+    // open under the restriction; hidden icons can show for a moment.
+    private func openNotificationCenter(from location: CGPoint) {
+        // Not while an activation or a section read is in flight: lifting now
+        // would cancel it, and a cancelled collapse never reports back.
+        guard assertion != nil, generation == assertionGeneration else { return }
+        NSLog("NativeVisibility: lifting the restriction for a click on the clock")
+        let bundles = assertionBundles
+        releaseAssertion()
+        let generation = self.generation
+        clock.press(at: location) { [weak self] in
+            // An expand or collapse meanwhile already applied what the user wants.
+            guard let self = self, generation == self.generation else { return }
+            self.activate(allowing: bundles) { _ in }
+        }
     }
 
     // Logged when the reason changes, so a retried collapse does not spam.

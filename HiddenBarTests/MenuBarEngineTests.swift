@@ -87,6 +87,21 @@ private final class FakeVisibility: NativeVisibilityProviding {
     }
 }
 
+// Stands in for the menu-bar clock: the test clicks it and decides when a press
+// has been handled.
+private final class FakeClock: MenuBarClockProviding {
+    var onClick: ((CGPoint) -> Void)?
+    var presses: [(location: CGPoint, completion: () -> Void)] = []
+
+    func press(at location: CGPoint, completion: @escaping () -> Void) {
+        presses.append((location, completion))
+    }
+
+    func click(at location: CGPoint = CGPoint(x: 1900, y: 12)) {
+        onClick?(location)
+    }
+}
+
 private func item(_ bundle: String?, x: CGFloat, width: CGFloat = 24) -> MenuBarInventoryItem {
     return MenuBarInventoryItem(bundleIdentifier: bundle, frame: CGRect(x: x, y: 0, width: width, height: 24))
 }
@@ -158,6 +173,7 @@ final class NativeVisibilityEngineTests: XCTestCase {
     private var items: FakeItems!
     private var inventory: FakeInventory!
     private var visibility: FakeVisibility!
+    private var clock: FakeClock!
 
     override func setUp() {
         super.setUp()
@@ -165,11 +181,12 @@ final class NativeVisibilityEngineTests: XCTestCase {
         inventory = FakeInventory()
         inventory.items = [item("com.always", x: 900), item("com.hidden", x: 1100), item("com.visible", x: 1400)]
         visibility = FakeVisibility()
+        clock = FakeClock()
     }
 
     private func makeEngine() -> NativeVisibilityEngine {
         let items = self.items!
-        return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
+        return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility, clock: clock,
                                       ownBundleIdentifier: "com.dwarvesv.minimalbar",
                                       itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
                                       isLTR: { true })
@@ -313,6 +330,84 @@ final class NativeVisibilityEngineTests: XCTestCase {
         engine.invalidateLayout()
         XCTAssertEqual(engine.state, .collapsed)
         XCTAssertFalse(collapsed.isInvalidated)
+    }
+
+    // MARK: Clock → Notification Center (#410)
+
+    func testClockIsWatchedOnlyWhileARestrictionIsHeld() {
+        let engine = makeEngine()
+        XCTAssertNil(clock.onClick)
+
+        engine.collapse { _ in }
+        XCTAssertNil(clock.onClick, "nothing is restricted until the activation lands")
+        visibility.succeed(0)
+        XCTAssertNotNil(clock.onClick)
+
+        engine.expand()
+        XCTAssertNil(clock.onClick, "an unrestricted clock opens Notification Center by itself")
+    }
+
+    func testClockClickLiftsTheRestrictionAroundAPress() {
+        let engine = makeEngine()
+        engine.collapse { _ in }
+        let collapsed = visibility.succeed(0)
+
+        let location = CGPoint(x: 1950, y: 12)
+        clock.click(at: location)
+        XCTAssertTrue(collapsed.isInvalidated, "macOS ignores the clock while restricted")
+        XCTAssertEqual(clock.presses.count, 1)
+        XCTAssertEqual(clock.presses.first?.location, location)
+        XCTAssertEqual(visibility.requests.count, 1, "the restriction comes back only after the press")
+
+        clock.presses[0].completion()
+        XCTAssertEqual(visibility.requests.count, 2)
+        XCTAssertEqual(visibility.requests[1].bundles, visibility.requests[0].bundles, "the same apps stay visible")
+        visibility.succeed(1)
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertNotNil(clock.onClick, "the next click is handled the same way")
+    }
+
+    func testClockClickWhileExpandedKeepsTheAlwaysHiddenSectionHidden() {
+        let engine = makeEngine()
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        let expanded = visibility.succeed(visibility.requests.count - 1)
+
+        clock.click()
+        XCTAssertTrue(expanded.isInvalidated)
+        clock.presses[0].completion()
+        XCTAssertEqual(visibility.requests.last?.bundles, ["com.dwarvesv.minimalbar", "com.hidden", "com.visible"])
+    }
+
+    func testExpandDuringAClockPressIsNotUndone() {
+        let engine = makeEngine()
+        engine.collapse { _ in }
+        visibility.succeed(0)
+
+        clock.click()
+        engine.expand()
+        clock.presses[0].completion()
+
+        XCTAssertEqual(visibility.requests.count, 1, "no restriction comes back after the user expanded")
+        XCTAssertEqual(engine.state, .expanded)
+        XCTAssertNil(clock.onClick)
+    }
+
+    func testClockClickDuringAnActivationLeavesItAlone() {
+        let engine = makeEngine()
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        let expanded = visibility.succeed(visibility.requests.count - 1)
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+
+        // Lifting the held assertion now would cancel the collapse in flight, and
+        // a cancelled collapse never reports back.
+        clock.click()
+        XCTAssertTrue(clock.presses.isEmpty)
+        XCTAssertFalse(expanded.isInvalidated)
+
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(results, [.collapsed])
+        XCTAssertEqual(engine.state, .collapsed)
     }
 }
 
