@@ -53,13 +53,51 @@ final class SystemMenuBarClock: MenuBarClockProviding {
         }
     }
 
+    // AXPress opens and immediately closes the panel on macOS 27.2. Replay a
+    // mouse click instead, and restore hiding only after the panel appears (or
+    // a bounded timeout). The engine removes our monitor before calling here.
+    private static let openTimeout: TimeInterval = 0.5
+    private static let pollInterval: TimeInterval = 0.02
+
     func press(at location: CGPoint, completion: @escaping () -> Void) {
+        // NSScreen must be read on the main thread, before the background AX walk.
+        let minimumPanelHeight = (NSScreen.screens.map(\.frame.height).min() ?? 0) / 2
         DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + Self.liftDelay) {
             let clocks = Self.clocks()
-            if let clock = clocks.first(where: { $0.frame.contains(location) }) ?? clocks.first {
-                AXUIElementPerformAction(clock.element, kAXPressAction as CFString)
+            // Never replay on a different display if its clock cannot be found.
+            guard let clock = clocks.first(where: { $0.frame.contains(location) }),
+                  let events = Self.clickEvents(at: CGPoint(x: clock.frame.midX, y: clock.frame.midY)) else {
+                return DispatchQueue.main.async(execute: completion)
             }
-            DispatchQueue.main.async(execute: completion)
+            events.forEach { $0.post(tap: .cghidEventTap) }
+            Self.waitForPanel(until: ProcessInfo.processInfo.systemUptime + Self.openTimeout,
+                              minimumHeight: minimumPanelHeight, completion: completion)
+        }
+    }
+
+    static func clickEvents(at point: CGPoint) -> [CGEvent]? {
+        // Build both before posting either, so allocation failure cannot leave a
+        // mouse-down without its matching mouse-up. Do not inherit modifiers.
+        guard let source = CGEventSource(stateID: .privateState),
+              let down = CGEvent(mouseEventSource: source, mouseType: .leftMouseDown,
+                                 mouseCursorPosition: point, mouseButton: .left),
+              let up = CGEvent(mouseEventSource: source, mouseType: .leftMouseUp,
+                               mouseCursorPosition: point, mouseButton: .left) else { return nil }
+        for event in [down, up] {
+            event.flags = []
+            event.setIntegerValueField(.mouseEventClickState, value: 1)
+        }
+        return [down, up]
+    }
+
+    private static func waitForPanel(until deadline: TimeInterval, minimumHeight: CGFloat,
+                                     completion: @escaping () -> Void) {
+        if notificationCenterIsOpen(minimumHeight: minimumHeight)
+            || ProcessInfo.processInfo.systemUptime >= deadline {
+            return DispatchQueue.main.async(execute: completion)
+        }
+        DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + pollInterval) {
+            waitForPanel(until: deadline, minimumHeight: minimumHeight, completion: completion)
         }
     }
 
@@ -134,10 +172,13 @@ final class SystemMenuBarClock: MenuBarClockProviding {
     // desktop widgets sit below the desktop. Owner, layer and bounds need no
     // Screen Recording permission, unlike window names.
     private static var isNotificationCenterOpen: Bool {
+        return notificationCenterIsOpen(minimumHeight: (NSScreen.screens.map(\.frame.height).min() ?? 0) / 2)
+    }
+
+    private static func notificationCenterIsOpen(minimumHeight: CGFloat) -> Bool {
         let owners = Set(NSRunningApplication.runningApplications(withBundleIdentifier: notificationCenterBundleIdentifier).map(\.processIdentifier))
         guard !owners.isEmpty,
               let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return false }
-        let minimumHeight = (NSScreen.screens.map(\.frame.height).min() ?? 0) / 2
         return windows.contains { window in
             guard let pid = window[kCGWindowOwnerPID as String] as? pid_t, owners.contains(pid),
                   let layer = window[kCGWindowLayer as String] as? Int, layer >= 0,

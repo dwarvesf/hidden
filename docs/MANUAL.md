@@ -27,6 +27,12 @@ section is enabled.
 - macOS's own items (clock, Wi-Fi, Sound, Control Center) always stay visible.
 - Run Hidden Bar from `/Applications`; macOS only recognizes that copy as
   Hidden Bar, and a copy elsewhere hides its own arrow.
+- Native hiding also blocks Notification Center. Clicking the clock temporarily
+  lifts that restriction, replays a single click, then restores the same hidden
+  sections once the panel appears (with a bounded timeout). Hidden icons can
+  briefly appear. Clicking an already-open panel's clock is left alone so it
+  closes normally. If the clicked clock cannot be located, no click is replayed
+  on another display.
 
 ## Preferences window
 

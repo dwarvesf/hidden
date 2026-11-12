@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- macOS 27 (direct build): clicking the clock while icons are hidden temporarily releases the native restriction, replays the click, and restores the same hidden sections. Uses mouse events instead of AXPress to avoid the reported immediate-close behavior on macOS 27.2. Hidden icons can briefly appear during the transition (#410).
+
 ## v1.11.1 (2026-09-18)
 
 ### Fixed

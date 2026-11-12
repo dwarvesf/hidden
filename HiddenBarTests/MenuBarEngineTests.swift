@@ -334,6 +334,30 @@ final class NativeVisibilityEngineTests: XCTestCase {
 
     // MARK: Clock → Notification Center (#410)
 
+    func testClockReplayIsAnUnmodifiedSingleClickAtTheClock() throws {
+        let point = CGPoint(x: 1900, y: 12)
+        let events = try XCTUnwrap(SystemMenuBarClock.clickEvents(at: point))
+        XCTAssertEqual(events.map(\.type), [.leftMouseDown, .leftMouseUp])
+        for event in events {
+            XCTAssertEqual(event.location, point)
+            XCTAssertEqual(event.flags, [])
+            XCTAssertEqual(event.getIntegerValueField(.mouseEventClickState), 1)
+        }
+    }
+
+    func testFailedClockRestoreLeavesTheEngineExpanded() {
+        let engine = makeEngine()
+        engine.collapse { _ in }
+        visibility.succeed(0)
+        clock.click()
+        clock.presses[0].completion()
+        visibility.fail(1)
+        XCTAssertEqual(engine.state, .expanded)
+        XCTAssertNil(clock.onClick)
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.count, 3, "a later collapse must retry hiding")
+    }
+
     func testClockIsWatchedOnlyWhileARestrictionIsHeld() {
         let engine = makeEngine()
         XCTAssertNil(clock.onClick)

@@ -270,7 +270,11 @@ final class NativeVisibilityEngine: MenuBarEngine {
         clock.press(at: location) { [weak self] in
             // An expand or collapse meanwhile already applied what the user wants.
             guard let self = self, generation == self.generation else { return }
-            self.activate(allowing: bundles) { _ in }
+            self.activate(allowing: bundles) { [weak self] succeeded in
+                guard let self = self, !succeeded else { return }
+                self.state = .expanded
+                self.setSeparatorsVisible(true)
+            }
         }
     }
 
