@@ -26,6 +26,8 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
 ## 🚀 Install
 
+> **Official downloads.** Dwarves publishes Hidden Bar only through [GitHub Releases](https://github.com/dwarvesf/hidden/releases), the Homebrew cask `hiddenbar`, and the [Mac App Store listing](https://itunes.apple.com/app/hidden-bar/id1452453066). Any other site offering Hidden Bar (for example `hiddenbar.app`) is not run by Dwarves.
+
 ###  App Store
 
 [![AppStore](img/appstore.svg)](https://itunes.apple.com/app/hidden-bar/id1452453066)
