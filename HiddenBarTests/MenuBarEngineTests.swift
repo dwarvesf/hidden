@@ -167,6 +167,204 @@ final class MenuBarLayoutResolverTests: XCTestCase {
     }
 }
 
+// MARK: - Fail open (macOS 27 items the allow-list cannot name)
+
+private func systemExtra(_ identifier: String?, x: CGFloat) -> MenuBarInventoryItem {
+    return MenuBarInventoryItem(bundleIdentifier: "com.apple.MenuBarAgent",
+                                frame: CGRect(x: x, y: 0, width: 22, height: 24),
+                                systemIdentifier: identifier)
+}
+
+final class FailOpenClassificationTests: XCTestCase {
+    private func resolve(_ inventory: [MenuBarInventoryItem], isLTR: Bool = true) -> MenuBarLayout {
+        return MenuBarLayoutResolver.resolve(inventory: inventory, separatorFrame: separator,
+                                             alwaysHiddenSeparatorFrame: nil, isLTR: isLTR,
+                                             excludingBundle: "com.dwarvesv.minimalbar")
+    }
+
+    func testOwnerWithoutBundleIdRightOfArrowKeepsBarWhole() {
+        let layout = resolve([item(nil, x: 1400), item("com.app", x: 1100)])
+        XCTAssertEqual(layout.unnameableVisibleItems.count, 1)
+        XCTAssertNotNil(layout.reasonToKeepBarWhole(unkeepableSystemItems: []))
+    }
+
+    func testOwnerWithoutBundleIdLeftOfArrowCanBeHidden() {
+        let layout = resolve([item(nil, x: 1100)])
+        XCTAssertTrue(layout.unnameableVisibleItems.isEmpty)
+        XCTAssertNil(layout.reasonToKeepBarWhole(unkeepableSystemItems: []))
+    }
+
+    func testUnreadableAppCountsAsVisibleOnBothSides() {
+        let unreadable = MenuBarInventoryItem(bundleIdentifier: "com.slow", frame: .zero, isUnreadable: true)
+        XCTAssertEqual(resolve([unreadable]).sections["com.slow"], .visible)
+        XCTAssertEqual(resolve([unreadable], isLTR: false).sections["com.slow"], .visible)
+    }
+
+    func testSystemExtraRightOfArrowIsKeptThroughControlCenter() {
+        let layout = resolve([systemExtra("com.apple.menuextra.focusmode", x: 1400),
+                              systemExtra("com.apple.menuextra.now-playing", x: 1450)])
+        XCTAssertEqual(layout.sections["com.apple.controlcenter"], .visible)
+        XCTAssertEqual(layout.unprovenVisibleSystemItems,
+                       ["com.apple.menuextra.focusmode", "com.apple.menuextra.now-playing"])
+    }
+
+    func testSystemExtraLeftOfArrowCanBeHidden() {
+        let layout = resolve([systemExtra("com.apple.menuextra.siri", x: 1100)])
+        XCTAssertEqual(layout.sections["com.apple.controlcenter"], .hidden)
+        XCTAssertTrue(layout.unprovenVisibleSystemItems.isEmpty)
+    }
+
+    func testExtrasCoveredBySystemItemsStayOutOfTheLayout() {
+        let layout = resolve([systemExtra("com.apple.menuextra.clock", x: 1400),
+                              systemExtra("com.apple.menuextra.wifi", x: 1100),
+                              systemExtra(nil, x: 1400)])
+        XCTAssertEqual(layout, MenuBarLayout(sections: [:]))
+    }
+
+    func testExtraMacOSHidBeforeKeepsBarWholeOnlyWhileVisible() {
+        let unkeepable: Set = ["com.apple.menuextra.focusmode"]
+        let right = resolve([systemExtra("com.apple.menuextra.focusmode", x: 1400)])
+        let left = resolve([systemExtra("com.apple.menuextra.focusmode", x: 1100)])
+        XCTAssertNotNil(right.reasonToKeepBarWhole(unkeepableSystemItems: unkeepable))
+        XCTAssertNil(left.reasonToKeepBarWhole(unkeepableSystemItems: unkeepable))
+    }
+
+    func testMissingSystemItemsAreThoseNoLongerListed() {
+        let missing = MenuBarLayoutResolver.missingSystemItems(
+            ["com.apple.menuextra.focusmode", "com.apple.menuextra.now-playing"],
+            in: [systemExtra("com.apple.menuextra.now-playing", x: 1400), item("com.app", x: 1400)])
+        XCTAssertEqual(missing, ["com.apple.menuextra.focusmode"])
+    }
+
+    func testNoSystemExtraListedAtAllIsInconclusive() {
+        // Seen on 27.2 with the screen locked: MenuBarAgent lists no items.
+        let missing = MenuBarLayoutResolver.missingSystemItems(["com.apple.menuextra.focusmode"],
+                                                               in: [item("com.app", x: 1400)])
+        XCTAssertEqual(missing, [])
+    }
+
+    func testScanCoversAppsAndBareExecutablesButNotHelpers() {
+        func scans(_ path: String?, _ bundle: String?) -> Bool {
+            return AccessibilityMenuBarInventory.mayOwnStatusItems(bundleURL: path.map { URL(fileURLWithPath: $0) },
+                                                                   bundleIdentifier: bundle)
+        }
+        XCTAssertTrue(scans("/Applications/iStat Menus.app", "com.bjango.istatmenus"))
+        XCTAssertTrue(scans("/opt/homebrew/bin/python3", nil), "script-run status items have no bundle")
+        XCTAssertTrue(scans(nil, nil))
+        XCTAssertFalse(scans("/System/Library/Frameworks/WebKit.framework/XPCServices/com.apple.WebKit.GPU.xpc", "com.apple.WebKit.GPU"))
+        XCTAssertFalse(scans("/Applications/Notes.app/Contents/PlugIns/Widget.appex", "com.apple.Notes.Widget"))
+        XCTAssertFalse(scans(nil, "com.apple.WebKit.WebContent"))
+    }
+}
+
+final class FailOpenEngineTests: XCTestCase {
+    private var items: FakeItems!
+    private var inventory: FakeInventory!
+    private var visibility: FakeVisibility!
+
+    override func setUp() {
+        super.setUp()
+        items = FakeItems()
+        inventory = FakeInventory()
+        visibility = FakeVisibility()
+    }
+
+    private func makeEngine() -> NativeVisibilityEngine {
+        let items = self.items!
+        let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
+                                            ownBundleIdentifier: "com.dwarvesv.minimalbar",
+                                            itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            isLTR: { true })
+        engine.scheduleVisibilityCheck = { $0() }
+        return engine
+    }
+
+    func testSystemExtraMacOSHidFailsOpenAndIsRemembered() {
+        let focus = systemExtra("com.apple.menuextra.focusmode", x: 1400)
+        let clock = systemExtra("com.apple.menuextra.clock", x: 1500)
+        inventory.items = [focus, clock, item("com.hidden", x: 1100)]
+        let engine = makeEngine()
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.apple.controlcenter"])
+
+        inventory.items = [clock, item("com.hidden", x: 1100)]
+        let hiding = visibility.succeed(0)
+        XCTAssertTrue(hiding.isInvalidated, "Focus sits right of the arrow, so nothing may stay hidden")
+        XCTAssertEqual(results, [.unavailable])
+        XCTAssertEqual(engine.state, .expanded)
+
+        inventory.items = [focus, clock, item("com.hidden", x: 1100)]
+        engine.collapse { results.append($0) }
+        XCTAssertEqual(visibility.requests.count, 1, "no second flash of a restriction known to hide Focus")
+        XCTAssertEqual(results, [.unavailable, .unavailable])
+
+        inventory.items = [systemExtra("com.apple.menuextra.focusmode", x: 1100), clock]
+        engine.collapse { results.append($0) }
+        XCTAssertEqual(visibility.requests.count, 2, "moved left of the arrow, Focus may be hidden again")
+    }
+
+    func testSystemExtraMacOSKeptCollapses() {
+        inventory.items = [systemExtra("com.apple.menuextra.now-playing", x: 1400), item("com.hidden", x: 1100)]
+        let engine = makeEngine()
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+        let hiding = visibility.succeed(0)
+        XCTAssertFalse(hiding.isInvalidated)
+        XCTAssertEqual(results, [.collapsed])
+        XCTAssertEqual(engine.state, .collapsed)
+    }
+
+    func testExpandDuringTheCheckDropsIt() {
+        inventory.items = [systemExtra("com.apple.menuextra.focusmode", x: 1400)]
+        let engine = makeEngine()
+        var pendingCheck: (() -> Void)?
+        engine.scheduleVisibilityCheck = { pendingCheck = $0 }
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+        visibility.succeed(0)
+        engine.expand()
+        pendingCheck?()
+        XCTAssertEqual(results, [])
+        XCTAssertEqual(engine.state, .expanded)
+    }
+
+    func testUnreadableAppIsAllowed() {
+        inventory.items = [MenuBarInventoryItem(bundleIdentifier: "com.bjango.istatmenus", frame: .zero, isUnreadable: true)]
+        makeEngine().collapse { _ in }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.bjango.istatmenus"])
+    }
+}
+
+// MARK: - Fail open, written against develop's API only
+
+final class FailOpenDevelopAPITests: XCTestCase {
+    private func collapseRequests(_ inventoryItems: [MenuBarInventoryItem], isLTR: Bool = true) -> (Int, CollapseResult?) {
+        let items = FakeItems()
+        let inventory = FakeInventory()
+        inventory.items = inventoryItems
+        let visibility = FakeVisibility()
+        let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
+                                            ownBundleIdentifier: "com.dwarvesv.minimalbar",
+                                            itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            isLTR: { isLTR })
+        var result: CollapseResult?
+        engine.collapse { result = $0 }
+        return (visibility.requests.count, result)
+    }
+
+    func testOwnerWithoutBundleIdRightOfArrowIsNeverHidden() {
+        let (requests, result) = collapseRequests([item(nil, x: 1400), item("com.app", x: 1100)])
+        XCTAssertEqual(requests, 0, "macOS would hide an item the allow-list cannot name")
+        XCTAssertEqual(result, .unavailable)
+    }
+
+    func testOwnerWithoutBundleIdLeftOfArrowStillCollapses() {
+        let (requests, _) = collapseRequests([item(nil, x: 1100), item("com.app", x: 1100)])
+        XCTAssertEqual(requests, 1)
+    }
+}
+
 // MARK: - Native engine
 
 final class NativeVisibilityEngineTests: XCTestCase {

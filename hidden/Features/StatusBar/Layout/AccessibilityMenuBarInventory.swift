@@ -15,6 +15,10 @@ import ApplicationServices
 // permission is granted), so only the non-sandboxed direct build uses it.
 final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
     private static let messagingTimeout: Float = 0.1
+    // A second try for apps too busy for the first (iStat Menus, #429).
+    private static let retryTimeout: Float = 1.0
+
+    private typealias App = (pid: pid_t, bundleIdentifier: String?, name: String?)
 
     private var hasRequestedAuthorization = false
 
@@ -34,13 +38,10 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
     // Accessibility round-trips to every app take about a second in total, so the
     // walk runs off the main thread.
     func snapshot(completion: @escaping ([MenuBarInventoryItem]) -> Void) {
-        // Only app bundles own status items. Skipping the rest (dozens of WebKit
-        // and XPC helpers, each of which would sit out the timeout) cuts the walk
-        // from ~2.8s to ~1s.
         let ownPID = ProcessInfo.processInfo.processIdentifier
-        let apps = NSWorkspace.shared.runningApplications
-            .filter { $0.processIdentifier != ownPID && $0.bundleURL?.pathExtension == "app" }
-            .map { (pid: $0.processIdentifier, bundleIdentifier: $0.bundleIdentifier) }
+        let apps: [App] = NSWorkspace.shared.runningApplications
+            .filter { $0.processIdentifier != ownPID && Self.mayOwnStatusItems(bundleURL: $0.bundleURL, bundleIdentifier: $0.bundleIdentifier) }
+            .map { (pid: $0.processIdentifier, bundleIdentifier: $0.bundleIdentifier, name: $0.localizedName) }
         DispatchQueue.global(qos: .userInitiated).async {
             let start = Date()
             let items = Self.statusItems(of: apps)
@@ -49,10 +50,25 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
         }
     }
 
+    // Apps and bare executables (scripts, helpers without an Info.plist) can own
+    // status items. Skipping XPC services and extensions (dozens of WebKit
+    // helpers, each of which would sit out the timeout) cuts the walk from ~2.8s
+    // to ~1s.
+    static func mayOwnStatusItems(bundleURL: URL?, bundleIdentifier: String?) -> Bool {
+        guard let url = bundleURL else { return bundleIdentifier == nil }
+        return !["xpc", "appex"].contains(url.pathExtension)
+    }
+
+    private enum Reading {
+        case items([MenuBarInventoryItem])
+        case noAnswer
+        case noStatusItems
+    }
+
     // Each app is an independent IPC round-trip, so they run concurrently; serial
     // walking made collapse lag by the sum of every app's latency. Results keep
     // the running-app order.
-    private static func statusItems(of apps: [(pid: pid_t, bundleIdentifier: String?)]) -> [MenuBarInventoryItem] {
+    private static func statusItems(of apps: [App]) -> [MenuBarInventoryItem] {
         var perApp = [[MenuBarInventoryItem]](repeating: [], count: apps.count)
         let lock = NSLock()
         DispatchQueue.concurrentPerform(iterations: apps.count) { index in
@@ -64,20 +80,66 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
         return perApp.flatMap { $0 }
     }
 
-    private static func statusItems(of app: (pid: pid_t, bundleIdentifier: String?)) -> [MenuBarInventoryItem] {
+    private static func statusItems(of app: App) -> [MenuBarInventoryItem] {
+        var reading = read(app, timeout: messagingTimeout)
+        if case .noAnswer = reading {
+            reading = read(app, timeout: retryTimeout)
+        }
+        switch reading {
+        case .items(let found):
+            return found
+        case .noAnswer:
+            // Unknown items stay visible. Without a bundle id nothing could be
+            // allowed anyway, and such processes are mostly daemons.
+            guard app.bundleIdentifier != nil else { return [] }
+            return [MenuBarInventoryItem(bundleIdentifier: app.bundleIdentifier, frame: .zero,
+                                         isUnreadable: true, ownerName: app.name)]
+        case .noStatusItems:
+            return []
+        }
+    }
+
+    private static func read(_ app: App, timeout: Float) -> Reading {
         let element = AXUIElementCreateApplication(app.pid)
         // The default timeout is several seconds per app, and one busy or hung
         // app then stalls the collapse (measured: ~18s on a normal session).
-        AXUIElementSetMessagingTimeout(element, messagingTimeout)
+        AXUIElementSetMessagingTimeout(element, timeout)
         var barValue: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, "AXExtrasMenuBar" as CFString, &barValue) == .success,
-              let bar = barValue else { return [] }
+        let barError = AXUIElementCopyAttributeValue(element, "AXExtrasMenuBar" as CFString, &barValue)
+        if barError == .cannotComplete { return .noAnswer }
+        guard barError == .success, let bar = barValue else { return .noStatusItems }
         var childrenValue: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(bar as! AXUIElement, kAXChildrenAttribute as CFString, &childrenValue) == .success,
-              let children = childrenValue as? [AXUIElement] else { return [] }
-        return children.compactMap { child in
-            frame(of: child).map { MenuBarInventoryItem(bundleIdentifier: app.bundleIdentifier, frame: $0) }
+        let childrenError = AXUIElementCopyAttributeValue(bar as! AXUIElement, kAXChildrenAttribute as CFString, &childrenValue)
+        if childrenError == .cannotComplete { return .noAnswer }
+        guard childrenError == .success, let children = childrenValue as? [AXUIElement] else { return .noStatusItems }
+        let isSystemOwner = app.bundleIdentifier.map(MenuBarLayoutResolver.systemItemOwners.contains) ?? false
+        return .items(children.map { child in
+            guard let frame = frame(of: child) else {
+                return MenuBarInventoryItem(bundleIdentifier: app.bundleIdentifier, frame: .zero,
+                                            isUnreadable: true, ownerName: app.name)
+            }
+            return MenuBarInventoryItem(bundleIdentifier: app.bundleIdentifier, frame: frame,
+                                        systemIdentifier: isSystemOwner ? identifier(of: child) : nil,
+                                        ownerName: app.name)
+        })
+    }
+
+    // On 27.2 a system extra is a hosting view whose one child, the menu bar
+    // item, carries the identifier (com.apple.menuextra.clock...).
+    private static func identifier(of element: AXUIElement) -> String? {
+        if let identifier = string(element, "AXIdentifier") {
+            return identifier
         }
+        var childrenValue: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXChildrenAttribute as CFString, &childrenValue) == .success,
+              let child = (childrenValue as? [AXUIElement])?.first else { return nil }
+        return string(child, "AXIdentifier")
+    }
+
+    private static func string(_ element: AXUIElement, _ attribute: String) -> String? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }
+        return value as? String
     }
 
     // Accessibility frames use a top-left origin, AppKit's bottom-left. Only the
