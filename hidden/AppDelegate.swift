@@ -33,6 +33,9 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         setupHotKey()
         openPreferencesIfNeeded()
         detectLTRLang()
+        #if !HIDDENBAR_NATIVE_VISIBILITY
+        MacOS27Notice.shared.showAtLaunchIfNeeded()
+        #endif
     }
 
     /// Hidden Bar is a menu bar utility with no visible window, so launching it a

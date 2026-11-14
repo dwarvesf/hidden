@@ -367,6 +367,12 @@ class StatusBarController: MenuBarItemProvider {
         toggleAutoHideItem.target = self
         menu.addItem(toggleAutoHideItem)
 
+        #if !HIDDENBAR_NATIVE_VISIBILITY
+        if let macOS27Item = MacOS27Notice.shared.makeMenuItem() {
+            menu.addItem(macOS27Item)
+        }
+        #endif
+
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit".localized, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 

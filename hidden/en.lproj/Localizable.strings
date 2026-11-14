@@ -11,6 +11,13 @@
 "Enable Auto Collapse" = "Enable Auto Collapse";
 "Disable Auto Collapse" = "Disable Auto Collapse";
 "Quit" = "Quit";
+"macOS 27: get the working version..." = "macOS 27: get the working version...";
+"Hidden Bar cannot hide icons on macOS 27" = "Hidden Bar cannot hide icons on macOS 27";
+"macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from dwarves.foundation/opensource (free, open source) works on macOS 27." = "macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from dwarves.foundation/opensource (free, open source) works on macOS 27.";
+"Open dwarves.foundation/opensource" = "Open dwarves.foundation/opensource";
+"Close" = "Close";
+"Don't show again" = "Don't show again";
+"Hidden Bar on macOS 27" = "Hidden Bar on macOS 27";
 "Set Shortcut" = "Set Shortcut";
 "Show Notch Items" = "Show Notch Items";
 "Notch Overflow" = "Notch Overflow";

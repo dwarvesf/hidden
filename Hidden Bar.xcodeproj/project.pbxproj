@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A27C0DE00000000000000002 /* MacOS27Notice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A27C0DE00000000000000001 /* MacOS27Notice.swift */; };
+		A27C0DE00000000000000003 /* MacOS27Notice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A27C0DE00000000000000001 /* MacOS27Notice.swift */; };
+		A27C0DE00000000000000005 /* MacOS27NoticeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A27C0DE00000000000000004 /* MacOS27NoticeTests.swift */; };
+		A27C0DE00000000000000006 /* String+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 967F4B2424169BC800F18D3C /* String+Extension.swift */; };
 		00117C4426600671005E517C /* Assets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00117C4326600671005E517C /* Assets.swift */; };
 		00137CDF24A63DB1004AC855 /* Notification.Name+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00137CDE24A63DB1004AC855 /* Notification.Name+Extension.swift */; };
 		0842CDFB23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0842CDFA23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift */; };
@@ -79,6 +83,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A27C0DE00000000000000001 /* MacOS27Notice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOS27Notice.swift; sourceTree = "<group>"; };
+		A27C0DE00000000000000004 /* MacOS27NoticeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOS27NoticeTests.swift; sourceTree = "<group>"; };
 		00117C4326600671005E517C /* Assets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assets.swift; sourceTree = "<group>"; };
 		00137CDE24A63DB1004AC855 /* Notification.Name+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification.Name+Extension.swift"; sourceTree = "<group>"; };
 		06495EE4F823D325A44A357C /* NotchOverflowPreferencesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchOverflowPreferencesTests.swift; sourceTree = "<group>"; };
@@ -183,6 +189,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A27C0DE00000000000000007 /* MacOS27Notice */ = {
+			isa = PBXGroup;
+			children = (
+				A27C0DE00000000000000001 /* MacOS27Notice.swift */,
+			);
+			path = MacOS27Notice;
+			sourceTree = "<group>";
+		};
 		0842CDF923A9FDB900D14BD4 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -196,6 +210,7 @@
 			isa = PBXGroup;
 			children = (
 				08C20FDC23AABC440035D978 /* About */,
+				A27C0DE00000000000000007 /* MacOS27Notice */,
 				905962CD99D24D0C893AFFA7 /* NotchOverflow */,
 				0842CDFE23A9FF7C00D14BD4 /* Preferences */,
 				0842CDFD23A9FF7500D14BD4 /* StatusBar */,
@@ -385,6 +400,7 @@
 				C57343F39835408A99E25A6E /* MenuBarEngineTests.swift */,
 				764544B7EDBB41A18087ED6F /* ExpandCollapseActionTests.swift */,
 				F013C3E5499B4EA7B816F7A8 /* AutoStartTests.swift */,
+				A27C0DE00000000000000004 /* MacOS27NoticeTests.swift */,
 			);
 			path = HiddenBarTests;
 			sourceTree = "<group>";
@@ -572,6 +588,7 @@
 				00137CDF24A63DB1004AC855 /* Notification.Name+Extension.swift in Sources */,
 				08A5F86423AA09F300981CA5 /* UserDefault+Extension.swift in Sources */,
 				4D8C4B09D62D4884B34E1A14 /* NotchOverflowController.swift in Sources */,
+				A27C0DE00000000000000002 /* MacOS27Notice.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -593,6 +610,9 @@
 				2CEFC27766BCEA39CD11079F /* MenuBarEngineTests.swift in Sources */,
 				B12AD86D3E924502860225CC /* ExpandCollapseActionTests.swift in Sources */,
 				9B1765C0B5634CFABD06A916 /* AutoStartTests.swift in Sources */,
+				A27C0DE00000000000000003 /* MacOS27Notice.swift in Sources */,
+				A27C0DE00000000000000005 /* MacOS27NoticeTests.swift in Sources */,
+				A27C0DE00000000000000006 /* String+Extension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

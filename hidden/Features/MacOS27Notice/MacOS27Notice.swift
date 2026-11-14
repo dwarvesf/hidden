@@ -1,0 +1,127 @@
+//
+//  MacOS27Notice.swift
+//  Hidden Bar
+//
+//  Copyright © 2026 Dwarves Foundation. All rights reserved.
+//
+
+import AppKit
+
+// App Store variant only. The sandboxed build cannot read Accessibility on
+// macOS 27, so it cannot hide icons there. Tell the user once, and point them
+// at the build that works. The direct build defines HIDDENBAR_NATIVE_VISIBILITY
+// and compiles none of this.
+//
+// App Review 2.4.5(iv): a Mac App Store app must not fetch or install other
+// apps. This only opens a web page in the default browser.
+#if !HIDDENBAR_NATIVE_VISIBILITY
+
+/// The "when to show" decision, kept free of AppKit so it can be unit tested
+/// with an injected `UserDefaults` suite.
+struct MacOS27NoticePolicy {
+    static let suppressedKey = "macOS27NoticeSuppressed"
+    static let lastShownVersionKey = "macOS27NoticeLastShownVersion"
+    static let firstAffectedMajorVersion = 27
+
+    let osMajorVersion: Int
+    let appVersion: String
+    let defaults: UserDefaults
+
+    var appliesToThisOS: Bool {
+        osMajorVersion >= Self.firstAffectedMajorVersion
+    }
+
+    /// Shown at most once per app version, never again once the user chose
+    /// "Don't show again".
+    func shouldShowAtLaunch() -> Bool {
+        guard appliesToThisOS else { return false }
+        if defaults.bool(forKey: Self.suppressedKey) { return false }
+        return defaults.string(forKey: Self.lastShownVersionKey) != appVersion
+    }
+
+    func recordShown() {
+        defaults.set(appVersion, forKey: Self.lastShownVersionKey)
+    }
+
+    func suppressForever() {
+        defaults.set(true, forKey: Self.suppressedKey)
+    }
+}
+
+final class MacOS27Notice: NSObject {
+    static let shared = MacOS27Notice()
+    static let pageURL = URL(string: "https://dwarves.foundation/opensource")!
+
+    #if DEBUG
+    /// Launch with `-forceMacOS27Notice YES` to take the macOS 27 path on any
+    /// OS. The forced path ignores and never writes the "shown" state.
+    private static var isForced: Bool {
+        UserDefaults.standard.bool(forKey: "forceMacOS27Notice")
+    }
+    #else
+    private static var isForced: Bool { false }
+    #endif
+
+    private var policy: MacOS27NoticePolicy {
+        let osMajor = Self.isForced
+            ? MacOS27NoticePolicy.firstAffectedMajorVersion
+            : ProcessInfo.processInfo.operatingSystemVersion.majorVersion
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        return MacOS27NoticePolicy(osMajorVersion: osMajor, appVersion: version, defaults: .standard)
+    }
+
+    private var isPresenting = false
+
+    /// Called once from `applicationDidFinishLaunching`.
+    func showAtLaunchIfNeeded() {
+        let policy = self.policy
+        guard Self.isForced || policy.shouldShowAtLaunch() else { return }
+        // Let launch finish before blocking on a modal alert.
+        DispatchQueue.main.async { [weak self] in
+            self?.present(recordingShown: !Self.isForced)
+        }
+    }
+
+    /// The menu entry that lets users find the notice again. Nil off macOS 27.
+    func makeMenuItem() -> NSMenuItem? {
+        guard policy.appliesToThisOS else { return nil }
+        let item = NSMenuItem(title: "macOS 27: get the working version...".localized,
+                              action: #selector(showFromMenu),
+                              keyEquivalent: "")
+        item.target = self
+        return item
+    }
+
+    @objc private func showFromMenu() {
+        present(recordingShown: false)
+    }
+
+    private func present(recordingShown: Bool) {
+        guard !isPresenting else { return }
+        isPresenting = true
+        defer { isPresenting = false }
+
+        if recordingShown { policy.recordShown() }
+
+        let alert = NSAlert()
+        alert.alertStyle = .informational
+        alert.messageText = "Hidden Bar cannot hide icons on macOS 27".localized
+        alert.informativeText = "macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from dwarves.foundation/opensource (free, open source) works on macOS 27.".localized
+        alert.addButton(withTitle: "Open dwarves.foundation/opensource".localized)
+        alert.addButton(withTitle: "Close".localized)
+        alert.addButton(withTitle: "Don't show again".localized)
+        alert.window.title = "Hidden Bar on macOS 27".localized
+
+        NSApp.activate(ignoringOtherApps: true)
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            NSWorkspace.shared.open(Self.pageURL)
+        case .alertThirdButtonReturn:
+            policy.suppressForever()
+        default:
+            break
+        }
+    }
+}
+
+#endif
