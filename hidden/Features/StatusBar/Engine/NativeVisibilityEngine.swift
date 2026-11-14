@@ -71,6 +71,16 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private var alwaysHiddenEnabled = false
     private var alwaysHiddenSeparatorHidden = false
 
+    // Fail open: nothing is hidden while an item right of the arrow cannot be
+    // kept visible. That is an item whose owner has no bundle id, or a system
+    // extra no system item id covers (Focus, Now Playing, Siri...) that macOS
+    // hid although Control Center's bundle was allowed; those are remembered here.
+    private var unkeepableSystemItems: Set<String> = []
+    // Hidden extras leave Accessibility only once the bar has reflowed.
+    var scheduleVisibilityCheck: (@escaping () -> Void) -> Void = {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: $0)
+    }
+
     init(items: MenuBarItemProvider,
          inventory: MenuBarInventoryProviding = AccessibilityMenuBarInventory(),
          visibility: NativeVisibilityProviding = NativeVisibilityBridge(),
@@ -123,13 +133,25 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 self.state = .expanded
                 return completion(.unavailable)
             }
+            if let reason = layout.reasonToKeepBarWhole(unkeepableSystemItems: self.unkeepableSystemItems) {
+                self.logUnavailableOnce(reason)
+                self.state = .expanded
+                return completion(.unavailable)
+            }
             self.activate(allowing: layout.bundles(in: [.visible])) { [weak self] succeeded in
                 guard let self = self else { return }
-                self.state = succeeded ? .collapsed : .expanded
-                if succeeded {
-                    self.setSeparatorsVisible(false)
+                guard succeeded else {
+                    self.state = .expanded
+                    return completion(.unavailable)
                 }
-                completion(succeeded ? .collapsed : .unavailable)
+                self.checkStillShown(layout.unprovenVisibleSystemItems) { [weak self] shown in
+                    guard let self = self else { return }
+                    self.state = shown ? .collapsed : .expanded
+                    if shown {
+                        self.setSeparatorsVisible(false)
+                    }
+                    completion(shown ? .collapsed : .unavailable)
+                }
             }
         }
     }
@@ -218,6 +240,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
                                                        isLTR: isLTR,
                                                        excludingBundle: self.ownBundleIdentifier)
             NSLog("NativeVisibility: arrow at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
+            if !layout.unnameableVisibleItems.isEmpty || !layout.unprovenVisibleSystemItems.isEmpty {
+                NSLog("NativeVisibility: visible without a bundle id \(layout.unnameableVisibleItems); visible system extras to check \(layout.unprovenVisibleSystemItems)")
+            }
             self.layout = layout
             body(layout)
         }
@@ -313,6 +338,28 @@ final class NativeVisibilityEngine: MenuBarEngine {
         guard reason != lastUnavailableReason else { return }
         lastUnavailableReason = reason
         NSLog("NativeVisibility: hiding unavailable: \(reason)")
+    }
+
+    // Fails open when a system extra the allow-list could only try to keep was
+    // hidden anyway: the restriction is dropped, and the extra is remembered so
+    // later collapses keep the bar whole instead of flashing it hidden.
+    private func checkStillShown(_ expected: [String], completion: @escaping (Bool) -> Void) {
+        guard !expected.isEmpty else { return completion(true) }
+        let generation = self.generation
+        scheduleVisibilityCheck { [weak self] in
+            guard let self = self, generation == self.generation else { return }
+            self.inventory.snapshot { [weak self] inventory in
+                guard let self = self, generation == self.generation else { return }
+                let missing = MenuBarLayoutResolver.missingSystemItems(expected, in: inventory)
+                guard missing.isEmpty else {
+                    NSLog("NativeVisibility: macOS hid \(missing) although they sit right of the arrow; keeping the bar whole while they are there")
+                    self.unkeepableSystemItems.formUnion(missing)
+                    self.releaseAssertion()
+                    return completion(false)
+                }
+                completion(true)
+            }
+        }
     }
 }
 
