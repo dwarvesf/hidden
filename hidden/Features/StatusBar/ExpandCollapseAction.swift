@@ -16,6 +16,13 @@ enum ExpandCollapseAction {
 }
 
 enum ExpandCollapseActionResolver {
+    // On macOS 27 the mouse-up event a status bar button hands to its action
+    // carries empty modifier flags even while Option is held (#434), so the live
+    // keyboard state is consulted as well.
+    static func isOptionPressed(eventFlags: NSEvent.ModifierFlags?, liveFlags: NSEvent.ModifierFlags) -> Bool {
+        return (eventFlags?.contains(.option) ?? false) || liveFlags.contains(.option)
+    }
+
     // A nil event type means there is no real NSEvent behind the press, which is
     // what assistive synthesis (VoiceOver AXPress) produces: treat it as a plain
     // left click so VoiceOver users can toggle the bar at all.
