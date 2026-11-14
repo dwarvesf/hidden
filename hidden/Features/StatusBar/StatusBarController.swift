@@ -77,6 +77,9 @@ class StatusBarController: MenuBarItemProvider {
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(syncActivationPolicyWithFullStatusBar), name: .useFullStatusBarToggle, object: nil)
+        #if DEBUG
+        installDebugHooks()
+        #endif
         // Sections are read from where the items sit, so wait until macOS has put
         // them back in place (the always-hidden separator may have been taken
         // out of the bar when the app quit).
@@ -427,3 +430,132 @@ extension StatusBarController {
         }
     }
 }
+
+#if DEBUG
+//MARK: - Test hooks (Debug builds only)
+// Scripted verification on a Mac that is in use: commands arrive as a
+// distributed notification, so a harness drives the app with no pointer or key
+// input. Never compiled into Release builds.
+//
+//   name: com.dwarvesv.minimalbar.debug.command
+//   userInfo: command, argument (optional), out (path for dump-state JSON)
+extension StatusBarController {
+    static let debugCommandNotification = Notification.Name("com.dwarvesv.minimalbar.debug.command")
+
+    fileprivate func installDebugHooks() {
+        DistributedNotificationCenter.default().addObserver(self,
+                                                            selector: #selector(handleDebugCommand(_:)),
+                                                            name: Self.debugCommandNotification,
+                                                            object: nil,
+                                                            suspensionBehavior: .deliverImmediately)
+        NSLog("DebugHooks: listening for \(Self.debugCommandNotification.rawValue)")
+    }
+
+    @objc private func handleDebugCommand(_ note: Notification) {
+        guard let command = note.userInfo?["command"] as? String else { return }
+        let argument = note.userInfo?["argument"] as? String
+        NSLog("DebugHooks: \(command) \(argument ?? "")")
+        switch command {
+        case "collapse":
+            collapseMenuBar()
+        case "expand":
+            expandMenubar()
+        case "toggle":
+            expandCollapseIfNeeded()
+        case "toggle-always-hidden":
+            // What Option-click on the arrow runs.
+            showHideSeparatorsAndAlwayHideArea()
+        case "always-hidden-section":
+            // What the Preferences checkbox runs.
+            Preferences.alwaysHiddenSectionEnabled = argument == "on"
+        case "full-menu-bar":
+            // What the Preferences checkbox runs.
+            Preferences.useFullStatusBarOnExpandEnabled = argument == "on"
+        case "boundary":
+            NativeVisibilityEngine.debugBoundaryX = argument.flatMap(Double.init).map { CGFloat($0) }
+            menuBarEngine.invalidateLayout()
+        case "always-hidden-boundary":
+            NativeVisibilityEngine.debugAlwaysHiddenX = argument.flatMap(Double.init).map { CGFloat($0) }
+            menuBarEngine.invalidateLayout()
+        case "click-clock":
+            debugClickClock()
+        case "dump-state":
+            break
+        default:
+            NSLog("DebugHooks: unknown command \(command)")
+        }
+        if let out = note.userInfo?["out"] as? String {
+            debugWriteState(to: out)
+        }
+    }
+
+    // A click on the clock without moving the pointer: the mouse-down/up pair is
+    // posted to MenuBarAgent's process only, then the engine's clock-click
+    // handler runs exactly as its global mouse monitor would call it.
+    private func debugClickClock() {
+        guard let (pid, clock) = Self.debugClock() else {
+            return NSLog("DebugHooks: clock not found")
+        }
+        let center = CGPoint(x: clock.midX, y: clock.midY)
+        Self.debugPostClick(at: center, toPid: pid)
+        (menuBarEngine as? NativeVisibilityEngine)?.debugClockClicked(at: center, postingTo: pid)
+    }
+
+    static func debugPostClick(at point: CGPoint, toPid pid: pid_t) {
+        guard let source = CGEventSource(stateID: .privateState) else { return }
+        for type in [CGEventType.leftMouseDown, .leftMouseUp] {
+            guard let event = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: point, mouseButton: .left) else { return }
+            event.flags = []
+            event.setIntegerValueField(.mouseEventClickState, value: 1)
+            event.postToPid(pid)
+        }
+    }
+
+    static func debugClock() -> (pid_t, CGRect)? {
+        guard let agent = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.MenuBarAgent").first else { return nil }
+        let app = AXUIElementCreateApplication(agent.processIdentifier)
+        AXUIElementSetMessagingTimeout(app, 0.5)
+        func value(_ element: AXUIElement, _ attribute: String) -> CFTypeRef? {
+            var value: CFTypeRef?
+            return AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success ? value : nil
+        }
+        func children(_ element: AXUIElement) -> [AXUIElement] {
+            return value(element, kAXChildrenAttribute) as? [AXUIElement] ?? []
+        }
+        guard let bar = value(app, "AXExtrasMenuBar") else { return nil }
+        for group in children(bar as! AXUIElement) {
+            for item in [group] + children(group) where value(item, "AXIdentifier") as? String == "com.apple.menuextra.clock" {
+                if let frame = AccessibilityMenuBarInventory.frame(of: item) {
+                    return (agent.processIdentifier, frame)
+                }
+            }
+        }
+        return nil
+    }
+
+    private func debugWriteState(to path: String) {
+        let policies: [NSApplication.ActivationPolicy: String] = [.regular: "regular", .accessory: "accessory", .prohibited: "prohibited"]
+        var state: [String: Any] = [
+            "engine": String(describing: type(of: menuBarEngine)),
+            "state": String(describing: menuBarEngine.state),
+            "activationPolicy": policies[NSApp.activationPolicy()] ?? "unknown",
+            "useFullStatusBarOnExpand": Preferences.useFullStatusBarOnExpandEnabled,
+            "alwaysHiddenSectionEnabled": Preferences.alwaysHiddenSectionEnabled,
+            "areSeparatorsHidden": Preferences.areSeparatorsHidden,
+            "alwaysHiddenItemVisible": btnAlwaysHidden?.isVisible ?? false,
+            "arrowFrame": btnExpandCollapse.button?.window.map { NSStringFromRect($0.frame) } ?? "none",
+            "alwaysHiddenSeparatorFrame": btnAlwaysHidden?.button?.window.map { NSStringFromRect($0.frame) } ?? "none",
+            "writtenAt": Date().timeIntervalSince1970
+        ]
+        if let engine = menuBarEngine as? NativeVisibilityEngine {
+            state.merge(engine.debugState) { $1 }
+        }
+        do {
+            let data = try JSONSerialization.data(withJSONObject: state, options: [.prettyPrinted, .sortedKeys])
+            try data.write(to: URL(fileURLWithPath: path))
+        } catch {
+            NSLog("DebugHooks: cannot write state: \(error.localizedDescription)")
+        }
+    }
+}
+#endif

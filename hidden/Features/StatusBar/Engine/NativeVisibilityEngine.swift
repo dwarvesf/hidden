@@ -197,8 +197,16 @@ final class NativeVisibilityEngine: MenuBarEngine {
             return body(layout)
         }
         guard let arrow = items?.toggleItem,
-              let boundary = itemFrame(arrow) else { return body(nil) }
-        let alwaysHiddenFrame = alwaysHiddenEnabled ? items?.alwaysHiddenItem.flatMap(itemFrame) : nil
+              var boundary = itemFrame(arrow) else { return body(nil) }
+        var alwaysHiddenFrame = alwaysHiddenEnabled ? items?.alwaysHiddenItem.flatMap(itemFrame) : nil
+        #if DEBUG
+        if let x = Self.debugBoundaryX {
+            boundary.origin.x = x - boundary.width / 2
+        }
+        if alwaysHiddenEnabled, let x = Self.debugAlwaysHiddenX {
+            alwaysHiddenFrame = CGRect(x: x, y: boundary.minY, width: 1, height: boundary.height)
+        }
+        #endif
         let isLTR = self.isLTR()
         generation += 1
         let generation = self.generation
@@ -307,3 +315,33 @@ final class NativeVisibilityEngine: MenuBarEngine {
         NSLog("NativeVisibility: hiding unavailable: \(reason)")
     }
 }
+
+#if DEBUG
+// Test hooks (Debug builds only); see StatusBarController's debug extension.
+extension NativeVisibilityEngine {
+    // Section boundaries to use instead of the items' real positions, so a
+    // harness can place sections without ⌘-dragging anything.
+    static var debugBoundaryX: CGFloat?
+    static var debugAlwaysHiddenX: CGFloat?
+
+    var debugState: [String: Any] {
+        var sections: [String: String] = [:]
+        layout?.sections.forEach { sections[$0.key] = String(describing: $0.value) }
+        return [
+            "assertionHeld": assertion != nil,
+            "allowedBundles": assertion == nil ? [] : assertionBundles,
+            "sections": sections,
+            "clockWatched": clock.onClick != nil,
+            "debugBoundaryX": Self.debugBoundaryX.map { Double($0) } ?? NSNull(),
+            "debugAlwaysHiddenX": Self.debugAlwaysHiddenX.map { Double($0) } ?? NSNull()
+        ]
+    }
+
+    // Runs the clock-click handler the global mouse monitor would run, with the
+    // replayed press posted to MenuBarAgent's process instead of the HID stream.
+    func debugClockClicked(at location: CGPoint, postingTo pid: pid_t) {
+        SystemMenuBarClock.debugPostToPid = pid
+        clock.onClick?(location)
+    }
+}
+#endif

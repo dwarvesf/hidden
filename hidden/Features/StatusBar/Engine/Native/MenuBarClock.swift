@@ -43,6 +43,11 @@ final class SystemMenuBarClock: MenuBarClockProviding {
         didSet { updateMonitor() }
     }
 
+    #if DEBUG
+    // Test hook: post the replayed press to this process only, never the HID stream.
+    static var debugPostToPid: pid_t?
+    #endif
+
     private var monitor: Any?
     // The clock's frame when a click on it began with Notification Center closed.
     private var clickedClockFrame: CGRect?
@@ -69,6 +74,13 @@ final class SystemMenuBarClock: MenuBarClockProviding {
                   let events = Self.clickEvents(at: CGPoint(x: clock.frame.midX, y: clock.frame.midY)) else {
                 return DispatchQueue.main.async(execute: completion)
             }
+            #if DEBUG
+            if let pid = Self.debugPostToPid {
+                events.forEach { $0.postToPid(pid) }
+                return Self.waitForPanel(until: ProcessInfo.processInfo.systemUptime + Self.openTimeout,
+                                         minimumHeight: minimumPanelHeight, completion: completion)
+            }
+            #endif
             events.forEach { $0.post(tap: .cghidEventTap) }
             Self.waitForPanel(until: ProcessInfo.processInfo.systemUptime + Self.openTimeout,
                               minimumHeight: minimumPanelHeight, completion: completion)
