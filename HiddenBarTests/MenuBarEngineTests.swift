@@ -505,3 +505,48 @@ final class LegacyLengthEngineTests: XCTestCase {
         XCTAssertEqual(items.separatorItem.length, 20)
     }
 }
+
+// MARK: - Inventory retry
+
+final class AccessibilityInventoryRetryTests: XCTestCase {
+    private func item(_ bundle: String, x: CGFloat) -> MenuBarInventoryItem {
+        return MenuBarInventoryItem(bundleIdentifier: bundle, frame: CGRect(x: x, y: 0, width: 20, height: 22))
+    }
+
+    func testAnAppThatTimesOutOnceIsReadAgainAndKept() {
+        let lock = NSLock()
+        var calls: [Int: [Float]] = [:]
+        let items = AccessibilityMenuBarInventory.collect(count: 3) { index, timeout in
+            lock.lock(); calls[index, default: []].append(timeout); let attempt = calls[index]!.count; lock.unlock()
+            if index == 1 && attempt == 1 { return .timedOut }
+            return .items([self.item("app\(index)", x: CGFloat(index) * 30)])
+        }
+        XCTAssertEqual(items.map(\.bundleIdentifier), ["app0", "app1", "app2"], "running-app order kept")
+        XCTAssertEqual(calls[1]?.count, 2)
+        XCTAssertGreaterThan(calls[1]?.last ?? 0, calls[1]?.first ?? 0, "the re-read gets more time")
+        XCTAssertEqual(calls[0]?.count, 1)
+        XCTAssertEqual(calls[2]?.count, 1)
+    }
+
+    func testTheRetryIsBoundedToOneReread() {
+        let lock = NSLock()
+        var calls = 0
+        let items = AccessibilityMenuBarInventory.collect(count: 2) { index, _ in
+            if index == 0 { return .items([self.item("app0", x: 0)]) }
+            lock.lock(); calls += 1; lock.unlock()
+            return .timedOut
+        }
+        XCTAssertEqual(items.map(\.bundleIdentifier), ["app0"])
+        XCTAssertEqual(calls, 2)
+    }
+
+    func testNoRereadWhenEveryAppAnswers() {
+        let lock = NSLock()
+        var calls = 0
+        _ = AccessibilityMenuBarInventory.collect(count: 4) { _, _ in
+            lock.lock(); calls += 1; lock.unlock()
+            return .items([])
+        }
+        XCTAssertEqual(calls, 4)
+    }
+}
