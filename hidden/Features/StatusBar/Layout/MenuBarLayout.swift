@@ -49,10 +49,14 @@ struct MenuBarLayout: Equatable {
 }
 
 enum MenuBarLayoutResolver {
-    // Bundles whose items are macOS's own controls (clock, Wi-Fi, Control Center...).
-    // They cannot be hidden by bundle, so they are left out of the layout and kept
-    // visible separately.
-    static let systemItemOwners: Set<String> = ["com.apple.MenuBarAgent", "com.apple.controlcenter", "com.apple.systemuiserver"]
+    // Bundles whose items are macOS's own controls protected by system item
+    // identifiers (clock, Wi-Fi, Control Center...). They cannot be hidden by
+    // bundle, so they are left out of the layout and kept visible separately.
+    // SystemUIServer is not one of them: its legacy Menu Extras (Time
+    // Machine...) carry no system item identifier and can only stay visible
+    // through the per-bundle allow list, so they are sectioned by position like
+    // any other app.
+    static let systemItemOwners: Set<String> = ["com.apple.MenuBarAgent", "com.apple.controlcenter"]
 
     static func resolve(inventory: [MenuBarInventoryItem],
                         separatorFrame: CGRect,
