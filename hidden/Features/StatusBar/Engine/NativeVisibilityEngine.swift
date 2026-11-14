@@ -379,6 +379,10 @@ extension NativeVisibilityEngine {
             "allowedBundles": assertion == nil ? [] : assertionBundles,
             "sections": sections,
             "clockWatched": clock.onClick != nil,
+            "unprovenVisibleSystemItems": layout?.unprovenVisibleSystemItems ?? [],
+            "unnameableVisibleItems": layout?.unnameableVisibleItems ?? [],
+            "unkeepableSystemItems": unkeepableSystemItems.sorted(),
+            "lastUnavailableReason": lastUnavailableReason ?? NSNull(),
             "debugBoundaryX": Self.debugBoundaryX.map { Double($0) } ?? NSNull(),
             "debugAlwaysHiddenX": Self.debugAlwaysHiddenX.map { Double($0) } ?? NSNull()
         ]
