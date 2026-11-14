@@ -46,6 +46,7 @@
 		C54910547530FE2FA3D252A6 /* AccessibilityMenuBarInventory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */; };
 		A8B03FA8D4CF2DDD0EBB3056 /* NativeVisibilityEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F248811CF183BD0A4D71C4C6 /* NativeVisibilityEngine.swift */; };
 		09B2F44606065391084C0231 /* NativeVisibilityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0070AA937997995EA799D01A /* NativeVisibilityBridge.swift */; };
+		AFF0E4924C046CE3BEA62474 /* MenuBarClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B82DD0CF10297DD6BF91E5 /* MenuBarClock.swift */; };
 		51977397CC1141721E72D40E /* HBNativeVisibilityShim.m in Sources */ = {isa = PBXBuildFile; fileRef = D1484680F97D4EF3661639C5 /* HBNativeVisibilityShim.m */; };
 		78703EDD27C9AA283482C1E3 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C97B8E220147FE0007559C /* Constant.swift */; };
 		8835DF2D3C3ECAE4C7766945 /* MenuBarEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DDBB306F3907BFB2D9E6DCF /* MenuBarEngine.swift */; };
@@ -54,6 +55,7 @@
 		A554D3CDC5D46BD58888E63F /* AccessibilityMenuBarInventory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */; };
 		869644DE3B6CBE7AE976E88A /* NativeVisibilityEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F248811CF183BD0A4D71C4C6 /* NativeVisibilityEngine.swift */; };
 		F6918B5DB22F557F7D83F739 /* NativeVisibilityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0070AA937997995EA799D01A /* NativeVisibilityBridge.swift */; };
+		A778421DAF4C2939BBFE33D6 /* MenuBarClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B82DD0CF10297DD6BF91E5 /* MenuBarClock.swift */; };
 		A6BC2D15D7C6BDBC5F894D62 /* HBNativeVisibilityShim.m in Sources */ = {isa = PBXBuildFile; fileRef = D1484680F97D4EF3661639C5 /* HBNativeVisibilityShim.m */; };
 		2CEFC27766BCEA39CD11079F /* MenuBarEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57343F39835408A99E25A6E /* MenuBarEngineTests.swift */; };
 		9C79B5D97BC90E0174BC52BE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F2F828CAAE82A4D34BDDCBB /* Cocoa.framework */; };
@@ -137,6 +139,7 @@
 		FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityMenuBarInventory.swift; sourceTree = "<group>"; };
 		F248811CF183BD0A4D71C4C6 /* NativeVisibilityEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeVisibilityEngine.swift; sourceTree = "<group>"; };
 		0070AA937997995EA799D01A /* NativeVisibilityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeVisibilityBridge.swift; sourceTree = "<group>"; };
+		03B82DD0CF10297DD6BF91E5 /* MenuBarClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarClock.swift; sourceTree = "<group>"; };
 		4158264A15719D4233497425 /* HBNativeVisibilityShim.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HBNativeVisibilityShim.h; sourceTree = "<group>"; };
 		D1484680F97D4EF3661639C5 /* HBNativeVisibilityShim.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HBNativeVisibilityShim.m; sourceTree = "<group>"; };
 		C26FA55CE7C1DDA6A96F4B92 /* Hidden-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Hidden-Bridging-Header.h; sourceTree = "<group>"; };
@@ -368,6 +371,7 @@
 				D1484680F97D4EF3661639C5 /* HBNativeVisibilityShim.m */,
 				4158264A15719D4233497425 /* HBNativeVisibilityShim.h */,
 				0070AA937997995EA799D01A /* NativeVisibilityBridge.swift */,
+				03B82DD0CF10297DD6BF91E5 /* MenuBarClock.swift */,
 			);
 			path = Native;
 			sourceTree = "<group>";
@@ -539,6 +543,7 @@
 				62C8B44F0D264D96B75FF0FC /* ExpandCollapseAction.swift in Sources */,
 				51977397CC1141721E72D40E /* HBNativeVisibilityShim.m in Sources */,
 				09B2F44606065391084C0231 /* NativeVisibilityBridge.swift in Sources */,
+				AFF0E4924C046CE3BEA62474 /* MenuBarClock.swift in Sources */,
 				A8B03FA8D4CF2DDD0EBB3056 /* NativeVisibilityEngine.swift in Sources */,
 				C54910547530FE2FA3D252A6 /* AccessibilityMenuBarInventory.swift in Sources */,
 				BBA01366FE8989DC002AC9DF /* MenuBarLayout.swift in Sources */,
@@ -577,6 +582,7 @@
 				A554D3CDC5D46BD58888E63F /* AccessibilityMenuBarInventory.swift in Sources */,
 				869644DE3B6CBE7AE976E88A /* NativeVisibilityEngine.swift in Sources */,
 				F6918B5DB22F557F7D83F739 /* NativeVisibilityBridge.swift in Sources */,
+				A778421DAF4C2939BBFE33D6 /* MenuBarClock.swift in Sources */,
 				A6BC2D15D7C6BDBC5F894D62 /* HBNativeVisibilityShim.m in Sources */,
 				B5435023F0224141B232FCC9 /* ExpandCollapseAction.swift in Sources */,
 				160B7980C8A44829A864BBA6 /* AutoStart.swift in Sources */,
