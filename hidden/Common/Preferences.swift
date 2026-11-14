@@ -114,6 +114,7 @@ enum Preferences {
 
         set {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
+            NotificationCenter.default.post(Notification(name: .useFullStatusBarToggle))
         }
     }
 

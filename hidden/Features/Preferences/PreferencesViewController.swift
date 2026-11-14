@@ -62,6 +62,16 @@ class PreferencesViewController: NSViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
     }
 
+    private var statusBarBelowToolbar: NSLayoutConstraint?
+
+    // The storyboard's fixed top offset predates taller toolbars; keep the mock menu bar below it.
+    func pinStatusBarBelowToolbar(of window: NSWindow) {
+        guard let guide = window.contentLayoutGuide as? NSLayoutGuide else { return }
+        statusBarBelowToolbar?.isActive = false
+        statusBarBelowToolbar = statusBarStackView.topAnchor.constraint(greaterThanOrEqualTo: guide.topAnchor, constant: 8)
+        statusBarBelowToolbar?.isActive = true
+    }
+
     deinit {
         // Balance the viewDidLoad observer (PRs #335/#346).
         NotificationCenter.default.removeObserver(self, name: .prefsChanged, object: nil)

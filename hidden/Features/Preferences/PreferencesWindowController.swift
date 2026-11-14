@@ -22,7 +22,9 @@ class PreferencesWindowController: NSWindowController {
     
     private var menuSegment: MenuSegment = .general {
         didSet {
+            let size = window?.contentView?.frame.size
             updateVC()
+            if let size { window?.setContentSize(size) }
         }
     }
     
@@ -32,6 +34,7 @@ class PreferencesWindowController: NSWindowController {
     
     override func windowDidLoad() {
         super.windowDidLoad()
+        window?.toolbar?.centeredItemIdentifier = NSToolbarItem.Identifier("F7DA19CF-BC58-47E1-8140-D04939EE4CA7")
         updateVC()
     }
     
@@ -75,6 +78,8 @@ class PreferencesWindowController: NSWindowController {
         switch menuSegment {
         case .general:
             self.window?.contentViewController = preferencesVC
+            // Pin before the first draw; doing it in viewDidAppear flickers.
+            if let window { preferencesVC.pinStatusBarBelowToolbar(of: window) }
         case .about:
             self.window?.contentViewController = aboutVC
         }
