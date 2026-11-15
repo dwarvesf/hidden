@@ -583,6 +583,9 @@ extension StatusBarController {
             expandMenubar()
         case "toggle":
             expandCollapseIfNeeded()
+        case "toggle-full-bar-once":
+            // What Shift-click on the arrow runs.
+            expandCollapseIfNeeded(fullBarOnce: true)
         case "toggle-always-hidden":
             // What Option-click on the arrow runs.
             showHideSeparatorsAndAlwayHideArea()
@@ -720,6 +723,7 @@ extension StatusBarController {
             "state": String(describing: menuBarEngine.state),
             "activationPolicy": policies[NSApp.activationPolicy()] ?? "unknown",
             "useFullStatusBarOnExpand": Preferences.useFullStatusBarOnExpandEnabled,
+            "fullBarThisExpansion": fullBarThisExpansion,
             "alwaysHiddenSectionEnabled": Preferences.alwaysHiddenSectionEnabled,
             "areSeparatorsHidden": Preferences.areSeparatorsHidden,
             "alwaysHiddenItemVisible": btnAlwaysHidden?.isVisible ?? false,
