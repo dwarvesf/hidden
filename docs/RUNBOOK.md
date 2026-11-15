@@ -124,6 +124,12 @@ generate_appcast --ed-key-file <(op read 'op://dfoundation-prod/Hidden Bar Spark
 
 # 4. publish: the zip and appcast.xml are both release assets
 gh release upload v1.12 Hidden-Bar-v1.12-macos.zip appcast.xml --clobber -R dwarvesf/hidden
+
+# 5. also upload a copy of the zip named Hidden-Bar-macos.zip, so
+#    releases/latest/download/Hidden-Bar-macos.zip stays stable (a byte-identical
+#    copy; the appcast and the Homebrew cask keep using the versioned name)
+cp Hidden-Bar-v1.12-macos.zip Hidden-Bar-macos.zip
+gh release upload v1.12 Hidden-Bar-macos.zip --clobber -R dwarvesf/hidden
 ```
 
 Check before announcing: `curl -sIL https://github.com/dwarvesf/hidden/releases/latest/download/appcast.xml`

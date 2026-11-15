@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.11.3 (2026-11-15)
+
+A hotfix for 1.11.2.
+
+### Fixed
+- An app that keeps the microphone open (Wispr Flow, Krisp, Discord, dictation tools) no longer stops the bar from hiding. This was a 1.11.2 regression from the recording-indicator fix (#432). Now the bar expands once when the microphone or a camera turns on, and you can collapse it again as usual. A new Preferences checkbox, "Show the whole bar when the microphone or camera turns on", turns that off ([#475](https://github.com/dwarvesf/hidden/pull/475)).
+- macOS 27, direct build: when Hidden Bar runs from outside Applications (Downloads, for example), it no longer hides its own arrow. It hides nothing until you move it to Applications ([#475](https://github.com/dwarvesf/hidden/pull/475)).
+
+### Added
+- Direct build: switching from the App Store build offers to import your settings, which used to reset ([#464](https://github.com/dwarvesf/hidden/issues/464)), then to move the App Store copy to the Trash, and to move Hidden Bar to /Applications if it runs from somewhere else. Each offer shows once and does nothing until you click ([#474](https://github.com/dwarvesf/hidden/pull/474)).
+- App Store build on macOS 27: the notice now shows the `brew install --cask hiddenbar` command ([#474](https://github.com/dwarvesf/hidden/pull/474)).
+
 ## v1.11.2 (2026-11-15)
 
 Mostly macOS 27 fixes for the direct download build, plus auto-update. Thanks to everyone whose pull requests went into this release: @lllyt8, @bhaveshnigam, @Shigo-45, @kwvg, @renovys, @goosefraba, @DanishjeetSingh, @khallmark, @richarddemann, @antib0t, @Metekilic, @voltangle and @gmcinalli.
