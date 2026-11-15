@@ -17,7 +17,24 @@ Dùng tính năng luôn ẩn để làm thanh menu gọn gàng hơn bằng cách
 Các bước thực hiện:
 1. Bật tính năng luôn ẩn “|” (thanh dọc có màu hơi mờ sẽ xuất hiện)
 2. Giữ phím ⌘ và kéo thanh mờ này về phía bên tay trái của thanh không mờ, di chuyển icons của ứng dụng mà bạn không muốn hiện kể cả khi đang mở rộng (hiện ẩn).
-3. Sau cùng, click phải vào icon “<” để luôn ẩn những icon này.
+3. Sau cùng, giữ phím ⌥ Option và click vào icon “<” để luôn ẩn những icon này.
 Để hiện lại những icon luôn ẩn:
-1. Click phải vào nút “<” 😉!
+1. Giữ phím ⌥ Option và click vào nút “<” 😉!
+";
+"Arrow style" = "Arrow style";
+"Arrow" = "Arrow";
+"Chevron" = "Chevron";
+"Dot" = "Dot";
+"Line" = "Line";
+"Hidden Bar needs Accessibility access to hide icons." = "Hidden Bar needs Accessibility access to hide icons.";
+"Open Settings…" = "Open Settings…";
+"Expand the bar when the pointer rests on the menu bar" = "Expand the bar when the pointer rests on the menu bar";
+"Tutorial text (arrow boundary)" = "
+Use the always hidden feature to keep your icons tidy. Here's how to set it
+Steps to enable:
+1. Enable the always hidden “|” (translucent color bar)
+2. Hold  ⌘ and drag it to the left of the arrow, then move any icons you want to disappear on the left of that bar.
+3. Finally, hold ⌥ Option and click the collapse “<” icon to make it disappear.
+Steps to view always hidden icons:
+1. Option-click the “<” icon again to view and repeat the action to enable the feature. Enjoy 😉!
 ";

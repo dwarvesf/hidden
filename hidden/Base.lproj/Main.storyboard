@@ -94,7 +94,7 @@
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="NSToolbarPrintItem" id="ujw-Ab-7oS"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="SEF-Az-T9w"/>
-                                <toolbarItem implicitItemIdentifier="F7DA19CF-BC58-47E1-8140-D04939EE4CA7" label="Custom View" paletteLabel="Custom View" sizingBehavior="auto" id="NIO-JJ-pjq">
+                                <toolbarItem implicitItemIdentifier="F7DA19CF-BC58-47E1-8140-D04939EE4CA7" sizingBehavior="auto" id="NIO-JJ-pjq">
                                     <nil key="toolTip"/>
                                     <segmentedControl key="view" verticalHuggingPriority="750" id="wAJ-zO-0Lg">
                                         <rect key="frame" x="0.0" y="14" width="145" height="23"/>
@@ -602,7 +602,7 @@ between sections to configure Hidden Bar.</string>
                                         <constraint firstAttribute="bottom" secondItem="RGE-Xv-zm5" secondAttribute="bottom" constant="8" id="BvJ-gy-2qG"/>
                                         <constraint firstItem="EVs-2B-Bqx" firstAttribute="top" secondItem="pJz-eb-ydI" secondAttribute="bottom" constant="16" id="Hpj-p4-UQa"/>
                                         <constraint firstItem="U3K-oK-4ET" firstAttribute="centerY" secondItem="EVs-2B-Bqx" secondAttribute="centerY" id="Mmr-8O-VNL"/>
-                                        <constraint firstItem="pJz-eb-ydI" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="38" id="Rdj-2r-VTd"/>
+                                        <constraint firstItem="pJz-eb-ydI" firstAttribute="top" secondItem="TZd-5p-NFL" secondAttribute="top" constant="38" priority="250" id="Rdj-2r-VTd"/>
                                         <constraint firstItem="uBw-I6-e5a" firstAttribute="leading" secondItem="eBG-Wk-IXv" secondAttribute="trailing" constant="4" id="W2B-29-wzv"/>
                                         <constraint firstItem="eBG-Wk-IXv" firstAttribute="centerY" secondItem="uBw-I6-e5a" secondAttribute="centerY" id="a1h-Oc-pu4"/>
                                         <constraint firstItem="uBw-I6-e5a" firstAttribute="top" secondItem="pJz-eb-ydI" secondAttribute="bottom" constant="16" id="ap3-hF-i14"/>
@@ -765,6 +765,16 @@ between sections to configure Hidden Bar.</string>
                                                     <action selector="notchOverflowCheckChanged:" target="XfG-lQ-9wD" id="Ntc-Ov-Ac1"/>
                                                 </connections>
                                             </button>
+                                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Stl-Ex-Bx1" userLabel="Check Box Stealth Expand Icon">
+                                                <rect key="frame" x="-2" y="-51" width="320" height="18"/>
+                                                <buttonCell key="cell" type="check" title="Fade the arrow while collapsed (stealth mode)" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Stl-Ex-Cl1">
+                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                    <font key="font" metaFont="system"/>
+                                                </buttonCell>
+                                                <connections>
+                                                    <action selector="stealthExpandIconChanged:" target="XfG-lQ-9wD" id="Stl-Ex-Ac1"/>
+                                                </connections>
+                                            </button>
                                         </subviews>
                                         <visibilityPriorities>
                                             <integer value="1000"/>
@@ -773,8 +783,10 @@ between sections to configure Hidden Bar.</string>
                                             <integer value="1000"/>
                                             <integer value="1000"/>
                                             <integer value="1000"/>
+                                            <integer value="1000"/>
                                         </visibilityPriorities>
                                         <customSpacing>
+                                            <real value="3.4028234663852886e+38"/>
                                             <real value="3.4028234663852886e+38"/>
                                             <real value="3.4028234663852886e+38"/>
                                             <real value="3.4028234663852886e+38"/>
@@ -877,6 +889,7 @@ between sections to configure Hidden Bar.</string>
                         <outlet property="checkBoxNotchOverflow" destination="Ntc-Ov-Bx1" id="Ntc-Ov-Ot1"/>
                         <outlet property="checkBoxShowAlwaysHiddenSection" destination="yaS-iD-h7g" id="T5N-bN-yl2"/>
                         <outlet property="checkBoxShowPreferences" destination="gWT-L1-Xdf" id="sC8-cw-Fmh"/>
+                        <outlet property="checkBoxStealthExpandIcon" destination="Stl-Ex-Bx1" id="Stl-Ex-Ot1"/>
                         <outlet property="checkBoxUseFullStatusbar" destination="EQP-7r-FSu" id="Vll-3t-F9V"/>
                         <outlet property="lblAlwayHidden" destination="eBG-Wk-IXv" id="JaJ-0i-o6U"/>
                         <outlet property="statusBarStackView" destination="pJz-eb-ydI" id="huU-as-oWi"/>

@@ -76,7 +76,7 @@ flowchart TD
 | Layer | Mechanism | Cost when unused |
 |---|---|---|
 | Auto-hide | one-shot `Timer` after expand; at fire, if the pointer sits in any screen's menubar band (`visibleFrame.maxY ... frame.maxY`), it re-arms instead of collapsing | none (single point-in-rect check at fire) |
-| Hover-to-expand (opt-in) | global `.mouseMoved` monitor + 0.5s dwell timer; installed only when the `hoverToExpand` default is true at launch | zero: monitor not installed |
+| Hover-to-expand (opt-in) | global `.mouseMoved` monitor + 0.5s dwell timer; installed while the `hoverToExpand` default is true (Preferences checkbox; installed or removed on change) | zero: monitor not installed |
 | Self-restore | `isVisible = true` forced on our items at launch; Cmd-dragging them off otherwise bricks the app (its only UI is those items) | none |
 | Always-hidden section | a second separator item; its own length games, gated by `alwaysHiddenSectionEnabled` | item not created |
 
@@ -96,6 +96,14 @@ dependency is HotKey (a small Carbon `RegisterEventHotKey` wrapper) locked by
 the committed `Package.resolved`. The opt-in hover monitor observes pointer
 position only and discards event payloads. About-window links are hardcoded.
 A full-tree audit (2026-06) scored 9/10 with hygiene-level findings only.
+
+The above describes the App Store build. The direct build (target **Hidden Bar
+Direct**, unsandboxed) additionally links [Sparkle](https://sparkle-project.org)
+2 for self-update: it fetches one appcast from the GitHub release assets over
+HTTPS and installs only archives whose EdDSA signature matches `SUPublicEDKey`.
+No system profile is sent (Sparkle's `SUEnableSystemProfiling` stays off). The
+App Store binary contains no Sparkle code, framework, or Info.plist keys; see
+the RUNBOOK for how that split is built and checked.
 
 ## Known architectural limits
 

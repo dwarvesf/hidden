@@ -24,9 +24,21 @@ section is enabled.
   Accessibility) to see where your icons are. Without it the bar stays
   expanded.
 - Hiding is per app: an app with several icons hides or shows them together.
+  If any of its icons is right of the arrow, all of them stay visible; to hide
+  the app, ⌘-drag every one of its icons left of the arrow.
+- An app that starts while the bar is collapsed (a login item that starts
+  after Hidden Bar, an app you relaunch) shows in the section it was in last
+  time, or stays visible if Hidden Bar has never seen it. The next collapse
+  places it by where macOS put its icon, so a brand-new icon that macOS puts
+  on the far left is hidden from then on; ⌘-drag it right of the arrow once.
+- An icon whose app has no bundle identifier (a script run by an interpreter,
+  some helpers) cannot be kept visible on macOS 27. Preferences offers to show
+  all icons while one of them sits right of the arrow.
 - macOS's own items (clock, Wi-Fi, Sound, Control Center) always stay visible.
 - Run Hidden Bar from `/Applications`; macOS only recognizes that copy as
   Hidden Bar, and a copy elsewhere hides its own arrow.
+- Native hiding blocks Notification Center, so clicking the clock while the bar is collapsed expands it, opens Notification Center, and collapses it again when the panel closes, unless you expand or collapse it yourself meanwhile.
+- Native hiding also hides the menu-bar capsule that names the app using the microphone or camera (the orange or green indicator); the dot in the screen corner still shows. So while any app uses the microphone or a camera, Hidden Bar stops hiding and shows the whole bar, and hides again when that stops. The arrow keeps its collapsed look meanwhile. Screen recording is not covered: macOS offers no public way to detect it.
 
 ## Preferences window
 
@@ -57,14 +69,17 @@ section is enabled.
 - **Display changes**: plugging in or removing monitors re-sizes the hidden zone
   for the widest attached screen automatically.
 
+## Hover to expand
+
+Preferences > Settings > "Expand the bar when the pointer rests on the menu bar"
+expands the collapsed bar after the pointer rests in the menu bar for about half a
+second. Off by default; it takes effect at once, no relaunch.
+
 ## Hidden settings (Terminal)
 
 All via `defaults`; quit and relaunch the app after changing them.
 
 ```sh
-# expand by hovering the menu bar for ~0.5s (off by default)
-defaults write com.dwarvesv.minimalbar hoverToExpand -bool true
-
 # auto-collapse delay in seconds (the UI offers a fixed list; any value works)
 defaults write com.dwarvesv.minimalbar numberOfSecondForAutoHide -float 5
 
@@ -84,6 +99,7 @@ To undo any of them: `defaults delete com.dwarvesv.minimalbar <key>`.
 | App language stuck | See the `AppleLanguages` command above, or System Settings > General > Language & Region > Applications |
 | Nothing hides on a macOS 27 beta | Known (issue #360); the menu bar re-architecture broke the hiding mechanism, fix under investigation |
 | A new or just-updated app's icon shows up already hidden | Expected, see "Why new icons start hidden" below; ⌘-drag it to the right of the separator once |
+| Date disappears from the clock when collapsed (macOS 26 and earlier) | The collapsed bar takes the space macOS measures; set System Settings > Control Center > Clock > Show date to Always. macOS 27 with the direct build is not affected |
 
 ### Why new icons start hidden
 

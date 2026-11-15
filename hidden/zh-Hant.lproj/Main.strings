@@ -185,12 +185,6 @@
 /* Class = "NSMenuItem"; title = "Copy Ruler"; ObjectID = "MkV-Pr-PK5"; */
 "MkV-Pr-PK5.title" = "拷貝尺標";
 
-/* Class = "NSToolbarItem"; label = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
-"NIO-JJ-pjq.label" = "自訂顯示方式";
-
-/* Class = "NSToolbarItem"; paletteLabel = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
-"NIO-JJ-pjq.paletteLabel" = "自訂顯示方式";
-
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
 "NMo-om-nkz.title" = "服務";
 

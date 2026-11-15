@@ -29,6 +29,11 @@ class StatusBarController: MenuBarItemProvider {
     // How hiding is achieved (separator lengths) lives in the engine; this class
     // owns the items, the UI, and when to collapse or expand.
     private lazy var menuBarEngine: MenuBarEngine = MenuBarEngineFactory.make(items: self)
+
+    // Read only when the auto-hide timer fires.
+    private lazy var popupGuard = AutoCollapsePopupGuard(menuBarItemOwners: { [weak self] in
+        self?.menuBarEngine.menuBarItemOwners ?? []
+    })
     
     private let imgIconLine = NSImage(named:NSImage.Name("ic_line"))
     
@@ -62,11 +67,10 @@ class StatusBarController: MenuBarItemProvider {
     // the mouse-in-menubar guard does not cover it. With "use full menu bar on
     // expanding" on, an auto-collapse deactivates the app and dismisses this
     // window mid-edit (#170, same family as #66/#151). Defer the collapse while
-    // it is on screen. isWindowLoaded short-circuits without force-loading the
-    // window when preferences were never opened.
+    // it is on screen, without creating the controller or loading its window
+    // when preferences were never opened.
     private var isPreferencesWindowVisible: Bool {
-        let wc = PreferencesWindowController.shared
-        return wc.isWindowLoaded && (wc.window?.isVisible ?? false)
+        return PreferencesWindowController.isVisible
     }
     
     //MARK: - Methods
@@ -74,14 +78,24 @@ class StatusBarController: MenuBarItemProvider {
         setupUI()
         restoreRemovedStatusItems()
         setupAlwayHideStatusBar()
-        setupHoverToExpandIfEnabled()
+        syncHoverToExpand()
+        NotificationCenter.default.addObserver(self, selector: #selector(syncHoverToExpand), name: .prefsChanged, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(syncActivationPolicyWithFullStatusBar), name: .useFullStatusBarToggle, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(refreshArrow), name: .stealthExpandIconToggle, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(refreshArrow), name: .arrowStyleChanged, object: nil)
+        watchAccessibilityPermission()
+        #if DEBUG
+        installDebugHooks()
+        #endif
+        // Sections are read from where the items sit, so wait until macOS has put
+        // them back in place (the always-hidden separator may have been taken
+        // out of the bar when the app quit).
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            self?.collapseMenuBar()
+            self?.collapseAtLaunch(retriesLeft: 16)
         }
 
-        if Preferences.areSeparatorsHidden {hideSeparators()}
         autoCollapseIfNeeded()
     }
 
@@ -93,10 +107,18 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
 
-    // Opt-in via `defaults write com.dwarvesv.minimalbar hoverToExpand -bool true`.
-    // No monitor is installed at all unless the pref is true at launch.
-    private func setupHoverToExpandIfEnabled() {
-        guard Preferences.hoverToExpand else { return }
+    // Opt-in via the Preferences checkbox (or `defaults write com.dwarvesv.minimalbar
+    // hoverToExpand -bool true` before launch). No monitor exists unless the pref is
+    // true; flipping it installs or removes the monitor at once.
+    @objc private func syncHoverToExpand() {
+        guard Preferences.hoverToExpand else {
+            if let monitor = hoverMonitor { NSEvent.removeMonitor(monitor) }
+            hoverMonitor = nil
+            hoverDwellTimer?.invalidate()
+            hoverDwellTimer = nil
+            return
+        }
+        guard hoverMonitor == nil else { return }
         NSLog("HoverToExpand: enabled, installing global mouse monitor")
         hoverMonitor = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved) { [weak self] _ in
             guard let self = self else { return }
@@ -111,6 +133,7 @@ class StatusBarController: MenuBarItemProvider {
                 guard let self = self else { return }
                 self.hoverDwellTimer = nil
                 if self.isCollapsed && self.isMouseInMenuBar {
+                    self.menuBarEngine.userChangedBar()
                     self.expandMenubar()
                 }
             }
@@ -136,6 +159,34 @@ class StatusBarController: MenuBarItemProvider {
         // Create the engine now so one that does not use the separator (macOS 27
         // native hiding) takes it back out before it is ever drawn.
         _ = menuBarEngine
+        // A click on the macOS 27 clock expands and collapses the bar as the arrow does.
+        if let native = menuBarEngine as? NativeVisibilityEngine {
+            native.expandBar = { [weak self] in self?.expandMenubar() }
+            native.collapseBar = { [weak self] in self?.collapseMenuBar() }
+        }
+    }
+
+    // macOS 26 can take more than the first second to place the items; the order
+    // checks refuse until then, so retry for up to 4 s more, then let them decide.
+    private func collapseAtLaunch(retriesLeft: Int) {
+        if !menuBarEngine.isArrangementKnown && retriesLeft > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                self?.collapseAtLaunch(retriesLeft: retriesLeft - 1)
+            }
+            return
+        }
+        if Preferences.areSeparatorsHidden { hideSeparators() }
+        collapseMenuBar()
+    }
+
+    // macOS 27: Preferences shows the missing permission, and a grant hides at
+    // once instead of after the next click or a relaunch.
+    private func watchAccessibilityPermission() {
+        let permission = AccessibilityPermission.shared
+        permission.onChange = {
+            NotificationCenter.default.post(name: .accessibilityPermissionChanged, object: nil)
+        }
+        permission.onRestored = { [weak self] in self?.collapseMenuBar() }
     }
 
     private func setupUI() {
@@ -162,7 +213,8 @@ class StatusBarController: MenuBarItemProvider {
         let event = NSApp.currentEvent
         // AXPress synthesis carries no NSEvent; the resolver maps nil to .toggle
         // so VoiceOver can operate the bar.
-        switch ExpandCollapseActionResolver.action(eventType: event?.type, optionPressed: event?.modifierFlags.contains(.option) ?? false) {
+        let optionPressed = ExpandCollapseActionResolver.isOptionPressed(eventFlags: event?.modifierFlags, liveFlags: NSEvent.modifierFlags)
+        switch ExpandCollapseActionResolver.action(eventType: event?.type, optionPressed: optionPressed) {
         case .toggle:
             self.expandCollapseIfNeeded()
         case .contextMenu:
@@ -212,7 +264,10 @@ class StatusBarController: MenuBarItemProvider {
     func showHideSeparatorsAndAlwayHideArea() {
         Preferences.areSeparatorsHidden ? self.showSeparators() : self.hideSeparators()
         
-        if self.isCollapsed {self.expandMenubar()}
+        if self.isCollapsed {
+            menuBarEngine.userChangedBar()
+            self.expandMenubar()
+        }
     }
     
     private func showSeparators() {
@@ -239,6 +294,12 @@ class StatusBarController: MenuBarItemProvider {
         //prevented rapid click cause icon show many in Dock
         if isToggle {return}
         isToggle = true
+        menuBarEngine.userChangedBar()
+        // Without Accessibility the collapse below hides nothing; show the
+        // Preferences, which explain what is missing, instead of a dead click.
+        if AccessibilityPermission.shared.arrowClickOpensPreferences(isCollapsed: isCollapsed) {
+            Util.showPrefWindow()
+        }
         self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             self?.isToggle = false
@@ -274,9 +335,19 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
 
+    private var collapsedArrowImage: NSImage? {
+        Assets.toggleImage(style: Preferences.arrowStyle, isCollapsed: true,
+                           stealthEnabled: Preferences.stealthExpandIconEnabled)
+    }
+
+    // Applies a stealth or arrow-style change to an arrow that is already on screen.
+    @objc private func refreshArrow() {
+        btnExpandCollapse.button?.image = isCollapsed ? collapsedArrowImage : Assets.collapseImage
+    }
+
     private func didCollapseMenuBar() {
         if let button = btnExpandCollapse.button {
-            button.image = Assets.expandImage
+            button.image = collapsedArrowImage
         }
         if Preferences.useFullStatusBarOnExpandEnabled {
             NSApp.setActivationPolicy(.accessory)
@@ -290,6 +361,7 @@ class StatusBarController: MenuBarItemProvider {
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
         }
+        popupGuard.reset()
         autoCollapseIfNeeded()
         
         if Preferences.useFullStatusBarOnExpandEnabled {
@@ -299,6 +371,21 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
     
+    // Expand/collapse skips the policy change when the option is off, so sync it on toggle.
+    @objc private func syncActivationPolicyWithFullStatusBar() {
+        let wantsRegular = Preferences.useFullStatusBarOnExpandEnabled && !isCollapsed
+        let policy: NSApplication.ActivationPolicy = wantsRegular ? .regular : .accessory
+        guard NSApp.activationPolicy() != policy else { return }
+        let keyWindow = NSApp.isActive ? NSApp.keyWindow : nil
+        NSApp.setActivationPolicy(policy)
+        if wantsRegular {
+            NSApp.activate(ignoringOtherApps: true)
+        } else if let keyWindow {
+            // Dropping to .accessory deactivates the app, so bring back the window in use.
+            DispatchQueue.main.async { keyWindow.bringToFront() }
+        }
+    }
+
     private func autoCollapseIfNeeded() {
         guard Preferences.isAutoHide else {return}
         guard !isCollapsed else { return }
@@ -313,8 +400,12 @@ class StatusBarController: MenuBarItemProvider {
             // Don't yank the bar shut mid-interaction: while the pointer is in the
             // menubar (hovering, clicking, dragging icons), defer and re-arm.
             // Intentionally unbounded; each re-arm invalidates the previous timer,
-            // so deferral never accumulates timers.
-            if self.isMouseInMenuBar || self.isPreferencesWindowVisible {
+            // so deferral never accumulates timers. Notification Center opened
+            // from the clock collapses the bar itself once it closes. A popup
+            // hanging from the menu bar (#319) defers too, for up to 10 minutes;
+            // the window list is read last, only when nothing else defers.
+            if self.isMouseInMenuBar || self.isPreferencesWindowVisible || self.menuBarEngine.defersAutoCollapse
+                || self.popupGuard.defersCollapse() {
                 self.startTimerToAutoHide()
             } else {
                 self.collapseMenuBar()
@@ -345,6 +436,16 @@ class StatusBarController: MenuBarItemProvider {
         toggleAutoHideItem.target = self
         menu.addItem(toggleAutoHideItem)
 
+        #if !HIDDENBAR_NATIVE_VISIBILITY
+        if let macOS27Item = MacOS27Notice.shared.makeMenuItem() {
+            menu.addItem(macOS27Item)
+        }
+        #endif
+
+        #if HIDDENBAR_SPARKLE
+        menu.addItem(UpdateController.shared.makeMenuItem())
+        #endif
+
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit".localized, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
@@ -372,22 +473,34 @@ class StatusBarController: MenuBarItemProvider {
 //MARK: - Alway hide feature
 extension StatusBarController {
     private func setupAlwayHideStatusBar() {
-        NotificationCenter.default.addObserver(self, selector: #selector(toggleStatusBarIfNeeded), name: .alwayHideToggle, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(alwaysHiddenSectionToggled), name: .alwayHideToggle, object: nil)
         toggleStatusBarIfNeeded()
     }
-    @objc private func toggleStatusBarIfNeeded() {
+
+    // Turning the section on shows its separator so it can be ⌘-dragged into
+    // place; the saved "hide separators" state is reset to match, or the next
+    // Option-click would only flip the preference and appear to do nothing.
+    @objc private func alwaysHiddenSectionToggled() {
+        if Preferences.alwaysHiddenSectionEnabled {
+            Preferences.areSeparatorsHidden = false
+        }
+        toggleStatusBarIfNeeded()
+    }
+
+    private func toggleStatusBarIfNeeded() {
         if Preferences.alwaysHiddenSectionEnabled {
             if let existing = self.btnAlwaysHidden {
                 NSStatusBar.system.removeStatusItem(existing)
             }
             self.btnAlwaysHidden = NSStatusBar.system.statusItem(withLength: 0)
-            menuBarEngine.updateAlwaysHiddenSection(enabled: true, separatorHidden: false)
             if let button = btnAlwaysHidden?.button {
                 button.image = self.imgIconLine
                 button.appearsDisabled = true
             }
             self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate"
             self.btnAlwaysHidden?.isVisible = true
+            // Last, so the engine decides whether the new item stays in the bar.
+            menuBarEngine.updateAlwaysHiddenSection(enabled: true, separatorHidden: false)
         } else {
             if let existing = self.btnAlwaysHidden {
                 NSStatusBar.system.removeStatusItem(existing)
@@ -396,3 +509,135 @@ extension StatusBarController {
         }
     }
 }
+
+#if DEBUG
+//MARK: - Test hooks (Debug builds only)
+// Scripted verification on a Mac that is in use: commands arrive as a
+// distributed notification, so a harness drives the app with no pointer or key
+// input. Never compiled into Release builds.
+//
+//   name: com.dwarvesv.minimalbar.debug.command
+//   userInfo: command, argument (optional), out (path for dump-state JSON)
+extension StatusBarController {
+    static let debugCommandNotification = Notification.Name("com.dwarvesv.minimalbar.debug.command")
+
+    fileprivate func installDebugHooks() {
+        DistributedNotificationCenter.default().addObserver(self,
+                                                            selector: #selector(handleDebugCommand(_:)),
+                                                            name: Self.debugCommandNotification,
+                                                            object: nil,
+                                                            suspensionBehavior: .deliverImmediately)
+        NSLog("DebugHooks: listening for \(Self.debugCommandNotification.rawValue)")
+    }
+
+    @objc private func handleDebugCommand(_ note: Notification) {
+        guard let command = note.userInfo?["command"] as? String else { return }
+        let argument = note.userInfo?["argument"] as? String
+        NSLog("DebugHooks: \(command) \(argument ?? "")")
+        switch command {
+        case "collapse":
+            menuBarEngine.userChangedBar()
+            collapseMenuBar()
+        case "expand":
+            menuBarEngine.userChangedBar()
+            expandMenubar()
+        case "toggle":
+            expandCollapseIfNeeded()
+        case "toggle-always-hidden":
+            // What Option-click on the arrow runs.
+            showHideSeparatorsAndAlwayHideArea()
+        case "always-hidden-section":
+            // What the Preferences checkbox runs.
+            Preferences.alwaysHiddenSectionEnabled = argument == "on"
+        case "full-menu-bar":
+            // What the Preferences checkbox runs.
+            Preferences.useFullStatusBarOnExpandEnabled = argument == "on"
+        case "boundary":
+            NativeVisibilityEngine.debugBoundaryX = argument.flatMap(Double.init).map { CGFloat($0) }
+            menuBarEngine.invalidateLayout()
+        case "always-hidden-boundary":
+            NativeVisibilityEngine.debugAlwaysHiddenX = argument.flatMap(Double.init).map { CGFloat($0) }
+            menuBarEngine.invalidateLayout()
+        case "click-clock":
+            debugClickClock(pressingWithAX: argument == "ax")
+        case "dump-state":
+            break
+        default:
+            NSLog("DebugHooks: unknown command \(command)")
+        }
+        if let out = note.userInfo?["out"] as? String {
+            debugWriteState(to: out)
+        }
+    }
+
+    // A click on the clock without moving the pointer: the mouse-down/up pair is
+    // posted to MenuBarAgent's process only, then the engine's clock-click
+    // handler runs exactly as its global mouse monitor would call it.
+    // With "ax", the engine replays the press with AXPress, which opens the panel.
+    private func debugClickClock(pressingWithAX: Bool) {
+        guard let (pid, clock) = Self.debugClock() else {
+            return NSLog("DebugHooks: clock not found")
+        }
+        let center = CGPoint(x: clock.midX, y: clock.midY)
+        Self.debugPostClick(at: center, toPid: pid)
+        (menuBarEngine as? NativeVisibilityEngine)?.debugClockClicked(at: center, postingTo: pid, pressingWithAX: pressingWithAX)
+    }
+
+    static func debugPostClick(at point: CGPoint, toPid pid: pid_t) {
+        guard let source = CGEventSource(stateID: .privateState) else { return }
+        for type in [CGEventType.leftMouseDown, .leftMouseUp] {
+            guard let event = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: point, mouseButton: .left) else { return }
+            event.flags = []
+            event.setIntegerValueField(.mouseEventClickState, value: 1)
+            event.postToPid(pid)
+        }
+    }
+
+    static func debugClock() -> (pid_t, CGRect)? {
+        guard let agent = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.MenuBarAgent").first else { return nil }
+        let app = AXUIElementCreateApplication(agent.processIdentifier)
+        AXUIElementSetMessagingTimeout(app, 0.5)
+        func value(_ element: AXUIElement, _ attribute: String) -> CFTypeRef? {
+            var value: CFTypeRef?
+            return AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success ? value : nil
+        }
+        func children(_ element: AXUIElement) -> [AXUIElement] {
+            return value(element, kAXChildrenAttribute) as? [AXUIElement] ?? []
+        }
+        guard let bar = value(app, "AXExtrasMenuBar") else { return nil }
+        for group in children(bar as! AXUIElement) {
+            for item in [group] + children(group) where value(item, "AXIdentifier") as? String == "com.apple.menuextra.clock" {
+                if let frame = AccessibilityMenuBarInventory.frame(of: item) {
+                    return (agent.processIdentifier, frame)
+                }
+            }
+        }
+        return nil
+    }
+
+    private func debugWriteState(to path: String) {
+        let policies: [NSApplication.ActivationPolicy: String] = [.regular: "regular", .accessory: "accessory", .prohibited: "prohibited"]
+        var state: [String: Any] = [
+            "engine": String(describing: type(of: menuBarEngine)),
+            "state": String(describing: menuBarEngine.state),
+            "activationPolicy": policies[NSApp.activationPolicy()] ?? "unknown",
+            "useFullStatusBarOnExpand": Preferences.useFullStatusBarOnExpandEnabled,
+            "alwaysHiddenSectionEnabled": Preferences.alwaysHiddenSectionEnabled,
+            "areSeparatorsHidden": Preferences.areSeparatorsHidden,
+            "alwaysHiddenItemVisible": btnAlwaysHidden?.isVisible ?? false,
+            "arrowFrame": btnExpandCollapse.button?.window.map { NSStringFromRect($0.frame) } ?? "none",
+            "alwaysHiddenSeparatorFrame": btnAlwaysHidden?.button?.window.map { NSStringFromRect($0.frame) } ?? "none",
+            "writtenAt": Date().timeIntervalSince1970
+        ]
+        if let engine = menuBarEngine as? NativeVisibilityEngine {
+            state.merge(engine.debugState) { $1 }
+        }
+        do {
+            let data = try JSONSerialization.data(withJSONObject: state, options: [.prettyPrinted, .sortedKeys])
+            try data.write(to: URL(fileURLWithPath: path))
+        } catch {
+            NSLog("DebugHooks: cannot write state: \(error.localizedDescription)")
+        }
+    }
+}
+#endif

@@ -33,6 +33,12 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         setupHotKey()
         openPreferencesIfNeeded()
         detectLTRLang()
+        #if HIDDENBAR_SPARKLE
+        _ = UpdateController.shared // starts the updater and its scheduled checks
+        #endif
+        #if !HIDDENBAR_NATIVE_VISIBILITY
+        MacOS27Notice.shared.showAtLaunchIfNeeded()
+        #endif
     }
 
     /// Hidden Bar is a menu bar utility with no visible window, so launching it a
@@ -65,17 +71,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
     
     func setupAutoStartApp() {
-        removeLegacyLauncherLoginItem()
+        LegacyLoginItem.remove()
         Util.setUpAutoStart(isAutoStart: Preferences.isAutoStart)
-    }
-
-    private func removeLegacyLauncherLoginItem() {
-        // Builds before the SMAppService migration registered a helper app in BTM;
-        // macOS never garbage-collects that record (TN3111), so deauthorize it once.
-        let migratedKey = "smAppServiceMigrated"
-        guard !UserDefaults.standard.bool(forKey: migratedKey) else { return }
-        SMLoginItemSetEnabled("com.dwarvesv.LauncherApplication" as CFString, false)
-        UserDefaults.standard.set(true, forKey: migratedKey)
     }
     
     // A plain value, separate from the side-effecting `register(defaults:)`
@@ -88,7 +85,9 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         UserDefaults.Key.numberOfSecondForAutoHide: 10.0,
         UserDefaults.Key.areSeparatorsHidden: false,
         UserDefaults.Key.alwaysHiddenSectionEnabled: false,
-        UserDefaults.Key.notchOverflowEnabled: true
+        UserDefaults.Key.notchOverflowEnabled: true,
+        UserDefaults.Key.stealthExpandIconEnabled: false,
+        UserDefaults.Key.arrowStyle: ArrowStyle.default.rawValue
     ]
 
     func registerDefaultValues() {

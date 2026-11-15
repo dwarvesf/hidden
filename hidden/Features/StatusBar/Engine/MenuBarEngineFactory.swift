@@ -5,19 +5,40 @@
 //  Copyright © 2026 Dwarves Foundation. All rights reserved.
 //
 
-import Foundation
+import AppKit
 
 // The single place that picks a hiding mechanism for the running OS.
 enum MenuBarEngineFactory {
+    // True when the running build and OS hide icons natively (the arrow is the
+    // boundary), false when the separator-length engine runs.
+    static func usesNativeEngine(osMajorVersion: Int = ProcessInfo.processInfo.operatingSystemVersion.majorVersion) -> Bool {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        return osMajorVersion >= 27
+        #else
+        return false
+        #endif
+    }
+
     static func make(items: MenuBarItemProvider) -> MenuBarEngine {
         // macOS 27 ejects an inflated separator from the menu bar (#360). The
         // direct build hides natively there instead. The App Store build cannot:
         // the sandbox blocks the Accessibility reads that locate the sections.
         #if HIDDENBAR_NATIVE_VISIBILITY
-        if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 {
-            return NativeVisibilityEngine(items: items)
+        if usesNativeEngine() {
+            return NativeVisibilityEngine(items: items,
+                                          captureActivity: CaptureActivityMonitor(),
+                                          pausesHidingForUnkeepableItems: { Preferences.pauseHidingForUnkeepableItems },
+                                          sectionMemory: UserDefaultsSectionMemory(),
+                                          workspaceNotifications: NSWorkspace.shared.notificationCenter)
         }
         #endif
         return LegacyLengthEngine(items: items)
     }
+
+    // Native hiding has no separator and needs the Accessibility permission.
+    static var usesNativeVisibility: Bool { usesNativeEngine() }
+}
+
+extension AccessibilityPermission {
+    static let shared = AccessibilityPermission(needsPermission: MenuBarEngineFactory.usesNativeVisibility)
 }

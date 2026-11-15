@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "929113F021F9D04100173149"
+               BlueprintIdentifier = "51B913D72A4A207DE767D168"
                BuildableName = "Hidden Bar.app"
-               BlueprintName = "Hidden Bar"
+               BlueprintName = "Hidden Bar Direct"
                ReferencedContainer = "container:Hidden Bar.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -78,9 +78,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "929113F021F9D04100173149"
+            BlueprintIdentifier = "51B913D72A4A207DE767D168"
             BuildableName = "Hidden Bar.app"
-            BlueprintName = "Hidden Bar"
+            BlueprintName = "Hidden Bar Direct"
             ReferencedContainer = "container:Hidden Bar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -95,9 +95,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "929113F021F9D04100173149"
+            BlueprintIdentifier = "51B913D72A4A207DE767D168"
             BuildableName = "Hidden Bar.app"
-            BlueprintName = "Hidden Bar"
+            BlueprintName = "Hidden Bar Direct"
             ReferencedContainer = "container:Hidden Bar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

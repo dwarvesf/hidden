@@ -32,6 +32,21 @@ final class ExpandCollapseActionTests: XCTestCase {
         XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .rightMouseUp, optionPressed: true), .toggleSeparators)
     }
 
+    // #434: on macOS 27 the button's mouse-up event arrives with no modifier
+    // flags while Option is physically held; the live flags must still count.
+    func testOptionDetectedFromLiveFlagsWhenEventFlagsAreEmpty() {
+        XCTAssertTrue(ExpandCollapseActionResolver.isOptionPressed(eventFlags: [], liveFlags: .option))
+    }
+
+    func testOptionDetectedFromEventFlags() {
+        XCTAssertTrue(ExpandCollapseActionResolver.isOptionPressed(eventFlags: .option, liveFlags: []))
+    }
+
+    func testNoOptionWhenNeitherSourceHasIt() {
+        XCTAssertFalse(ExpandCollapseActionResolver.isOptionPressed(eventFlags: [], liveFlags: []))
+        XCTAssertFalse(ExpandCollapseActionResolver.isOptionPressed(eventFlags: nil, liveFlags: .shift))
+    }
+
     func testOtherMouseEventTogglesSeparators() {
         // Preserves the old else-branch: any non-left/right click lands on the
         // separators toggle.

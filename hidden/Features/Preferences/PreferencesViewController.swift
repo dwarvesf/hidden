@@ -32,6 +32,7 @@ class PreferencesViewController: NSViewController {
     @IBOutlet weak var checkBoxShowAlwaysHiddenSection: NSButton!
     
     @IBOutlet weak var checkBoxUseFullStatusbar: NSButton!
+    @IBOutlet weak var checkBoxStealthExpandIcon: NSButton!
     @IBOutlet weak var timePopup: NSPopUpButton!
     
     @IBOutlet weak var btnClear: NSButton!
@@ -59,12 +60,145 @@ class PreferencesViewController: NSViewController {
         // checkboxes; hide it on hardware where the feature can't apply.
         // The containing stack view (detachesHiddenViews) reflows on its own.
         checkBoxNotchOverflow.isHidden = !NotchOverflowController.hasNotch
+        addArrowStyleRow()
+        addHoverToExpandRow()
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
+        #if HIDDENBAR_SPARKLE
+        addUpdateRow()
+        #endif
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        addMacOS27Rows()
+        addAccessibilityBanner()
+        #endif
+    }
+
+    private var arrowStylePopup: NSPopUpButton?
+
+    // One popup under the stealth checkbox. Each entry carries a preview of its
+    // collapsed and expanded arrow; picking one redraws the status item at once.
+    private func addArrowStyleRow() {
+        guard let stack = checkBoxStealthExpandIcon.superview as? NSStackView,
+              let index = stack.arrangedSubviews.firstIndex(of: checkBoxStealthExpandIcon) else { return }
+        let label = NSTextField(labelWithString: "Arrow style".localized)
+        let popup = NSPopUpButton(frame: .zero, pullsDown: false)
+        for style in ArrowStyle.allCases {
+            let item = NSMenuItem(title: style.localizedName, action: nil, keyEquivalent: "")
+            item.image = style.previewImage()
+            item.representedObject = style.rawValue
+            popup.menu?.addItem(item)
+        }
+        popup.target = self
+        popup.action = #selector(arrowStyleChanged(_:))
+        popup.selectItem(at: ArrowStyle.allCases.firstIndex(of: Preferences.arrowStyle) ?? 0)
+        let row = NSStackView(views: [label, popup])
+        row.orientation = .horizontal
+        row.spacing = 8
+        stack.insertArrangedSubview(row, at: index + 1)
+        arrowStylePopup = popup
+    }
+
+    @objc private func arrowStyleChanged(_ sender: NSPopUpButton) {
+        guard let raw = sender.selectedItem?.representedObject as? String else { return }
+        Preferences.arrowStyle = ArrowStyle(storedValue: raw)
+    }
+
+    #if HIDDENBAR_SPARKLE
+    private var checkBoxAutoUpdate: NSButton?
+
+    // Direct build only: Sparkle owns the setting, the row just mirrors it.
+    private func addUpdateRow() {
+        guard let stack = checkBoxNotchOverflow.superview as? NSStackView,
+              let index = stack.arrangedSubviews.firstIndex(of: checkBoxNotchOverflow) else { return }
+        let checkBox = NSButton(checkboxWithTitle: "Automatically check for updates".localized,
+                                target: self, action: #selector(autoUpdateChanged(_:)))
+        checkBox.state = UpdateController.shared.automaticallyChecksForUpdates ? .on : .off
+        stack.insertArrangedSubview(checkBox, at: index + 1)
+        checkBoxAutoUpdate = checkBox
+    }
+
+    @objc private func autoUpdateChanged(_ sender: NSButton) {
+        UpdateController.shared.automaticallyChecksForUpdates = sender.state == .on
+    }
+    #endif
+
+    #if HIDDENBAR_NATIVE_VISIBILITY
+    // macOS 27: the icons macOS hides on collapse although they sit right of the
+    // arrow, and the opt-in to keep the whole bar shown while they are there.
+    private var labelMacOSAlsoHides: NSTextField?
+    private var checkBoxPauseHiding: NSButton?
+
+    private func addMacOS27Rows() {
+        guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27,
+              let stack = checkBoxNotchOverflow.superview as? NSStackView,
+              let index = stack.arrangedSubviews.firstIndex(of: checkBoxNotchOverflow) else { return }
+        let checkBox = NSButton(checkboxWithTitle: "Show all icons while macOS would also hide one right of the arrow".localized,
+                                target: self, action: #selector(pauseHidingChanged(_:)))
+        let label = NSTextField(wrappingLabelWithString: "")
+        label.textColor = .secondaryLabelColor
+        label.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        stack.insertArrangedSubview(checkBox, at: index + 1)
+        stack.insertArrangedSubview(label, at: index + 2)
+        checkBoxPauseHiding = checkBox
+        labelMacOSAlsoHides = label
+        NotificationCenter.default.addObserver(self, selector: #selector(updateMacOS27Rows), name: .unkeepableSystemItemsChanged, object: nil)
+        updateMacOS27Rows()
+    }
+
+    @objc private func updateMacOS27Rows() {
+        checkBoxPauseHiding?.state = Preferences.pauseHidingForUnkeepableItems ? .on : .off
+        let names = NativeVisibilityEngine.knownUnkeepableSystemItems.map(NativeVisibilityEngine.displayName(ofSystemItem:))
+        labelMacOSAlsoHides?.stringValue = String(format: "macOS 27 also hides: %@".localized, names.joined(separator: ", "))
+        labelMacOSAlsoHides?.isHidden = names.isEmpty
+    }
+
+    @objc private func pauseHidingChanged(_ sender: NSButton) {
+        Preferences.pauseHidingForUnkeepableItems = sender.state == .on
+    }
+
+    // macOS 27: without Accessibility the arrow cannot hide anything. Say so at
+    // the top of the settings, with a way to the switch, until it is granted.
+    private var accessibilityBanner: NSView?
+
+    private func addAccessibilityBanner() {
+        guard let stack = checkBoxLogin.superview as? NSStackView else { return }
+        let label = NSTextField(wrappingLabelWithString: "Hidden Bar needs Accessibility access to hide icons.".localized)
+        label.textColor = .systemOrange
+        let button = NSButton(title: "Open Settings…".localized, target: self, action: #selector(openAccessibilitySettings(_:)))
+        let row = NSStackView(views: [label, button])
+        row.orientation = .horizontal
+        row.spacing = 8
+        stack.insertArrangedSubview(row, at: 0)
+        accessibilityBanner = row
+        NotificationCenter.default.addObserver(self, selector: #selector(updateAccessibilityBanner), name: .accessibilityPermissionChanged, object: nil)
+        updateAccessibilityBanner()
+    }
+
+    @objc private func updateAccessibilityBanner() {
+        accessibilityBanner?.isHidden = !AccessibilityPermission.shared.isMissing
+    }
+
+    @objc private func openAccessibilitySettings(_ sender: NSButton) {
+        AccessibilityPermission.openSystemSettings()
+    }
+    #endif
+
+    private var statusBarBelowToolbar: NSLayoutConstraint?
+
+    // The storyboard's fixed top offset predates taller toolbars; keep the mock menu bar below it.
+    func pinStatusBarBelowToolbar(of window: NSWindow) {
+        guard let guide = window.contentLayoutGuide as? NSLayoutGuide else { return }
+        statusBarBelowToolbar?.isActive = false
+        statusBarBelowToolbar = statusBarStackView.topAnchor.constraint(greaterThanOrEqualTo: guide.topAnchor, constant: 8)
+        statusBarBelowToolbar?.isActive = true
     }
 
     deinit {
         // Balance the viewDidLoad observer (PRs #335/#346).
         NotificationCenter.default.removeObserver(self, name: .prefsChanged, object: nil)
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        NotificationCenter.default.removeObserver(self, name: .unkeepableSystemItemsChanged, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .accessibilityPermissionChanged, object: nil)
+        #endif
     }
 
     static func initWithStoryboard() -> PreferencesViewController {
@@ -102,6 +236,9 @@ class PreferencesViewController: NSViewController {
     }
     @IBAction func useFullStatusBarOnExpandChanged(_ sender: NSButton) {
         Preferences.useFullStatusBarOnExpandEnabled = sender.state == .on
+    }
+    @IBAction func stealthExpandIconChanged(_ sender: NSButton) {
+        Preferences.stealthExpandIconEnabled = sender.state == .on
     }
     
     
@@ -179,6 +316,14 @@ class PreferencesViewController: NSViewController {
         checkBoxShowAlwaysHiddenSection.state = Preferences.alwaysHiddenSectionEnabled ? .on : .off
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Preferences.numberOfSecondForAutoHide))
         checkBoxNotchOverflow.state = Preferences.notchOverflowEnabled ? .on : .off
+        checkBoxStealthExpandIcon.state = Preferences.stealthExpandIconEnabled ? .on : .off
+        arrowStylePopup?.selectItem(at: ArrowStyle.allCases.firstIndex(of: Preferences.arrowStyle) ?? 0)
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        updateMacOS27Rows()
+        #endif
+        #if HIDDENBAR_SPARKLE
+        checkBoxAutoUpdate?.state = UpdateController.shared.automaticallyChecksForUpdates ? .on : .off
+        #endif
     }
     
     private func loadHotkey() {
@@ -318,7 +463,7 @@ extension PreferencesViewController {
     private func showHowToUseAlwayHiddenPopover(sender: NSButton) {
         let controller = NSViewController()
         let label = NSTextField()
-        let text = NSLocalizedString("Tutorial text", comment: "Step by step tutorial")
+        let text = NSLocalizedString(TutorialText.key(), comment: "Step by step tutorial")
         
         label.stringValue = text
         label.isBezeled = false
@@ -342,5 +487,39 @@ extension PreferencesViewController {
         popover.animates = true
         
         popover.show(relativeTo: self.view.bounds, of: sender , preferredEdge: NSRectEdge.maxX)
+    }
+}
+
+//MARK: - Hover to expand
+extension PreferencesViewController {
+
+    static let hoverToExpandCheckBoxIdentifier = NSUserInterfaceItemIdentifier("hoverToExpandCheckBox")
+
+    // One checkbox bound to Preferences.hoverToExpand, which used to be reachable
+    // only through `defaults write`. Built in code, so the storyboard is untouched.
+    func addHoverToExpandRow() {
+        guard let stack = checkBoxNotchOverflow.superview as? NSStackView else { return }
+        let checkBox = NSButton(checkboxWithTitle: "Expand the bar when the pointer rests on the menu bar".localized,
+                                target: self, action: #selector(hoverToExpandChanged(_:)))
+        checkBox.identifier = Self.hoverToExpandCheckBoxIdentifier
+        checkBox.state = Preferences.hoverToExpand ? .on : .off
+        stack.addArrangedSubview(checkBox)
+    }
+
+    @objc func hoverToExpandChanged(_ sender: NSButton) {
+        Preferences.hoverToExpand = sender.state == .on
+    }
+}
+
+//MARK: - Tutorial text per hiding engine
+// The always-hidden tutorial says where to drag the translucent bar. With the
+// separator engine the boundary is the normal bar "|"; with the native engine
+// (macOS 27, direct build) the arrow is the boundary and there is no "|".
+enum TutorialText {
+    static let separatorKey = "Tutorial text"
+    static let arrowBoundaryKey = "Tutorial text (arrow boundary)"
+
+    static func key(usesNativeEngine: Bool = MenuBarEngineFactory.usesNativeEngine()) -> String {
+        usesNativeEngine ? arrowBoundaryKey : separatorKey
     }
 }

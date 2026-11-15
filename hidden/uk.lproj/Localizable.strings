@@ -1,0 +1,40 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Dwarves Foundation. All rights reserved.
+*/
+
+"Preferences..." = "Налаштування...";
+"Toggle Auto Collapse" = "Перемкнути Авто Згортання";
+"Enable Auto Collapse" = "Ввімкнути Авто Згортання";
+"Disable Auto Collapse" = "Вимкнути Авто Згортання";
+"Quit" = "Вийти";
+"Set Shortcut" = "Введіть шорткат";
+"Tutorial text" = "
+Використовуйте функцію 'завжди згорнено' для порядку у менюбарі. Ось як її ввімкнути
+Кроки для ввімкнення:
+1. Ввімкніть завжди заховану “􀥤” (напівпрозора вертикальна смуга)
+2. Зажміть 􀆔 і перетягніть її до лівої частини смуги меню, потім перетягніть іконки які ви хочете щоб були сховані до ліва від вертикальної смуги.
+3. І накінець, затисніть ⌥ Option і натисніть на іконку ховання “􀆊”, щоб її сховати.
+Кроки для перегляду завжди схованих іконок:
+1. Знову натисніть на іконку “􀆊”, утримуючи ⌥ Option, для перегляду і повторіть дію для ввімкнення функції. Насолоджуйтесь 😉!
+";
+"Arrow style" = "Arrow style";
+"Arrow" = "Arrow";
+"Chevron" = "Chevron";
+"Dot" = "Dot";
+"Line" = "Line";
+"Hidden Bar needs Accessibility access to hide icons." = "Hidden Bar needs Accessibility access to hide icons.";
+"Open Settings…" = "Open Settings…";
+"Expand the bar when the pointer rests on the menu bar" = "Expand the bar when the pointer rests on the menu bar";
+"Tutorial text (arrow boundary)" = "
+Use the always hidden feature to keep your icons tidy. Here's how to set it
+Steps to enable:
+1. Enable the always hidden “|” (translucent color bar)
+2. Hold  ⌘ and drag it to the left of the arrow, then move any icons you want to disappear on the left of that bar.
+3. Finally, hold ⌥ Option and click the collapse “<” icon to make it disappear.
+Steps to view always hidden icons:
+1. Option-click the “<” icon again to view and repeat the action to enable the feature. Enjoy 😉!
+";

@@ -82,6 +82,53 @@ final class AutoStartTests: XCTestCase {
     }
 }
 
+final class LegacyLoginItemTests: XCTestCase {
+
+    private func makeDefaults() -> UserDefaults {
+        let suite = "LegacyLoginItemTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+        return defaults
+    }
+
+    func testSuccessfulRemovalSetsMigratedFlag() {
+        let defaults = makeDefaults()
+        var asked: [String] = []
+        let ok = LegacyLoginItem.remove(defaults: defaults, disable: { asked.append($0); return true }, report: { _ in })
+        XCTAssertTrue(ok)
+        XCTAssertEqual(asked, [LegacyLoginItem.helperBundleID])
+        XCTAssertTrue(defaults.bool(forKey: LegacyLoginItem.migratedKey))
+    }
+
+    // #456: a failed SMLoginItemSetEnabled must not mark the migration done.
+    func testFailedRemovalLeavesFlagUnsetAndReportsHint() {
+        let defaults = makeDefaults()
+        var reports: [String] = []
+        let ok = LegacyLoginItem.remove(defaults: defaults, disable: { _ in false }, report: { reports.append($0) })
+        XCTAssertFalse(ok)
+        XCTAssertFalse(defaults.bool(forKey: LegacyLoginItem.migratedKey))
+        XCTAssertEqual(reports, [LegacyLoginItem.failureHint])
+    }
+
+    func testFailedRemovalIsRetriedOnNextLaunch() {
+        let defaults = makeDefaults()
+        _ = LegacyLoginItem.remove(defaults: defaults, disable: { _ in false }, report: { _ in })
+        var calls = 0
+        let ok = LegacyLoginItem.remove(defaults: defaults, disable: { _ in calls += 1; return true }, report: { _ in })
+        XCTAssertTrue(ok)
+        XCTAssertEqual(calls, 1)
+        XCTAssertTrue(defaults.bool(forKey: LegacyLoginItem.migratedKey))
+    }
+
+    func testAlreadyMigratedSkipsTheSystemCall() {
+        let defaults = makeDefaults()
+        defaults.set(true, forKey: LegacyLoginItem.migratedKey)
+        var calls = 0
+        XCTAssertTrue(LegacyLoginItem.remove(defaults: defaults, disable: { _ in calls += 1; return false }, report: { _ in }))
+        XCTAssertEqual(calls, 0)
+    }
+}
+
 // A fake whose register/unregister moves status to a given terminal value, like
 // the real SMAppService does on success.
 private final class TransitioningLoginItem: LoginItemServing {

@@ -17,20 +17,36 @@ import AppKit
 // The arrow is the boundary: apps left of it (LTR) are hidden, apps right of it
 // stay visible. The regular separator is not needed and is taken out of the
 // bar; even at zero width macOS keeps a gap for it. The always-hidden
-// separator, when enabled, marks the third section; it shows while expanded so
-// it can be ⌘-dragged, and drops to zero width while collapsed, where macOS
-// has already removed everything it would separate. It keeps its slot because
-// its position is what defines that section.
+// separator, when enabled, marks the third section; it shows while that section
+// is shown so it can be ⌘-dragged, and is taken out of the bar while the section
+// is hidden (collapsed, or expanded with "hide separators" on), where macOS has
+// already removed everything it would separate. macOS puts it back where the
+// user left it, which is what defines that section.
 //
 // Limits, all from what macOS 27 exposes:
 // - Hiding is per app: an app with several icons hides or shows them together
 //   (the most visible section wins).
 // - macOS's own items (clock, Wi-Fi, Control Center...) are always kept visible:
 //   Accessibility cannot tell them apart, so they cannot be mapped to sections.
+//   SystemUIServer's legacy Menu Extras (Time Machine...) are the exception:
+//   none was observed with a system item identifier, so they are sectioned
+//   per bundle instead.
 // - Sections are read only while nothing is hidden, because hidden items report
 //   stale positions. They are re-read on the next collapse from an unrestricted
-//   bar, so an app launched while collapsed stays hidden until then, the same
-//   as a new icon landing in the hidden section under the old mechanism.
+//   bar. An app that starts while something is hidden is not in the read, so it
+//   gets the section it was last read in (remembered across launches), or the
+//   visible one if it was never read, until that next read places it by where
+//   macOS put its icon.
+// - The restriction is assessment mode, which makes macOS ignore the clock, so
+//   Notification Center cannot open from it (#410). A click on the clock while
+//   collapsed expands the bar, presses the clock, and collapses again once the
+//   panel closes (NotificationCenterSession in MenuBarClock).
+// - Assessment mode also hides the capsule naming the app that uses the
+//   microphone or camera (#432, #437; the dot in the screen corner stays). No
+//   other restriction origin filters icons (measured on 27.0), so no
+//   restriction is held while a microphone or camera is in use: the bar is
+//   whole until capture stops, then the user's state is re-applied from a fresh
+//   read. The arrow keeps its look meanwhile.
 final class NativeVisibilityEngine: MenuBarEngine {
     // System item identifiers to keep visible. Unknown identifiers are ignored,
     // so the range covers items a given Mac does not have (0-63 checked on 27.0).
@@ -39,8 +55,11 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private weak var items: MenuBarItemProvider?
     private let inventory: MenuBarInventoryProviding
     private let visibility: NativeVisibilityProviding
+    private let clock: MenuBarClockProviding
+    private let captureActivity: CaptureActivityMonitoring
     private let ownBundleIdentifier: String?
     private let itemFrame: (NSStatusItem) -> CGRect?
+    private let displays: () -> [MenuBarDisplay]
     private let isLTR: () -> Bool
 
     private let expandedLength: CGFloat = 20
@@ -48,29 +67,79 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // .calibrating stands for "an activation is in flight".
     private(set) var state: MenuBarEngineState = .expanded
     private(set) var layout: MenuBarLayout?
+    // The last read that listed every item, to fill in a read from an
+    // overflowing menu bar. Kept across display changes: sections are per app.
+    private var lastCompleteLayout: MenuBarLayout?
 
     private var assertion: NativeVisibilityAssertion?
+    // What the held assertion allows besides Hidden Bar, and the generation it was
+    // activated in, which stays current while nothing newer is in flight.
+    private var assertionBundles: [String] = []
+    private var assertionGeneration = 0
     // Bumped whenever a pending activation must no longer win (an expand, a newer
     // activation); a late success is then invalidated straight away.
     private var generation = 0
     private var lastUnavailableReason: String?
+    // The capture state last acted on, so only a change moves the restriction.
+    private var isCaptureActive: Bool
 
     private var alwaysHiddenEnabled = false
     private var alwaysHiddenSeparatorHidden = false
 
+    // Where each app was last read, for apps that start while nothing can be read.
+    private let sectionMemory: MenuBarSectionMemory
+    // Apps that started since a read last listed them.
+    private var launchedSinceRead: Set<String> = []
+    private let workspaceNotifications: NotificationCenter?
+    private var workspaceObservers: [NSObjectProtocol] = []
+
+    // Items right of the arrow that the allow-list cannot keep visible: an item
+    // whose owner has no bundle id, or a system extra no system item id covers
+    // (Focus, Now Playing, User...) that macOS hid although Control Center's
+    // bundle was allowed; those extras are remembered here. By default they are
+    // hidden along with the rest, as before (Preferences lists them). Opting in
+    // (`pausesHidingForUnkeepableItems`) keeps the whole bar shown instead.
+    private var unkeepableSystemItems: Set<String> = []
+    private let pausesHidingForUnkeepableItems: () -> Bool
+    // Hidden extras leave Accessibility only once the bar has reflowed.
+    var scheduleVisibilityCheck: (@escaping () -> Void) -> Void = {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: $0)
+    }
+
     init(items: MenuBarItemProvider,
          inventory: MenuBarInventoryProviding = AccessibilityMenuBarInventory(),
          visibility: NativeVisibilityProviding = NativeVisibilityBridge(),
+         clock: MenuBarClockProviding = SystemMenuBarClock(),
+         captureActivity: CaptureActivityMonitoring = NoCaptureActivity(),
          ownBundleIdentifier: String? = Bundle.main.bundleIdentifier,
          itemFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
-         isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage }) {
+         displays: @escaping () -> [MenuBarDisplay] = MenuBarDisplay.current,
+         isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage },
+         pausesHidingForUnkeepableItems: @escaping () -> Bool = { false },
+         sectionMemory: MenuBarSectionMemory = InMemorySectionMemory(),
+         workspaceNotifications: NotificationCenter? = nil) {
         self.items = items
+        self.pausesHidingForUnkeepableItems = pausesHidingForUnkeepableItems
         self.inventory = inventory
         self.visibility = visibility
+        self.clock = clock
+        self.captureActivity = captureActivity
+        isCaptureActive = captureActivity.isActive
         self.ownBundleIdentifier = ownBundleIdentifier
         self.itemFrame = itemFrame
+        self.displays = displays
         self.isLTR = isLTR
+        self.sectionMemory = sectionMemory
+        self.workspaceNotifications = workspaceNotifications
         items.separatorItem.isVisible = false
+        observeLaunches()
+        captureActivity.onChange = { [weak self] in
+            self?.captureActivityDidChange()
+        }
+    }
+
+    deinit {
+        workspaceObservers.forEach { workspaceNotifications?.removeObserver($0) }
     }
 
     func collapse(completion: @escaping (CollapseResult) -> Void) {
@@ -83,7 +152,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
         case .expanded, .unavailable:
             break
         }
-        setSeparatorsVisible(true)
+        if !hidesAlwaysHiddenSection {
+            setSeparatorsVisible(true)
+        }
 
         guard visibility.isAvailable else {
             logUnavailableOnce("the native menu-bar visibility API is not available in this build or on this macOS")
@@ -106,19 +177,34 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 self.state = .expanded
                 return completion(.unavailable)
             }
+            if self.pausesHidingForUnkeepableItems(),
+               let reason = layout.reasonToKeepBarWhole(unkeepableSystemItems: self.unkeepableSystemItems) {
+                self.logUnavailableOnce(reason)
+                self.state = .expanded
+                return completion(.unavailable)
+            }
             self.activate(allowing: layout.bundles(in: [.visible])) { [weak self] succeeded in
                 guard let self = self else { return }
-                self.state = succeeded ? .collapsed : .expanded
-                if succeeded {
-                    self.setSeparatorsVisible(false)
+                guard succeeded else {
+                    self.state = .expanded
+                    return completion(.unavailable)
                 }
-                completion(succeeded ? .collapsed : .unavailable)
+                self.checkStillShown(layout.unprovenVisibleSystemItems) { [weak self] shown in
+                    guard let self = self else { return }
+                    self.state = shown ? .collapsed : .expanded
+                    if shown {
+                        self.setSeparatorsVisible(false)
+                    }
+                    completion(shown ? .collapsed : .unavailable)
+                    if shown {
+                        self.allowLaunchedAppsIfIdle()
+                    }
+                }
             }
         }
     }
 
     func expand() {
-        setSeparatorsVisible(true)
         state = .expanded
         applyExpandedPresentation()
     }
@@ -126,16 +212,25 @@ final class NativeVisibilityEngine: MenuBarEngine {
     func updateAlwaysHiddenSection(enabled: Bool, separatorHidden: Bool) {
         alwaysHiddenEnabled = enabled
         alwaysHiddenSeparatorHidden = separatorHidden
-        if state != .collapsed {
-            setSeparatorsVisible(true)
-        }
-        if state == .expanded {
+        switch state {
+        case .collapsed:
+            // A separator created while collapsed arrives visible.
+            setSeparatorsVisible(false)
+        case .expanded:
             applyExpandedPresentation()
+        case .calibrating, .unavailable:
+            setSeparatorsVisible(true)
         }
     }
 
-    // Native hiding does not depend on display geometry, so only drop the cached
-    // sections; the next read from an unrestricted bar replaces them.
+    private var hidesAlwaysHiddenSection: Bool {
+        return alwaysHiddenEnabled && alwaysHiddenSeparatorHidden
+    }
+
+    // Sections are per app and come from the arrangement, which a display change
+    // does not alter, so a held restriction stays right and the bar stays
+    // collapsed. Only an unused cache is dropped; the next read from an
+    // unrestricted bar measures against the displays connected then.
     func invalidateLayout() {
         if assertion == nil {
             layout = nil
@@ -144,18 +239,29 @@ final class NativeVisibilityEngine: MenuBarEngine {
 
     // Expanded shows the hidden section; the always-hidden section stays hidden
     // while "hide separators" is on, otherwise everything is revealed by dropping
-    // the restriction altogether.
+    // the restriction altogether. Its separator goes and comes back with it, only
+    // once the icons are hidden, so it never disappears on its own.
     private func applyExpandedPresentation() {
-        guard alwaysHiddenEnabled && alwaysHiddenSeparatorHidden, visibility.isAvailable, inventory.isAuthorized else {
-            return releaseAssertion()
+        guard hidesAlwaysHiddenSection, visibility.isAvailable, inventory.isAuthorized else {
+            return revealAll()
         }
         withLayout { [weak self] layout in
             guard let self = self else { return }
             guard let layout = layout else {
-                return self.releaseAssertion()
+                return self.revealAll()
             }
-            self.activate(allowing: layout.bundles(in: [.visible, .hidden])) { _ in }
+            self.activate(allowing: layout.bundles(in: [.visible, .hidden])) { [weak self] succeeded in
+                self?.setSeparatorsVisible(!succeeded)
+                if succeeded {
+                    self?.allowLaunchedAppsIfIdle()
+                }
+            }
         }
+    }
+
+    private func revealAll() {
+        releaseAssertion()
+        setSeparatorsVisible(true)
     }
 
     // The sections as the user arranged them. Read fresh only from an
@@ -166,19 +272,58 @@ final class NativeVisibilityEngine: MenuBarEngine {
             return body(layout)
         }
         guard let arrow = items?.toggleItem,
-              let boundary = itemFrame(arrow) else { return body(nil) }
-        let alwaysHiddenFrame = alwaysHiddenEnabled ? items?.alwaysHiddenItem.flatMap(itemFrame) : nil
+              var boundary = itemFrame(arrow) else { return body(nil) }
+        var alwaysHiddenFrame = alwaysHiddenEnabled ? items?.alwaysHiddenItem.flatMap(itemFrame) : nil
+        #if DEBUG
+        if let x = Self.debugBoundaryX {
+            boundary.origin.x = x - boundary.width / 2
+        }
+        if alwaysHiddenEnabled, let x = Self.debugAlwaysHiddenX {
+            alwaysHiddenFrame = CGRect(x: x, y: boundary.minY, width: 1, height: boundary.height)
+        }
+        #endif
         let isLTR = self.isLTR()
         generation += 1
         let generation = self.generation
         inventory.snapshot { [weak self] inventory in
             guard let self = self, generation == self.generation else { return }
-            let layout = MenuBarLayoutResolver.resolve(inventory: inventory,
+            // Read after the snapshot, which takes about a second: a display
+            // attached meanwhile is then known. An arrow on no display has no
+            // edge to measure the sections from.
+            let displays = self.displays()
+            guard displays.isEmpty || MenuBarDisplay.containing(appKitFrame: boundary, in: displays) != nil else {
+                NSLog("NativeVisibility: the arrow at \(NSStringFromRect(boundary)) is on no display \(displays.map { NSStringFromRect($0.appKitFrame) })")
+                return body(nil)
+            }
+            var layout = MenuBarLayoutResolver.resolve(inventory: inventory,
                                                        separatorFrame: boundary,
                                                        alwaysHiddenSeparatorFrame: alwaysHiddenFrame,
+                                                       displays: displays,
                                                        isLTR: isLTR,
                                                        excludingBundle: self.ownBundleIdentifier)
+            if layout.isIncomplete {
+                // Apps macOS left out would be hidden although they may be
+                // right of the arrow; with no complete read to take them from,
+                // nothing may be hidden.
+                guard let complete = self.lastCompleteLayout else {
+                    NSLog("NativeVisibility: the active menu bar overflows and no complete read exists yet; leaving the bar whole")
+                    return body(nil)
+                }
+                layout = layout.fillingIn(from: complete)
+                NSLog("NativeVisibility: the active menu bar overflows; apps it does not list keep their last known section")
+            } else {
+                self.lastCompleteLayout = layout
+            }
+            self.sectionMemory.sections.merge(layout.sections) { _, read in read }
+            self.launchedSinceRead.subtract(layout.sections.keys)
+            for bundle in self.launchedSinceRead {
+                // Started, but its icon was not listed yet.
+                layout.sections[bundle] = self.sectionMemory.sections[bundle] ?? .visible
+            }
             NSLog("NativeVisibility: arrow at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
+            if !layout.unnameableVisibleItems.isEmpty || !layout.unprovenVisibleSystemItems.isEmpty {
+                NSLog("NativeVisibility: visible without a bundle id \(layout.unnameableVisibleItems); visible system extras to check \(layout.unprovenVisibleSystemItems)")
+            }
             self.layout = layout
             body(layout)
         }
@@ -186,9 +331,16 @@ final class NativeVisibilityEngine: MenuBarEngine {
 
     // Activates the new restriction before dropping the old one, so switching
     // between collapsed and expanded never flashes the whole bar visible.
+    // While a microphone or camera is in use nothing is activated, but the
+    // request still succeeds: the bar keeps the state the user asked for and the
+    // restriction follows once capture stops.
     private func activate(allowing bundles: [String], completion: @escaping (Bool) -> Void) {
         generation += 1
         let generation = self.generation
+        guard !captureActivity.isActive else {
+            dropAssertionForCapture()
+            return completion(true)
+        }
         let allowed = (ownBundleIdentifier.map { [$0] } ?? []) + bundles
         visibility.activate(allowedSystemItems: Self.systemItemsToKeep,
                             allowedBundleIdentifiers: allowed) { [weak self] result in
@@ -197,10 +349,18 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 return
             }
             switch result {
+            case .success(let newAssertion) where self.captureActivity.isActive:
+                // Capture started while this was in flight.
+                newAssertion.invalidate()
+                self.dropAssertionForCapture()
+                completion(true)
             case .success(let newAssertion):
                 let old = self.assertion
                 self.assertion = newAssertion
+                self.assertionBundles = bundles
+                self.assertionGeneration = generation
                 old?.invalidate()
+                self.watchClock()
                 completion(true)
             case .failure(let error):
                 // Fail open: never leave icons hidden after an error.
@@ -211,11 +371,13 @@ final class NativeVisibilityEngine: MenuBarEngine {
         }
     }
 
-    // The always-hidden separator goes to zero width rather than isVisible =
-    // false, which would make macOS forget where the user placed it.
+    // The always-hidden separator is taken out of the bar while its section is
+    // hidden; a zero-width item would still be there and clickable.
     private func setSeparatorsVisible(_ visible: Bool) {
         items?.separatorItem.isVisible = false
-        items?.alwaysHiddenItem?.length = visible && alwaysHiddenEnabled ? expandedLength : 0
+        let shown = visible && alwaysHiddenEnabled
+        items?.alwaysHiddenItem?.length = shown ? expandedLength : 0
+        items?.alwaysHiddenItem?.isVisible = shown
     }
 
     // Any arrangement works: whatever sits left of the arrow is the hidden section.
@@ -231,6 +393,219 @@ final class NativeVisibilityEngine: MenuBarEngine {
         generation += 1
         assertion?.invalidate()
         assertion = nil
+        watchClock()
+    }
+
+    // Unlike releaseAssertion, an activation in flight is not superseded: it
+    // still answers the collapse that started it, and drops its own result
+    // because capture is active.
+    private func dropAssertionForCapture() {
+        assertion?.invalidate()
+        assertion = nil
+        watchClock()
+    }
+
+    private func captureActivityDidChange() {
+        let isActive = captureActivity.isActive
+        guard isActive != isCaptureActive else { return }
+        isCaptureActive = isActive
+        if isActive {
+            NSLog("NativeVisibility: a microphone or camera is in use; showing the whole menu bar until it stops")
+            dropAssertionForCapture()
+        } else {
+            NSLog("NativeVisibility: capture stopped; hiding again")
+            restorePresentation()
+        }
+    }
+
+    // Re-applies the current state from a fresh read of the bar, which nothing
+    // restricts at this point. A failure leaves the bar whole (fail open).
+    private func restorePresentation() {
+        switch state {
+        case .collapsed:
+            withLayout { [weak self] layout in
+                guard let self = self else { return }
+                guard let layout = layout else { return self.failOpen() }
+                self.activate(allowing: layout.bundles(in: [.visible])) { [weak self] succeeded in
+                    guard let self = self else { return }
+                    succeeded ? self.allowLaunchedAppsIfIdle() : self.failOpen()
+                }
+            }
+        case .expanded:
+            applyExpandedPresentation()
+        case .calibrating, .unavailable:
+            // An activation in flight checks capture itself; unavailable holds nothing.
+            break
+        }
+    }
+
+    private func failOpen() {
+        state = .expanded
+        setSeparatorsVisible(true)
+    }
+
+    // Any held restriction, collapsed or expanded with the always-hidden section
+    // hidden, stops the clock from opening Notification Center.
+    private func watchClock() {
+        clock.onClick = assertion == nil ? nil : { [weak self] location in
+            self?.clockClicked(at: location)
+        }
+    }
+
+    // Set by the controller to its own expand and collapse, so a clock click
+    // changes the bar exactly as a click on the arrow does (state, arrow,
+    // auto-collapse, activation policy). Without them the engine's own are used.
+    var expandBar: (() -> Void)?
+    var collapseBar: (() -> Void)?
+    var clockNow: () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }
+    var scheduleClockStep: (TimeInterval, @escaping () -> Void) -> Void = {
+        DispatchQueue.main.asyncAfter(deadline: .now() + $0, execute: $1)
+    }
+
+    private lazy var notificationCenter = NotificationCenterSession(
+        now: { [weak self] in self?.clockNow() ?? 0 },
+        after: { [weak self] in self?.scheduleClockStep($0, $1) },
+        panelIsOpen: { [weak self] in self?.clock.isNotificationCenterOpen ?? false },
+        press: { [weak self] in self?.pressClock(at: $0, mode: $1, finished: $2) ?? true },
+        expand: { [weak self] in
+            guard let self = self else { return }
+            if let expandBar = self.expandBar { expandBar() } else { self.expand() }
+        },
+        collapse: { [weak self] in
+            guard let self = self else { return }
+            if let collapseBar = self.collapseBar { collapseBar() } else { self.collapse { _ in } }
+        })
+
+    // Auto-collapse waits while Notification Center, opened from the clock, is open.
+    var defersAutoCollapse: Bool {
+        return notificationCenter.isActive
+    }
+
+    // The last read, plus apps an overflowing menu bar left out of it.
+    var menuBarItemOwners: Set<String> {
+        let read = layout?.sections.keys.map { $0 } ?? []
+        let complete = lastCompleteLayout?.sections.keys.map { $0 } ?? []
+        return Set(read + complete)
+    }
+
+    func userChangedBar() {
+        notificationCenter.userChangedBar()
+    }
+
+    private func clockClicked(at location: CGPoint) {
+        // Not while an activation, a section read or a collapse's visibility
+        // check is in flight: expanding or lifting now would cancel it, and a
+        // cancelled collapse never reports back, leaving the bar stuck calibrating.
+        guard assertion != nil, generation == assertionGeneration, state != .calibrating else { return }
+        NSLog("NativeVisibility: a click on the clock while \(state == .collapsed ? "collapsed; expanding" : "expanded")")
+        notificationCenter.clockClicked(at: location, barCollapsed: state == .collapsed)
+    }
+
+    // The longest the restriction may stay lifted for one press, whatever the
+    // press does: the lift, the AX lookup and the panel timeout fit well inside.
+    static let clockLiftHardCap: TimeInterval = 0.6
+    var scheduleRestoreWatchdog: (TimeInterval, @escaping () -> Void) -> Void = {
+        DispatchQueue.main.asyncAfter(deadline: .now() + $0, execute: $1)
+    }
+
+    // Replays one click on the clock. Unrestricted (the bar was expanded), the
+    // clock works and is simply pressed. A restriction still held, which only
+    // the expanded bar with the always-hidden section hidden keeps, is lifted
+    // just long enough for the press to land and then put back; the
+    // always-hidden icons can show for that moment. False while an activation
+    // is in flight (the one an expand starts, say): lifting would cancel it.
+    private func pressClock(at location: CGPoint, mode: ClockPressMode,
+                            finished: @escaping (ClockPressOutcome) -> Void) -> Bool {
+        guard assertion != nil else {
+            clock.press(at: location, mode: mode, restore: {}, finished: finished)
+            return true
+        }
+        guard generation == assertionGeneration, state != .calibrating else { return false }
+        NSLog("NativeVisibility: lifting the restriction for a click on the clock")
+        #if DEBUG
+        ClockFlashTimeline.mark(mode == .restoreAfterPress ? "liftRequested" : "retryLiftRequested")
+        #endif
+        let bundles = assertionBundles
+        releaseAssertion()
+        let generation = self.generation
+        var restored = false
+        let restore = { [weak self] in
+            guard !restored else { return }
+            restored = true
+            // An expand or collapse meanwhile already applied what the user wants.
+            guard let self = self, generation == self.generation else { return }
+            #if DEBUG
+            ClockFlashTimeline.mark("reapplyRequested")
+            #endif
+            self.activate(allowing: bundles) { [weak self] succeeded in
+                #if DEBUG
+                ClockFlashTimeline.mark("reapplyEffective")
+                #endif
+                guard let self = self, !succeeded else { return }
+                self.state = .expanded
+                self.setSeparatorsVisible(true)
+            }
+        }
+        // Never leave the bar unrestricted, even if the press never reports back.
+        scheduleRestoreWatchdog(Self.clockLiftHardCap) {
+            #if DEBUG
+            if !restored { ClockFlashTimeline.mark("watchdog") }
+            #endif
+            restore()
+        }
+        clock.press(at: location, mode: mode, restore: restore, finished: finished)
+        return true
+    }
+
+    private func observeLaunches() {
+        guard let center = workspaceNotifications else { return }
+        func bundle(_ note: Notification) -> String? {
+            return (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
+        }
+        workspaceObservers = [
+            center.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] note in
+                bundle(note).map { self?.applicationLaunched($0) }
+            },
+            center.addObserver(forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main) { [weak self] note in
+                bundle(note).map { self?.applicationTerminated($0) }
+            }
+        ]
+    }
+
+    // A held restriction allows only the apps it was given, so an app that
+    // starts meanwhile would be hidden wherever macOS puts its icon (new icons,
+    // login items that start after Hidden Bar, an app quit at the last read).
+    // It gets the section it was last read in, or visible if it never was.
+    // An app the last read listed keeps that section.
+    func applicationLaunched(_ bundle: String) {
+        guard bundle != ownBundleIdentifier,
+              !MenuBarLayoutResolver.systemItemOwners.contains(bundle) else { return }
+        launchedSinceRead.insert(bundle)
+        guard var layout = layout, layout.sections[bundle] == nil else { return }
+        layout.sections[bundle] = sectionMemory.sections[bundle] ?? .visible
+        self.layout = layout
+        allowLaunchedAppsIfIdle()
+    }
+
+    func applicationTerminated(_ bundle: String) {
+        launchedSinceRead.remove(bundle)
+    }
+
+    // Swaps the held restriction for one that also allows apps placed since it
+    // was activated. Not while anything is in flight; the collapse or expand
+    // that lands calls this again.
+    private func allowLaunchedAppsIfIdle() {
+        guard assertion != nil, generation == assertionGeneration, state != .calibrating,
+              let layout = layout else { return }
+        let shownSections: Set<MenuBarSection> = state == .collapsed ? [.visible] : [.visible, .hidden]
+        let wanted = layout.bundles(in: shownSections)
+        guard wanted != assertionBundles else { return }
+        NSLog("NativeVisibility: allowing apps that started while hiding: \(Set(wanted).subtracting(assertionBundles).sorted())")
+        activate(allowing: wanted) { [weak self] succeeded in
+            guard let self = self, !succeeded else { return }
+            self.state = .expanded
+            self.setSeparatorsVisible(true)
+        }
     }
 
     // Logged when the reason changes, so a retried collapse does not spam.
@@ -239,4 +614,104 @@ final class NativeVisibilityEngine: MenuBarEngine {
         lastUnavailableReason = reason
         NSLog("NativeVisibility: hiding unavailable: \(reason)")
     }
+
+    // Checks whether macOS hid a system extra the allow-list could only try to
+    // keep, and remembers the ones it did. By default the bar stays collapsed
+    // and the check only feeds the Preferences note. With the opt-in, the
+    // restriction is dropped and later collapses keep the bar whole while such an
+    // extra is right of the arrow, instead of flashing it hidden.
+    private func checkStillShown(_ expected: [String], completion: @escaping (Bool) -> Void) {
+        let unchecked = expected.filter { !unkeepableSystemItems.contains($0) }
+        guard !unchecked.isEmpty else { return completion(true) }
+        let pauses = pausesHidingForUnkeepableItems()
+        if !pauses {
+            completion(true)
+        }
+        let generation = self.generation
+        scheduleVisibilityCheck { [weak self] in
+            guard let self = self, generation == self.generation else { return }
+            self.inventory.snapshot { [weak self] inventory in
+                guard let self = self, generation == self.generation else { return }
+                let missing = MenuBarLayoutResolver.missingSystemItems(unchecked, in: inventory)
+                if !missing.isEmpty {
+                    self.rememberUnkeepable(missing)
+                }
+                guard pauses else {
+                    if !missing.isEmpty {
+                        NSLog("NativeVisibility: macOS also hides \(missing) although they sit right of the arrow")
+                    }
+                    return
+                }
+                guard missing.isEmpty else {
+                    NSLog("NativeVisibility: macOS hid \(missing) although they sit right of the arrow; keeping the bar whole while they are there")
+                    self.releaseAssertion()
+                    return completion(false)
+                }
+                completion(true)
+            }
+        }
+    }
+
+    // What Preferences shows as "macOS 27 also hides".
+    static private(set) var knownUnkeepableSystemItems: [String] = []
+
+    private func rememberUnkeepable(_ identifiers: [String]) {
+        unkeepableSystemItems.formUnion(identifiers)
+        Self.knownUnkeepableSystemItems = unkeepableSystemItems.sorted()
+        NotificationCenter.default.post(name: .unkeepableSystemItemsChanged, object: nil)
+    }
+
+    // "com.apple.menuextra.now-playing" -> "Now Playing".
+    static func displayName(ofSystemItem identifier: String) -> String {
+        let known = ["focusmode": "Focus", "now-playing": "Now Playing", "user": "User",
+                     "siri": "Siri", "stagemanager": "Stage Manager", "timemachine": "Time Machine"]
+        let name = identifier.components(separatedBy: ".").last ?? identifier
+        return known[name] ?? name.replacingOccurrences(of: "-", with: " ").capitalized
+    }
 }
+
+extension Notification.Name {
+    // Posted on the main queue when NativeVisibilityEngine.knownUnkeepableSystemItems changes.
+    static let unkeepableSystemItemsChanged = Notification.Name("unkeepableSystemItemsChanged")
+}
+
+#if DEBUG
+// Test hooks (Debug builds only); see StatusBarController's debug extension.
+extension NativeVisibilityEngine {
+    // Section boundaries to use instead of the items' real positions, so a
+    // harness can place sections without ⌘-dragging anything.
+    static var debugBoundaryX: CGFloat?
+    static var debugAlwaysHiddenX: CGFloat?
+
+    var debugState: [String: Any] {
+        var sections: [String: String] = [:]
+        layout?.sections.forEach { sections[$0.key] = String(describing: $0.value) }
+        return [
+            "assertionHeld": assertion != nil,
+            "allowedBundles": assertion == nil ? [] : assertionBundles,
+            "sections": sections,
+            "clockWatched": clock.onClick != nil,
+            "captureActive": captureActivity.isActive,
+            "unprovenVisibleSystemItems": layout?.unprovenVisibleSystemItems ?? [],
+            "unnameableVisibleItems": layout?.unnameableVisibleItems ?? [],
+            "unkeepableSystemItems": unkeepableSystemItems.sorted(),
+            "pausesHidingForUnkeepableItems": pausesHidingForUnkeepableItems(),
+            "lastUnavailableReason": lastUnavailableReason ?? NSNull(),
+            "displays": displays().map { NSStringFromRect($0.appKitFrame) },
+            "debugBoundaryX": Self.debugBoundaryX.map { Double($0) } ?? NSNull(),
+            "debugAlwaysHiddenX": Self.debugAlwaysHiddenX.map { Double($0) } ?? NSNull(),
+            "clockTimeline": ClockFlashTimeline.snapshot,
+            "notificationCenterSession": ["active": notificationCenter.isActive,
+                                          "expandedBar": notificationCenter.expandedBar]
+        ]
+    }
+
+    // Runs the clock-click handler the global mouse monitor would run, with the
+    // replayed press posted to MenuBarAgent's process instead of the HID stream.
+    func debugClockClicked(at location: CGPoint, postingTo pid: pid_t, pressingWithAX: Bool = false) {
+        SystemMenuBarClock.debugPostToPid = pid
+        SystemMenuBarClock.debugPressWithAX = pressingWithAX
+        clock.onClick?(location)
+    }
+}
+#endif

@@ -17,6 +17,23 @@
 設定方法:
 1. 「アイコンを常に非表示機能」を有効にする（半透明の｜が表示される）．
 2. Command(⌘)キーを押しながら，半透明の「｜」を不透明「｜」の左側に移動して，さらに常に非表示したいアイコンを半透明の「｜」の左側に移動する．
-3. 最後は「＞」を右クリックすると，半透明「｜」より左にあるアイコンが常に非表示される．
-（もう一回「＞」を右クリックすると，常に非表示されたアイコンが表示される）
+3. 最後はOption(⌥)キーを押しながら「＞」をクリックすると，半透明「｜」より左にあるアイコンが常に非表示される．
+（もう一回Option(⌥)キーを押しながら「＞」をクリックすると，常に非表示されたアイコンが表示される）
+";
+"Arrow style" = "Arrow style";
+"Arrow" = "Arrow";
+"Chevron" = "Chevron";
+"Dot" = "Dot";
+"Line" = "Line";
+"Hidden Bar needs Accessibility access to hide icons." = "Hidden Bar needs Accessibility access to hide icons.";
+"Open Settings…" = "Open Settings…";
+"Expand the bar when the pointer rests on the menu bar" = "Expand the bar when the pointer rests on the menu bar";
+"Tutorial text (arrow boundary)" = "
+Use the always hidden feature to keep your icons tidy. Here's how to set it
+Steps to enable:
+1. Enable the always hidden “|” (translucent color bar)
+2. Hold  ⌘ and drag it to the left of the arrow, then move any icons you want to disappear on the left of that bar.
+3. Finally, hold ⌥ Option and click the collapse “<” icon to make it disappear.
+Steps to view always hidden icons:
+1. Option-click the “<” icon again to view and repeat the action to enable the feature. Enjoy 😉!
 ";

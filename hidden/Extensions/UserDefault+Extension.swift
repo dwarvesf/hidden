@@ -18,7 +18,10 @@ extension UserDefaults {
         static let areSeparatorsHidden = "areSeparatorsHidden"
         static let alwaysHiddenSectionEnabled = "alwaysHiddenSectionEnabled"
         static let useFullStatusBarOnExpandEnabled = "useFullStatusBarOnExpandEnabled"
+        static let stealthExpandIconEnabled = "stealthExpandIconEnabled"
+        static let arrowStyle = "arrowStyle"
         static let hoverToExpand = "hoverToExpand"
         static let notchOverflowEnabled = "notchOverflowEnabled"
+        static let pauseHidingForUnkeepableItems = "pauseHidingForUnkeepableItems"
     }
 }

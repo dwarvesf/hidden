@@ -3,76 +3,72 @@
 Durable, committed index of open work. The detailed planning layer
 (`_meta/megagoals/issue-list-clearing/` and `.claude/`) is local-only and gitignored,
 so this file is the version that survives a machine switch and a fresh clone. Keep it
-short: one line per item, pointing at the issue, SPEC, or file that holds the detail.
+short: one line per item, pointing at the issue, PR, or file that holds the detail.
+For live numbers use `gh pr list` and `gh issue list`, not this file.
 
-Source of the current state: the v1.11 issue-clearing pass (2026-06-12), branch
-`fix/v1-11-batch` / draft PR #365, and SPEC-003. Core-model changes (separator length
-math, collapse state machine) are HIGH RISK and require a mandatory review-team pass.
+Source of the current state: the v1.11.2 candidate, PR #468 (`release/v1.11.2`), after
+the round-2 close sweep of 2026-11-15. Core-model changes (separator length math,
+collapse state machine) are HIGH RISK and require a mandatory review-team pass.
 
-## macOS 27 (#360)
+## Ship v1.11.2
 
-- **Direct build ships native hiding** (`NativeVisibilityEngine`, Debug-Direct /
-  Release-Direct configurations). Uses private `MenuBarClientCore`; not App Store safe.
-- **App Store build still broken on 27.** The sandbox denies `mach-lookup
-  com.apple.axserver`, so the sections cannot be read even with Accessibility granted
-  (measured 2026-09-18). Options: a user-picked list of visible apps instead of ⌘-drag
-  (no Accessibility, still private API), or a public mechanism if Apple ships one.
-- **Direct build bundle id.** Tested as `com.dwarvesv.minimalbar.direct`; decide whether
-  release keeps `com.dwarvesv.minimalbar` (shared prefs, cannot coexist with the App
-  Store copy) or ships separately.
-- **Tutorial text** still describes the `|` separator; the direct build on 27 uses the
-  arrow as the boundary. Needs a per-build string.
-- **Adaptive-width experiment** (`fix/macos27-adaptive-engine`, local only): calibrating
-  the separator width does not hide on a 1920pt non-notched display. Kept for reference.
+- **Merge #468 and cut the release.** Steps: `docs/RUNBOOK.md` (notarize, App Store
+  submission, Sparkle appcast). The issues that say "ships in the next release" close
+  when it lands (for example #324, #355, #410).
+- **Sparkle appcast, first release step.** v1.11.1 shipped without Sparkle, so no
+  installed build can update itself yet. The first Sparkle-capable release needs the
+  signed zip and `appcast.xml` as assets of the LATEST release, then the `curl` check
+  in `docs/RUNBOOK.md`.
+- **Direct build bundle id.** Release-Direct uses `com.dwarvesv.minimalbar`, the same as
+  the App Store build (shared prefs, the two cannot coexist). Confirm that is the
+  decision, or move the direct build to `com.dwarvesv.minimalbar.direct`.
 
-## Blocked on external-display hardware
+## macOS 27 (#360, closed)
 
-- **#351 external-monitor visible-bar (26.4) verification.** The widest-attached-screen
-  fix is code-only; the 26.4 + external-display reproduction was never run. Confirm no
-  full-width bar leak on a real second monitor.
+- **App Store build cannot hide on 27.** The sandbox denies `mach-lookup
+  com.apple.axserver`, so the sections cannot be read even with Accessibility granted.
+  v1.11.2 ships a notice that points to the direct build (`MacOS27Notice`). Still open:
+  a user-picked list of visible apps instead of ⌘-drag (no Accessibility, still private
+  API), or a public mechanism if Apple ships one.
+- **Live Activities on macOS 27.3, #469.** Needs info from the reporter (version, left or
+  right of the arrow, shows on expand). Our test Macs are on 27.2. Related: #327.
 
-## Actionable now (no special hardware)
+## Needs hardware (not yet run)
 
-- **UAT + merge draft PR #365.** Per the local `UAT.md` (one row per fix, click-through
-  steps). Merge order matters (stacked dependency). Merge is Han's action, not the agent's.
-- **Cut the v1.11 release.** Version + CHANGELOG staged in #365. Needs a Developer ID for
-  notarization + App Store submission. Shipping answers the "is this still maintained?"
-  issues and unblocks the round-2 close sweep.
-- **Upgrade-path BTM verification before any signed release.** Install a pre-v1.11 build,
-  update to v1.11, confirm Login Items shows no leftover `LauncherApplication` row (the
-  one-shot `SMLoginItemSetEnabled(..., false)` deauth was added but never run on hardware).
-- **AXPress accessibility defect.** VoiceOver users cannot toggle the bar: the arrow's
-  `AXPress` handler reads `NSApp.currentEvent`, which is nil under assistive synthesis.
-- **`hoverToExpand` Preferences checkbox.** Shipped as a Terminal-only `defaults write`;
-  add a proper checkbox in `PreferencesViewController`.
-- **Surface the `SMAppService` error contract in the prefs UI.** On `register()` failure
-  (unsigned build, or user denies in System Settings), the checkbox stays on while the
-  system says off; the error is swallowed into NSLog. Fix when the prefs UI is next touched.
-  `Common/Util.swift:29-31`.
-- **Round-2 issue close sweep (~35 issues).** Obsolete-OS + meta/support candidates,
-  deferred until v1.11 ships so the closures carry the strongest answer.
-- **24h memory dogfood (#361).** Instruments stress-cycling found no leak; run v1.11 as
-  the daily driver for 24h on the Air to close the open report.
-- **Old branch decision.** `feature/menubarDetection` (PR #115) and `feature/ghost-mode`
-  (PR #57) were kept per never-delete. Review or discard, Han's call.
+- **#351 external monitor.** Closed, but the 26.4 external-display reproduction was never
+  run. The multi-display rework is in #468; a real hot-plug and a second monitor are
+  untested.
+- **Upgrade-path BTM check, #456.** The fix is in #468. Run on hardware: install the App
+  Store build or a pre-v1.11 build, update, confirm Login Items shows no leftover
+  `LauncherApplication` row.
+- **24h memory dogfood, #361 / #386.** Instruments stress-cycling found no leak. The Air
+  now runs the v1.11.2 candidate; read `footprint -p "Hidden Bar"` after a day.
 
-## v1.12 standalone wins (no Option D needed)
+## Unverified on hardware for v1.11.2
 
-- **#207 show clock/date when collapsed.** Loudest single feature ask (18+ comments).
-- **#355** prefs window layout overlap. **#324** single-instance guard. **#276** Cmd+W
-  closes the prefs window. Appearance bundle via community PR #194.
+- **Mic and camera indicator.** The bar stays whole while an app records (#432, #438).
+- **Faded arrow and arrow styles.** Stealth mode (#173) and the arrow style popup (#310),
+  in light and dark menu bars.
+- **Clock expands the bar, on screen.** A click on the clock opens Notification Center
+  (#410, #467).
+- **A real Sparkle update.** An installed build fetching the appcast and updating.
+
+## Decisions for Han
+
+- **Old branches.** `feature/menubarDetection` (PR #115) and `feature/ghost-mode`
+  (PR #57) were kept per never-delete; both PRs are closed. Review or discard.
+- **#242 permanent icon-loss repro.** Needs a throwaway defaults profile (a live repro
+  risks losing real menu-bar icons). Required before the always-hidden decouple lands.
 
 ## Architectural epic (Option D, #366)
 
-- **Managed-overflow / second-bar redesign.** The real fix that gates ~30 issues across
-  four clusters: icon-drift (#28, #156, #181, #230, #231, #239, #252, #254, #275, #283,
-  #321, #334), always-hidden (#171, #224, #242, #288), notch (#206, #225, #228, #245,
-  #267, #269, #280, #292, #330), and macOS 27 (#360). Replaces length-inflation with a
-  managed overflow bar, likely via Accessibility. Needs a design decision from Han +
-  macOS 27 hardware. Design + folded M1 (pin icons, persist order) / M2 (decouple
-  always-hidden from `areSeparatorsHidden`, recover stuck items) in SPEC-003.
-- **Security + behavior review of community PRs #358 and #350 first.** #358 (second bar,
-  +1160 lines) and #350 (notch overflow, +429 lines) are the existing starting points.
-  Do not merge on description alone; #358 especially needs a real review.
-- **#242 permanent icon-loss repro.** Needs a throwaway defaults profile (live repro
-  risks losing real menu-bar icons). Required before the always-hidden decouple lands.
+- **Managed-overflow / second-bar redesign.** The real fix behind the icon-drift,
+  always-hidden, notch and macOS 26/27 clusters. Replaces length-inflation with a managed
+  overflow bar, likely via Accessibility. Needs a design decision from Han. The cluster
+  list lives in the epic body; still open from it today: #107 #174 #224 #225 #233 #242
+  #327 #330 #334 (`gh issue view 366`, then `gh issue list`).
+- **What already landed that the epic builds on.** Native hiding on 27 (#403), notch
+  overflow menu (#420, in #468). The community second-bar PR (#358) was closed as
+  superseded: its window capture no longer works on macOS 27, so the idea continues here.
+- Design and the folded M1 (pin icons, persist order) / M2 (decouple always-hidden from
+  `areSeparatorsHidden`, recover stuck items) are in SPEC-003 (local planning layer).

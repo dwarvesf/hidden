@@ -55,12 +55,6 @@
 /* Class = "NSToolbarItem"; paletteLabel = "Custom View"; ObjectID = "ML6-W4-U8X"; */
 "ML6-W4-U8X.paletteLabel" = "عرض مخصص";
 
-/* Class = "NSToolbarItem"; label = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
-"NIO-JJ-pjq.label" = "عرض مخصص";
-
-/* Class = "NSToolbarItem"; paletteLabel = "Custom View"; ObjectID = "NIO-JJ-pjq"; */
-"NIO-JJ-pjq.paletteLabel" = "عرض مخصص";
-
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
 "NMo-om-nkz.title" = "خدمات";
 

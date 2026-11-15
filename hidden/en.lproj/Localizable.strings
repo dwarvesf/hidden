@@ -11,6 +11,13 @@
 "Enable Auto Collapse" = "Enable Auto Collapse";
 "Disable Auto Collapse" = "Disable Auto Collapse";
 "Quit" = "Quit";
+"macOS 27: get the working version..." = "macOS 27: get the working version...";
+"Hidden Bar cannot hide icons on macOS 27" = "Hidden Bar cannot hide icons on macOS 27";
+"macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from dwarves.foundation/opensource (free, open source) works on macOS 27." = "macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from dwarves.foundation/opensource (free, open source) works on macOS 27.";
+"Open dwarves.foundation/opensource" = "Open dwarves.foundation/opensource";
+"Close" = "Close";
+"Don't show again" = "Don't show again";
+"Hidden Bar on macOS 27" = "Hidden Bar on macOS 27";
 "Set Shortcut" = "Set Shortcut";
 "Show Notch Items" = "Show Notch Items";
 "Notch Overflow" = "Notch Overflow";
@@ -23,7 +30,28 @@ Use the always hidden feature to keep your icons tidy. Here's how to set it
 Steps to enable:
 1. Enable the always hidden “|” (translucent color bar)
 2. Hold  ⌘ and drag it on the left-hand side of the normal bar, then move any icons you want to disappear on the left of that bar.
-3. Finally, please right-click on the collapse “<” icon to make it disappear.
+3. Finally, hold ⌥ Option and click the collapse “<” icon to make it disappear.
 Steps to view always hidden icons:
-1. You right-click on “<” icon again to view and repeat the action to enable the feature. Enjoy 😉!
+1. Option-click the “<” icon again to view and repeat the action to enable the feature. Enjoy 😉!
+";
+"Show all icons while macOS would also hide one right of the arrow" = "Show all icons while macOS would also hide one right of the arrow";
+"macOS 27 also hides: %@" = "macOS 27 also hides: %@";
+"Check for Updates..." = "Check for Updates...";
+"Automatically check for updates" = "Automatically check for updates";
+"Arrow style" = "Arrow style";
+"Arrow" = "Arrow";
+"Chevron" = "Chevron";
+"Dot" = "Dot";
+"Line" = "Line";
+"Hidden Bar needs Accessibility access to hide icons." = "Hidden Bar needs Accessibility access to hide icons.";
+"Open Settings…" = "Open Settings…";
+"Expand the bar when the pointer rests on the menu bar" = "Expand the bar when the pointer rests on the menu bar";
+"Tutorial text (arrow boundary)" = "
+Use the always hidden feature to keep your icons tidy. Here's how to set it
+Steps to enable:
+1. Enable the always hidden “|” (translucent color bar)
+2. Hold  ⌘ and drag it to the left of the arrow, then move any icons you want to disappear on the left of that bar.
+3. Finally, hold ⌥ Option and click the collapse “<” icon to make it disappear.
+Steps to view always hidden icons:
+1. Option-click the “<” icon again to view and repeat the action to enable the feature. Enjoy 😉!
 ";

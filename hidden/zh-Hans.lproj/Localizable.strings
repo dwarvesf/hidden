@@ -19,7 +19,24 @@
 1. 启用持续隐藏功能 ”|“（半透明分割线）。
 2. 按住 ⌘ 并将持续隐藏区域拖至一般隐藏区域（不透明｜）的左侧。
 3. 接着将不想显示的图标移至持续隐藏区域中。
-4. 最后右键单击 “>” 按钮，就能隐藏'持续隐藏区域'中的图标。
-（再次右键单击 “>” 按钮恢复显示 “持续隐藏区域” 中的图标。）
+4. 最后按住 ⌥ Option 键单击 “>” 按钮，就能隐藏'持续隐藏区域'中的图标。
+（再次按住 ⌥ Option 键单击 “>” 按钮恢复显示 “持续隐藏区域” 中的图标。）
 祝您使用愉快 😉!
+";
+"Arrow style" = "Arrow style";
+"Arrow" = "Arrow";
+"Chevron" = "Chevron";
+"Dot" = "Dot";
+"Line" = "Line";
+"Hidden Bar needs Accessibility access to hide icons." = "Hidden Bar needs Accessibility access to hide icons.";
+"Open Settings…" = "Open Settings…";
+"Expand the bar when the pointer rests on the menu bar" = "Expand the bar when the pointer rests on the menu bar";
+"Tutorial text (arrow boundary)" = "
+Use the always hidden feature to keep your icons tidy. Here's how to set it
+Steps to enable:
+1. Enable the always hidden “|” (translucent color bar)
+2. Hold  ⌘ and drag it to the left of the arrow, then move any icons you want to disappear on the left of that bar.
+3. Finally, hold ⌥ Option and click the collapse “<” icon to make it disappear.
+Steps to view always hidden icons:
+1. Option-click the “<” icon again to view and repeat the action to enable the feature. Enjoy 😉!
 ";
