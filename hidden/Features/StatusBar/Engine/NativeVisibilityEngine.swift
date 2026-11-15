@@ -351,9 +351,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // enough for a press to land, then put the same one back. The panel stays
     // open under the restriction; hidden icons can show for a moment.
     private func openNotificationCenter(from location: CGPoint) {
-        // Not while an activation or a section read is in flight: lifting now
-        // would cancel it, and a cancelled collapse never reports back.
-        guard assertion != nil, generation == assertionGeneration else { return }
+        // Not while an activation, a section read or a collapse's visibility
+        // check is in flight: lifting now would cancel it, and a cancelled
+        // collapse never reports back, leaving the bar stuck calibrating.
+        guard assertion != nil, generation == assertionGeneration, state != .calibrating else { return }
         NSLog("NativeVisibility: lifting the restriction for a click on the clock")
         let bundles = assertionBundles
         releaseAssertion()

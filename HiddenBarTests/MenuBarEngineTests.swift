@@ -640,6 +640,40 @@ final class UnkeepableItemsOptInTests: XCTestCase {
         XCTAssertEqual(requests, 1)
     }
 
+    // With the opt-in, a collapse reports back only once the system extras were
+    // checked. A clock click must not cancel that check: the collapse would
+    // never report back, and the bar could neither collapse nor expand.
+    func testClockClickDuringTheCheckLeavesTheCollapseToFinish() {
+        let items = FakeItems()
+        let inventory = FakeInventory()
+        inventory.items = [systemExtra("com.apple.menuextra.focusmode", x: 1400),
+                           systemExtra("com.apple.menuextra.clock", x: 1500), item("com.hidden", x: 1100)]
+        let visibility = FakeVisibility()
+        let clock = FakeClock()
+        let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility, clock: clock,
+                                            ownBundleIdentifier: "com.dwarvesv.minimalbar",
+                                            itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            displays: { [mainDisplay] },
+                                            isLTR: { true },
+                                            pausesHidingForUnkeepableItems: { true })
+        var pendingCheck: (() -> Void)?
+        engine.scheduleVisibilityCheck = { pendingCheck = $0 }
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+        visibility.succeed(0)
+        XCTAssertEqual(engine.state, .calibrating, "the check is still to run")
+
+        clock.click()
+        clock.presses.first?.completion()
+        if visibility.requests.count > 1 {
+            visibility.succeed(1)
+        }
+        pendingCheck?()
+
+        XCTAssertEqual(results, [.collapsed])
+        XCTAssertEqual(engine.state, .collapsed)
+    }
+
     func testHiddenExtrasAreListedForPreferences() {
         let items = FakeItems()
         let inventory = FakeInventory()
