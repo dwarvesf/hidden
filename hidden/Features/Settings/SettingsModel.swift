@@ -49,16 +49,6 @@ enum SettingsTab: String, CaseIterable {
         }
     }
 
-    /// SF Symbol shown in the toolbar.
-    var symbolName: String {
-        switch self {
-        case .general: return "gearshape"
-        case .menuBarApps: return "menubar.rectangle"
-        case .appearance: return "circle.lefthalf.filled"
-        case .advanced: return "slider.horizontal.3"
-        case .about: return "info.circle"
-        }
-    }
 
     /// Menu Bar Apps lists the pinned sections, which only the native engine
     /// has; the pane appears once that feature registers its content.

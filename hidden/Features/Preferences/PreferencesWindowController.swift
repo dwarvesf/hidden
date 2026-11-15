@@ -50,8 +50,8 @@ enum MenuBarAppsPane {
     static var makeViewController: (() -> NSViewController)?
 }
 
-/// Toolbar panes, System Settings style: the window title names the pane.
-class PreferencesWindowController: NSWindowController, NSToolbarDelegate {
+/// Settings: a tab control at the top swaps the panes below it.
+class PreferencesWindowController: NSWindowController {
 
     private static var sharedInstance: PreferencesWindowController?
 
@@ -71,20 +71,57 @@ class PreferencesWindowController: NSWindowController, NSToolbarDelegate {
     let tabs: [SettingsTab]
     private(set) var selectedTab: SettingsTab = .general
     private var panes: [SettingsTab: NSViewController] = [:]
+    /// Text-only tabs centered at the top, level with the traffic lights, like
+    /// the old "General | About" pill. No toolbar, so no glass platters.
+    let tabControl = NSSegmentedControl()
+    private let paneHost = NSView()
+    private var paneHeight: NSLayoutConstraint?
+    static let tabBarHeight: CGFloat = 44
+
+    /// The pane on screen.
+    var currentPane: NSViewController { pane(selectedTab) }
 
     init(context: SettingsContext) {
         self.context = context
         self.tabs = context.visibleTabs
-        let window = SettingsWindow(contentRect: NSRect(x: 0, y: 0, width: SettingsMetrics.contentWidth + 2 * SettingsMetrics.sideInset, height: 400),
-                              styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: true)
+        let width = SettingsMetrics.contentWidth + 2 * SettingsMetrics.sideInset
+        let window = SettingsWindow(contentRect: NSRect(x: 0, y: 0, width: width, height: 400),
+                                    styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
+                                    backing: .buffered, defer: true)
         window.isReleasedWhenClosed = false
-        window.toolbarStyle = .preference
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
         super.init(window: window)
-        let toolbar = NSToolbar(identifier: "SettingsToolbar")
-        toolbar.delegate = self
-        toolbar.displayMode = .iconAndLabel
-        toolbar.allowsUserCustomization = false
-        window.toolbar = toolbar
+
+        tabControl.segmentCount = tabs.count
+        for (index, tab) in tabs.enumerated() {
+            tabControl.setLabel(tab.titleKey.localized, forSegment: index)
+        }
+        tabControl.trackingMode = .selectOne
+        tabControl.segmentStyle = .automatic
+        tabControl.identifier = NSUserInterfaceItemIdentifier("settingsTabs")
+        tabControl.target = self
+        tabControl.action = #selector(tabClicked(_:))
+
+        let root = NSView(frame: NSRect(x: 0, y: 0, width: width, height: 400))
+        for view in [tabControl, paneHost] {
+            view.translatesAutoresizingMaskIntoConstraints = false
+            root.addSubview(view)
+        }
+        let height = paneHost.heightAnchor.constraint(equalToConstant: 300)
+        paneHeight = height
+        NSLayoutConstraint.activate([
+            tabControl.centerXAnchor.constraint(equalTo: root.centerXAnchor),
+            // The titlebar is 28 pt; this centers the control on the traffic lights' row and below.
+            tabControl.topAnchor.constraint(equalTo: root.topAnchor, constant: 8),
+            paneHost.topAnchor.constraint(equalTo: root.topAnchor, constant: Self.tabBarHeight),
+            paneHost.leadingAnchor.constraint(equalTo: root.leadingAnchor),
+            paneHost.trailingAnchor.constraint(equalTo: root.trailingAnchor),
+            paneHost.bottomAnchor.constraint(equalTo: root.bottomAnchor),
+            root.widthAnchor.constraint(equalToConstant: width),
+            height,
+        ])
+        window.contentView = root
         select(.general, animate: false)
         window.center()
     }
@@ -106,59 +143,45 @@ class PreferencesWindowController: NSWindowController, NSToolbarDelegate {
     }
 
     func select(_ tab: SettingsTab, animate: Bool = true) {
-        guard tabs.contains(tab), let window else { return }
+        guard let index = tabs.firstIndex(of: tab), let window else { return }
+        let old = pane(selectedTab)
         selectedTab = tab
         let controller = pane(tab)
-        window.toolbar?.selectedItemIdentifier = NSToolbarItem.Identifier(tab.rawValue)
+        tabControl.selectedSegment = index
+        // Hidden in the titlebar, but still the window's name in the Window menu and to VoiceOver.
         window.title = tab.titleKey.localized
-        // Resize around the new pane, keeping the top edge where it was.
+
         let size = controller.view.fittingSize
-        controller.view.setFrameSize(size)
-        let frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: size))
+        if old !== controller { old.view.removeFromSuperview() }
+        if controller.view.superview !== paneHost {
+            controller.view.translatesAutoresizingMaskIntoConstraints = false
+            paneHost.addSubview(controller.view)
+            NSLayoutConstraint.activate([
+                controller.view.topAnchor.constraint(equalTo: paneHost.topAnchor),
+                controller.view.leadingAnchor.constraint(equalTo: paneHost.leadingAnchor),
+                controller.view.trailingAnchor.constraint(equalTo: paneHost.trailingAnchor),
+            ])
+        }
+        paneHeight?.constant = size.height
+        // Resize around the new pane, keeping the top edge where it was.
+        let contentSize = NSSize(width: window.frame.width, height: Self.tabBarHeight + size.height)
+        let frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: contentSize))
         var newFrame = window.frame
         newFrame.origin.y += newFrame.height - frame.height
         newFrame.size = frame.size
-        window.contentViewController = nil
         window.setFrame(newFrame, display: true, animate: animate && window.isVisible)
-        window.contentViewController = controller
+        (controller as? SettingsPaneController)?.refreshAll()
     }
 
-    @objc private func toolbarItemClicked(_ sender: NSToolbarItem) {
-        guard let tab = SettingsTab(rawValue: sender.itemIdentifier.rawValue) else { return }
-        select(tab)
-    }
-
-    // MARK: NSToolbarDelegate
-
-    func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        tabs.map { NSToolbarItem.Identifier($0.rawValue) }
-    }
-
-    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        toolbarAllowedItemIdentifiers(toolbar)
-    }
-
-    func toolbarSelectableItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        toolbarAllowedItemIdentifiers(toolbar)
-    }
-
-    func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier,
-                 willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
-        guard let tab = SettingsTab(rawValue: itemIdentifier.rawValue) else { return nil }
-        let item = NSToolbarItem(itemIdentifier: itemIdentifier)
-        item.label = tab.titleKey.localized
-        item.image = NSImage(systemSymbolName: tab.symbolName, accessibilityDescription: item.label)
-        // Plain item; macOS 26 and later wrap each one in the system's glass platter.
-        item.isBordered = false
-        item.target = self
-        item.action = #selector(toolbarItemClicked(_:))
-        return item
+    @objc private func tabClicked(_ sender: NSSegmentedControl) {
+        guard tabs.indices.contains(sender.selectedSegment) else { return }
+        select(tabs[sender.selectedSegment])
     }
 
     // MARK: Keys
 
     private var general: PreferencesViewController? {
-        window?.contentViewController as? PreferencesViewController
+        currentPane as? PreferencesViewController
     }
 
     override func keyDown(with event: NSEvent) {
@@ -175,6 +198,12 @@ class PreferencesWindowController: NSWindowController, NSToolbarDelegate {
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
         let listening = general?.listening ?? false
         let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        // Cmd+1...Cmd+5 pick a tab, as in other settings windows.
+        if !listening, mods == .command, let digit = event.charactersIgnoringModifiers.flatMap(Int.init),
+           tabs.indices.contains(digit - 1) {
+            select(tabs[digit - 1])
+            return true
+        }
         if !listening,
            mods.isSubset(of: [.command, .shift]),
            mods.contains(.command),

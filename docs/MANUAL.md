@@ -42,7 +42,7 @@ section is enabled.
 
 ## Settings window
 
-Toolbar panes; the window title names the pane. A status card at the top of General says whether Hidden Bar is working, and if not, what to do (grant Accessibility, move to Applications, or that the App Store build cannot hide on macOS 27). The "Your menu bar" preview draws the edge the running engine uses: the arrow on the macOS 27 direct build, the "|" separator otherwise.
+Tabs in a centered control at the top (Cmd+1 to Cmd+5). A status card at the top of General says whether Hidden Bar is working, and if not, what to do (grant Accessibility, move to Applications, or that the App Store build cannot hide on macOS 27). The "Your menu bar" preview draws the edge the running engine uses: the arrow on the macOS 27 direct build, the "|" separator otherwise.
 
 | Pane | Setting | Stored as |
 |---|---|---|
@@ -60,7 +60,7 @@ Toolbar panes; the window title names the pane. A status card at the top of Gene
 | Advanced (macOS 27, direct) | Show all icons while macOS hides one right of the arrow | `pauseHidingForUnkeepableItems` |
 | About (direct) | Check for updates automatically, Check for Updates… | Sparkle's `SUEnableAutomaticChecks` |
 
-A Menu Bar Apps pane joins the toolbar on the macOS 27 direct build once the pinned sections beta registers it (`MenuBarAppsPane`).
+A Menu Bar Apps tab joins the others on the macOS 27 direct build once the pinned sections beta registers it (`MenuBarAppsPane`).
 
 Debug builds can draw every pane and status state, light and dark, to PNGs without showing a window: run the built binary with `-settingsSnapshotDir <dir>`; it quits when done and writes no preference.
 

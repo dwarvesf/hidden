@@ -69,7 +69,7 @@ flowchart TD
   post `NotificationCenter` notifications that the controller and prefs window
   observe. There is no other state store.
 - **`PreferencesWindowController`**: the only window, built in code with
-  toolbar panes (`PreferencesViewController` is General; Appearance, Advanced
+  a centered tab control and panes (`PreferencesViewController` is General; Appearance, Advanced
   and About sit in `Features/Settings` and `Features/About`), shown on demand
   from the context menu. `SettingsContext` carries the build, OS and status the
   panes branch on; `SettingsModel.swift` holds the AppKit-free decisions.

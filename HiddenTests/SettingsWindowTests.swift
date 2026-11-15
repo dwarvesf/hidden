@@ -55,6 +55,7 @@ final class SettingsWindowTests: XCTestCase {
             }
         }
         MenuBarAppsPane.makeViewController = nil
+        windows.removeAll()
         super.tearDown()
     }
 
@@ -68,8 +69,12 @@ final class SettingsWindowTests: XCTestCase {
         return context
     }
 
+    /// The panes are the controls' targets; keep their window controller alive for the test.
+    private var windows: [PreferencesWindowController] = []
+
     private func allViews(_ controller: PreferencesWindowController) -> [NSView] {
-        controller.tabs.flatMap { Self.subviews(of: controller.pane($0).view) }
+        windows.append(controller)
+        return controller.tabs.flatMap { Self.subviews(of: controller.pane($0).view) }
     }
 
     private static func subviews(of view: NSView) -> [NSView] {
@@ -198,19 +203,22 @@ final class SettingsWindowTests: XCTestCase {
         context.menuBarAppsAvailable = MenuBarAppsPane.makeViewController != nil
         let controller = PreferencesWindowController(context: context)
         XCTAssertEqual(controller.tabs, [.general, .menuBarApps, .appearance, .advanced, .about])
-        XCTAssertEqual(controller.window?.toolbar?.items.map(\.itemIdentifier.rawValue),
-                       controller.tabs.map(\.rawValue))
+        XCTAssertNil(controller.window?.toolbar, "a toolbar brings back the glass item platters")
+        XCTAssertEqual((0..<controller.tabControl.segmentCount).map { controller.tabControl.label(forSegment: $0) },
+                       controller.tabs.map { $0.titleKey.localized })
     }
 
     // Given each tab
     // When selecting it
-    // Then the window title names the pane, and General stays within 720 pt
+    // Then the tab control and the (hidden) window title follow, and General stays within 720 pt
     func test_selectingATab_titlesTheWindow() throws {
         let controller = PreferencesWindowController(context: fullContext())
         for tab in controller.tabs {
             controller.select(tab, animate: false)
             XCTAssertEqual(controller.window?.title, tab.titleKey.localized)
-            XCTAssertTrue(controller.window?.contentViewController === controller.pane(tab))
+            XCTAssertTrue(controller.currentPane === controller.pane(tab))
+            XCTAssertNotNil(controller.pane(tab).view.window, "\(tab) pane is not in the window")
+            XCTAssertEqual(controller.tabControl.selectedSegment, controller.tabs.firstIndex(of: tab))
         }
         controller.select(.general, animate: false)
         let height = try XCTUnwrap(controller.window?.frame.height)
