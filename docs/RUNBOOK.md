@@ -66,6 +66,20 @@ installed app, test the dev build, then re-import and relaunch.
    ```sh
    codesign -d --entitlements - 'Hidden Bar.app' | grep app-sandbox  # must print nothing
    ```
+
+   The target signs automatically for development, so a plain archive fails
+   with "conflicting provisioning settings". Archive with manual Developer ID
+   signing, then export with `method` `developer-id` (`signingStyle` manual,
+   `signingCertificate` "Developer ID Application"); the export re-signs
+   Sparkle's XPC services, `Autoupdate` and `Updater.app` with hardened
+   runtime and a timestamp:
+
+   ```sh
+   xcodebuild archive -project 'Hidden Bar.xcodeproj' -scheme 'Hidden Bar' \
+     -configuration Release-Direct -archivePath build/HiddenBar.xcarchive \
+     CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Developer ID Application' \
+     DEVELOPMENT_TEAM=W777S7V8TN OTHER_CODE_SIGN_FLAGS=--timestamp
+   ```
 4. App Store (separate lane, **Hidden Bar App Store** scheme): the MAS listing
    has lagged GitHub since v1.8 (issues #281/#202); decide deliberately whether
    a release goes there too.
@@ -92,11 +106,12 @@ tarball matching the pinned package version (2.10.1, `Sparkle-<ver>.tar.xz`
 under `bin/`). Run from a folder that holds only the zip(s) to publish:
 
 ```sh
-# 1. zip the stapled app (keep the name stable: Hidden.Bar-<version>.zip)
-ditto -c -k --sequesterRsrc --keepParent 'Hidden Bar.app' Hidden.Bar-1.12.zip
+# 1. zip the stapled app (keep the name stable: Hidden-Bar-v<version>-macos.zip,
+#    the asset name the Homebrew cask URL expects)
+ditto -c -k --sequesterRsrc --keepParent 'Hidden Bar.app' Hidden-Bar-v1.12-macos.zip
 
 # 2. EdDSA signature (key streamed from 1Password, never written to disk)
-sign_update --ed-key-file <(op read 'op://dfoundation-prod/Hidden Bar Sparkle EdDSA private key/password') Hidden.Bar-1.12.zip
+sign_update --ed-key-file <(op read 'op://dfoundation-prod/Hidden Bar Sparkle EdDSA private key/password') Hidden-Bar-v1.12-macos.zip
 # prints: sparkle:edSignature="..." length="..."
 
 # 3. appcast entry (reads the same key; run over a folder holding the new zip
@@ -108,7 +123,7 @@ generate_appcast --ed-key-file <(op read 'op://dfoundation-prod/Hidden Bar Spark
   --link 'https://github.com/dwarvesf/hidden' .
 
 # 4. publish: the zip and appcast.xml are both release assets
-gh release upload v1.12 Hidden.Bar-1.12.zip appcast.xml --clobber -R dwarvesf/hidden
+gh release upload v1.12 Hidden-Bar-v1.12-macos.zip appcast.xml --clobber -R dwarvesf/hidden
 ```
 
 Check before announcing: `curl -sIL https://github.com/dwarvesf/hidden/releases/latest/download/appcast.xml`
