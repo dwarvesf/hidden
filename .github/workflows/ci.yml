@@ -53,14 +53,18 @@ jobs:
           echo "Selecting $newest"
           sudo xcode-select -s "$newest/Contents/Developer"
           xcodebuild -version
+          echo "XCODE_VERSION=$(xcodebuild -version | awk '/Build version/ {print $3}')" >> "$GITHUB_ENV"
 
-      # Only the resolved Sparkle checkout. The DerivedData cache was dropped: its
-      # restore plus save (about 30 s) cost more than the build it saved.
-      - name: Cache SwiftPM packages
+      # One DerivedData cache per scheme (it holds SourcePackages too). A warm
+      # restore turns the build incremental; restore-keys falls back to the
+      # newest cache for the same scheme and Xcode build.
+      - name: Cache derived data
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: .ci-dd/${{ matrix.key }}/SourcePackages
-          key: spm-${{ matrix.key }}-${{ hashFiles('**/Package.resolved') }}
+          path: .ci-dd/${{ matrix.key }}
+          key: dd-${{ matrix.key }}-${{ env.XCODE_VERSION }}-${{ hashFiles('Hidden Bar.xcodeproj/project.pbxproj', '**/Package.resolved') }}
+          restore-keys: |
+            dd-${{ matrix.key }}-${{ env.XCODE_VERSION }}-
 
       - name: Build and test
         run: scripts/test.sh --scheme ${{ matrix.key }}
