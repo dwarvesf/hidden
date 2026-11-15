@@ -63,6 +63,10 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     /// If another instance with the same bundle ID is already running, activate it
     /// and terminate this one instead.
     private func ensureSingleInstance() -> Bool {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        // The direct build asks before quitting an App Store copy that is running.
+        return AppStoreMigration.shared.resolveOtherRunningCopy()
+        #else
         let current = ProcessInfo.processInfo.processIdentifier
         let existing = NSWorkspace.shared.runningApplications.first {
             guard $0.bundleIdentifier == Bundle.main.bundleIdentifier,
@@ -79,6 +83,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         existing.activate(options: [.activateAllWindows])
         NSApp.terminate(nil)
         return false
+        #endif
     }
     
     func openPreferencesIfNeeded() {

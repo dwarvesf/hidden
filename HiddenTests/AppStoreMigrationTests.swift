@@ -195,18 +195,101 @@ final class AppStoreMigrationTests: XCTestCase {
                        "/Applications/Hidden Bar.app")
     }
 
-    func testMoveOfferRules() {
-        let home = URL(fileURLWithPath: "/Users/x")
-        let downloads = URL(fileURLWithPath: "/Users/x/Downloads/Hidden Bar.app")
-        func offer(_ url: URL = downloads, answered: Bool = false, masAtDestination: Bool = false, writable: Bool = true) -> Bool {
-            MoveToApplications.shouldOffer(runningBundle: url, home: home, alreadyAnswered: answered,
-                                           destinationIsAppStoreCopy: masAtDestination, applicationsWritable: writable)
+    // Fake answers: the plan reads no disk, so writability and App Store copies are parameters.
+    private func plan(_ running: String = "/Users/x/Downloads/Hidden Bar.app", answered: Bool = false,
+                      writable: Bool = true, masInApplications: Bool = false,
+                      userUsable: Bool = true, masInUserApplications: Bool = false) -> MoveToApplications.Plan {
+        MoveToApplications.plan(runningBundle: URL(fileURLWithPath: running), home: URL(fileURLWithPath: "/Users/x"),
+                                alreadyAnswered: answered, applicationsWritable: writable,
+                                applicationsHoldsAppStoreCopy: masInApplications,
+                                userApplicationsUsable: userUsable, userApplicationsHoldsAppStoreCopy: masInUserApplications)
+    }
+
+    func testMoveGoesToApplicationsWhenItCan() {
+        XCTAssertEqual(plan(), .moveToApplications(URL(fileURLWithPath: "/Applications/Hidden Bar.app")))
+        XCTAssertEqual(plan("/Applications/Hidden Bar.app"), MoveToApplications.Plan.none)
+        XCTAssertEqual(plan("/Users/x/Applications/Hidden Bar.app"), MoveToApplications.Plan.none)
+        XCTAssertEqual(plan(answered: true), MoveToApplications.Plan.none, "offered once")
+    }
+
+    /// Dead end: "Not now" to the Trash left the App Store copy in /Applications
+    /// and the move offer never showed.
+    func testKeptAppStoreCopyInApplicationsSendsTheMoveToUserApplications() {
+        XCTAssertEqual(plan(masInApplications: true),
+                       .moveToUserApplicationsAppStoreCopyKept(URL(fileURLWithPath: "/Users/x/Applications/Hidden Bar.app")))
+    }
+
+    /// Dead end: a standard account cannot write /Applications.
+    func testUnwritableApplicationsSendsTheMoveToUserApplications() {
+        XCTAssertEqual(plan(writable: false),
+                       .moveToUserApplicationsNotWritable(URL(fileURLWithPath: "/Users/x/Applications/Hidden Bar.app")))
+        XCTAssertEqual(plan(writable: false, masInApplications: true),
+                       .moveToUserApplicationsNotWritable(URL(fileURLWithPath: "/Users/x/Applications/Hidden Bar.app")))
+    }
+
+    func testNoUsableFolderExplainsInsteadOfStayingSilent() {
+        XCTAssertEqual(plan(writable: false, userUsable: false), .explain)
+        XCTAssertEqual(plan(masInApplications: true, masInUserApplications: true), .explain)
+        XCTAssertEqual(plan(answered: true, writable: false, userUsable: false), MoveToApplications.Plan.none)
+    }
+
+    /// The move check reads the real folders: a fake home and a fake /Applications.
+    func testMovePlanReadsFoldersAndKeptAppStoreCopy() throws {
+        let downloads = try makeBundle("Downloads/Hidden Bar.app", bundleID: bundleID, appStore: false)
+        let system = root.appendingPathComponent("SystemApplications")
+        try FileManager.default.createDirectory(at: system, withIntermediateDirectories: true)
+        func migration() -> AppStoreMigration {
+            AppStoreMigration(environment: .init(home: root, bundleURL: downloads, bundleIdentifier: bundleID,
+                                                 defaults: defaults, registeredDefaults: registered,
+                                                 systemApplications: system))
         }
-        XCTAssertTrue(offer())
-        XCTAssertFalse(offer(URL(fileURLWithPath: "/Applications/Hidden Bar.app")))
-        XCTAssertFalse(offer(answered: true), "offered once")
-        XCTAssertFalse(offer(masAtDestination: true), "the Trash offer handles the App Store copy first")
-        XCTAssertFalse(offer(writable: false))
+        XCTAssertEqual(migration().movePlan, .moveToApplications(system.appendingPathComponent("Hidden Bar.app")))
+
+        _ = try makeBundle("SystemApplications/Hidden Bar.app", bundleID: bundleID, appStore: true)
+        XCTAssertEqual(migration().movePlan,
+                       .moveToUserApplicationsAppStoreCopyKept(root.appendingPathComponent("Applications/Hidden Bar.app")),
+                       "~/Applications is missing but creatable")
+
+        // The Trash answer does not matter.
+        MigrationOfferLedger(defaults: defaults).recordAnswer(MigrationOfferLedger.trashKey)
+        XCTAssertEqual(migration().movePlan,
+                       .moveToUserApplicationsAppStoreCopyKept(root.appendingPathComponent("Applications/Hidden Bar.app")))
+    }
+
+    // MARK: another copy already running
+
+    private let downloadsApp = URL(fileURLWithPath: "/Users/x/Downloads/Hidden Bar.app")
+
+    private func instance(_ pid: pid_t, _ path: String, appStore: Bool) -> OtherRunningCopy.Instance {
+        .init(pid: pid, bundleURL: URL(fileURLWithPath: path), isAppStoreBuild: appStore)
+    }
+
+    /// Dead end: the App Store copy runs at login and the direct build quit silently.
+    func testRunningAppStoreCopyIsOfferedAQuit() {
+        let others = [instance(41, "/Applications/Hidden Bar.app", appStore: true)]
+        XCTAssertEqual(OtherRunningCopy.decide(others: others, runningBundle: downloadsApp), .offerToReplaceAppStoreCopy(41))
+    }
+
+    func testRunningDirectCopyStillWinsSilently() {
+        XCTAssertEqual(OtherRunningCopy.decide(others: [instance(42, "/Applications/Hidden Bar.app", appStore: false)],
+                                               runningBundle: downloadsApp), .quitInFavorOf(42))
+        XCTAssertEqual(OtherRunningCopy.decide(others: [instance(41, "/Applications/Hidden Bar.app", appStore: true),
+                                                        instance(42, "/Users/x/Applications/Hidden Bar.app", appStore: false)],
+                                               runningBundle: downloadsApp), .quitInFavorOf(42),
+                       "a direct copy is already running; nothing to switch")
+        XCTAssertEqual(OtherRunningCopy.decide(others: [], runningBundle: downloadsApp), .launch)
+    }
+
+    func testDebugRulesOnlyCountTheSamePathUnlessForced() {
+        let installed = instance(42, "/Applications/Hidden Bar.app", appStore: false)
+        let appStore = instance(41, "/Applications/Hidden Bar.app", appStore: true)
+        let relaunch = instance(43, downloadsApp.path, appStore: false)
+        XCTAssertEqual(OtherRunningCopy.decide(others: [installed, appStore], runningBundle: downloadsApp,
+                                               countsOtherPaths: false, countsAppStoreCopies: false), .launch)
+        XCTAssertEqual(OtherRunningCopy.decide(others: [installed, appStore], runningBundle: downloadsApp,
+                                               countsOtherPaths: false, countsAppStoreCopies: true), .offerToReplaceAppStoreCopy(41))
+        XCTAssertEqual(OtherRunningCopy.decide(others: [appStore, relaunch], runningBundle: downloadsApp,
+                                               countsOtherPaths: false, countsAppStoreCopies: true), .quitInFavorOf(43))
     }
 }
 

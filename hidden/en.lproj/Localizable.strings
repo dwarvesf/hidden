@@ -30,6 +30,15 @@
 "Hidden Bar is running from outside Applications. The copy already in Applications goes to the Trash, then Hidden Bar relaunches from there." = "Hidden Bar is running from outside Applications. The copy already in Applications goes to the Trash, then Hidden Bar relaunches from there.";
 "Hidden Bar is running from outside Applications. Move it there so it keeps working after you empty Downloads, then relaunch." = "Hidden Bar is running from outside Applications. Move it there so it keeps working after you empty Downloads, then relaunch.";
 "Move to Applications" = "Move to Applications";
+"Hidden Bar from the App Store is running. Quit it and switch to this version?" = "Hidden Bar from the App Store is running. Quit it and switch to this version?";
+"Only one Hidden Bar can run at a time. The App Store version stays installed until you choose otherwise." = "Only one Hidden Bar can run at a time. The App Store version stays installed until you choose otherwise.";
+"Quit and Switch" = "Quit and Switch";
+"Cancel" = "Cancel";
+"Hidden Bar can't hide icons from this folder" = "Hidden Bar can't hide icons from this folder";
+"macOS only lets Hidden Bar hide icons when it runs from an Applications folder, and neither /Applications nor the Applications folder in your home folder can take it. Quit Hidden Bar, drag it into /Applications (an administrator may need to do this), then open it from there." = "macOS only lets Hidden Bar hide icons when it runs from an Applications folder, and neither /Applications nor the Applications folder in your home folder can take it. Quit Hidden Bar, drag it into /Applications (an administrator may need to do this), then open it from there.";
+"OK" = "OK";
+"Hidden Bar is running from outside Applications, and this account can't write to /Applications. It moves to the Applications folder in your home folder instead, then relaunches from there." = "Hidden Bar is running from outside Applications, and this account can't write to /Applications. It moves to the Applications folder in your home folder instead, then relaunches from there.";
+"Hidden Bar is running from outside Applications, and the App Store copy stays in /Applications. This version moves to the Applications folder in your home folder instead, then relaunches from there." = "Hidden Bar is running from outside Applications, and the App Store copy stays in /Applications. This version moves to the Applications folder in your home folder instead, then relaunches from there.";
 "Set Shortcut" = "Set Shortcut";
 "Show Notch Items" = "Show Notch Items";
 "Notch Overflow" = "Notch Overflow";
