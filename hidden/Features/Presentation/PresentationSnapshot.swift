@@ -31,7 +31,7 @@ enum PresentationSnapshot {
         shoot(size: NSSize(width: 760, height: 150), appearance: appearance,
               to: dir.appendingPathComponent("direct-present-click-\(mode).png")) { scene in
             let strip = addMenuBar(to: scene, phase: nil, showsHiddenIcons: true)
-            let note = PresentationNoteView(names: ["Slack", "1Password", "Tailscale"])
+            let note = PresentationNoteView(count: 3)
             note.frame = NSRect(origin: .zero, size: note.fittingSize)
             let chrome = PanelChrome(content: note, radius: note.frame.height / 2)
             chrome.frame.origin = NSPoint(x: strip.arrowFrame.midX - chrome.frame.width / 2, y: 38)

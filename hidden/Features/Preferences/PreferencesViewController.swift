@@ -170,10 +170,10 @@ class PreferencesViewController: SettingsPaneController {
         addSection("Presentation mode".localized, rows: [
             SettingsForm.row("Turn on automatically".localized, caption: "When a display is mirrored.".localized, control: mirror),
             SettingsForm.row("Sensitive apps".localized,
-                             caption: "Stay hidden while presenting, even when you click the arrow.".localized, control: sensitive),
+                             caption: "Stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone.".localized, control: sensitive),
             SettingsForm.row("Keyboard shortcut".localized, control: recorder),
         ])
-        addFootnote("Hiding pauses while the camera or microphone is on, so the capsule that names the app using them stays visible.".localized)
+        addFootnote("Sensitive apps stay hidden while presenting, except while hiding is paused for the camera or microphone. Then nothing is hidden, so the capsule that names the app using them stays visible.".localized)
     }
 
     @objc private func editSensitiveApps(_ sender: NSButton) {

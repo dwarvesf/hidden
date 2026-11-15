@@ -19,9 +19,11 @@ enum PresentationPhase: Equatable {
     case off
     // On and holding the strict list.
     case presenting
-    // On, but the restriction is lifted because a camera or microphone is in use
-    // (or was a moment ago): the restriction also hides the capsule macOS shows
-    // for the app that records (#437).
+    // On, but nothing is hidden: a camera or microphone turned on (or was on when
+    // the mode started), so the restriction is lifted once, as on the main bar
+    // (1.12). The restriction also hides the capsule macOS shows for the app that
+    // records (#437). The user can resume hiding; it also resumes by itself when
+    // capture ends.
     case paused
     // On, but macOS refused the strict list, so every icon is showing.
     case couldNotHide
@@ -32,8 +34,9 @@ enum PresentationPhase: Equatable {
 // timers and reads no clock; the caller passes the time. NativeVisibilityEngine
 // turns the resulting phase into the one list it holds.
 struct PresentationState: Equatable {
-    // The microphone or camera must be quiet this long before hiding resumes, so
-    // a mic that flaps for a second does not flap the bar. Pausing is immediate.
+    // The microphone or camera must be quiet this long before hiding resumes by
+    // itself, so a mic that flaps for a second does not flap the bar. Pausing is
+    // immediate.
     static let resumeDelay: TimeInterval = 2.5
 
     private(set) var isManual = false
@@ -44,6 +47,8 @@ struct PresentationState: Equatable {
     // When capture was last seen on, or seen ending: the quiet period starts there.
     private(set) var lastCaptureAt: TimeInterval?
     private(set) var captureWasActive = false
+    // A capture start paused the mode and the user has not resumed hiding since.
+    private(set) var capturePaused = false
     private(set) var hideFailed = false
 
     var isOn: Bool {
@@ -85,27 +90,49 @@ struct PresentationState: Equatable {
         hideFailed = false
     }
 
-    // Level-triggered: the caller reads the capture state at this moment, every
-    // time, rather than relying on a stored edge. Capture seen now, or seen
-    // ending now, keeps the mode paused until it has been quiet for `resumeDelay`.
-    mutating func resolve(captureActive: Bool, now: TimeInterval) -> PresentationPhase {
+    // The user chose to hide again while capture continues (the capsule action or
+    // a collapse). The next capture start pauses again.
+    mutating func resumeHiding() {
+        capturePaused = false
+        hideFailed = false
+    }
+
+    // The capture rule is the one the main bar follows (1.12): a camera or
+    // microphone that turns on pauses the mode once, `pausesForCapture` being the
+    // "show the whole bar when capture starts" switch. Capture already on when the
+    // mode starts counts as a start. With the switch off nothing ever pauses.
+    // The caller reads the capture state at this moment, every time; the start is
+    // seen here as an off-to-on change, and a pause ends when the user resumes or
+    // when capture has been quiet for `resumeDelay`.
+    mutating func resolve(captureActive: Bool, pausesForCapture: Bool = true, now: TimeInterval) -> PresentationPhase {
         guard isOn else {
             // Nothing is waiting on capture while the mode is off, and a stale
-            // quiet period must not pause the next start.
+            // pause must not carry into the next start.
             lastCaptureAt = nil
             captureWasActive = false
+            capturePaused = false
             return .off
         }
+        guard pausesForCapture else {
+            lastCaptureAt = nil
+            captureWasActive = captureActive
+            capturePaused = false
+            return hideFailed ? .couldNotHide : .presenting
+        }
+        if captureActive && !captureWasActive { capturePaused = true }
         if captureActive || captureWasActive { lastCaptureAt = now }
         captureWasActive = captureActive
-        if captureActive { return .paused }
-        if let last = lastCaptureAt, now < last + Self.resumeDelay { return .paused }
+        if capturePaused {
+            if captureActive { return .paused }
+            if let last = lastCaptureAt, now < last + Self.resumeDelay { return .paused }
+            capturePaused = false
+        }
         return hideFailed ? .couldNotHide : .presenting
     }
 
     // Seconds until a quiet period ends, nil when there is none to wait for.
     func resumeWait(now: TimeInterval) -> TimeInterval? {
-        guard isOn, let last = lastCaptureAt, now < last + Self.resumeDelay else { return nil }
+        guard isOn, capturePaused, let last = lastCaptureAt, now < last + Self.resumeDelay else { return nil }
         return last + Self.resumeDelay - now
     }
 }

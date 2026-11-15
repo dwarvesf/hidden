@@ -2806,8 +2806,8 @@ final class PresentationModeEngineTests: XCTestCase {
         arrowReadable = true
     }
 
-    // `expandsWhenCaptureStarts` is the 1.11.2 option; presentation mode must lift
-    // for a camera or microphone whatever it says.
+    // `expandsWhenCaptureStarts` is the 1.12 option ("show the whole bar when a
+    // camera or microphone turns on"); presentation mode follows it.
     private func makeEngine(expandsWhenCaptureStarts: Bool = true) -> NativeVisibilityEngine {
         let items = self.items!
         let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility, clock: clock,
@@ -2986,7 +2986,7 @@ final class PresentationModeEngineTests: XCTestCase {
     // When a camera turns on
     // Then the restriction lifts at once and the bar shows
     func testCaptureStartLiftsTheRestrictionAtOnce() {
-        let engine = makeEngine(expandsWhenCaptureStarts: false)
+        let engine = makeEngine()
         collapsed(engine)
         engine.startPresentation()
         let held = visibility.succeed(visibility.requests.count - 1)
@@ -3002,7 +3002,7 @@ final class PresentationModeEngineTests: XCTestCase {
     // When the camera turns off
     // Then hiding resumes only after the quiet period, with the strict list
     func testResumesTwoAndAHalfSecondsAfterCaptureEnds() {
-        let engine = makeEngine(expandsWhenCaptureStarts: false)
+        let engine = makeEngine()
         collapsed(engine)
         engine.startPresentation()
         visibility.succeed(visibility.requests.count - 1)
@@ -3024,7 +3024,7 @@ final class PresentationModeEngineTests: XCTestCase {
     // When it stops and starts again inside the quiet period
     // Then the bar does not flap: it stays shown until a full quiet period
     func testFlappingCaptureNeverHidesEarly() {
-        let engine = makeEngine(expandsWhenCaptureStarts: false)
+        let engine = makeEngine()
         collapsed(engine)
         engine.startPresentation()
         visibility.succeed(visibility.requests.count - 1)
@@ -3048,7 +3048,7 @@ final class PresentationModeEngineTests: XCTestCase {
     // Then no strict list is ever requested: it begins paused
     func testStartWhileCaptureIsActiveNeverHolds() {
         capture.isActive = true
-        let engine = makeEngine(expandsWhenCaptureStarts: false)
+        let engine = makeEngine()
         let held = collapsed(engine)
         engine.startPresentation()
 
@@ -3204,28 +3204,137 @@ final class PresentationModeEngineTests: XCTestCase {
         XCTAssertEqual(phases, [.presenting])
     }
 
-    // Given the pause for a camera
-    // When the user (or the auto-hide timer) collapses the bar
-    // Then no list is held and the bar stays shown, until the pause ends
-    func testCollapseDuringThePauseStaysLifted() {
-        let engine = makeEngine(expandsWhenCaptureStarts: false)
+    // Given the pause for a camera that is still on
+    // When the user collapses the bar (the normal collapse)
+    // Then presentation hides again at once, with the strict list, and stays so while capture continues
+    func testCollapseDuringThePauseHidesAgain() {
+        let engine = makeEngine()
         collapsed(engine)
         engine.startPresentation()
         visibility.succeed(visibility.requests.count - 1)
         capture.set(true)
+        XCTAssertEqual(engine.state, .expanded)
         let requests = visibility.requests.count
 
         var results: [CollapseResult] = []
         engine.collapse { results.append($0) }
-        XCTAssertEqual(visibility.requests.count, requests, "not even the normal list is held")
-        XCTAssertEqual(engine.state, .expanded)
-        XCTAssertNil(engine.currentHold)
-        XCTAssertEqual(results, [.unavailable])
-        XCTAssertEqual(phases, [.presenting, .paused], "a collapse that stays shown is not a failure")
+        XCTAssertEqual(visibility.requests.count, requests + 1)
+        XCTAssertEqual(visibility.requests.last?.bundles, strict)
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(results, [.collapsed])
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertEqual(phases, [.presenting, .paused, .presenting])
 
+        time.advance(to: 60)
+        XCTAssertEqual(engine.currentPhase(), .presenting, "capture still on: no second pause")
+        XCTAssertEqual(visibility.requests.count, requests + 1)
+    }
+
+    // Given a camera that turns on while presenting, the switch on
+    // When the user presses "Hide again", and capture later ends and starts again
+    // Then it lifts once, hides on the user's word with capture still on, and a new start lifts again
+    func testSwitchOnLiftsOnceAndTheUserResumesDuringCapture() {
+        let engine = makeEngine()
+        collapsed(engine)
+        engine.startPresentation()
+        let held = visibility.succeed(visibility.requests.count - 1)
+
+        capture.set(true)
+        XCTAssertTrue(held.isInvalidated, "the start lifts once")
+        XCTAssertEqual(engine.currentPhase(), .paused)
+        XCTAssertNil(engine.currentHold)
+
+        engine.resumePresentationHiding()
+        XCTAssertEqual(visibility.requests.last?.bundles, strict, "hides again with the camera still on")
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(engine.currentPhase(), .presenting)
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertEqual(phases, [.presenting, .paused, .presenting])
+
+        time.advance(to: 30)
         capture.set(false)
-        time.advance(to: 2.7)
-        XCTAssertEqual(visibility.requests.last?.bundles, strict, "resuming hides again")
+        time.advance(to: 40)
+        XCTAssertEqual(phases, [.presenting, .paused, .presenting], "capture ending changes nothing after a user resume")
+        let requests = visibility.requests.count
+        capture.set(true)
+        XCTAssertEqual(engine.currentPhase(), .paused, "the next start lifts again")
+        XCTAssertEqual(visibility.requests.count, requests)
+        XCTAssertNil(engine.currentHold)
+    }
+
+    // Given the switch off
+    // When a camera turns on while presenting, or is already on when the mode starts
+    // Then nothing is lifted and the strict list stays: presentation never pauses
+    func testSwitchOffNeverPausesPresentation() {
+        let engine = makeEngine(expandsWhenCaptureStarts: false)
+        collapsed(engine)
+        engine.startPresentation()
+        let held = visibility.succeed(visibility.requests.count - 1)
+
+        capture.set(true)
+        XCTAssertFalse(held.isInvalidated)
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertEqual(engine.currentHold?.bundles, [])
+        XCTAssertEqual(phases, [.presenting])
+
+        engine.stopPresentation()
+        visibility.succeed(visibility.requests.count - 1)
+        capture.isActive = true
+        engine.startPresentation()
+        XCTAssertEqual(visibility.requests.last?.bundles, strict, "already on at start: still held")
+        XCTAssertEqual(engine.currentPhase(), .presenting)
+    }
+
+    // Given a camera already on, the switch on
+    // When the user presses "Hide again"
+    // Then the mode that began paused holds the strict list
+    func testStartedDuringCaptureResumesOnTheUsersWord() {
+        capture.isActive = true
+        let engine = makeEngine()
+        collapsed(engine)
+        engine.startPresentation()
+        XCTAssertEqual(engine.currentPhase(), .paused)
+        XCTAssertFalse(visibility.requests.contains { $0.bundles == strict })
+
+        engine.resumePresentationHiding()
+        XCTAssertEqual(visibility.requests.last?.bundles, strict)
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertEqual(phases, [.paused, .presenting])
+    }
+
+    // Given a presentation, an app the palette allowed, a clock click, then the microphone on and off
+    // When everything has settled
+    // Then the hold is the strict list alone: the palette's app went with the lift and does not return
+    func testPresentingPaletteAllowClockClickAndMicrophoneEndsOnTheStrictList() {
+        let engine = makeEngine()
+        collapsed(engine)
+        engine.startPresentation()
+        visibility.succeed(visibility.requests.count - 1)
+
+        var lifts: [PaletteLift] = []
+        engine.allowTemporarily("com.hidden") { lifts.append($0) }
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.hidden"])
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(lifts, [.lifted])
+
+        let requests = visibility.requests.count
+        clock.click()
+        XCTAssertEqual(visibility.requests.count, requests, "a clock click does nothing while presenting")
+        XCTAssertTrue(clock.presses.isEmpty)
+
+        capture.set(true)
+        XCTAssertNil(engine.currentHold, "the lift for the microphone drops every list")
+        time.advance(to: 10)
+        capture.set(false)
+        time.advance(to: 13)
+        XCTAssertEqual(visibility.requests.last?.bundles, strict)
+        visibility.succeed(visibility.requests.count - 1)
+
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertEqual(engine.currentPhase(), .presenting)
+        XCTAssertEqual(engine.currentHold, NativeHold(systemItems: NativeVisibilityEngine.presentationSystemItems, bundles: []))
+        XCTAssertEqual(phases, [.presenting, .paused, .presenting])
     }
 
     // Given a presentation and a palette asking to open apps

@@ -72,12 +72,12 @@ final class PresentationController {
         engine.presentationMirrorChanged(Preferences.presentationAutoMirrorEnabled ? mirrors.current() : nil)
     }
 
-    // The bar was expanded while presenting: say which apps stay hidden anyway.
+    // The bar was expanded while presenting: say how many apps stay hidden anyway.
+    // Never which: the room sees this note.
     func barExpanded() {
         let sensitive = Preferences.presentationSensitiveApps
         guard engine.currentPhase() == .presenting, !sensitive.isEmpty, let button = arrowButton() else { return }
-        let names = sensitive.map { chip(for: $0).name }.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
-        let view = PresentationNoteView(names: names)
+        let view = PresentationNoteView(count: sensitive.count)
         let popover = makePopover(view)
         note?.close()
         note = popover
@@ -134,7 +134,10 @@ final class PresentationController {
             self?.panel?.close()
             self?.stop()
         }
-        view.onDismiss = { [weak self] in self?.panel?.close() }
+        view.onHideAgain = { [weak self] in
+            self?.panel?.close()
+            self?.engine.resumePresentationHiding()
+        }
         panel?.close()
         let popover = makePopover(view)
         panel = popover
