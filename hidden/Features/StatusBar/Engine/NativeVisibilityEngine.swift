@@ -461,13 +461,24 @@ final class NativeVisibilityEngine: MenuBarEngine {
         // collapse never reports back, leaving the bar stuck calibrating.
         guard assertion != nil, generation == assertionGeneration, state != .calibrating else { return }
         NSLog("NativeVisibility: lifting the restriction for a click on the clock")
+        #if DEBUG
+        ClockFlashTimeline.reset()
+        ClockFlashTimeline.mark("liftRequested")
+        #endif
         let bundles = assertionBundles
         releaseAssertion()
         let generation = self.generation
         clock.press(at: location) { [weak self] in
             // An expand or collapse meanwhile already applied what the user wants.
             guard let self = self, generation == self.generation else { return }
+            #if DEBUG
+            ClockFlashTimeline.mark("reapplyRequested")
+            #endif
             self.activate(allowing: bundles) { [weak self] succeeded in
+                #if DEBUG
+                ClockFlashTimeline.mark("reapplyEffective")
+                NSLog("NativeVisibility: clock timeline \(ClockFlashTimeline.summary)")
+                #endif
                 guard let self = self, !succeeded else { return }
                 self.state = .expanded
                 self.setSeparatorsVisible(true)
@@ -617,14 +628,16 @@ extension NativeVisibilityEngine {
             "lastUnavailableReason": lastUnavailableReason ?? NSNull(),
             "displays": displays().map { NSStringFromRect($0.appKitFrame) },
             "debugBoundaryX": Self.debugBoundaryX.map { Double($0) } ?? NSNull(),
-            "debugAlwaysHiddenX": Self.debugAlwaysHiddenX.map { Double($0) } ?? NSNull()
+            "debugAlwaysHiddenX": Self.debugAlwaysHiddenX.map { Double($0) } ?? NSNull(),
+            "clockTimeline": ClockFlashTimeline.snapshot
         ]
     }
 
     // Runs the clock-click handler the global mouse monitor would run, with the
     // replayed press posted to MenuBarAgent's process instead of the HID stream.
-    func debugClockClicked(at location: CGPoint, postingTo pid: pid_t) {
+    func debugClockClicked(at location: CGPoint, postingTo pid: pid_t, pressingWithAX: Bool = false) {
         SystemMenuBarClock.debugPostToPid = pid
+        SystemMenuBarClock.debugPressWithAX = pressingWithAX
         clock.onClick?(location)
     }
 }

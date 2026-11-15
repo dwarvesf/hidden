@@ -500,7 +500,7 @@ extension StatusBarController {
             NativeVisibilityEngine.debugAlwaysHiddenX = argument.flatMap(Double.init).map { CGFloat($0) }
             menuBarEngine.invalidateLayout()
         case "click-clock":
-            debugClickClock()
+            debugClickClock(pressingWithAX: argument == "ax")
         case "dump-state":
             break
         default:
@@ -514,13 +514,14 @@ extension StatusBarController {
     // A click on the clock without moving the pointer: the mouse-down/up pair is
     // posted to MenuBarAgent's process only, then the engine's clock-click
     // handler runs exactly as its global mouse monitor would call it.
-    private func debugClickClock() {
+    // With "ax", the engine replays the press with AXPress, which opens the panel.
+    private func debugClickClock(pressingWithAX: Bool) {
         guard let (pid, clock) = Self.debugClock() else {
             return NSLog("DebugHooks: clock not found")
         }
         let center = CGPoint(x: clock.midX, y: clock.midY)
         Self.debugPostClick(at: center, toPid: pid)
-        (menuBarEngine as? NativeVisibilityEngine)?.debugClockClicked(at: center, postingTo: pid)
+        (menuBarEngine as? NativeVisibilityEngine)?.debugClockClicked(at: center, postingTo: pid, pressingWithAX: pressingWithAX)
     }
 
     static func debugPostClick(at point: CGPoint, toPid pid: pid_t) {

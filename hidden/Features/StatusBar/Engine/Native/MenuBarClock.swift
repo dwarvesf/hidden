@@ -46,6 +46,9 @@ final class SystemMenuBarClock: MenuBarClockProviding {
     #if DEBUG
     // Test hook: post the replayed press to this process only, never the HID stream.
     static var debugPostToPid: pid_t?
+    // Test hook: replay with AXPress instead, which opens the panel without any
+    // pointer input (on 27.2 it closes again by itself a few hundred ms later).
+    static var debugPressWithAX = false
     #endif
 
     private var monitor: Any?
@@ -75,13 +78,24 @@ final class SystemMenuBarClock: MenuBarClockProviding {
                 return DispatchQueue.main.async(execute: completion)
             }
             #if DEBUG
+            ClockFlashTimeline.mark("liftEffective")
+            if Self.debugPressWithAX {
+                AXUIElementPerformAction(clock.element, kAXPressAction as CFString)
+                ClockFlashTimeline.mark("replayPosted")
+                return Self.waitForPanel(until: ProcessInfo.processInfo.systemUptime + Self.openTimeout,
+                                         minimumHeight: minimumPanelHeight, completion: completion)
+            }
             if let pid = Self.debugPostToPid {
                 events.forEach { $0.postToPid(pid) }
+                ClockFlashTimeline.mark("replayPosted")
                 return Self.waitForPanel(until: ProcessInfo.processInfo.systemUptime + Self.openTimeout,
                                          minimumHeight: minimumPanelHeight, completion: completion)
             }
             #endif
             events.forEach { $0.post(tap: .cghidEventTap) }
+            #if DEBUG
+            ClockFlashTimeline.mark("replayPosted")
+            #endif
             Self.waitForPanel(until: ProcessInfo.processInfo.systemUptime + Self.openTimeout,
                               minimumHeight: minimumPanelHeight, completion: completion)
         }
@@ -104,8 +118,11 @@ final class SystemMenuBarClock: MenuBarClockProviding {
 
     private static func waitForPanel(until deadline: TimeInterval, minimumHeight: CGFloat,
                                      completion: @escaping () -> Void) {
-        if notificationCenterIsOpen(minimumHeight: minimumHeight)
-            || ProcessInfo.processInfo.systemUptime >= deadline {
+        let isOpen = notificationCenterIsOpen(minimumHeight: minimumHeight)
+        if isOpen || ProcessInfo.processInfo.systemUptime >= deadline {
+            #if DEBUG
+            ClockFlashTimeline.mark(isOpen ? "panelAppeared" : "panelTimeout")
+            #endif
             return DispatchQueue.main.async(execute: completion)
         }
         DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + pollInterval) {
@@ -209,3 +226,34 @@ final class SystemMenuBarClock: MenuBarClockProviding {
         return value(of: element, kAXChildrenAttribute) as? [AXUIElement] ?? []
     }
 }
+
+#if DEBUG
+// When each step of the last clock replay happened (systemUptime, seconds), for
+// measuring how long hidden icons show. Debug builds only.
+enum ClockFlashTimeline {
+    private static let lock = NSLock()
+    private static var marks: [(name: String, time: TimeInterval)] = []
+
+    static func reset() {
+        lock.lock(); defer { lock.unlock() }
+        marks = []
+    }
+
+    static func mark(_ name: String) {
+        let now = ProcessInfo.processInfo.systemUptime
+        lock.lock(); defer { lock.unlock() }
+        marks.append((name, now))
+    }
+
+    static var snapshot: [[String: Any]] {
+        lock.lock(); defer { lock.unlock() }
+        return marks.map { ["step": $0.name, "uptime": $0.time] }
+    }
+
+    static var summary: String {
+        lock.lock(); defer { lock.unlock() }
+        guard let start = marks.first?.time else { return "empty" }
+        return marks.map { String(format: "%@ +%.1fms", $0.name, ($0.time - start) * 1000) }.joined(separator: ", ")
+    }
+}
+#endif
