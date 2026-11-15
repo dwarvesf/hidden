@@ -85,6 +85,21 @@ final class MenuBarAppIdentityTests: XCTestCase {
         XCTAssertEqual(safari, MenuBarAppIdentity.Resolved(name: "Safari", icon: .app(URL(fileURLWithPath: "/Applications/Safari.app")), caption: nil))
     }
 
+    // Given Finder shows "Control Center" for ControlCenter.app, with or without the ".app" extension
+    // When resolving it, and when Finder gives no name
+    // Then the Finder name is used without ".app"; the file name is the fallback
+    func test_installedApp_usesFinderDisplayName() {
+        let url = "/System/Library/CoreServices/ControlCenter.app"
+        for shown in ["Control Center", "Control Center.app"] {
+            let resolved = MenuBarAppIdentity.resolve(bundle: "com.apple.controlcenter", appURL: { _ in URL(fileURLWithPath: url) },
+                                                      runningName: { _ in nil }, displayName: { _ in shown })
+            XCTAssertEqual(resolved.name, "Control Center")
+        }
+        let plain = MenuBarAppIdentity.resolve(bundle: "com.apple.controlcenter", appURL: { _ in URL(fileURLWithPath: url) },
+                                               runningName: { _ in nil }, displayName: { _ in nil })
+        XCTAssertEqual(plain.name, "ControlCenter")
+    }
+
     // Given an app that is not installed
     // When it is running, then when it is not
     // Then the running app's name is used, then the bundle id, both with the generic icon
