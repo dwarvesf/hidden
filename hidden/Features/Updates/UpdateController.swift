@@ -29,6 +29,13 @@ final class UpdateController: NSObject, SPUStandardUserDriverDelegate {
         set { standardController.updater.automaticallyChecksForUpdates = newValue }
     }
 
+    var lastUpdateCheckDate: Date? { standardController.updater.lastUpdateCheckDate }
+
+    /// The About pane's button: the same user-initiated check as the menu item.
+    func checkForUpdates() {
+        standardController.checkForUpdates(nil)
+    }
+
     func makeMenuItem() -> NSMenuItem {
         let item = NSMenuItem(title: "Check for Updates...".localized,
                               action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),

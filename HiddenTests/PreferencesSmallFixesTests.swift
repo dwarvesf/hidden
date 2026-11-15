@@ -6,7 +6,7 @@ import AppKit
 /// `Preferences.hoverToExpand`, and the always-hidden tutorial text matches the
 /// hiding engine the build runs (separator "|" versus the arrow as the boundary
 /// on the macOS 27 direct build).
-/// Serves: PreferencesViewController (checkbox row, tutorial popover), Preferences
+/// Serves: PreferencesViewController (switch row, tutorial popover), Preferences
 /// (storage + notification), MenuBarEngineFactory (which engine), every
 /// Localizable.strings.
 /// Behaviors covered: off by default, setter round-trip + notification, the loaded
@@ -33,13 +33,19 @@ final class PreferencesSmallFixesTests: XCTestCase {
         super.tearDown()
     }
 
-    private func loadedPreferencesView() -> (PreferencesViewController, NSButton?) {
-        let controller = PreferencesViewController.initWithStoryboard()
-        _ = controller.view // loads the view and runs viewDidLoad
+    private func loadedPreferencesView() -> (PreferencesViewController, NSSwitch?) {
+        let controller = PreferencesViewController(context: .live)
+        _ = controller.view // loads the view and builds the form
         let checkBox = Self.allSubviews(of: controller.view)
-            .compactMap { $0 as? NSButton }
+            .compactMap { $0 as? NSSwitch }
             .first { $0.identifier == PreferencesViewController.hoverToExpandCheckBoxIdentifier }
         return (controller, checkBox)
+    }
+
+    /// A click as the user makes it: the switch flips, then sends its action.
+    private func click(_ toggle: NSSwitch) {
+        toggle.state = toggle.state == .on ? .off : .on
+        toggle.sendAction(toggle.action, to: toggle.target)
     }
 
     private static func allSubviews(of view: NSView) -> [NSView] {
@@ -95,11 +101,11 @@ final class PreferencesSmallFixesTests: XCTestCase {
         let (_, checkBox) = loadedPreferencesView()
         guard let checkBox else { return XCTFail("the Preferences view has no hover-to-expand checkbox") }
 
-        checkBox.performClick(nil)
+        click(checkBox)
         XCTAssertTrue(Preferences.hoverToExpand)
         XCTAssertEqual(checkBox.state, .on)
 
-        checkBox.performClick(nil)
+        click(checkBox)
         XCTAssertFalse(Preferences.hoverToExpand)
         XCTAssertEqual(checkBox.state, .off)
     }

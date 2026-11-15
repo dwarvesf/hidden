@@ -441,23 +441,31 @@ final class AppStoreMigration {
 
     // MARK: Move into /Applications
 
-    var movePlan: MoveToApplications.Plan {
+    var movePlan: MoveToApplications.Plan { movePlan(ignoringAnswer: false) }
+
+    private func movePlan(ignoringAnswer: Bool) -> MoveToApplications.Plan {
         let fm = environment.fileManager
         let running = environment.bundleURL
         return MoveToApplications.plan(
             runningBundle: running,
-            alreadyAnswered: ledger.isAnswered(MigrationOfferLedger.moveKey),
+            alreadyAnswered: !ignoringAnswer && ledger.isAnswered(MigrationOfferLedger.moveKey),
             applicationsWritable: fm.isWritableFile(atPath: environment.systemApplications.path),
             applicationsHoldsAppStoreCopy: AppStoreCopyFinder.isAppStoreBuild(
                 MoveToApplications.destination(for: running, in: environment.systemApplications), fileManager: fm),
             systemApplications: environment.systemApplications)
     }
 
-    func offerMoveIfNeeded() {
+    /// The Settings status card's "Move to Applications": the same offer, also
+    /// when the launch offer was answered "Not now" before.
+    func offerMoveFromSettings() {
+        offerMoveIfNeeded(ignoringAnswer: true)
+    }
+
+    func offerMoveIfNeeded(ignoringAnswer: Bool = false) {
         let fm = environment.fileManager
         let destination: URL
         let info: String
-        switch movePlan {
+        switch movePlan(ignoringAnswer: ignoringAnswer) {
         case .none:
             return
         case .explainAppStoreCopyKept:
