@@ -99,6 +99,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private var alwaysHiddenEnabled = false
     private var alwaysHiddenSeparatorHidden = false
 
+    // The one app the palette lets show, with the apps the held restriction
+    // allowed before that.
+    private var temporaryAllow: (bundle: String, before: [String])?
+
     // Where each app was last read, for apps that start while nothing can be read.
     private let sectionMemory: MenuBarSectionMemory
     // Apps that started since a read last listed them.
@@ -423,6 +427,8 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 self.assertion = newAssertion
                 self.assertionBundles = bundles
                 self.assertionGeneration = generation
+                // Any activation but the palette's own replaces what it allowed.
+                self.temporaryAllow = nil
                 old?.invalidate()
                 self.watchClock()
                 completion(true)
@@ -454,6 +460,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     }
 
     private func releaseAssertion() {
+        temporaryAllow = nil
         generation += 1
         assertion?.invalidate()
         assertion = nil
@@ -512,6 +519,35 @@ final class NativeVisibilityEngine: MenuBarEngine {
             if let collapseBar = self.collapseBar { collapseBar() } else { self.collapse { _ in } }
         })
 
+    func allowTemporarily(_ bundle: String, completion: @escaping (PaletteLift) -> Void) {
+        // A collapse or an activation in flight would be cancelled by another.
+        guard state != .calibrating else { return completion(.unavailable) }
+        // Nothing held means nothing is hidden.
+        guard assertion != nil else { return completion(.alreadyShown) }
+        guard generation == assertionGeneration, visibility.isAvailable else { return completion(.unavailable) }
+        guard !assertionBundles.contains(bundle) else { return completion(.alreadyShown) }
+        let before = assertionBundles
+        activate(allowing: before + [bundle]) { [weak self] succeeded in
+            guard let self = self else { return }
+            if succeeded {
+                self.temporaryAllow = (bundle, before)
+                return completion(.lifted)
+            }
+            // activate released the restriction: nothing is hidden any more.
+            self.state = .expanded
+            completion(.unavailable)
+        }
+    }
+
+    func endTemporaryAllow() {
+        guard let allowed = temporaryAllow else { return }
+        temporaryAllow = nil
+        // An expand, a collapse or a section edit since replaced the restriction;
+        // what it set stands.
+        guard assertion != nil, generation == assertionGeneration, assertionBundles.contains(allowed.bundle) else { return }
+        activate(allowing: allowed.before) { _ in }
+    }
+
     // Auto-collapse waits while Notification Center, opened from the clock, is open.
     var defersAutoCollapse: Bool {
         return notificationCenter.isActive
@@ -524,8 +560,12 @@ final class NativeVisibilityEngine: MenuBarEngine {
         return Set(read + complete)
     }
 
+    // Set by the controller: the palette's reveal session also keeps a bar the user changed.
+    var onUserChangedBar: (() -> Void)?
+
     func userChangedBar() {
         notificationCenter.userChangedBar()
+        onUserChangedBar?()
     }
 
     private func clockClicked(at location: CGPoint) {
@@ -822,6 +862,7 @@ extension NativeVisibilityEngine {
             "clockTimeline": ClockFlashTimeline.snapshot,
             "notificationCenterSession": ["active": notificationCenter.isActive,
                                           "expandedBar": notificationCenter.expandedBar],
+            "temporaryAllow": temporaryAllow?.bundle ?? NSNull(),
             "pinsSections": pinsSections(),
             "pinnedSections": pinnedSections.sections.mapValues { String(describing: $0) },
             "observedSections": sectionMemory.sections.mapValues { String(describing: $0) },

@@ -33,6 +33,8 @@ struct SettingsContext {
     /// Draw the preview with this always-hidden state instead of the stored one.
     var previewAlwaysHidden: Bool?
     var menuBarAppsAvailable: Bool = MenuBarAppsPane.makeViewController != nil
+    /// Snapshots and tests read the find shortcut from here instead of the real preferences.
+    var shortcutFixtureDefaults: UserDefaults?
 
     static var live: SettingsContext { SettingsContext() }
 

@@ -39,6 +39,7 @@ final class SettingsWindowTests: XCTestCase {
         UserDefaults.Key.isAutoHide, UserDefaults.Key.numberOfSecondForAutoHide, // checkbox + delay popup
         UserDefaults.Key.arrowStyle,                                              // arrow style popup
         UserDefaults.Key.globalKey,                                               // global shortcut
+        UserDefaults.Key.findHiddenIconShortcut,                                  // Find a hidden icon shortcut, direct on macOS 27
         UserDefaultsPinnedSections.key,                                           // Icons section popups (beta)
         UserDefaults.Key.newAppDefaultSection,                                    // Icons: when an app adds a new icon
     ]
@@ -224,7 +225,8 @@ final class SettingsWindowTests: XCTestCase {
         let views = allViews(PreferencesWindowController(context: context))
         for key in [UserDefaults.Key.pauseHidingForUnkeepableItems, UserDefaults.Key.showWholeBarWhenCaptureStarts,
                     UserDefaults.Key.pinnedSectionsEnabled, UserDefaults.Key.revealOnEmptyClickEnabled,
-                    UserDefaults.Key.newAppDefaultSection, "SUEnableAutomaticChecks"] {
+                    UserDefaults.Key.newAppDefaultSection, UserDefaults.Key.findHiddenIconShortcut,
+                    "SUEnableAutomaticChecks"] {
             XCTAssertNil(control(key, in: views), "\(key) shows in the App Store build")
         }
         // Scroll and shake need no Accessibility, so the App Store build keeps them.
@@ -445,8 +447,8 @@ final class SettingsWindowTests: XCTestCase {
 
     // Given each tab
     // When selecting it
-    // Then the tab control and the (hidden) window title follow, and General stays within 780 pt
-    // (720 until the reveal group joined General; the fullest window, macOS 27 on the direct build, now measures 772)
+    // Then the tab control and the (hidden) window title follow, and General stays within 840 pt
+    // (720 until the reveal group joined General, 780 after it; the find-a-hidden-icon row with its caption adds 61)
     func test_selectingATab_titlesTheWindow() throws {
         let controller = PreferencesWindowController(context: fullContext())
         for tab in controller.tabs {
@@ -458,7 +460,7 @@ final class SettingsWindowTests: XCTestCase {
         }
         controller.select(.general, animate: false)
         let height = try XCTUnwrap(controller.window?.frame.height)
-        XCTAssertLessThanOrEqual(height, 780)
+        XCTAssertLessThanOrEqual(height, 840)
     }
 
     // MARK: status card

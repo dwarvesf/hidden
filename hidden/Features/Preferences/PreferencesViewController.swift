@@ -19,6 +19,7 @@ class PreferencesViewController: SettingsPaneController {
     private let previewCaption = SettingsForm.caption("")
     private let autoHidePopup = NSPopUpButton(frame: .zero, pullsDown: false)
     let shortcutRecorder = ShortcutRecorderRow(key: UserDefaults.Key.globalKey)
+    private(set) var findShortcutRecorder: ShortcutRecorderRow?
     private var accessibilityValue: NSTextField?
 
     override func buildForm() {
@@ -70,14 +71,16 @@ class PreferencesViewController: SettingsPaneController {
         let hover = boundSwitch(UserDefaults.Key.hoverToExpand, read: { Preferences.hoverToExpand },
                                 write: { Preferences.hoverToExpand = $0 })
         // One group for everything you set once; the preview above names it.
-        addSection(nil, rows: [
+        var everydayRows = [
             SettingsForm.row("Open Hidden Bar at login".localized, control: login),
             SettingsForm.row("Hide icons again".localized, control: autoHidePopup),
             SettingsForm.row("Always-hidden section".localized,
                              caption: "A second group, left of the hidden icons, that stays hidden when you click the arrow.".localized,
                              control: alwaysHiddenControls),
             SettingsForm.row("Keyboard shortcut".localized, control: shortcutRecorder),
-        ], spacingBefore: 16)
+        ]
+        everydayRows.append(contentsOf: findHiddenIconRows())
+        addSection(nil, rows: everydayRows, spacingBefore: 16)
         addRevealSection(hover: hover)
 
         if context.usesNativeEngine {
@@ -97,6 +100,26 @@ class PreferencesViewController: SettingsPaneController {
 
         onRefresh { [weak self] in self?.refreshStatus() }
         refreshAll()
+    }
+
+    // Type-to-find palette: it lists apps from the Accessibility read and opens
+    // their menus, so only the native engine has it. Unset, the feature is off.
+    private func findHiddenIconRows() -> [NSView] {
+        guard context.usesNativeEngine else { return [] }
+        let recorder: ShortcutRecorderRow
+        if let fixture = context.shortcutFixtureDefaults {
+            // Snapshots show a set shortcut without touching the real preferences.
+            recorder = ShortcutRecorderRow(key: UserDefaults.Key.findHiddenIconShortcut,
+                                           registry: HotKeyRegistry(defaults: fixture, bind: { _, _ in nil }),
+                                           defaults: fixture)
+        } else {
+            recorder = ShortcutRecorderRow(key: UserDefaults.Key.findHiddenIconShortcut)
+        }
+        findShortcutRecorder = recorder
+        onRefresh { recorder.refresh() }
+        return [SettingsForm.row("Find a hidden icon".localized,
+                                 caption: "Opens a search under the arrow. Type a few letters, then press Return to open that app's menu.".localized,
+                                 control: recorder)]
     }
 
     // The ways to show hidden icons without aiming at the arrow. Scroll and

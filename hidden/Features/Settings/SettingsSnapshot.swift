@@ -67,9 +67,13 @@ enum SettingsSnapshot {
                       to: dir.appendingPathComponent("\(build)-preview-\(engine)-alwayshidden-\(mode).png"))
             }
         }
+        // Type-to-find palette: its states, from fixture apps, and the General tab with its shortcut set.
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        PaletteSnapshot.render(to: dir, build: build)
+        #endif
     }
 
-    private static func shoot(_ controller: PreferencesWindowController, tab: SettingsTab,
+    static func shoot(_ controller: PreferencesWindowController, tab: SettingsTab,
                               appearance: NSAppearance.Name, to url: URL) {
         guard let window = controller.window else { return }
         window.appearance = NSAppearance(named: appearance)

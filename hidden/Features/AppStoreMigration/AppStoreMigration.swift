@@ -41,6 +41,7 @@ enum AppStoreSettingsImport {
     /// item positions, internal flags) is never copied.
     static let importableKeys: [String: Kind] = [
         UserDefaults.Key.globalKey: .data,
+        UserDefaults.Key.findHiddenIconShortcut: .data,
         UserDefaults.Key.numberOfSecondForAutoHide: .number,
         UserDefaults.Key.isAutoStart: .number,
         UserDefaults.Key.isAutoHide: .number,

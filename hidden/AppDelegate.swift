@@ -124,6 +124,12 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         hotKeys.register(key: UserDefaults.Key.globalKey, title: "Show or hide icons".localized) { [weak self] in
             self?.statusBarController.expandCollapseIfNeeded()
         }
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        // Unset by default, so the palette is off until the user records a shortcut.
+        hotKeys.register(key: UserDefaults.Key.findHiddenIconShortcut, title: "Find a hidden icon".localized) { [weak self] in
+            self?.statusBarController.togglePalette()
+        }
+        #endif
     }
     
     func detectLTRLang() {
