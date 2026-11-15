@@ -13,4 +13,5 @@ extension Notification.Name {
     static let prefsChanged = Notification.Name("prefsChanged")
     static let alwayHideToggle = Notification.Name("alwayHideToggle")
     static let useFullStatusBarToggle = Notification.Name("useFullStatusBarToggle")
+    static let stealthExpandIconToggle = Notification.Name("stealthExpandIconToggle")
 }

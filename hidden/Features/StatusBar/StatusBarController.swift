@@ -77,6 +77,7 @@ class StatusBarController: MenuBarItemProvider {
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(syncActivationPolicyWithFullStatusBar), name: .useFullStatusBarToggle, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(refreshCollapsedArrow), name: .stealthExpandIconToggle, object: nil)
         #if DEBUG
         installDebugHooks()
         #endif
@@ -281,9 +282,20 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
 
+    private var collapsedArrowImage: NSImage? {
+        let alpha = Assets.expandIconAlpha(stealthEnabled: Preferences.stealthExpandIconEnabled, isCollapsed: true)
+        return Assets.image(Assets.expandImage, alpha: alpha)
+    }
+
+    // Applies a stealth-mode change to an arrow that is already collapsed.
+    @objc private func refreshCollapsedArrow() {
+        guard isCollapsed else { return }
+        btnExpandCollapse.button?.image = collapsedArrowImage
+    }
+
     private func didCollapseMenuBar() {
         if let button = btnExpandCollapse.button {
-            button.image = Assets.expandImage
+            button.image = collapsedArrowImage
         }
         if Preferences.useFullStatusBarOnExpandEnabled {
             NSApp.setActivationPolicy(.accessory)

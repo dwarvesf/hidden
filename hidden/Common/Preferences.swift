@@ -118,6 +118,19 @@ enum Preferences {
         }
     }
 
+    // Fades the arrow to near invisible while the bar is collapsed, so the app
+    // is hard to spot in the menu bar (issue #173). Off by default.
+    static var stealthExpandIconEnabled: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.stealthExpandIconEnabled)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.stealthExpandIconEnabled)
+            NotificationCenter.default.post(Notification(name: .stealthExpandIconToggle))
+        }
+    }
+
     static var notchOverflowEnabled: Bool {
         get {
             UserDefaults.standard.bool(forKey: UserDefaults.Key.notchOverflowEnabled)

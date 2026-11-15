@@ -30,6 +30,7 @@
 		55F3F1192608923B0054B881 /* Date+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F3F1182608923B0054B881 /* Date+Extension.swift */; };
 		55F3F11D2608925A0054B881 /* StackView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F3F11C2608925A0054B881 /* StackView+Extension.swift */; };
 		70F996B8AD634F42175AE89C /* NotchOverflowPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06495EE4F823D325A44A357C /* NotchOverflowPreferencesTests.swift */; };
+		86075364F9653E69AD4329D6 /* StealthExpandIconTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE499C5269FD00BE62A0AC2 /* StealthExpandIconTests.swift */; };
 		73B9E6554B24487EA995C7C3 /* MenuBarLayoutResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE30458A6074188B93CD466 /* MenuBarLayoutResolverTests.swift */; };
 		8557996B406181A91CBF5917 /* MenuBarExtraClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B6D80CB37CBB7622AC8455D /* MenuBarExtraClassifierTests.swift */; };
 		929113F521F9D04100173149 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929113F421F9D04100173149 /* AppDelegate.swift */; };
@@ -90,6 +91,7 @@
 		00117C4326600671005E517C /* Assets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assets.swift; sourceTree = "<group>"; };
 		00137CDE24A63DB1004AC855 /* Notification.Name+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification.Name+Extension.swift"; sourceTree = "<group>"; };
 		06495EE4F823D325A44A357C /* NotchOverflowPreferencesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchOverflowPreferencesTests.swift; sourceTree = "<group>"; };
+		9EE499C5269FD00BE62A0AC2 /* StealthExpandIconTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StealthExpandIconTests.swift; sourceTree = "<group>"; };
 		0842CDFA23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalKeybindingPreferences.swift; sourceTree = "<group>"; };
 		08A5F85923AA007A00981CA5 /* PreferencesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
 		08A5F85B23AA013100981CA5 /* SelectedSecond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedSecond.swift; sourceTree = "<group>"; };
@@ -289,6 +291,7 @@
 				ACE30458A6074188B93CD466 /* MenuBarLayoutResolverTests.swift */,
 				E3BF69BE15B7DE0272612470 /* NotchOverflowMenuBuilderTests.swift */,
 				06495EE4F823D325A44A357C /* NotchOverflowPreferencesTests.swift */,
+				9EE499C5269FD00BE62A0AC2 /* StealthExpandIconTests.swift */,
 			);
 			name = HiddenTests;
 			path = HiddenTests;
@@ -561,6 +564,7 @@
 				73B9E6554B24487EA995C7C3 /* MenuBarLayoutResolverTests.swift in Sources */,
 				0C57EC38D13980EBF7C9BBDA /* NotchOverflowMenuBuilderTests.swift in Sources */,
 				70F996B8AD634F42175AE89C /* NotchOverflowPreferencesTests.swift in Sources */,
+				86075364F9653E69AD4329D6 /* StealthExpandIconTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

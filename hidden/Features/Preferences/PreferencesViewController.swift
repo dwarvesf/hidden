@@ -32,6 +32,7 @@ class PreferencesViewController: NSViewController {
     @IBOutlet weak var checkBoxShowAlwaysHiddenSection: NSButton!
     
     @IBOutlet weak var checkBoxUseFullStatusbar: NSButton!
+    @IBOutlet weak var checkBoxStealthExpandIcon: NSButton!
     @IBOutlet weak var timePopup: NSPopUpButton!
     
     @IBOutlet weak var btnClear: NSButton!
@@ -154,6 +155,9 @@ class PreferencesViewController: NSViewController {
     @IBAction func useFullStatusBarOnExpandChanged(_ sender: NSButton) {
         Preferences.useFullStatusBarOnExpandEnabled = sender.state == .on
     }
+    @IBAction func stealthExpandIconChanged(_ sender: NSButton) {
+        Preferences.stealthExpandIconEnabled = sender.state == .on
+    }
     
     
     @IBAction func timePopupDidSelected(_ sender: NSPopUpButton) {
@@ -230,6 +234,7 @@ class PreferencesViewController: NSViewController {
         checkBoxShowAlwaysHiddenSection.state = Preferences.alwaysHiddenSectionEnabled ? .on : .off
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Preferences.numberOfSecondForAutoHide))
         checkBoxNotchOverflow.state = Preferences.notchOverflowEnabled ? .on : .off
+        checkBoxStealthExpandIcon.state = Preferences.stealthExpandIconEnabled ? .on : .off
         #if HIDDENBAR_NATIVE_VISIBILITY
         updateMacOS27Rows()
         #endif
