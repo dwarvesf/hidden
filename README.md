@@ -5,6 +5,9 @@
 	<a href="https://webuild.community">
 		<img src="https://raw.githubusercontent.com/webuild-community/badge/master/svg/love.svg" />
 	</a>
+	<a href="https://github.com/dwarvesf/hidden/actions/workflows/ci.yml">
+ 		<img src="https://github.com/dwarvesf/hidden/actions/workflows/ci.yml/badge.svg?branch=develop" alt="CI">
+	</a>
 	<a href="https://github.com/dwarvesf/hidden/releases/latest">
  		<img src="https://img.shields.io/badge/download-latest-brightgreen.svg" alt="download">
 	</a>

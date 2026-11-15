@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test both schemes
+    # Explicit image, never *-latest. xcode-27 is the hosted macOS image with
+    # Xcode 27.x (preview label). Fallback if it queues badly: macos-26.
+    runs-on: xcode-27
+    timeout-minutes: 30
+    env:
+      HIDDEN_TEST_DD: ${{ github.workspace }}/.ci-dd
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Select newest Xcode
+        run: |
+          newest=$(ls -d /Applications/Xcode_*.app | grep -E '/Xcode_[0-9]+\.[0-9]+\.app$' | sort -V | tail -1)
+          echo "Selecting $newest"
+          sudo xcode-select -s "$newest/Contents/Developer"
+          xcodebuild -version
+          echo "XCODE_VERSION=$(xcodebuild -version | awk '/Build version/ {print $3}')" >> "$GITHUB_ENV"
+
+      - name: Cache derived data
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .ci-dd/direct
+            .ci-dd/appstore
+          key: dd-${{ env.XCODE_VERSION }}-${{ hashFiles('Hidden Bar.xcodeproj/project.pbxproj', '**/Package.resolved') }}
+          restore-keys: |
+            dd-${{ env.XCODE_VERSION }}-
+
+      - name: Build and test both schemes
+        run: scripts/test.sh
+
+      - name: Upload result bundles
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: xcresult-${{ github.run_id }}
+          path: .ci-dd/results
+          retention-days: 7
