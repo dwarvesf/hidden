@@ -60,7 +60,45 @@ class PreferencesViewController: NSViewController {
         // The containing stack view (detachesHiddenViews) reflows on its own.
         checkBoxNotchOverflow.isHidden = !NotchOverflowController.hasNotch
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        addMacOS27Rows()
+        #endif
     }
+
+    #if HIDDENBAR_NATIVE_VISIBILITY
+    // macOS 27: the icons macOS hides on collapse although they sit right of the
+    // arrow, and the opt-in to keep the whole bar shown while they are there.
+    private var labelMacOSAlsoHides: NSTextField?
+    private var checkBoxPauseHiding: NSButton?
+
+    private func addMacOS27Rows() {
+        guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27,
+              let stack = checkBoxNotchOverflow.superview as? NSStackView,
+              let index = stack.arrangedSubviews.firstIndex(of: checkBoxNotchOverflow) else { return }
+        let checkBox = NSButton(checkboxWithTitle: "Show all icons while macOS would also hide one right of the arrow".localized,
+                                target: self, action: #selector(pauseHidingChanged(_:)))
+        let label = NSTextField(wrappingLabelWithString: "")
+        label.textColor = .secondaryLabelColor
+        label.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        stack.insertArrangedSubview(checkBox, at: index + 1)
+        stack.insertArrangedSubview(label, at: index + 2)
+        checkBoxPauseHiding = checkBox
+        labelMacOSAlsoHides = label
+        NotificationCenter.default.addObserver(self, selector: #selector(updateMacOS27Rows), name: .unkeepableSystemItemsChanged, object: nil)
+        updateMacOS27Rows()
+    }
+
+    @objc private func updateMacOS27Rows() {
+        checkBoxPauseHiding?.state = Preferences.pauseHidingForUnkeepableItems ? .on : .off
+        let names = NativeVisibilityEngine.knownUnkeepableSystemItems.map(NativeVisibilityEngine.displayName(ofSystemItem:))
+        labelMacOSAlsoHides?.stringValue = String(format: "macOS 27 also hides: %@".localized, names.joined(separator: ", "))
+        labelMacOSAlsoHides?.isHidden = names.isEmpty
+    }
+
+    @objc private func pauseHidingChanged(_ sender: NSButton) {
+        Preferences.pauseHidingForUnkeepableItems = sender.state == .on
+    }
+    #endif
 
     private var statusBarBelowToolbar: NSLayoutConstraint?
 
@@ -75,6 +113,9 @@ class PreferencesViewController: NSViewController {
     deinit {
         // Balance the viewDidLoad observer (PRs #335/#346).
         NotificationCenter.default.removeObserver(self, name: .prefsChanged, object: nil)
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        NotificationCenter.default.removeObserver(self, name: .unkeepableSystemItemsChanged, object: nil)
+        #endif
     }
 
     static func initWithStoryboard() -> PreferencesViewController {
@@ -189,6 +230,9 @@ class PreferencesViewController: NSViewController {
         checkBoxShowAlwaysHiddenSection.state = Preferences.alwaysHiddenSectionEnabled ? .on : .off
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Preferences.numberOfSecondForAutoHide))
         checkBoxNotchOverflow.state = Preferences.notchOverflowEnabled ? .on : .off
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        updateMacOS27Rows()
+        #endif
     }
     
     private func loadHotkey() {

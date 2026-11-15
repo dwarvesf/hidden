@@ -71,11 +71,14 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private var alwaysHiddenEnabled = false
     private var alwaysHiddenSeparatorHidden = false
 
-    // Fail open: nothing is hidden while an item right of the arrow cannot be
-    // kept visible. That is an item whose owner has no bundle id, or a system
-    // extra no system item id covers (Focus, Now Playing, Siri...) that macOS
-    // hid although Control Center's bundle was allowed; those are remembered here.
+    // Items right of the arrow that the allow-list cannot keep visible: an item
+    // whose owner has no bundle id, or a system extra no system item id covers
+    // (Focus, Now Playing, User...) that macOS hid although Control Center's
+    // bundle was allowed; those extras are remembered here. By default they are
+    // hidden along with the rest, as before (Preferences lists them). Opting in
+    // (`pausesHidingForUnkeepableItems`) keeps the whole bar shown instead.
     private var unkeepableSystemItems: Set<String> = []
+    private let pausesHidingForUnkeepableItems: () -> Bool
     // Hidden extras leave Accessibility only once the bar has reflowed.
     var scheduleVisibilityCheck: (@escaping () -> Void) -> Void = {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: $0)
@@ -87,8 +90,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
          clock: MenuBarClockProviding = SystemMenuBarClock(),
          ownBundleIdentifier: String? = Bundle.main.bundleIdentifier,
          itemFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
-         isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage }) {
+         isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage },
+         pausesHidingForUnkeepableItems: @escaping () -> Bool = { false }) {
         self.items = items
+        self.pausesHidingForUnkeepableItems = pausesHidingForUnkeepableItems
         self.inventory = inventory
         self.visibility = visibility
         self.clock = clock
@@ -133,7 +138,8 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 self.state = .expanded
                 return completion(.unavailable)
             }
-            if let reason = layout.reasonToKeepBarWhole(unkeepableSystemItems: self.unkeepableSystemItems) {
+            if self.pausesHidingForUnkeepableItems(),
+               let reason = layout.reasonToKeepBarWhole(unkeepableSystemItems: self.unkeepableSystemItems) {
                 self.logUnavailableOnce(reason)
                 self.state = .expanded
                 return completion(.unavailable)
@@ -340,20 +346,35 @@ final class NativeVisibilityEngine: MenuBarEngine {
         NSLog("NativeVisibility: hiding unavailable: \(reason)")
     }
 
-    // Fails open when a system extra the allow-list could only try to keep was
-    // hidden anyway: the restriction is dropped, and the extra is remembered so
-    // later collapses keep the bar whole instead of flashing it hidden.
+    // Checks whether macOS hid a system extra the allow-list could only try to
+    // keep, and remembers the ones it did. By default the bar stays collapsed
+    // and the check only feeds the Preferences note. With the opt-in, the
+    // restriction is dropped and later collapses keep the bar whole while such an
+    // extra is right of the arrow, instead of flashing it hidden.
     private func checkStillShown(_ expected: [String], completion: @escaping (Bool) -> Void) {
-        guard !expected.isEmpty else { return completion(true) }
+        let unchecked = expected.filter { !unkeepableSystemItems.contains($0) }
+        guard !unchecked.isEmpty else { return completion(true) }
+        let pauses = pausesHidingForUnkeepableItems()
+        if !pauses {
+            completion(true)
+        }
         let generation = self.generation
         scheduleVisibilityCheck { [weak self] in
             guard let self = self, generation == self.generation else { return }
             self.inventory.snapshot { [weak self] inventory in
                 guard let self = self, generation == self.generation else { return }
-                let missing = MenuBarLayoutResolver.missingSystemItems(expected, in: inventory)
+                let missing = MenuBarLayoutResolver.missingSystemItems(unchecked, in: inventory)
+                if !missing.isEmpty {
+                    self.rememberUnkeepable(missing)
+                }
+                guard pauses else {
+                    if !missing.isEmpty {
+                        NSLog("NativeVisibility: macOS also hides \(missing) although they sit right of the arrow")
+                    }
+                    return
+                }
                 guard missing.isEmpty else {
                     NSLog("NativeVisibility: macOS hid \(missing) although they sit right of the arrow; keeping the bar whole while they are there")
-                    self.unkeepableSystemItems.formUnion(missing)
                     self.releaseAssertion()
                     return completion(false)
                 }
@@ -361,6 +382,28 @@ final class NativeVisibilityEngine: MenuBarEngine {
             }
         }
     }
+
+    // What Preferences shows as "macOS 27 also hides".
+    static private(set) var knownUnkeepableSystemItems: [String] = []
+
+    private func rememberUnkeepable(_ identifiers: [String]) {
+        unkeepableSystemItems.formUnion(identifiers)
+        Self.knownUnkeepableSystemItems = unkeepableSystemItems.sorted()
+        NotificationCenter.default.post(name: .unkeepableSystemItemsChanged, object: nil)
+    }
+
+    // "com.apple.menuextra.now-playing" -> "Now Playing".
+    static func displayName(ofSystemItem identifier: String) -> String {
+        let known = ["focusmode": "Focus", "now-playing": "Now Playing", "user": "User",
+                     "siri": "Siri", "stagemanager": "Stage Manager", "timemachine": "Time Machine"]
+        let name = identifier.components(separatedBy: ".").last ?? identifier
+        return known[name] ?? name.replacingOccurrences(of: "-", with: " ").capitalized
+    }
+}
+
+extension Notification.Name {
+    // Posted on the main queue when NativeVisibilityEngine.knownUnkeepableSystemItems changes.
+    static let unkeepableSystemItemsChanged = Notification.Name("unkeepableSystemItemsChanged")
 }
 
 #if DEBUG
@@ -382,6 +425,7 @@ extension NativeVisibilityEngine {
             "unprovenVisibleSystemItems": layout?.unprovenVisibleSystemItems ?? [],
             "unnameableVisibleItems": layout?.unnameableVisibleItems ?? [],
             "unkeepableSystemItems": unkeepableSystemItems.sorted(),
+            "pausesHidingForUnkeepableItems": pausesHidingForUnkeepableItems(),
             "lastUnavailableReason": lastUnavailableReason ?? NSNull(),
             "debugBoundaryX": Self.debugBoundaryX.map { Double($0) } ?? NSNull(),
             "debugAlwaysHiddenX": Self.debugAlwaysHiddenX.map { Double($0) } ?? NSNull()

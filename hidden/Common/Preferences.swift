@@ -127,4 +127,17 @@ enum Preferences {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.notchOverflowEnabled)
         }
     }
+
+    // macOS 27, direct build: keep every icon shown while one right of the arrow
+    // cannot be kept visible by the allow-list. Off by default.
+    static var pauseHidingForUnkeepableItems: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.pauseHidingForUnkeepableItems)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.pauseHidingForUnkeepableItems)
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
 }

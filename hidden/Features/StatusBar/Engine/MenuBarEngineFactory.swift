@@ -15,7 +15,8 @@ enum MenuBarEngineFactory {
         // the sandbox blocks the Accessibility reads that locate the sections.
         #if HIDDENBAR_NATIVE_VISIBILITY
         if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 {
-            return NativeVisibilityEngine(items: items)
+            return NativeVisibilityEngine(items: items,
+                                          pausesHidingForUnkeepableItems: { Preferences.pauseHidingForUnkeepableItems })
         }
         #endif
         return LegacyLengthEngine(items: items)

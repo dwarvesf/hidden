@@ -34,3 +34,5 @@ Steps to enable:
 Steps to view always hidden icons:
 1. Option-click the “<” icon again to view and repeat the action to enable the feature. Enjoy 😉!
 ";
+"Show all icons while macOS would also hide one right of the arrow" = "Show all icons while macOS would also hide one right of the arrow";
+"macOS 27 also hides: %@" = "macOS 27 also hides: %@";

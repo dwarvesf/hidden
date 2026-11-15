@@ -257,6 +257,7 @@ final class FailOpenClassificationTests: XCTestCase {
     }
 }
 
+// Opt-in ("Show all icons while macOS would also hide one right of the arrow").
 final class FailOpenEngineTests: XCTestCase {
     private var items: FakeItems!
     private var inventory: FakeInventory!
@@ -274,7 +275,8 @@ final class FailOpenEngineTests: XCTestCase {
         let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                             ownBundleIdentifier: "com.dwarvesv.minimalbar",
                                             itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
-                                            isLTR: { true })
+                                            isLTR: { true },
+                                            pausesHidingForUnkeepableItems: { true })
         engine.scheduleVisibilityCheck = { $0() }
         return engine
     }
@@ -336,10 +338,73 @@ final class FailOpenEngineTests: XCTestCase {
     }
 }
 
-// MARK: - Fail open, written against develop's API only
+// MARK: - Unkeepable items, default (hide as v1.11.1 did)
+// Written against the engine API that predates the opt-in, so they also run
+// on the always-fail-open build as a negative control.
 
-final class FailOpenDevelopAPITests: XCTestCase {
-    private func collapseRequests(_ inventoryItems: [MenuBarInventoryItem], isLTR: Bool = true) -> (Int, CollapseResult?) {
+final class UnkeepableItemsDefaultTests: XCTestCase {
+    private var items: FakeItems!
+    private var inventory: FakeInventory!
+    private var visibility: FakeVisibility!
+
+    override func setUp() {
+        super.setUp()
+        items = FakeItems()
+        inventory = FakeInventory()
+        visibility = FakeVisibility()
+    }
+
+    private func makeEngine() -> NativeVisibilityEngine {
+        let items = self.items!
+        let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
+                                            ownBundleIdentifier: "com.dwarvesv.minimalbar",
+                                            itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            isLTR: { true })
+        engine.scheduleVisibilityCheck = { $0() }
+        return engine
+    }
+
+    func testSystemExtraMacOSHidDoesNotBlockCollapseByDefault() {
+        let focus = systemExtra("com.apple.menuextra.focusmode", x: 1400)
+        let clock = systemExtra("com.apple.menuextra.clock", x: 1500)
+        inventory.items = [focus, clock, item("com.hidden", x: 1100)]
+        let engine = makeEngine()
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+        inventory.items = [clock, item("com.hidden", x: 1100)]
+        let hiding = visibility.succeed(0)
+        XCTAssertFalse(hiding.isInvalidated, "Focus right of the arrow must not stop hiding by default")
+        XCTAssertEqual(results, [.collapsed])
+        XCTAssertEqual(engine.state, .collapsed)
+
+        engine.expand()
+        inventory.items = [focus, clock, item("com.hidden", x: 1100)]
+        engine.collapse { results.append($0) }
+        XCTAssertEqual(visibility.requests.count, 2, "a known unkeepable extra does not block the next collapse")
+        visibility.succeed(1)
+        XCTAssertEqual(results, [.collapsed, .collapsed])
+    }
+
+    func testOwnerWithoutBundleIdRightOfArrowDoesNotBlockCollapseByDefault() {
+        inventory.items = [item(nil, x: 1400), item("com.app", x: 1100)]
+        let engine = makeEngine()
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+        XCTAssertEqual(visibility.requests.count, 1)
+        visibility.succeed(0)
+        XCTAssertEqual(results, [.collapsed])
+    }
+
+    func testUnreadableAppIsStillAllowedByDefault() {
+        inventory.items = [MenuBarInventoryItem(bundleIdentifier: "com.bjango.istatmenus", frame: .zero, isUnreadable: true),
+                           item("com.app", x: 1100)]
+        makeEngine().collapse { _ in }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.bjango.istatmenus"])
+    }
+}
+
+final class UnkeepableItemsOptInTests: XCTestCase {
+    private func collapse(_ inventoryItems: [MenuBarInventoryItem], optIn: Bool) -> (requests: Int, result: CollapseResult?) {
         let items = FakeItems()
         let inventory = FakeInventory()
         inventory.items = inventoryItems
@@ -347,21 +412,52 @@ final class FailOpenDevelopAPITests: XCTestCase {
         let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                             ownBundleIdentifier: "com.dwarvesv.minimalbar",
                                             itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
-                                            isLTR: { isLTR })
+                                            isLTR: { true },
+                                            pausesHidingForUnkeepableItems: { optIn })
+        engine.scheduleVisibilityCheck = { $0() }
         var result: CollapseResult?
         engine.collapse { result = $0 }
         return (visibility.requests.count, result)
     }
 
-    func testOwnerWithoutBundleIdRightOfArrowIsNeverHidden() {
-        let (requests, result) = collapseRequests([item(nil, x: 1400), item("com.app", x: 1100)])
+    func testOptInKeepsOwnerWithoutBundleIdRightOfArrowShown() {
+        let (requests, result) = collapse([item(nil, x: 1400), item("com.app", x: 1100)], optIn: true)
         XCTAssertEqual(requests, 0, "macOS would hide an item the allow-list cannot name")
         XCTAssertEqual(result, .unavailable)
     }
 
-    func testOwnerWithoutBundleIdLeftOfArrowStillCollapses() {
-        let (requests, _) = collapseRequests([item(nil, x: 1100), item("com.app", x: 1100)])
+    func testOptInStillCollapsesWhenTheOwnerIsLeftOfArrow() {
+        let (requests, _) = collapse([item(nil, x: 1100), item("com.app", x: 1100)], optIn: true)
         XCTAssertEqual(requests, 1)
+    }
+
+    func testOptOffCollapsesWithOwnerWithoutBundleIdRightOfArrow() {
+        let (requests, _) = collapse([item(nil, x: 1400), item("com.app", x: 1100)], optIn: false)
+        XCTAssertEqual(requests, 1)
+    }
+
+    func testHiddenExtrasAreListedForPreferences() {
+        let items = FakeItems()
+        let inventory = FakeInventory()
+        let focus = systemExtra("com.apple.menuextra.focusmode", x: 1400)
+        let clock = systemExtra("com.apple.menuextra.clock", x: 1500)
+        inventory.items = [focus, clock, item("com.hidden", x: 1100)]
+        let visibility = FakeVisibility()
+        let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
+                                            ownBundleIdentifier: "com.dwarvesv.minimalbar",
+                                            itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            isLTR: { true })
+        engine.scheduleVisibilityCheck = { $0() }
+        let posted = expectation(forNotification: .unkeepableSystemItemsChanged, object: nil)
+        engine.collapse { _ in }
+        inventory.items = [clock, item("com.hidden", x: 1100)]
+        visibility.succeed(0)
+        wait(for: [posted], timeout: 1)
+        XCTAssertTrue(NativeVisibilityEngine.knownUnkeepableSystemItems.contains("com.apple.menuextra.focusmode"))
+        XCTAssertEqual(NativeVisibilityEngine.displayName(ofSystemItem: "com.apple.menuextra.focusmode"), "Focus")
+        XCTAssertEqual(NativeVisibilityEngine.displayName(ofSystemItem: "com.apple.menuextra.user"), "User")
+        XCTAssertEqual(NativeVisibilityEngine.displayName(ofSystemItem: "com.apple.menuextra.now-playing"), "Now Playing")
+        XCTAssertEqual(NativeVisibilityEngine.displayName(ofSystemItem: "com.apple.menuextra.screen-recording"), "Screen Recording")
     }
 }
 
