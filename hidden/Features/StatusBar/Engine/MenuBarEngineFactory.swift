@@ -34,7 +34,9 @@ enum MenuBarEngineFactory {
                                           workspaceNotifications: NSWorkspace.shared.notificationCenter,
                                           pinnedSections: UserDefaultsPinnedSections(),
                                           pinsSections: { Preferences.pinnedSectionsEnabled },
-                                          agentLaunches: AgentLaunchNotifications(isActive: { Preferences.pinnedSectionsEnabled }))
+                                          agentLaunches: AgentLaunchNotifications(isActive: {
+                                              AgentLaunchNotifications.isActive(pinnedSectionsEnabled: Preferences.pinnedSectionsEnabled)
+                                          }))
         }
         #endif
         return LegacyLengthEngine(items: items)

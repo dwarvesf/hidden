@@ -1502,6 +1502,29 @@ final class AppsLaunchedWhileHidingTests: XCTestCase {
         XCTAssertEqual(visibility.requests.count, 1)
     }
 
+    // Beta off: agent apps (no Dock icon, most menu-bar apps) are reported too,
+    // so one that starts while collapsed is shown, as 1.11.2 meant to.
+    func testWithPinnedSectionsOffAgentStartsAreStillReported() {
+        XCTAssertTrue(AgentLaunchNotifications.isActive(pinnedSectionsEnabled: false))
+        XCTAssertTrue(AgentLaunchNotifications.isActive(pinnedSectionsEnabled: true))
+
+        let agents = NotificationCenter()
+        let items = self.items!
+        let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility, clock: FakeClock(),
+                                            ownBundleIdentifier: own,
+                                            itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            displays: { [mainDisplay] }, isLTR: { true },
+                                            sectionMemory: memory, agentLaunches: agents)
+        _ = collapsed(engine)
+        let app = try! XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first)
+        agents.post(name: NSWorkspace.didLaunchApplicationNotification, object: nil,
+                    userInfo: [NSWorkspace.applicationUserInfoKey: app])
+        let delivered = expectation(description: "delivered on the main queue")
+        DispatchQueue.main.async { delivered.fulfill() }
+        wait(for: [delivered], timeout: 2)
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.apple.dock", "com.visible"])
+    }
+
     func testHiddenBarAndMacOSItemOwnersAreLeftAlone() {
         let engine = makeEngine()
         _ = collapsed(engine)

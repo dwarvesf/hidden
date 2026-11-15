@@ -748,6 +748,12 @@ final class AgentLaunchNotifications: NotificationCenter, @unchecked Sendable {
         }
     }
 
+    // Reported with or without pinned sections: without them, the launch
+    // handling for apps that start while collapsed (#446) misses every agent.
+    static func isActive(pinnedSectionsEnabled: Bool) -> Bool {
+        return true
+    }
+
     static func notifications<App>(kind: NSKeyValueChange, inserted: [App], removed: [App],
                                    isAgent: (App) -> Bool) -> [(Notification.Name, App)] {
         switch kind {
