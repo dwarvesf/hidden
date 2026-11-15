@@ -44,12 +44,10 @@ final class SystemOverflowNotice {
             guard let self = self else { return }
             self.isChecking = false
             guard let window = arrow?.button?.window else { return }
-            let reading = self.indicator.reading
             guard SystemOverflowMatcher.isItemInSystemOverflow(windowFrame: window.frame,
                                                                hasScreen: window.screen != nil,
                                                                occlusionVisible: window.occlusionState.contains(.visible),
-                                                               indicatorState: reading.state,
-                                                               indicatorFrame: reading.frame) else { return }
+                                                               indicators: self.indicator.buttons) else { return }
             self.present()
         }
     }
