@@ -60,6 +60,7 @@ class PreferencesViewController: NSViewController {
         // checkboxes; hide it on hardware where the feature can't apply.
         // The containing stack view (detachesHiddenViews) reflows on its own.
         checkBoxNotchOverflow.isHidden = !NotchOverflowController.hasNotch
+        addArrowStyleRow()
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
         #if HIDDENBAR_SPARKLE
         addUpdateRow()
@@ -67,6 +68,36 @@ class PreferencesViewController: NSViewController {
         #if HIDDENBAR_NATIVE_VISIBILITY
         addMacOS27Rows()
         #endif
+    }
+
+    private var arrowStylePopup: NSPopUpButton?
+
+    // One popup under the stealth checkbox. Each entry carries a preview of its
+    // collapsed and expanded arrow; picking one redraws the status item at once.
+    private func addArrowStyleRow() {
+        guard let stack = checkBoxStealthExpandIcon.superview as? NSStackView,
+              let index = stack.arrangedSubviews.firstIndex(of: checkBoxStealthExpandIcon) else { return }
+        let label = NSTextField(labelWithString: "Arrow style".localized)
+        let popup = NSPopUpButton(frame: .zero, pullsDown: false)
+        for style in ArrowStyle.allCases {
+            let item = NSMenuItem(title: style.localizedName, action: nil, keyEquivalent: "")
+            item.image = style.previewImage()
+            item.representedObject = style.rawValue
+            popup.menu?.addItem(item)
+        }
+        popup.target = self
+        popup.action = #selector(arrowStyleChanged(_:))
+        popup.selectItem(at: ArrowStyle.allCases.firstIndex(of: Preferences.arrowStyle) ?? 0)
+        let row = NSStackView(views: [label, popup])
+        row.orientation = .horizontal
+        row.spacing = 8
+        stack.insertArrangedSubview(row, at: index + 1)
+        arrowStylePopup = popup
+    }
+
+    @objc private func arrowStyleChanged(_ sender: NSPopUpButton) {
+        guard let raw = sender.selectedItem?.representedObject as? String else { return }
+        Preferences.arrowStyle = ArrowStyle(storedValue: raw)
     }
 
     #if HIDDENBAR_SPARKLE
@@ -257,6 +288,7 @@ class PreferencesViewController: NSViewController {
         timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Preferences.numberOfSecondForAutoHide))
         checkBoxNotchOverflow.state = Preferences.notchOverflowEnabled ? .on : .off
         checkBoxStealthExpandIcon.state = Preferences.stealthExpandIconEnabled ? .on : .off
+        arrowStylePopup?.selectItem(at: ArrowStyle.allCases.firstIndex(of: Preferences.arrowStyle) ?? 0)
         #if HIDDENBAR_NATIVE_VISIBILITY
         updateMacOS27Rows()
         #endif

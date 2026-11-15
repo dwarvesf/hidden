@@ -131,6 +131,19 @@ enum Preferences {
         }
     }
 
+    // Which expand/collapse arrow the status item shows (issue #310). Stored as
+    // the style's name; anything unreadable reads as the default arrow.
+    static var arrowStyle: ArrowStyle {
+        get {
+            ArrowStyle(storedValue: UserDefaults.standard.string(forKey: UserDefaults.Key.arrowStyle))
+        }
+
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: UserDefaults.Key.arrowStyle)
+            NotificationCenter.default.post(Notification(name: .arrowStyleChanged))
+        }
+    }
+
     static var notchOverflowEnabled: Bool {
         get {
             UserDefaults.standard.bool(forKey: UserDefaults.Key.notchOverflowEnabled)

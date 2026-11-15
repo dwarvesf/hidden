@@ -20,3 +20,8 @@
 3. 最後はOption(⌥)キーを押しながら「＞」をクリックすると，半透明「｜」より左にあるアイコンが常に非表示される．
 （もう一回Option(⌥)キーを押しながら「＞」をクリックすると，常に非表示されたアイコンが表示される）
 ";
+"Arrow style" = "Arrow style";
+"Arrow" = "Arrow";
+"Chevron" = "Chevron";
+"Dot" = "Dot";
+"Line" = "Line";

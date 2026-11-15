@@ -38,3 +38,8 @@ Steps to view always hidden icons:
 "macOS 27 also hides: %@" = "macOS 27 also hides: %@";
 "Check for Updates..." = "Check for Updates...";
 "Automatically check for updates" = "Automatically check for updates";
+"Arrow style" = "Arrow style";
+"Arrow" = "Arrow";
+"Chevron" = "Chevron";
+"Dot" = "Dot";
+"Line" = "Line";

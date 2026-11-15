@@ -86,7 +86,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         UserDefaults.Key.areSeparatorsHidden: false,
         UserDefaults.Key.alwaysHiddenSectionEnabled: false,
         UserDefaults.Key.notchOverflowEnabled: true,
-        UserDefaults.Key.stealthExpandIconEnabled: false
+        UserDefaults.Key.stealthExpandIconEnabled: false,
+        UserDefaults.Key.arrowStyle: ArrowStyle.default.rawValue
     ]
 
     func registerDefaultValues() {
