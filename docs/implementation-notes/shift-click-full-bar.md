@@ -23,6 +23,17 @@ dump-state `useFullStatusBarOnExpand` read false at every step.
 - The same path serves the stored "use the full menu bar on expand" setting, so that setting likely shows the same on macOS 27; not run here.
 - How step f was told apart from noise: other Debug Hidden Bar builds (test hosts of a parallel session) also answer the broadcast hook and wrote the same dump file, which gave two false triggers. Only this build's dump has `fullBarThisExpansion`, so the trigger was that key being true; the capture retried the dump until that key was present.
 
+## Fix attempt (#496): activation on the next runloop turn
+
+| Click (real, by Han) | Trigger | Frontmost app, sampled +0.12 s to +5.5 s | End state (dump-state / NSRunningApplication) | Result | Crops |
+|---|---|---|---|---|---|
+| Shift-click, setting off (01:49:40) | `fullBarThisExpansion` true | Orca (pid 17272) at all 30 samples | expanded, regular / regular, `isActive` false | FAIL: Hidden Bar never frontmost, app menu not shown | `fix-shift-0.3s-left.png`, `fix-shift-1s-left.png`, `fix-shift-2s-left.png`, `fix-shift-1s-right.png` |
+| Plain click, `full-menu-bar on` (01:50:39) | state expanded | Orca (pid 17272) at all 30 samples | expanded, regular / regular, `isActive` false | FAIL: same; the stored setting fails the same way | `fix-plain-0.3s-left.png`, `fix-plain-1s-left.png`, `fix-plain-2s-left.png`, `fix-plain-1s-right.png` |
+
+- Build: a local merge of `origin/develop` (`f8f2726`) and `fix/full-bar-activation` (`027be9b`), Debug-Direct, Developer ID signed, from /Applications (pid 25611); the branch had no Debug hooks of its own. The installed v1.12.0 was moved aside and back: CDHash identical, login items identical, prefs identical after a re-import (the `full-menu-bar` hook writes the stored setting).
+- Trigger trusted only this pid (frontmost) or a state the poll read from this build; no other Hidden Bar process ran at either trigger. The frontmost app was sampled with `lsappinfo front` in a loop meant for every 0.1 s; real spacing was about 0.17 s, 30 samples over 5.5 s. The left crops at +0.3, +1 and +2 s are byte-identical per click (Orca's menus).
+- So deferring `NSApp.activate()` one runloop turn after `setActivationPolicy(.regular)` does not make Hidden Bar active on macOS 27 from a status item click, Shift or plain.
+
 ## Not proven here
 
 - The app menu in the menu bar after a Shift-click: not seen on macOS 27 (finding above). Shift detection itself is proven on screen by step f (`fullBarThisExpansion` true after a real click).
