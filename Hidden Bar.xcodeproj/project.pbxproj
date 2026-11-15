@@ -167,6 +167,23 @@
 		B06ACC3501C4C1D384ACCD79 /* RevealGesturesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0BB5C3EF47C0FD0DA210DF /* RevealGesturesTests.swift */; };
 		5410EA251B58DC6765531AF8 /* RevealControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38FE83E30C42F0771CE8AE7 /* RevealControllerTests.swift */; };
 		E6D398FD9277C7ACB911BBB3 /* RevealSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AAD0E40FFA01D5E3255A6C /* RevealSettingsTests.swift */; };
+		A6283F69DA33FBBF79B79D2F /* HotKeyRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2890954401904F7973D3F5B7 /* HotKeyRegistry.swift */; };
+		BEC4FAE27C4F1FD30BBF84D8 /* HotKeyRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2890954401904F7973D3F5B7 /* HotKeyRegistry.swift */; };
+		F9D72626994164D6AD6F53C4 /* HotKeyRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2890954401904F7973D3F5B7 /* HotKeyRegistry.swift */; };
+		051E71DF7DE5BD146AC19A9A /* GlobalKeybindingPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0842CDFA23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift */; };
+		5637D5B5E6C7F09EED3281AE /* Notification.Name+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00137CDE24A63DB1004AC855 /* Notification.Name+Extension.swift */; };
+		362FAF660DDC9E225B1786E0 /* ShortcutRecorderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82FFCE489727A005101189BA /* ShortcutRecorderRow.swift */; };
+		35A0CE4DDA4691309BF16489 /* ShortcutRecorderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82FFCE489727A005101189BA /* ShortcutRecorderRow.swift */; };
+		0AB67F8D3027DF064F4B5D75 /* MenuBarCatalogState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8FCF9C9A039FC11A015E9B0 /* MenuBarCatalogState.swift */; };
+		1B165ADA55704BC77434425D /* MenuBarCatalogState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8FCF9C9A039FC11A015E9B0 /* MenuBarCatalogState.swift */; };
+		3E3F72FB3CBF0388491FC438 /* MenuBarCatalogState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8FCF9C9A039FC11A015E9B0 /* MenuBarCatalogState.swift */; };
+		15B6EC919BC2CB693739137C /* MenuBarItemCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573B38F9552D434AB7F4C8B7 /* MenuBarItemCatalog.swift */; };
+		30D0EB437BE32F991D6F7971 /* HotKeyRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF0C568A02BF9D8777E349B /* HotKeyRegistryTests.swift */; };
+		1E50082AD4E9CB0D4B5A0103 /* GlobalKeybindingPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0340E59AB11C9D5E8965965 /* GlobalKeybindingPreferencesTests.swift */; };
+		04E2F9742366D046C8AE9719 /* MenuBarCatalogStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6323960AD76C15D25F359F81 /* MenuBarCatalogStateTests.swift */; };
+		2AC2C7C96BE96B588BEDAFA7 /* ShortcutRecorderRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE27CCE27C72C84408884605 /* ShortcutRecorderRowTests.swift */; };
+		187C86957CFDA673F042D998 /* MenuBarItemCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A491DF3D79E610456CB4D42A /* MenuBarItemCatalogTests.swift */; };
+		F59D5C1E5A222F26AC56C853 /* MenuBarItemCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573B38F9552D434AB7F4C8B7 /* MenuBarItemCatalog.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -300,6 +317,15 @@
 		CF0BB5C3EF47C0FD0DA210DF /* RevealGesturesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealGesturesTests.swift; sourceTree = "<group>"; };
 		D38FE83E30C42F0771CE8AE7 /* RevealControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealControllerTests.swift; sourceTree = "<group>"; };
 		D7AAD0E40FFA01D5E3255A6C /* RevealSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealSettingsTests.swift; sourceTree = "<group>"; };
+		2890954401904F7973D3F5B7 /* HotKeyRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyRegistry.swift; sourceTree = "<group>"; };
+		82FFCE489727A005101189BA /* ShortcutRecorderRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRecorderRow.swift; sourceTree = "<group>"; };
+		D8FCF9C9A039FC11A015E9B0 /* MenuBarCatalogState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarCatalogState.swift; sourceTree = "<group>"; };
+		573B38F9552D434AB7F4C8B7 /* MenuBarItemCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarItemCatalog.swift; sourceTree = "<group>"; };
+		CAF0C568A02BF9D8777E349B /* HotKeyRegistryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyRegistryTests.swift; sourceTree = "<group>"; };
+		C0340E59AB11C9D5E8965965 /* GlobalKeybindingPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalKeybindingPreferencesTests.swift; sourceTree = "<group>"; };
+		6323960AD76C15D25F359F81 /* MenuBarCatalogStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarCatalogStateTests.swift; sourceTree = "<group>"; };
+		BE27CCE27C72C84408884605 /* ShortcutRecorderRowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRecorderRowTests.swift; sourceTree = "<group>"; };
+		A491DF3D79E610456CB4D42A /* MenuBarItemCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarItemCatalogTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -347,6 +373,7 @@
 			isa = PBXGroup;
 			children = (
 				0842CDFA23A9FDD000D14BD4 /* GlobalKeybindingPreferences.swift */,
+				2890954401904F7973D3F5B7 /* HotKeyRegistry.swift */,
 				08A5F85B23AA013100981CA5 /* SelectedSecond.swift */,
 			);
 			path = Models;
@@ -437,6 +464,9 @@
 				60AFBE8D4C25548192E7D135 /* SettingsModelTests.swift */,
 				CF0BB5C3EF47C0FD0DA210DF /* RevealGesturesTests.swift */,
 				D38FE83E30C42F0771CE8AE7 /* RevealControllerTests.swift */,
+				CAF0C568A02BF9D8777E349B /* HotKeyRegistryTests.swift */,
+				C0340E59AB11C9D5E8965965 /* GlobalKeybindingPreferencesTests.swift */,
+				6323960AD76C15D25F359F81 /* MenuBarCatalogStateTests.swift */,
 			);
 			path = HiddenBarTests;
 			sourceTree = "<group>";
@@ -457,6 +487,8 @@
 				A1D0E1D0000000000000F002 /* MenuBarAppIdentityTests.swift */,
 				6813D114EE2C521C387AAC16 /* SystemOverflowTests.swift */,
 				D7AAD0E40FFA01D5E3255A6C /* RevealSettingsTests.swift */,
+				BE27CCE27C72C84408884605 /* ShortcutRecorderRowTests.swift */,
+				A491DF3D79E610456CB4D42A /* MenuBarItemCatalogTests.swift */,
 			);
 			name = HiddenTests;
 			path = HiddenTests;
@@ -473,6 +505,7 @@
 				9FFC448CD0476AF4799FA5DA /* MenuBarAppsSettingsViewController.swift */,
 				A1D0E1D0000000000000F001 /* MenuBarAppIdentity.swift */,
 				22AF1A1AA5ABA4C7881D1682 /* SettingsSnapshot.swift */,
+				82FFCE489727A005101189BA /* ShortcutRecorderRow.swift */,
 			);
 			name = Settings;
 			path = Settings;
@@ -598,6 +631,8 @@
 			isa = PBXGroup;
 			children = (
 				FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */,
+				D8FCF9C9A039FC11A015E9B0 /* MenuBarCatalogState.swift */,
+				573B38F9552D434AB7F4C8B7 /* MenuBarItemCatalog.swift */,
 				092D9DE26A006349D87B304D /* MenuBarLayout.swift */,
 			);
 			path = Layout;
@@ -860,6 +895,10 @@
 				D565D9DF89D674F3E8EA5E4F /* RevealGestures.swift in Sources */,
 				3578E79939DDCBB73A725BD1 /* RevealController.swift in Sources */,
 				E8E29408C483EC16F7B55649 /* RevealHitTester.swift in Sources */,
+				A6283F69DA33FBBF79B79D2F /* HotKeyRegistry.swift in Sources */,
+				362FAF660DDC9E225B1786E0 /* ShortcutRecorderRow.swift in Sources */,
+				0AB67F8D3027DF064F4B5D75 /* MenuBarCatalogState.swift in Sources */,
+				15B6EC919BC2CB693739137C /* MenuBarItemCatalog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -880,6 +919,8 @@
 				A1D0E1D0000000000000F013 /* MenuBarAppIdentityTests.swift in Sources */,
 				FFDA98BB7A1B238575886EE9 /* SystemOverflowTests.swift in Sources */,
 				E6D398FD9277C7ACB911BBB3 /* RevealSettingsTests.swift in Sources */,
+				2AC2C7C96BE96B588BEDAFA7 /* ShortcutRecorderRowTests.swift in Sources */,
+				187C86957CFDA673F042D998 /* MenuBarItemCatalogTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -938,6 +979,10 @@
 				4A340F6F945CF10EAE81AE3F /* RevealGestures.swift in Sources */,
 				5C382ED17628495BF6FC961C /* RevealController.swift in Sources */,
 				379BFB55610F4DB1203B844B /* RevealHitTester.swift in Sources */,
+				BEC4FAE27C4F1FD30BBF84D8 /* HotKeyRegistry.swift in Sources */,
+				35A0CE4DDA4691309BF16489 /* ShortcutRecorderRow.swift in Sources */,
+				1B165ADA55704BC77434425D /* MenuBarCatalogState.swift in Sources */,
+				F59D5C1E5A222F26AC56C853 /* MenuBarItemCatalog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -974,6 +1019,13 @@
 				E3F15FF4836EDDCC09938454 /* RevealHitTester.swift in Sources */,
 				B06ACC3501C4C1D384ACCD79 /* RevealGesturesTests.swift in Sources */,
 				5410EA251B58DC6765531AF8 /* RevealControllerTests.swift in Sources */,
+				F9D72626994164D6AD6F53C4 /* HotKeyRegistry.swift in Sources */,
+				051E71DF7DE5BD146AC19A9A /* GlobalKeybindingPreferences.swift in Sources */,
+				5637D5B5E6C7F09EED3281AE /* Notification.Name+Extension.swift in Sources */,
+				3E3F72FB3CBF0388491FC438 /* MenuBarCatalogState.swift in Sources */,
+				30D0EB437BE32F991D6F7971 /* HotKeyRegistryTests.swift in Sources */,
+				1E50082AD4E9CB0D4B5A0103 /* GlobalKeybindingPreferencesTests.swift in Sources */,
+				04E2F9742366D046C8AE9719 /* MenuBarCatalogStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

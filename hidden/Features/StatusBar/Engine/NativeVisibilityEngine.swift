@@ -74,6 +74,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // .calibrating stands for "an activation is in flight".
     private(set) var state: MenuBarEngineState = .expanded
     private(set) var layout: MenuBarLayout?
+    // Told about every read taken from an unrestricted bar, with the raw
+    // inventory it came from, and the sections that read listed (apps that only
+    // started are not in it). The app catalog listens here.
+    var onUnrestrictedRead: ((MenuBarLayout, [MenuBarInventoryItem]) -> Void)?
     // The last read that listed every item, to fill in a read from an
     // overflowing menu bar. Kept across display changes: sections are per app.
     private var lastCompleteLayout: MenuBarLayout?
@@ -385,6 +389,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 self.sectionMemory.sections.merge(layout.sections) { _, read in read }
             }
             self.launchedSinceRead.subtract(layout.sections.keys)
+            // What the read listed, before apps that only started are filled in:
+            // those may have no menu-bar icon at all.
+            self.onUnrestrictedRead?(layout, inventory)
             for bundle in self.launchedSinceRead {
                 // Started, but its icon was not listed yet.
                 layout.sections[bundle] = self.rememberedSection(of: bundle)

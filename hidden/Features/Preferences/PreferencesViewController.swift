@@ -7,33 +7,19 @@
 //
 
 import Cocoa
-import Carbon
-import HotKey
 
 /// The General pane: status, the menu bar preview, and the everyday settings.
 class PreferencesViewController: SettingsPaneController {
 
     static let hoverToExpandCheckBoxIdentifier = NSUserInterfaceItemIdentifier(UserDefaults.Key.hoverToExpand)
     static let autoHidePopupIdentifier = NSUserInterfaceItemIdentifier(UserDefaults.Key.isAutoHide)
-    static let shortcutButtonIdentifier = NSUserInterfaceItemIdentifier(UserDefaults.Key.globalKey)
 
     let statusCard = StatusCardView()
     let preview = MenuBarPreviewView()
     private let previewCaption = SettingsForm.caption("")
     private let autoHidePopup = NSPopUpButton(frame: .zero, pullsDown: false)
-    private let btnShortcut = NSButton(title: "", target: nil, action: nil)
-    private let btnClear = NSButton(title: "", target: nil, action: nil)
+    let shortcutRecorder = ShortcutRecorderRow(key: UserDefaults.Key.globalKey)
     private var accessibilityValue: NSTextField?
-
-    public var listening = false {
-        didSet {
-            let isHighlight = listening
-            DispatchQueue.main.async { [weak self] in
-                self?.btnShortcut.highlight(isHighlight)
-                if isHighlight { self?.btnShortcut.title = "Type a Shortcut…".localized }
-            }
-        }
-    }
 
     override func buildForm() {
         statusCard.onAction = { [weak self] in self?.statusAction($0) }
@@ -80,17 +66,7 @@ class PreferencesViewController: SettingsPaneController {
         let alwaysHiddenControls = NSStackView(views: [help, alwaysHidden])
         alwaysHiddenControls.spacing = 10
 
-        btnShortcut.bezelStyle = .rounded
-        btnShortcut.identifier = Self.shortcutButtonIdentifier
-        btnShortcut.target = self
-        btnShortcut.action = #selector(register(_:))
-        btnClear.image = NSImage(systemSymbolName: "xmark.circle.fill", accessibilityDescription: "Clear".localized)
-        btnClear.isBordered = false
-        btnClear.contentTintColor = .tertiaryLabelColor
-        btnClear.target = self
-        btnClear.action = #selector(unregister(_:))
-        let shortcutControls = NSStackView(views: [btnShortcut, btnClear])
-        shortcutControls.spacing = 4
+        onRefresh { [weak self] in self?.shortcutRecorder.refresh() }
         let hover = boundSwitch(UserDefaults.Key.hoverToExpand, read: { Preferences.hoverToExpand },
                                 write: { Preferences.hoverToExpand = $0 })
         // One group for everything you set once; the preview above names it.
@@ -100,10 +76,9 @@ class PreferencesViewController: SettingsPaneController {
             SettingsForm.row("Always-hidden section".localized,
                              caption: "A second group, left of the hidden icons, that stays hidden when you click the arrow.".localized,
                              control: alwaysHiddenControls),
-            SettingsForm.row("Keyboard shortcut".localized, control: shortcutControls),
+            SettingsForm.row("Keyboard shortcut".localized, control: shortcutRecorder),
         ], spacingBefore: 16)
         addRevealSection(hover: hover)
-        loadHotkey()
 
         if context.usesNativeEngine {
             let value = NSTextField(labelWithString: "")
@@ -222,91 +197,6 @@ class PreferencesViewController: SettingsPaneController {
             Preferences.numberOfSecondForAutoHide = seconds
         }
         Preferences.isAutoHide = stored.isAutoHide
-    }
-
-    // When the set shortcut button is pressed start listening for the new shortcut
-    @IBAction func register(_ sender: Any) {
-        listening = true
-        view.window?.makeFirstResponder(nil)
-    }
-
-    // If the shortcut is cleared, clear the UI and tell AppDelegate to stop listening to the previous keybind.
-    @IBAction func unregister(_ sender: Any?) {
-        let appDelegate = NSApplication.shared.delegate as? AppDelegate
-        appDelegate?.hotKey = nil
-        btnShortcut.title = "Set Shortcut".localized
-        listening = false
-        btnClear.isHidden = true
-
-        // Remove globalkey from userdefault
-        Preferences.globalKey = nil
-    }
-
-    public func updateGlobalShortcut(_ event: NSEvent) {
-        self.listening = false
-
-        guard let characters = event.charactersIgnoringModifiers else {return}
-
-        let newGlobalKeybind = GlobalKeybindPreferences(
-            function: event.modifierFlags.contains(.function),
-            control: event.modifierFlags.contains(.control),
-            command: event.modifierFlags.contains(.command),
-            shift: event.modifierFlags.contains(.shift),
-            option: event.modifierFlags.contains(.option),
-            capsLock: event.modifierFlags.contains(.capsLock),
-            carbonFlags: event.modifierFlags.carbonFlags,
-            characters: characters,
-            keyCode: uint32(event.keyCode))
-
-        Preferences.globalKey = newGlobalKeybind
-
-        updateKeybindButton(newGlobalKeybind)
-        btnClear.isHidden = false
-
-        let appDelegate = NSApplication.shared.delegate as? AppDelegate
-        appDelegate?.hotKey = HotKey(keyCombo: KeyCombo(carbonKeyCode: UInt32(event.keyCode), carbonModifiers: event.modifierFlags.carbonFlags))
-    }
-
-    public func updateModiferFlags(_ event: NSEvent) {
-        let newGlobalKeybind = GlobalKeybindPreferences(
-            function: event.modifierFlags.contains(.function),
-            control: event.modifierFlags.contains(.control),
-            command: event.modifierFlags.contains(.command),
-            shift: event.modifierFlags.contains(.shift),
-            option: event.modifierFlags.contains(.option),
-            capsLock: event.modifierFlags.contains(.capsLock),
-            carbonFlags: 0,
-            characters: nil,
-            keyCode: uint32(event.keyCode))
-
-        updateModifierbindButton(newGlobalKeybind)
-    }
-
-    private func loadHotkey() {
-        btnShortcut.title = "Set Shortcut".localized
-        btnClear.isHidden = true
-        if let globalKey = Preferences.globalKey {
-            updateKeybindButton(globalKey)
-            btnClear.isHidden = false
-        }
-    }
-
-    // Set the shortcut button to show the keys to press
-    private func updateKeybindButton(_ globalKeybindPreference : GlobalKeybindPreferences) {
-        btnShortcut.title = globalKeybindPreference.description
-
-        if globalKeybindPreference.description.count <= 1 {
-            unregister(nil)
-        }
-    }
-
-    // Set the shortcut button to show the modifier to press
-    private func updateModifierbindButton(_ globalKeybindPreference : GlobalKeybindPreferences) {
-        btnShortcut.title = globalKeybindPreference.description
-
-        if globalKeybindPreference.description.isEmpty {
-            unregister(nil)
-        }
     }
 }
 

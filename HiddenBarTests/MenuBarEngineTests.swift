@@ -2550,3 +2550,70 @@ final class NotificationCenterSessionTests: XCTestCase {
         XCTAssertEqual(log.filter { $0 == "collapse" }.count, 1)
     }
 }
+
+// MARK: - Unrestricted-read hook (the app catalog's feed)
+
+final class UnrestrictedReadHookTests: XCTestCase {
+    private var items: FakeItems!
+    private var inventory: FakeInventory!
+    private var visibility: FakeVisibility!
+    private var reads: [(MenuBarLayout, [MenuBarInventoryItem])] = []
+
+    override func setUp() {
+        super.setUp()
+        items = FakeItems()
+        inventory = FakeInventory()
+        inventory.items = [item("com.hidden", x: 1100), item("com.visible", x: 1400)]
+        visibility = FakeVisibility()
+        reads = []
+    }
+
+    private func makeEngine() -> NativeVisibilityEngine {
+        let items = self.items!
+        let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility, clock: FakeClock(),
+                                            ownBundleIdentifier: "com.dwarvesv.minimalbar",
+                                            itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            displays: { [mainDisplay] },
+                                            isLTR: { true })
+        engine.onUnrestrictedRead = { [unowned self] layout, inventory in self.reads.append((layout, inventory)) }
+        return engine
+    }
+
+    // Given an unrestricted bar, when a collapse reads it
+    // Then the hook gets the layout and the inventory it came from, once
+    func testACollapseReadReachesTheHook() {
+        let engine = makeEngine()
+        engine.collapse { _ in }
+        visibility.succeed(0)
+
+        XCTAssertEqual(reads.count, 1)
+        XCTAssertEqual(reads.first?.0.sections, ["com.hidden": .hidden, "com.visible": .visible])
+        XCTAssertEqual(reads.first?.1.compactMap(\.bundleIdentifier), ["com.hidden", "com.visible"])
+    }
+
+    // Given an app that started (Safari has no menu-bar icon) and an icon the read lists
+    // When a collapse reads the bar
+    // Then the hook's layout names only the listed icon; the engine still gives the started app a section
+    func testAStartedAppWithNoIconIsNotReported() {
+        let engine = makeEngine()
+        engine.applicationLaunched("com.apple.Safari")
+        engine.collapse { _ in }
+        visibility.succeed(0)
+
+        XCTAssertEqual(reads.count, 1)
+        XCTAssertEqual(reads.first?.0.sections, ["com.hidden": .hidden, "com.visible": .visible])
+        XCTAssertEqual(engine.layout?.sections["com.apple.Safari"], .visible, "the engine still holds it for the restriction")
+    }
+
+    // Given a held restriction, when the layout is needed again
+    // Then the cached one stands in and nothing is reported: hidden items read stale
+    func testAHeldRestrictionReportsNoRead() {
+        let engine = makeEngine()
+        engine.collapse { _ in }
+        visibility.succeed(0)
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        engine.expand()
+
+        XCTAssertEqual(reads.count, 1)
+    }
+}

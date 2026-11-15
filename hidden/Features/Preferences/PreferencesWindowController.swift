@@ -196,23 +196,12 @@ class PreferencesWindowController: NSWindowController {
 
     // MARK: Keys
 
-    private var general: PreferencesViewController? {
-        currentPane as? PreferencesViewController
-    }
-
-    override func keyDown(with event: NSEvent) {
-        super.keyDown(with: event)
-        if let vc = general, vc.listening {
-            vc.updateGlobalShortcut(event)
-        }
-    }
-
     // Cmd+W closes the prefs window. The main menu has no File > Close item, so
-    // the key equivalent falls through to the responder chain. While the
-    // shortcut recorder is listening it keeps the event, so the user can still
-    // bind Cmd+W as the global hotkey.
+    // the key equivalent falls through to the responder chain. While a shortcut
+    // recorder is listening it keeps the event, so the user can still bind
+    // Cmd+W as a global hotkey.
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        let listening = general?.listening ?? false
+        let listening = ShortcutRecorderRow.isRecording
         let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         // Cmd+1...Cmd+5 pick a tab, as in other settings windows.
         if !listening, mods == .command, let digit = event.charactersIgnoringModifiers.flatMap(Int.init),
@@ -228,12 +217,5 @@ class PreferencesWindowController: NSWindowController {
             return true
         }
         return super.performKeyEquivalent(with: event)
-    }
-
-    override func flagsChanged(with event: NSEvent) {
-        super.flagsChanged(with: event)
-        if let vc = general, vc.listening {
-            vc.updateModiferFlags(event)
-        }
     }
 }

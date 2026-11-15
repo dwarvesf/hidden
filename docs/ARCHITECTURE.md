@@ -57,6 +57,9 @@ flowchart TD
 
 - **`AppDelegate`** (entry): registers default prefs, sets up the global hotkey,
   runs the one-shot legacy login-item migration, owns the `StatusBarController`.
+  Global shortcuts live in `HotKeyRegistry` (keyed by the preference that stores
+  each one, re-read on `.prefsChanged`); `ShortcutRecorderRow` is the one
+  Settings control that records them.
 - **`StatusBarController`** (the product, ~370 lines): the three status items,
   when to collapse/expand, auto-hide timer, interaction-awareness, hover-to-expand,
   self-restore of dragged-off items.

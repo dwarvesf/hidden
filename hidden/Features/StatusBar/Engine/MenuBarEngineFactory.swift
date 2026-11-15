@@ -25,19 +25,24 @@ enum MenuBarEngineFactory {
         // the sandbox blocks the Accessibility reads that locate the sections.
         #if HIDDENBAR_NATIVE_VISIBILITY
         if usesNativeEngine() {
-            return NativeVisibilityEngine(items: items,
-                                          captureActivity: CaptureActivityMonitor(),
-                                          runsFromApplicationsFolder: runsFromApplicationsFolder,
-                                          pausesHidingForUnkeepableItems: { Preferences.pauseHidingForUnkeepableItems },
-                                          expandsWhenCaptureStarts: { Preferences.showWholeBarWhenCaptureStarts },
-                                          sectionMemory: UserDefaultsSectionMemory(),
-                                          workspaceNotifications: NSWorkspace.shared.notificationCenter,
-                                          pinnedSections: UserDefaultsPinnedSections(),
-                                          pinsSections: { Preferences.pinnedSectionsEnabled },
-                                          ignoredDrags: { UserDefaultsDragLocks().bundles },
-                                          agentLaunches: AgentLaunchNotifications(isActive: {
-                                              AgentLaunchNotifications.isActive(pinnedSectionsEnabled: Preferences.pinnedSectionsEnabled)
-                                          }))
+            let agentLaunches = AgentLaunchNotifications(isActive: {
+                AgentLaunchNotifications.isActive(pinnedSectionsEnabled: Preferences.pinnedSectionsEnabled)
+            })
+            let engine = NativeVisibilityEngine(items: items,
+                                                captureActivity: CaptureActivityMonitor(),
+                                                runsFromApplicationsFolder: runsFromApplicationsFolder,
+                                                pausesHidingForUnkeepableItems: { Preferences.pauseHidingForUnkeepableItems },
+                                                expandsWhenCaptureStarts: { Preferences.showWholeBarWhenCaptureStarts },
+                                                sectionMemory: UserDefaultsSectionMemory(),
+                                                workspaceNotifications: NSWorkspace.shared.notificationCenter,
+                                                pinnedSections: UserDefaultsPinnedSections(),
+                                                pinsSections: { Preferences.pinnedSectionsEnabled },
+                                                ignoredDrags: { UserDefaultsDragLocks().bundles },
+                                                agentLaunches: agentLaunches)
+            let catalog = MenuBarItemCatalog.shared
+            engine.onUnrestrictedRead = { layout, inventory in catalog.record(layout: layout, inventory: inventory) }
+            catalog.observeLaunches(on: [NSWorkspace.shared.notificationCenter, agentLaunches])
+            return engine
         }
         #endif
         return LegacyLengthEngine(items: items)

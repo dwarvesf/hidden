@@ -194,3 +194,5 @@ Steps to view always hidden icons:
 "Show Everything" = "Show Everything";
 "Your menu bar is full" = "Your menu bar is full";
 "macOS moved the Hidden Bar arrow into the « button. Click « to reach it, or use the Hidden Bar hotkey. To keep the arrow in view, move some icons to the left of the arrow." = "macOS moved the Hidden Bar arrow into the « button. Click « to reach it, or use the Hidden Bar hotkey. To keep the arrow in view, move some icons to the left of the arrow.";
+"Also used by %@" = "Also used by %@";
+"Show or hide icons" = "Show or hide icons";
