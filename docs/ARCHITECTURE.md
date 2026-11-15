@@ -64,7 +64,9 @@ flowchart TD
   The controller calls `collapse` / `expand` / `updateAlwaysHiddenSection` /
   `invalidateLayout` and never writes a status-item length itself.
   `MenuBarEngineFactory` is the one place that picks an engine for the running
-  OS; today that is always `LegacyLengthEngine` (the length trick below).
+  OS and build: `NativeVisibilityEngine` on macOS 27 and later in the direct
+  build (`HIDDENBAR_NATIVE_VISIBILITY`), `LegacyLengthEngine` (the length trick
+  below) everywhere else, the App Store build on any OS included.
 - **`Preferences`** (facade enum): typed accessors over `UserDefaults`; setters
   post `NotificationCenter` notifications that the controller and prefs window
   observe. There is no other state store.
@@ -113,9 +115,12 @@ the RUNBOOK for how that split is built and checked.
 - **The notch**: hidden icons sit "under" the notch area on notched Macs; the
   trick cannot reveal them there. The real fix is a spillover/second-bar design
   (tracked in issues #357/#341/#148; candidate implementations in PRs #350/#358).
-- **macOS 27**: the menu bar re-architecture in macOS 27 betas
+- **macOS 27**: the menu bar re-architecture in macOS 27
   (`NSMenuBarNavigationSceneExtension`) breaks length-inflation hiding entirely
-  (issue #360). A different mechanism may be required.
+  (issue #360). The direct build hides natively there (`NativeVisibilityEngine`,
+  which reads the sections over Accessibility); the App Store build cannot,
+  because the sandbox blocks those reads, and keeps `LegacyLengthEngine`, which
+  does not hide on 27.
 - **Other apps' open menus**: interaction-awareness is pointer-position-based;
   a pointer deep inside another app's open dropdown is below the menubar band,
   so the collapse can still fire there.
