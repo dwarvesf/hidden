@@ -187,6 +187,26 @@ enum PinnedSectionEdits {
     }
 }
 
+// The rows of the Preferences "Menu bar apps" list: every app the table
+// knows, by name. `name` is nil for an app that is not installed any more.
+enum PinnedSectionsList {
+    struct Entry: Equatable {
+        let bundle: String
+        let name: String
+        let section: MenuBarSection
+    }
+
+    static func entries(table: [String: MenuBarSection], name: (String) -> String?) -> [Entry] {
+        return table.map { bundle, section in
+            let label = bundle == MenuBarLayoutResolver.systemExtrasBundle ? "macOS extras (Focus, Now Playing...)" : (name(bundle) ?? bundle)
+            return Entry(bundle: bundle, name: label, section: section)
+        }.sorted {
+            let order = $0.name.localizedCaseInsensitiveCompare($1.name)
+            return order == .orderedSame ? $0.bundle < $1.bundle : order == .orderedAscending
+        }
+    }
+}
+
 extension Notification.Name {
     // Posted on the main queue after Preferences edited the pinned sections.
     static let pinnedSectionsChanged = Notification.Name("pinnedSectionsChanged")

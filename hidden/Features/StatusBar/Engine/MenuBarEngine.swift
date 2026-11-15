@@ -46,6 +46,11 @@ protocol MenuBarEngine: AnyObject {
     // The user expanded or collapsed the bar, so a clock click no longer
     // collapses it when Notification Center closes.
     func userChangedBar()
+
+    // The "hide separators" state a collapse should leave behind. True when the
+    // engine keeps the always-hidden section hidden on every expand, so
+    // Option-click shows it only until the next collapse.
+    func separatorsHiddenForCollapse(current: Bool) -> Bool
 }
 
 extension MenuBarEngine {
@@ -53,6 +58,7 @@ extension MenuBarEngine {
     var defersAutoCollapse: Bool { return false }
     var menuBarItemOwners: Set<String> { return [] }
     func userChangedBar() {}
+    func separatorsHiddenForCollapse(current: Bool) -> Bool { return current }
 }
 
 enum MenuBarEngineState {

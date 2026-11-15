@@ -1710,6 +1710,122 @@ final class PinnedSectionsTests: XCTestCase {
                        "once written, the table no longer follows the reads")
     }
 
+    // #224 on 27: given an app set always-hidden in Preferences, with no
+    // always-hidden separator, when the bar expands, then it stays hidden.
+    func testAnAlwaysHiddenAppStaysHiddenWhileExpandedWithoutTheSeparator() {
+        table.sections = ["com.hidden": .alwaysHidden]
+        let engine = makeEngine()
+        XCTAssertTrue(engine.separatorsHiddenForCollapse(current: false), "every collapse hides the section again")
+        engine.updateAlwaysHiddenSection(enabled: false, separatorHidden: true)
+        XCTAssertEqual(collapse(engine), [own, "com.visible"])
+
+        engine.expand()
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.always", "com.visible"])
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(engine.state, .expanded)
+        XCTAssertFalse(items.alwaysHiddenItem?.isVisible ?? true)
+    }
+
+    // Without the beta: v1.11.2 reveals everything on expand unless the
+    // always-hidden separator is enabled and hidden.
+    func testWithTheBetaOffAnExpandWithoutTheSeparatorRevealsEverything() {
+        pins = false
+        table.sections = ["com.hidden": .alwaysHidden]
+        let engine = makeEngine()
+        XCTAssertFalse(engine.separatorsHiddenForCollapse(current: false))
+        XCTAssertTrue(engine.separatorsHiddenForCollapse(current: true))
+        engine.updateAlwaysHiddenSection(enabled: false, separatorHidden: true)
+        XCTAssertTrue(visibility.requests.isEmpty)
+        engine.collapse { _ in }
+        let collapsed = visibility.succeed(visibility.requests.count - 1)
+        let count = visibility.requests.count
+        engine.expand()
+        XCTAssertEqual(visibility.requests.count, count, "no restriction while expanded")
+        XCTAssertTrue(collapsed.isInvalidated)
+    }
+
+    // Option-click shows the section until the next collapse; that collapse
+    // hides it again from a fresh read, so ⌘-drags made meanwhile count.
+    func testOptionClickRevealsTheSectionUntilTheNextCollapse() {
+        table.sections = ["com.hidden": .alwaysHidden]
+        let engine = makeEngine()
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        collapse(engine)
+        engine.expand()
+        let held = visibility.succeed(visibility.requests.count - 1)
+
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: false)
+        XCTAssertTrue(held.isInvalidated, "everything shows")
+        XCTAssertTrue(items.alwaysHiddenItem?.isVisible ?? false, "the separator shows to be dragged")
+
+        move("com.always", to: 1450)
+        let reads = inventory.snapshots
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        XCTAssertGreaterThan(inventory.snapshots, reads, "read from the unrestricted bar")
+        XCTAssertEqual(table.sections["com.always"], .visible)
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.always", "com.visible"])
+    }
+
+    func testAPreferencesEditToAlwaysHiddenHidesItOnTheExpandedBarAtOnce() {
+        let engine = makeEngine()
+        engine.updateAlwaysHiddenSection(enabled: false, separatorHidden: true)
+        collapse(engine)
+        engine.expand()
+        XCTAssertEqual(visibility.requests.count, 1, "nothing to keep hidden yet")
+
+        PinnedSectionEdits.set(.alwaysHidden, for: "com.visible", in: table)
+        engine.pinnedSectionsDidChange()
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.always", "com.hidden"])
+        visibility.succeed(visibility.requests.count - 1)
+
+        PinnedSectionEdits.resetAllToVisible(in: table)
+        engine.pinnedSectionsDidChange()
+        XCTAssertEqual(visibility.requests.count, 2, "nothing left to hide: the restriction is dropped")
+        XCTAssertEqual(engine.state, .expanded)
+    }
+
+    func testTheListShowsEveryTableAppByName() {
+        let entries = PinnedSectionsList.entries(
+            table: ["com.b": .hidden, "com.a": .visible, "com.gone": .alwaysHidden, "com.apple.controlcenter": .visible],
+            name: { ["com.a": "zeta", "com.b": "Alpha"][$0] })
+        XCTAssertEqual(entries.map(\.bundle), ["com.b", "com.gone", "com.apple.controlcenter", "com.a"])
+        XCTAssertEqual(entries.map(\.section), [.hidden, .alwaysHidden, .visible, .visible])
+        XCTAssertEqual(entries[1].name, "com.gone", "an uninstalled app is listed by bundle id")
+    }
+
+    // Most menu-bar apps are agents, whose starts NSWorkspace does not post.
+    func testAgentStartsAndQuitsAreReportedAndDockAppsAreLeftToNSWorkspace() {
+        let agent = { (name: String) in name.hasPrefix("agent") }
+        let started = AgentLaunchNotifications.notifications(kind: .insertion, inserted: ["agent.a", "dock.b"], removed: [], isAgent: agent)
+        XCTAssertEqual(started.map(\.0), [NSWorkspace.didLaunchApplicationNotification])
+        XCTAssertEqual(started.map(\.1), ["agent.a"])
+        let quit = AgentLaunchNotifications.notifications(kind: .removal, inserted: [], removed: ["dock.b", "agent.c"], isAgent: agent)
+        XCTAssertEqual(quit.map(\.0), [NSWorkspace.didTerminateApplicationNotification])
+        XCTAssertEqual(quit.map(\.1), ["agent.c"])
+        XCTAssertTrue(AgentLaunchNotifications.notifications(kind: .setting, inserted: ["agent.a"], removed: [], isAgent: agent).isEmpty)
+    }
+
+    func testAnAgentStartReachesTheEngineThroughItsOwnCenter() {
+        let agents = NotificationCenter()
+        let items = self.items!
+        let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility, clock: FakeClock(),
+                                            ownBundleIdentifier: own,
+                                            itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            displays: { [mainDisplay] }, isLTR: { true },
+                                            sectionMemory: observed, pinnedSections: table,
+                                            pinsSections: { true }, agentLaunches: agents)
+        collapse(engine)
+        // Any running app with a bundle id stands in for the agent; the Dock always runs.
+        let app = try! XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first)
+        agents.post(name: NSWorkspace.didLaunchApplicationNotification, object: nil,
+                    userInfo: [NSWorkspace.applicationUserInfoKey: app])
+        let expectation = expectation(description: "delivered on the main queue")
+        DispatchQueue.main.async { expectation.fulfill() }
+        wait(for: [expectation], timeout: 2)
+        XCTAssertEqual(visibility.requests.count, 2)
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.apple.dock", "com.visible"])
+    }
+
     func testResolverRules() {
         var observed: [String: MenuBarSection] = ["moved": .hidden, "still": .hidden, "relaunched": .visible]
         var table: [String: MenuBarSection] = ["moved": .hidden, "still": .visible, "relaunched": .visible]

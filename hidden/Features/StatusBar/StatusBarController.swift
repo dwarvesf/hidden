@@ -317,6 +317,10 @@ class StatusBarController: MenuBarItemProvider {
             autoCollapseIfNeeded()
             return
         }
+        if !Preferences.areSeparatorsHidden
+            && menuBarEngine.separatorsHiddenForCollapse(current: Preferences.areSeparatorsHidden) {
+            hideSeparators()
+        }
 
         menuBarEngine.collapse { [weak self] result in
             guard let self = self else { return }
