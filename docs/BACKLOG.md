@@ -6,22 +6,50 @@ so this file is the version that survives a machine switch and a fresh clone. Ke
 short: one line per item, pointing at the issue, PR, or file that holds the detail.
 For live numbers use `gh pr list` and `gh issue list`, not this file.
 
-Source of the current state: the v1.11.2 candidate, PR #468 (`release/v1.11.2`), after
-the round-2 close sweep of 2026-11-15. Core-model changes (separator length math,
+Source of the current state: the 1.13.0 candidate, branch `release/1.13.0-candidate`, after the
+next-features run (`docs/megagoals/next-features/`). Core-model changes (separator length math,
 collapse state machine) are HIGH RISK and require a mandatory review-team pass.
 
-## Ship v1.11.2
+## Ship 1.13.0 (Han)
 
-- **Merge #468 and cut the release.** Steps: `docs/RUNBOOK.md` (notarize, App Store
-  submission, Sparkle appcast). The issues that say "ships in the next release" close
-  when it lands (for example #324, #355, #410).
-- **Sparkle appcast, first release step.** v1.11.1 shipped without Sparkle, so no
-  installed build can update itself yet. The first Sparkle-capable release needs the
-  signed zip and `appcast.xml` as assets of the LATEST release, then the `curl` check
-  in `docs/RUNBOOK.md`.
+- **Candidate is built, signed, notarized and stapled, not published.** Release steps stay with
+  Han: `docs/RUNBOOK.md` (tag, GitHub release, Sparkle appcast, Homebrew cask, App Store lane).
+  Cut a 1.12.0 build from `ed5eddb` (v1.12.0, #483), never from develop HEAD, because develop
+  carries the 1.13 features.
 - **Direct build bundle id.** Release-Direct uses `com.dwarvesv.minimalbar`, the same as
   the App Store build (shared prefs, the two cannot coexist). Confirm that is the
   decision, or move the direct build to `com.dwarvesv.minimalbar.direct`.
+
+## Shipped
+
+- **1.13.0 candidate (all opt-in):** reveal without aiming, scroll, empty click, shake (#493);
+  type-to-find palette (#505); arrivals inbox (#503); presentation mode with manual start and a
+  mirror trigger (#504); shortcut recorder, hotkey registry and app catalog (#497); the General
+  pane scrolls (#504).
+- **1.12.0:** redesigned Settings, pinned sections (beta) on macOS 27, Ignore drags, Icons list
+  clean-up, Shift-click full bar, the system overflow notice (#473, #481, #487, #488, #495, #498).
+- **1.11.2:** the macOS 27 fixes, Sparkle auto-update, arrow styles, the microphone and camera
+  fix. v1.11.1 shipped without Sparkle; the first Sparkle-capable release carried the signed zip
+  and `appcast.xml` (`docs/RUNBOOK.md`).
+
+## Open after 1.13.0
+
+- **Presentation keeps all system items.** Measure the clock and battery system item ids live,
+  then narrow `NativeVisibilityEngine.presentationSystemItems` from all (0..<64) to those two.
+- **Slideshow automatic trigger.** Dropped for 1.13.0; needs a live Keynote or PowerPoint check
+  (frontmost app plus a whole-display window it owns) before any code.
+- **Shortcuts action for presentation mode.** Needs App Intents; not built.
+- **Manual presentation mode does not survive a relaunch.** Decide whether it should.
+- **Arrivals dot under the new app's own icon.** Needs an overlay window over another app's
+  status item; the arrow dot and the NEW tag carry the signal for now.
+- **Arrivals 24 hour lapse** is checked only at launch and when the prompt opens, not on a timer.
+- **Reveal polish.** A first-use tip, and a live tune of the empty-space hit test (`HitClassifier`
+  was written without a live menu bar).
+- **Palette polish.** Bundle id second line, matched-letter weight, a primary "Open System
+  Settings" button, panel width 379 vs 360 pt, footer wrap.
+- **Tests share the real prefs domain** with a running release app; give them their own suite.
+- **macOS 27 menu extras belong to `com.apple.MenuBarAgent`.** The overflow spike probed the wrong
+  process; re-measure against MenuBarAgent.
 
 ## macOS 27 (#360, closed)
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.13.0 (unreleased)
+
+Four ways to reach and control your icons, all opt-in: with every default left alone, 1.13.0 behaves exactly like 1.12.0. None needs a new permission: they use the Accessibility permission hiding already asks for, plus the pointer and scroll monitors hover-to-expand already uses. They never read your screen.
+
+### Added
+- **Reveal without aiming** (off by default; Settings › General › "Also show hidden icons when you"). Show the hidden icons without hitting the small arrow: "Scroll down on the menu bar" (scroll up hides them again), "Click empty space in the menu bar" and "Shake the pointer at the top of the screen". Clicking anywhere off the menu bar hides what a gesture showed. Scroll and shake also work in the App Store build; the empty-click row is direct build only, because it needs Accessibility to tell empty space from an icon ([#493](https://github.com/dwarvesf/hidden/pull/493)).
+- **Find a hidden icon** (off until you record a shortcut; Settings › General › "Find a hidden icon"; direct build on macOS 27). The shortcut opens a search under the arrow that lists your running hidden apps. Type a few letters of a name or bundle id, then press Return to open that app's own menu without expanding the bar; the app hides again when the menu closes. Command-Return moves the app to visible, Option-Return to always hidden. Once a shortcut is set, the arrow's right-click menu also offers "Find a Hidden Icon..." ([#505](https://github.com/dwarvesf/hidden/pull/505)).
+- **Ask about new menu bar apps** (default Show It, which is the 1.12 behavior; Settings › Icons › "When an app adds a new icon": Ask Me, Show It or Hide It; direct build on macOS 27). With Ask Me, a new app stays visible, the arrow gets a dot, and clicking the arrow asks once, from a popover, whether to show it, hide it or always hide it. Hidden Bar remembers the answer, also after a restart. Apps still waiting for an answer sit first in the Icons list with a NEW tag, and an unanswered question lapses after 24 hours ([#503](https://github.com/dwarvesf/hidden/pull/503)).
+- **Presentation mode** (off by default; Settings › General › "Presentation mode"; direct build on macOS 27). While it is on, every app icon is hidden, and the apps you list as "Sensitive apps" stay hidden even if you click the arrow. Start it with your own shortcut (Settings › General › Presentation mode › "Keyboard shortcut") or the arrow's right-click menu, "Start Presentation Mode". A "Presenting" capsule says what is hidden and why, and stops it. "Turn on automatically" starts it when a display is mirrored. While the camera or microphone is on, hiding pauses so macOS can show the capsule that names the app using them, and resumes by itself ([#504](https://github.com/dwarvesf/hidden/pull/504)).
+
+### Changed
+- Settings › General now scrolls when it is taller than the window (the window stops at 720 pt), so the new rows never push it off a small screen ([#504](https://github.com/dwarvesf/hidden/pull/504)).
+- The shortcut recorder is one shared control for every shortcut. A bare letter is refused and the old shortcut stays; letting go of every modifier, or pressing Escape, cancels without clearing the stored shortcut; a small orange triangle says when a shortcut is also used by another Hidden Bar shortcut ([#497](https://github.com/dwarvesf/hidden/pull/497)).
+- The hover setting moved into the new "Also show hidden icons when you" group, with the same stored value ([#493](https://github.com/dwarvesf/hidden/pull/493)).
+
+### Notes
+- Direct build only: palette, arrivals and presentation need macOS 27 and Accessibility. The App Store build keeps scroll and shake reveal; it has no empty-click row.
+- Not in this release: an automatic slideshow trigger for presentation mode (it needs a live Keynote or PowerPoint check first) and a Shortcuts action. See the backlog.
+
+
 ## v1.12.0 (2026-11-15)
 
 A redesigned Settings window, pinned sections (beta) on macOS 27, and the fixes from the unreleased 1.11.3 hotfix, which ships as part of this release.

@@ -70,6 +70,41 @@ flowchart TD
   OS and build: `NativeVisibilityEngine` on macOS 27 and later in the direct
   build (`HIDDENBAR_NATIVE_VISIBILITY`), `LegacyLengthEngine` (the length trick
   below) everywhere else, the App Store build on any OS included.
+- **`ShortcutRecorderRow`** and **`HotKeyRegistry`** (`Features/Settings`, `Models`):
+  every global shortcut (expand/collapse, find a hidden icon, presentation mode)
+  is a `Data` preference recorded by the one `ShortcutRecorderRow` and bound by
+  the registry, which re-reads on `.prefsChanged`. The registry never imports the
+  hot key library; `AppDelegate` supplies the Carbon binding. A recorder warns
+  when a combination is also another Hidden Bar shortcut.
+- **`MenuBarItemCatalog`** (`Features/StatusBar/Layout`, direct build only): the
+  list of menu-bar apps (bundle id, name, icon, section, first-seen time, running
+  state) built from the engine's unrestricted reads plus the pinned-sections table.
+  It posts `.menuBarCatalogChanged` and the arrivals of the latest read; macOS's own
+  extras are left out. The pure merge and diff is `MenuBarCatalogState`. The palette,
+  arrivals and the presentation picker all read from it; none adds a read of its own.
+- **`Reveal`** (`Features/Reveal`): opt-in scroll, empty-click and shake gestures that
+  show the hidden icons. `RevealGestures` is the pure recognizer (thresholds in
+  `RevealTuning`), `RevealHitTester` tells empty bar from an icon through one
+  Accessibility read at the pointer, and `RevealController` asks `StatusBarController`
+  to expand. Global mouse and scroll monitors only, installed only while a pref is on.
+- **`Palette`** (`Features/Palette`, direct build): the type-to-find panel.
+  `PaletteModel` and `PaletteRanking` are pure; `PaletteController` owns the
+  non-activating key panel, so typing needs no key monitor. Return runs a
+  `PaletteRevealSession`, which mirrors the clock session: it allows one more bundle
+  through `MenuBarEngine.allowTemporarily`, presses the icon, and puts the old list
+  back when its menu closes, unless the user changed the bar meanwhile.
+- **`Arrivals`** (`Features/Arrivals`, direct build): `ArrivalsInbox` is the pure
+  decision (seen set, pending queue, answers, upgrade seeding, 24 hour lapse).
+  `ArrivalsController` applies `newAppDefaultSection` to each catalog arrival once,
+  through `PinnedSectionEdits.set`; Ask Me queues it in `arrivalsPending`, dots the
+  arrow, and the prompt popover answers.
+- **`Presentation`** (`Features/Presentation`, direct build): `PresentationState` is
+  the pure state machine (manual or mirror cause, camera and microphone pause with a
+  2.5 s quiet period). `PresentationController` owns the capsule status item and the
+  panels; `DisplayMirroring` reads `CGDisplayIsInMirrorSet` from the screen-parameters
+  notice. The engine holds one desired list (`hold(whenBar:)`) and one reconcile
+  (`reconcileHold`), so a launch, a clock click or a re-activation never swaps the strict
+  list back; a refused list fails open and a crash releases it.
 - **`Preferences`** (facade enum): typed accessors over `UserDefaults`; setters
   post `NotificationCenter` notifications that the controller and prefs window
   observe. There is no other state store.
@@ -87,6 +122,10 @@ flowchart TD
 | Hover-to-expand (opt-in) | global `.mouseMoved` monitor + 0.5s dwell timer; installed while the `hoverToExpand` default is true (Preferences checkbox; installed or removed on change) | zero: monitor not installed |
 | Self-restore | `isVisible = true` forced on our items at launch; Cmd-dragging them off otherwise bricks the app (its only UI is those items) | none |
 | Always-hidden section | a second separator item; its own length games, gated by `alwaysHiddenSectionEnabled` | item not created |
+| Reveal gestures (opt-in) | global scroll and mouse monitors; one Accessibility read at the pointer once a gesture is recognized | zero: no monitor with every reveal pref off |
+| Find a hidden icon (opt-in) | one registered global shortcut; a non-activating panel over `MenuBarItemCatalog` | zero: no shortcut, no panel |
+| Arrivals (opt-in Ask Me) | catalog arrival diff; one pref write per new app | none with Show It or Hide It beyond the write |
+| Presentation mode (opt-in) | a strict held list in the native engine, a capsule status item, mirror and capture signals | zero: no capsule while off |
 
 ## Autostart
 
