@@ -222,14 +222,18 @@ enum PinnedSectionsList {
         let name: String
         let section: MenuBarSection
         var ignoresDrags = false
+        // Waiting for an answer in the arrivals inbox: listed first, tagged NEW.
+        var isNew = false
     }
 
     static func entries(table: [String: MenuBarSection], name: (String) -> String?,
-                        ignoringDrags: Set<String> = []) -> [Entry] {
+                        ignoringDrags: Set<String> = [], pending: Set<String> = []) -> [Entry] {
         return table.map { bundle, section in
             let label = bundle == MenuBarLayoutResolver.systemExtrasBundle ? "macOS extras (Focus, Now Playing...)" : (name(bundle) ?? bundle)
-            return Entry(bundle: bundle, name: label, section: section, ignoresDrags: ignoringDrags.contains(bundle))
+            return Entry(bundle: bundle, name: label, section: section, ignoresDrags: ignoringDrags.contains(bundle),
+                         isNew: pending.contains(bundle))
         }.sorted {
+            if $0.isNew != $1.isNew { return $0.isNew }
             let order = $0.name.localizedCaseInsensitiveCompare($1.name)
             return order == .orderedSame ? $0.bundle < $1.bundle : order == .orderedAscending
         }

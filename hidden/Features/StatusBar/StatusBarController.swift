@@ -77,6 +77,15 @@ class StatusBarController: MenuBarItemProvider {
     // True while the arrow's context menu is up.
     private var isShowingOwnMenu = false
 
+    #if HIDDENBAR_NATIVE_VISIBILITY
+    // Asks about apps that add a first icon (Ask Me), from the arrow.
+    private lazy var arrivalsPresenter = ArrivalsPresenter(openSettings: {
+        Util.showPrefWindow()
+        PreferencesWindowController.shared.select(.menuBarApps)
+    })
+    private var arrivalsObserver: NSObjectProtocol?
+    #endif
+
     private var hoverMonitor: Any?
     private var pinnedSectionsObserver: NSObjectProtocol?
     private var hoverDwellTimer: Timer?
@@ -118,6 +127,7 @@ class StatusBarController: MenuBarItemProvider {
         NotificationCenter.default.addObserver(self, selector: #selector(refreshArrow), name: .stealthExpandIconToggle, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(refreshArrow), name: .arrowStyleChanged, object: nil)
         watchAccessibilityPermission()
+        startArrivals()
         #if DEBUG
         installDebugHooks()
         #endif
@@ -259,7 +269,9 @@ class StatusBarController: MenuBarItemProvider {
         let shiftPressed = ExpandCollapseActionResolver.isShiftPressed(eventFlags: event?.modifierFlags, liveFlags: NSEvent.modifierFlags)
         switch ExpandCollapseActionResolver.action(eventType: event?.type, optionPressed: optionPressed, shiftPressed: shiftPressed) {
         case .toggle:
+            let wasCollapsed = isCollapsed
             self.expandCollapseIfNeeded()
+            if wasCollapsed { showArrivalsIfWaiting() }
         case .toggleWithFullBar:
             // Shift-click expands with the full menu bar for this expansion only;
             // the stored setting is untouched. Collapsing works as a plain click.
@@ -466,7 +478,7 @@ class StatusBarController: MenuBarItemProvider {
     // A popup hanging from the menu bar (#319) defers for up to 10 minutes; the
     // window list is read last, only when nothing else defers.
     private var defersCollapseApartFromPointer: Bool {
-        return isPreferencesWindowVisible || menuBarEngine.defersAutoCollapse || popupGuard.defersCollapse()
+        return isPreferencesWindowVisible || arrivalsPromptIsShown || menuBarEngine.defersAutoCollapse || popupGuard.defersCollapse()
     }
 
     private func startTimerToAutoHide() {
@@ -685,6 +697,15 @@ extension StatusBarController {
         case "reveal-sim":
             // What a real scroll, click or shake runs: "scroll", "scroll-up", "click" or "shake".
             revealController.simulate(argument ?? "")
+        case "arrivals-inject":
+            // Asks about a bundle as if a read had just found it: "<bundle id>".
+            if let argument { debugArrivalsInject(argument) }
+        case "arrivals-answer":
+            // What a prompt button runs: "<bundle id>=show|hide".
+            debugArrivalsAnswer(argument ?? "")
+        case "arrivals-prompt":
+            // Opens the prompt under the arrow, as a click on it does while something waits.
+            showArrivalsIfWaiting()
         case "dump-state":
             break
         case "dump-inventory":
@@ -809,12 +830,80 @@ extension StatusBarController {
             state.merge(engine.debugState) { $1 }
         }
         state.merge(revealController.debugState) { $1 }
+        state.merge(debugArrivalsState) { $1 }
         do {
             let data = try JSONSerialization.data(withJSONObject: state, options: [.prettyPrinted, .sortedKeys])
             try data.write(to: URL(fileURLWithPath: path))
         } catch {
             NSLog("DebugHooks: cannot write state: \(error.localizedDescription)")
         }
+    }
+}
+#endif
+
+//MARK: - Arrivals
+// Kept apart from the rest of the controller: it is the only part of this file
+// the arrivals inbox touches.
+extension StatusBarController {
+    fileprivate func startArrivals() {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        guard MenuBarEngineFactory.usesNativeEngine() else { return }
+        ArrivalsController.shared.start()
+        arrivalsObserver = NotificationCenter.default.addObserver(forName: .arrivalsChanged, object: nil, queue: .main) { [weak self] _ in
+            self?.syncArrivalsDot()
+        }
+        syncArrivalsDot()
+        #endif
+    }
+
+    fileprivate func syncArrivalsDot() {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        ArrivalsArrowDot.sync(on: btnExpandCollapse.button, visible: !ArrivalsController.shared.pending.isEmpty)
+        #endif
+    }
+
+    fileprivate func showArrivalsIfWaiting() {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        arrivalsPresenter.present(from: btnExpandCollapse.button)
+        #endif
+    }
+
+    fileprivate var arrivalsPromptIsShown: Bool {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        return arrivalsPresenter.isShown
+        #else
+        return false
+        #endif
+    }
+}
+
+#if DEBUG
+extension StatusBarController {
+    fileprivate func debugArrivalsInject(_ bundle: String) {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        ArrivalsController.shared.debugInject(bundle)
+        #endif
+    }
+
+    fileprivate func debugArrivalsAnswer(_ argument: String) {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        let parts = argument.components(separatedBy: "=")
+        let answers: [String: ArrivalAnswer] = ["show": .show, "hide": .hide, "always-hide": .alwaysHide]
+        if parts.count == 2, let answer = answers[parts[1]] {
+            ArrivalsController.shared.answer(parts[0], answer)
+        }
+        #endif
+    }
+
+    fileprivate var debugArrivalsState: [String: Any] {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        var state = ArrivalsController.shared.debugState
+        state["arrivalsPromptShown"] = arrivalsPresenter.isShown
+        state["arrivalsDot"] = btnExpandCollapse.button?.subviews.contains { $0 is ArrivalsArrowDot } ?? false
+        return state
+        #else
+        return [:]
+        #endif
     }
 }
 #endif

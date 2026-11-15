@@ -231,4 +231,17 @@ enum Preferences {
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
+
+    // macOS 27, direct build: what happens to an app that adds its first icon.
+    // Show It (the 1.12 behavior) unless the user picks otherwise.
+    static var newAppDefaultSection: NewAppDefault {
+        get {
+            NewAppDefault(rawValue: UserDefaults.standard.object(forKey: UserDefaults.Key.newAppDefaultSection) as? Int ?? NewAppDefault.show.rawValue) ?? .show
+        }
+
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: UserDefaults.Key.newAppDefaultSection)
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
 }

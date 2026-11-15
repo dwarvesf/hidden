@@ -22,6 +22,14 @@ protocol MenuBarAppsStore {
     func resetAllToVisible()
     func remove(_ bundle: String)
     func enable()
+    /// What an app that adds its first icon gets: asked, shown or hidden.
+    var newAppDefault: NewAppDefault { get }
+    func setNewAppDefault(_ choice: NewAppDefault)
+}
+
+extension MenuBarAppsStore {
+    var newAppDefault: NewAppDefault { Preferences.newAppDefaultSection }
+    func setNewAppDefault(_ choice: NewAppDefault) { Preferences.newAppDefaultSection = choice }
 }
 
 struct LiveMenuBarAppsStore: MenuBarAppsStore {
@@ -32,7 +40,8 @@ struct LiveMenuBarAppsStore: MenuBarAppsStore {
 
     func entries() -> [PinnedSectionsList.Entry] {
         PinnedSectionsList.entries(table: UserDefaultsPinnedSections().sections, name: { identities.identity(for: $0).name },
-                                   ignoringDrags: UserDefaultsDragLocks().bundles)
+                                   ignoringDrags: UserDefaultsDragLocks().bundles,
+                                   pending: Set(UserDefaultsArrivalsPending().bundles))
     }
 
     func identity(for bundle: String) -> MenuBarAppIdentity.Resolved { identities.identity(for: bundle) }
@@ -89,6 +98,9 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
     static func notRunning(_ bundles: [String], running: Set<String>) -> Set<String> {
         Set(bundles.filter { $0 != MenuBarLayoutResolver.systemExtrasBundle && !running.contains($0) })
     }
+    /// Identifier of the "When an app adds a new icon" popup: the defaults key.
+    static let newAppDefaultIdentifier = UserDefaults.Key.newAppDefaultSection
+    static let newAppDefaultTitles: [(NewAppDefault, String)] = [(.ask, "Ask Me"), (.show, "Show It"), (.hide, "Hide It")]
     static let maxListHeight: CGFloat = 360
 
     private let store: MenuBarAppsStore
@@ -104,13 +116,42 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
     required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
 
     override func buildForm() {
+        addNewAppDefaultRow()
         content.orientation = .vertical
         content.alignment = .leading
         content.spacing = 6
         addFullWidth(content)
         onRefresh { [weak self] in self?.rebuild() }
         NotificationCenter.default.addObserver(self, selector: #selector(refreshAll), name: .pinnedSectionsChanged, object: nil)
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        NotificationCenter.default.addObserver(self, selector: #selector(refreshAll), name: .arrivalsChanged, object: nil)
+        #endif
         rebuild()
+    }
+
+    // "When an app adds a new icon": one popup above the list. With Pinned sections
+    // off nothing places a new app, so the popup stays but cannot be changed.
+    private func addNewAppDefaultRow() {
+        let popup = NSPopUpButton(frame: .zero, pullsDown: false)
+        popup.controlSize = .small
+        for (choice, title) in Self.newAppDefaultTitles {
+            popup.addItem(withTitle: title.localized)
+            popup.lastItem?.tag = choice.rawValue
+        }
+        popup.identifier = NSUserInterfaceItemIdentifier(Self.newAppDefaultIdentifier)
+        popup.target = self
+        popup.action = #selector(newAppDefaultPicked(_:))
+        addSection(nil, rows: [SettingsForm.row(
+            "When an app adds a new icon".localized,
+            caption: "Ask puts a dot on the arrow and keeps the icon shown until you choose.".localized,
+            control: popup)])
+        onRefresh { [weak self, weak popup] in
+            guard let self, let popup else { return }
+            popup.selectItem(withTag: self.store.newAppDefault.rawValue)
+            popup.isEnabled = self.store.isEnabled
+        }
+        popup.selectItem(withTag: store.newAppDefault.rawValue)
+        popup.isEnabled = store.isEnabled
     }
 
     override func viewWillAppear() {
@@ -162,7 +203,11 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
     private func list(_ entries: [PinnedSectionsList.Entry], notRunning: Set<String>) -> NSView {
         let captions = MenuBarAppIdentity.captions(for: entries.map { ($0.bundle, $0.name, store.identity(for: $0.bundle).caption) },
                                                    notRunning: notRunning)
-        let group = SettingsGroupView(rows: entries.map { row($0, caption: captions[$0.bundle], canRemove: notRunning.contains($0.bundle)) })
+        let group = SettingsGroupView(rows: entries.map { entry in
+            let canRemove = notRunning.contains(entry.bundle)
+            let caption = entry.isNew ? (canRemove ? "Not chosen yet. Not running now.".localized : "Not chosen yet".localized) : captions[entry.bundle]
+            return row(entry, caption: caption, canRemove: canRemove)
+        })
         let fittingHeight = group.fittingSize.height
         let height = min(fittingHeight, Self.maxListHeight)
         guard fittingHeight > Self.maxListHeight else { return group }
@@ -208,6 +253,7 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
 
         let row = SettingsForm.row(entry.name, caption: caption, control: controls)
         if canRemove { addRemoveLink(to: row, for: entry) }
+        if entry.isNew { markNew(row) }
         row.toolTip = entry.bundle
         let image = store.icon(for: entry.bundle)
         let icon = NSImageView(image: image)
@@ -227,6 +273,26 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
             icon.heightAnchor.constraint(equalToConstant: 18),
         ])
         return row
+    }
+
+    // An app that waits for an answer: a tinted row and a NEW tag after its name.
+    private func markNew(_ row: NSView) {
+        let tint = NewRowTint()
+        tint.translatesAutoresizingMaskIntoConstraints = false
+        row.addSubview(tint, positioned: .below, relativeTo: nil)
+        NSLayoutConstraint.activate([
+            tint.leadingAnchor.constraint(equalTo: row.leadingAnchor),
+            tint.trailingAnchor.constraint(equalTo: row.trailingAnchor),
+            tint.topAnchor.constraint(equalTo: row.topAnchor),
+            tint.bottomAnchor.constraint(equalTo: row.bottomAnchor),
+        ])
+        guard let texts = row.subviews.first(where: { $0 is NSStackView }) as? NSStackView,
+              let title = texts.arrangedSubviews.first else { return }
+        texts.removeArrangedSubview(title)
+        let line = NSStackView(views: [title, NewTag()])
+        line.spacing = 6
+        line.alignment = .centerY
+        texts.insertArrangedSubview(line, at: 0)
     }
 
     // Remove sits in the caption line, not the controls column, so every row's controls line up.
@@ -273,12 +339,57 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         store.remove(String(raw.dropFirst(Self.removeIdentifier(for: "").count)))
     }
 
+    @objc private func newAppDefaultPicked(_ sender: NSPopUpButton) {
+        guard let choice = sender.selectedItem.flatMap({ NewAppDefault(rawValue: $0.tag) }) else { return }
+        store.setNewAppDefault(choice)
+    }
+
     @objc private func resetAll() {
         store.resetAllToVisible()
     }
 
     @objc private func turnOn() {
         store.enable()
+    }
+}
+
+/// The accent wash behind a row that waits for an answer.
+private final class NewRowTint: NSView {
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    override func draw(_ dirtyRect: NSRect) {
+        NSColor.controlAccentColor.withAlphaComponent(0.10).setFill()
+        bounds.fill()
+    }
+}
+
+/// "NEW": a small accent pill.
+final class NewTag: NSView {
+    static let identifier = NSUserInterfaceItemIdentifier("arrivalsNewTag")
+    private let text = "NEW".localized
+    private let attributes: [NSAttributedString.Key: Any] = [
+        .font: NSFont.systemFont(ofSize: 9.5, weight: .bold), .foregroundColor: NSColor.white, .kern: 0.4,
+    ]
+
+    init() {
+        super.init(frame: .zero)
+        identifier = Self.identifier
+        translatesAutoresizingMaskIntoConstraints = false
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    override var intrinsicContentSize: NSSize {
+        let size = (text as NSString).size(withAttributes: attributes)
+        return NSSize(width: ceil(size.width) + 12, height: 15)
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        NSColor.controlAccentColor.setFill()
+        NSBezierPath(roundedRect: bounds, xRadius: 7.5, yRadius: 7.5).fill()
+        let size = (text as NSString).size(withAttributes: attributes)
+        (text as NSString).draw(at: NSPoint(x: (bounds.width - size.width) / 2, y: (bounds.height - size.height) / 2),
+                                withAttributes: attributes)
     }
 }
 
@@ -293,6 +404,8 @@ struct SnapshotMenuBarAppsStore: MenuBarAppsStore {
     var isEnabled: Bool
     var table: [String: MenuBarSection]
     var notRunning: Set<String> = []
+    var pending: Set<String> = []
+    var newAppDefault: NewAppDefault = .show
     let live = LiveMenuBarAppsStore()
 
     static let states: [(String, SnapshotMenuBarAppsStore)] = [
@@ -303,12 +416,17 @@ struct SnapshotMenuBarAppsStore: MenuBarAppsStore {
             "com.apple.screensharing.agent": .hidden, "com.apple.SSMenuAgent": .visible,
             "com.hnc.Discord.helper.Renderer": .hidden,
         ], notRunning: ["com.example.uninstalled", "com.apple.chronod"])),
+        // Ask Me, with two apps that have not been answered: listed first, tagged NEW.
+        ("new", SnapshotMenuBarAppsStore(isEnabled: true, table: [
+            "com.apple.Safari": .visible, "com.apple.Notes": .hidden, "com.apple.Music": .alwaysHidden,
+            "com.apple.ActivityMonitor": .hidden, "com.apple.TextEdit": .visible, "com.apple.Preview": .visible,
+        ], pending: ["com.apple.TextEdit", "com.apple.Preview"], newAppDefault: .ask)),
         ("off", SnapshotMenuBarAppsStore(isEnabled: false, table: [:])),
         ("empty", SnapshotMenuBarAppsStore(isEnabled: true, table: [:])),
     ]
 
     func entries() -> [PinnedSectionsList.Entry] {
-        PinnedSectionsList.entries(table: table, name: { live.identity(for: $0).name })
+        PinnedSectionsList.entries(table: table, name: { live.identity(for: $0).name }, pending: pending)
     }
 
     func identity(for bundle: String) -> MenuBarAppIdentity.Resolved { live.identity(for: bundle) }
@@ -319,5 +437,6 @@ struct SnapshotMenuBarAppsStore: MenuBarAppsStore {
     func resetAllToVisible() {}
     func remove(_ bundle: String) {}
     func enable() {}
+    func setNewAppDefault(_ choice: NewAppDefault) {}
 }
 #endif

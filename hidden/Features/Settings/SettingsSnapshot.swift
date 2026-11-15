@@ -54,6 +54,9 @@ enum SettingsSnapshot {
                       to: dir.appendingPathComponent("\(build)-menubarapps-\(state)-\(mode).png"))
             }
             MenuBarAppsPane.makeViewController = registered
+            #if HIDDENBAR_NATIVE_VISIBILITY
+            ArrivalsSnapshot.render(appearance: appearance, mode: mode, to: dir)
+            #endif
             // The preview strip per engine, with the always-hidden section on.
             for (os, engine) in [(27, "macos27"), (26, "macos26")] {
                 var context = live

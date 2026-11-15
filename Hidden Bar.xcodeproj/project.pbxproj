@@ -184,6 +184,19 @@
 		2AC2C7C96BE96B588BEDAFA7 /* ShortcutRecorderRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE27CCE27C72C84408884605 /* ShortcutRecorderRowTests.swift */; };
 		187C86957CFDA673F042D998 /* MenuBarItemCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A491DF3D79E610456CB4D42A /* MenuBarItemCatalogTests.swift */; };
 		F59D5C1E5A222F26AC56C853 /* MenuBarItemCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573B38F9552D434AB7F4C8B7 /* MenuBarItemCatalog.swift */; };
+		1E07FB2B324AC1DAB96AAADE /* ArrivalsInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF902E9BE3B1BE10C995E132 /* ArrivalsInbox.swift */; };
+		13F8DC7217013A737A563D04 /* ArrivalsInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF902E9BE3B1BE10C995E132 /* ArrivalsInbox.swift */; };
+		675A6B7D509710674F140745 /* ArrivalsInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF902E9BE3B1BE10C995E132 /* ArrivalsInbox.swift */; };
+		A66C490FB27F3054C3C7E124 /* ArrivalsInboxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E056AC5F70549F7B5C193F /* ArrivalsInboxTests.swift */; };
+		FF3D69EF93B8CD5A1F5C346C /* ArrivalsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90DE66BC312386D4D1892D2 /* ArrivalsController.swift */; };
+		6082C5353938E20315235AF7 /* ArrivalsPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 629C4145C6F9C73CEF11661F /* ArrivalsPromptView.swift */; };
+		9525F394998A4A9504A1DCD6 /* ArrivalsPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90917F0CAC63090D048C38C /* ArrivalsPresenter.swift */; };
+		0A2078C23E9718AEB6895681 /* ArrivalsSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 668908D9AD4320CBE15D2771 /* ArrivalsSnapshot.swift */; };
+		08CD9158FCFA204A9A30E774 /* ArrivalsControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D932613B6FC583B367C9D8CE /* ArrivalsControllerTests.swift */; };
+		3AC58404F4AF6E3DB0DF74F9 /* ArrivalsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90DE66BC312386D4D1892D2 /* ArrivalsController.swift */; };
+		7CCBBD3DA63D07BE11208CB1 /* ArrivalsPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 629C4145C6F9C73CEF11661F /* ArrivalsPromptView.swift */; };
+		385B2BC00024539915B249EC /* ArrivalsPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90917F0CAC63090D048C38C /* ArrivalsPresenter.swift */; };
+		FC73E3ACF7ADF824E6896D79 /* ArrivalsSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 668908D9AD4320CBE15D2771 /* ArrivalsSnapshot.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -326,6 +339,13 @@
 		6323960AD76C15D25F359F81 /* MenuBarCatalogStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarCatalogStateTests.swift; sourceTree = "<group>"; };
 		BE27CCE27C72C84408884605 /* ShortcutRecorderRowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRecorderRowTests.swift; sourceTree = "<group>"; };
 		A491DF3D79E610456CB4D42A /* MenuBarItemCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarItemCatalogTests.swift; sourceTree = "<group>"; };
+		CF902E9BE3B1BE10C995E132 /* ArrivalsInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalsInbox.swift; sourceTree = "<group>"; };
+		45E056AC5F70549F7B5C193F /* ArrivalsInboxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalsInboxTests.swift; sourceTree = "<group>"; };
+		E90DE66BC312386D4D1892D2 /* ArrivalsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalsController.swift; sourceTree = "<group>"; };
+		629C4145C6F9C73CEF11661F /* ArrivalsPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalsPromptView.swift; sourceTree = "<group>"; };
+		E90917F0CAC63090D048C38C /* ArrivalsPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalsPresenter.swift; sourceTree = "<group>"; };
+		668908D9AD4320CBE15D2771 /* ArrivalsSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalsSnapshot.swift; sourceTree = "<group>"; };
+		D932613B6FC583B367C9D8CE /* ArrivalsControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalsControllerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -392,6 +412,7 @@
 				8D80CEB42B2A2DF1177835EA /* Updates */,
 				8B146598250E90AA078F76E9 /* Settings */,
 				A9E70DE0000000000000D001 /* Reveal */,
+				A9E70DE0000000000000A001 /* Arrivals */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -467,6 +488,7 @@
 				CAF0C568A02BF9D8777E349B /* HotKeyRegistryTests.swift */,
 				C0340E59AB11C9D5E8965965 /* GlobalKeybindingPreferencesTests.swift */,
 				6323960AD76C15D25F359F81 /* MenuBarCatalogStateTests.swift */,
+				45E056AC5F70549F7B5C193F /* ArrivalsInboxTests.swift */,
 			);
 			path = HiddenBarTests;
 			sourceTree = "<group>";
@@ -489,6 +511,7 @@
 				D7AAD0E40FFA01D5E3255A6C /* RevealSettingsTests.swift */,
 				BE27CCE27C72C84408884605 /* ShortcutRecorderRowTests.swift */,
 				A491DF3D79E610456CB4D42A /* MenuBarItemCatalogTests.swift */,
+				D932613B6FC583B367C9D8CE /* ArrivalsControllerTests.swift */,
 			);
 			name = HiddenTests;
 			path = HiddenTests;
@@ -666,6 +689,18 @@
 				8CF7C355880C787EFB2ABF3C /* RevealHitTester.swift */,
 			);
 			path = Reveal;
+			sourceTree = "<group>";
+		};
+		A9E70DE0000000000000A001 /* Arrivals */ = {
+			isa = PBXGroup;
+			children = (
+				E90DE66BC312386D4D1892D2 /* ArrivalsController.swift */,
+				CF902E9BE3B1BE10C995E132 /* ArrivalsInbox.swift */,
+				E90917F0CAC63090D048C38C /* ArrivalsPresenter.swift */,
+				629C4145C6F9C73CEF11661F /* ArrivalsPromptView.swift */,
+				668908D9AD4320CBE15D2771 /* ArrivalsSnapshot.swift */,
+			);
+			path = Arrivals;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -899,6 +934,11 @@
 				362FAF660DDC9E225B1786E0 /* ShortcutRecorderRow.swift in Sources */,
 				0AB67F8D3027DF064F4B5D75 /* MenuBarCatalogState.swift in Sources */,
 				15B6EC919BC2CB693739137C /* MenuBarItemCatalog.swift in Sources */,
+				1E07FB2B324AC1DAB96AAADE /* ArrivalsInbox.swift in Sources */,
+				FF3D69EF93B8CD5A1F5C346C /* ArrivalsController.swift in Sources */,
+				6082C5353938E20315235AF7 /* ArrivalsPromptView.swift in Sources */,
+				9525F394998A4A9504A1DCD6 /* ArrivalsPresenter.swift in Sources */,
+				0A2078C23E9718AEB6895681 /* ArrivalsSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -921,6 +961,7 @@
 				E6D398FD9277C7ACB911BBB3 /* RevealSettingsTests.swift in Sources */,
 				2AC2C7C96BE96B588BEDAFA7 /* ShortcutRecorderRowTests.swift in Sources */,
 				187C86957CFDA673F042D998 /* MenuBarItemCatalogTests.swift in Sources */,
+				08CD9158FCFA204A9A30E774 /* ArrivalsControllerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -983,6 +1024,11 @@
 				35A0CE4DDA4691309BF16489 /* ShortcutRecorderRow.swift in Sources */,
 				1B165ADA55704BC77434425D /* MenuBarCatalogState.swift in Sources */,
 				F59D5C1E5A222F26AC56C853 /* MenuBarItemCatalog.swift in Sources */,
+				13F8DC7217013A737A563D04 /* ArrivalsInbox.swift in Sources */,
+				3AC58404F4AF6E3DB0DF74F9 /* ArrivalsController.swift in Sources */,
+				7CCBBD3DA63D07BE11208CB1 /* ArrivalsPromptView.swift in Sources */,
+				385B2BC00024539915B249EC /* ArrivalsPresenter.swift in Sources */,
+				FC73E3ACF7ADF824E6896D79 /* ArrivalsSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1026,6 +1072,8 @@
 				30D0EB437BE32F991D6F7971 /* HotKeyRegistryTests.swift in Sources */,
 				1E50082AD4E9CB0D4B5A0103 /* GlobalKeybindingPreferencesTests.swift in Sources */,
 				04E2F9742366D046C8AE9719 /* MenuBarCatalogStateTests.swift in Sources */,
+				675A6B7D509710674F140745 /* ArrivalsInbox.swift in Sources */,
+				A66C490FB27F3054C3C7E124 /* ArrivalsInboxTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
