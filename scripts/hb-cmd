@@ -1,0 +1,93 @@
+#!/bin/bash
+# scripts/hb-cmd : send one debug command to a running Debug build of Hidden Bar.
+#
+#   scripts/hb-cmd <command> [argument] [--out PATH] [--timeout SECONDS] [--dry-run]
+#
+# Posts the distributed notification com.dwarvesv.minimalbar.debug.command
+# (userInfo: command, argument, out) through JXA, so no keystroke or pointer
+# input is involved. With --out it then waits (default 15 s) for the app to
+# write PATH and exits 1 on timeout. Release builds have no debug hooks and
+# ignore the notification, so a missing answer means a timeout, not a failure
+# of the command.
+#
+#   --dry-run   parse the arguments and print what would be posted; post nothing.
+#               The wait for --out still runs, which tests the timeout path.
+#
+# Exit: 0 posted (and --out appeared), 1 timed out, 2 usage or osascript error.
+
+set -u
+
+usage() {
+  echo "usage: scripts/hb-cmd <command> [argument] [--out PATH] [--timeout SECONDS] [--dry-run]" >&2
+  exit 2
+}
+
+command_name=""
+argument=""
+out=""
+timeout=15
+dry_run=0
+positional=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --out)     [ $# -ge 2 ] || usage; out="$2"; shift ;;
+    --timeout) [ $# -ge 2 ] || usage; timeout="$2"; shift ;;
+    --dry-run) dry_run=1 ;;
+    -h|--help) sed -n 2,17p "$0"; exit 0 ;;
+    --*)       echo "hb-cmd: unknown option $1" >&2; usage ;;
+    *)
+      case "$positional" in
+        0) command_name="$1" ;;
+        1) argument="$1" ;;
+        *) echo "hb-cmd: too many arguments" >&2; usage ;;
+      esac
+      positional=$((positional + 1)) ;;
+  esac
+  shift
+done
+
+[ -n "$command_name" ] || usage
+case "$timeout" in ''|*[!0-9]*) echo "hb-cmd: --timeout needs a whole number of seconds" >&2; exit 2 ;; esac
+
+# Absolute path, so the app (another working directory) writes where we look.
+if [ -n "$out" ]; then
+  case "$out" in /*) ;; *) out="$PWD/$out" ;; esac
+fi
+
+# The file's modification time before the post, so a stale answer from an
+# earlier run does not count. 0 when the file does not exist yet.
+mtime_of() { stat -f '%Fm' "$1" 2>/dev/null || echo 0; }
+before=0
+[ -n "$out" ] && before=$(mtime_of "$out")
+
+if [ "$dry_run" = 1 ]; then
+  echo "hb-cmd: would post command=$command_name argument=$argument out=$out"
+else
+  /usr/bin/osascript -l JavaScript -e '
+    ObjC.import("Foundation");
+    function run(argv) {
+      var info = $.NSMutableDictionary.alloc.init;
+      info.setObjectForKey($(argv[0]), "command");
+      if (argv[1] !== "") info.setObjectForKey($(argv[1]), "argument");
+      if (argv[2] !== "") info.setObjectForKey($(argv[2]), "out");
+      $.NSDistributedNotificationCenter.defaultCenter
+        .postNotificationNameObjectUserInfoDeliverImmediately(
+          "com.dwarvesv.minimalbar.debug.command", $(), info, true);
+    }' "$command_name" "$argument" "$out" || { echo "hb-cmd: osascript failed" >&2; exit 2; }
+fi
+
+[ -n "$out" ] || exit 0
+
+# Wait for a newer, non-empty file that then holds still for a moment (the app
+# writes in place).
+deadline=$(( $(date +%s) + timeout ))
+while [ "$(date +%s)" -le "$deadline" ]; do
+  now=$(mtime_of "$out")
+  if [ "$now" != "$before" ] && [ -s "$out" ]; then
+    sleep 0.2
+    [ "$(mtime_of "$out")" = "$now" ] && exit 0
+  fi
+  sleep 0.1
+done
+echo "hb-cmd: no answer in $out within ${timeout}s (is a Debug build running?)" >&2
+exit 1

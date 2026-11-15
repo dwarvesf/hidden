@@ -209,7 +209,7 @@ final class SettingsWindowTests: XCTestCase {
         XCTAssertEqual(recorder.title, key.description)
 
         let general = try XCTUnwrap(controller.pane(.general) as? PreferencesViewController)
-        general.unregister(nil)
+        general.shortcutRecorder.clear()
         XCTAssertNil(UserDefaults.standard.object(forKey: UserDefaults.Key.globalKey).flatMap { $0 as? Data }
             .flatMap { try? JSONDecoder().decode(GlobalKeybindPreferences.self, from: $0) })
     }

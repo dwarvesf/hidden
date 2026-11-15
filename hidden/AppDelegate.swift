@@ -16,15 +16,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     
     var statusBarController = StatusBarController()
 
-    var hotKey: HotKey? {
-        didSet {
-            guard let hotKey = hotKey else { return }
-
-            hotKey.keyDownHandler = { [weak self] in
-                self?.statusBarController.expandCollapseIfNeeded()
-            }
-        }
-    }
+    /// Every global shortcut; a feature adds its own with `register(key:handler:)`.
+    let hotKeys = HotKeyRegistry.shared
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         #if DEBUG
@@ -59,7 +52,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     /// UserDefaults; apply the ones with side effects and tell the UI.
     private func applyImportedPreferences() {
         Util.setUpAutoStart(isAutoStart: Preferences.isAutoStart)
-        setupHotKey()
+        hotKeys.reload()
         for name: Notification.Name in [.prefsChanged, .alwayHideToggle, .useFullStatusBarToggle,
                                         .stealthExpandIconToggle, .arrowStyleChanged] {
             NotificationCenter.default.post(name: name, object: nil)
@@ -128,8 +121,9 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
     
     func setupHotKey() {
-        guard let globalKey = Preferences.globalKey else {return}
-        hotKey = HotKey(keyCombo: KeyCombo(carbonKeyCode: globalKey.keyCode, carbonModifiers: globalKey.carbonFlags))
+        hotKeys.register(key: UserDefaults.Key.globalKey, title: "Show or hide icons".localized) { [weak self] in
+            self?.statusBarController.expandCollapseIfNeeded()
+        }
     }
     
     func detectLTRLang() {
@@ -139,4 +133,13 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         Constant.isUsingLTRLanguage = (NSApplication.shared.userInterfaceLayoutDirection == .leftToRight)
     }
    
+}
+
+extension HotKeyRegistry {
+    /// The app's registry, bound to the HotKey library (a Carbon hot key each).
+    static let shared = HotKeyRegistry { combo, handler in
+        let hotKey = HotKey(keyCombo: KeyCombo(carbonKeyCode: combo.keyCode, carbonModifiers: combo.carbonFlags))
+        hotKey.keyDownHandler = handler
+        return hotKey
+    }
 }

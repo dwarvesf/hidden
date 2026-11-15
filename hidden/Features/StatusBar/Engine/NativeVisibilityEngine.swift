@@ -74,6 +74,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // .calibrating stands for "an activation is in flight".
     private(set) var state: MenuBarEngineState = .expanded
     private(set) var layout: MenuBarLayout?
+    // Told about every read taken from an unrestricted bar, with the raw
+    // inventory it came from. The app catalog listens here.
+    var onUnrestrictedRead: ((MenuBarLayout, [MenuBarInventoryItem]) -> Void)?
     // The last read that listed every item, to fill in a read from an
     // overflowing menu bar. Kept across display changes: sections are per app.
     private var lastCompleteLayout: MenuBarLayout?
@@ -394,6 +397,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 NSLog("NativeVisibility: visible without a bundle id \(layout.unnameableVisibleItems); visible system extras to check \(layout.unprovenVisibleSystemItems)")
             }
             self.layout = layout
+            self.onUnrestrictedRead?(layout, inventory)
             body(layout)
         }
     }

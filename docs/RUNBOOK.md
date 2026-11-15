@@ -45,6 +45,31 @@ Standard checks before any release:
   off -> `= 0` (run the binary directly to capture stderr);
 - localization tables stay parseable: `plutil -lint hidden/*.lproj/*.strings`.
 
+### Debug hooks harness (`scripts/hb-cmd`)
+
+A Debug build listens for the distributed notification
+`com.dwarvesv.minimalbar.debug.command` (userInfo `command`, `argument`, `out`;
+`StatusBarController.handleDebugCommand`). `scripts/hb-cmd` is the one sender,
+so nothing is posted by hand and no key or pointer input is involved:
+
+```bash docs/RUNBOOK.md
+scripts/hb-cmd <command> [argument] [--out path] [--timeout seconds] [--dry-run]
+```
+
+- It posts through JXA (`osascript -l JavaScript`, `NSDistributedNotificationCenter`).
+- With `--out` it waits (default 15 s) for the app to write that file, newer than
+  the call, and exits 1 on timeout; exit 2 is a usage or osascript error. A
+  Release build has no hooks and ignores the post, so it times out.
+- `--dry-run` posts nothing: it prints what it would send and still runs the wait,
+  which is how the argument parsing and the timeout path are tested without an app.
+- `dump-state` writes the engine and preference state; `dump-inventory` writes the
+  menu-bar app catalog (`MenuBarItemCatalog`: bundle id, name, section, first-seen
+  time, running state, and the arrivals of the latest read) as JSON to `out`.
+- A feature adds its own commands as new cases in `handleDebugCommand`, prefixed by
+  the feature name.
+- Run it only against a Debug build you own. An unknown command is logged and, with
+  `--out`, answered with the state dump.
+
 When testing on a machine that runs Hidden Bar daily: do not swap by hand. Build the Release-Direct
 app signed with the Developer ID team, then `scripts/install-local.sh --app "Hidden Bar.app"` (it
 backs up the prefs, quits the app, keeps the installed app aside and relaunches), test, and put

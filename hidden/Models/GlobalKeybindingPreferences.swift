@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct GlobalKeybindPreferences: Codable, CustomStringConvertible {
+struct GlobalKeybindPreferences: Codable, Equatable, CustomStringConvertible {
     let function : Bool
     let control : Bool
     let command : Bool
@@ -98,5 +98,16 @@ struct GlobalKeybindPreferences: Codable, CustomStringConvertible {
 extension GlobalKeybindPreferences {
     func save() {
         
+    }
+
+    /// A bare letter would fire while typing, so a shortcut needs a modifier
+    /// (or be a function key, whose name is longer than one character).
+    var isAcceptable: Bool {
+        description.count > 1
+    }
+
+    /// The same physical key with the same modifiers.
+    func isSameCombo(as other: GlobalKeybindPreferences) -> Bool {
+        keyCode == other.keyCode && carbonFlags == other.carbonFlags
     }
 }

@@ -687,6 +687,10 @@ extension StatusBarController {
             revealController.simulate(argument ?? "")
         case "dump-state":
             break
+        case "dump-inventory":
+            // The menu-bar app catalog as JSON in `out`, instead of the state dump.
+            debugWriteInventory(to: note.userInfo?["out"] as? String)
+            return
         default:
             NSLog("DebugHooks: unknown command \(command)")
         }
@@ -768,6 +772,22 @@ extension StatusBarController {
             }
         }
         return nil
+    }
+
+    private func debugWriteInventory(to path: String?) {
+        guard let path else { return NSLog("DebugHooks: dump-inventory needs --out") }
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        let data = try? MenuBarItemCatalog.shared.debugJSON()
+        #else
+        // The catalog is a direct-build feature; say so rather than leave the caller waiting.
+        let data = try? JSONSerialization.data(withJSONObject: ["entries": [], "arrivals": [], "available": false] as [String: Any],
+                                               options: [.prettyPrinted, .sortedKeys])
+        #endif
+        do {
+            try (data ?? Data()).write(to: URL(fileURLWithPath: path))
+        } catch {
+            NSLog("DebugHooks: cannot write inventory: \(error.localizedDescription)")
+        }
     }
 
     private func debugWriteState(to path: String) {
