@@ -106,7 +106,8 @@ final class SettingsWindowTests: XCTestCase {
     // Then the stored value flips and flips back, under the same key as before
     func test_everyOldSwitch_stillWritesItsKey() {
         let views = allViews(PreferencesWindowController(context: fullContext()))
-        for key in Self.legacyBoolKeys {
+        // The notch switch does not exist on macOS 27; its own test covers it.
+        for key in Self.legacyBoolKeys where key != UserDefaults.Key.notchOverflowEnabled {
             guard let toggle = control(key, in: views) else {
                 XCTFail("no control writes \(key) any more")
                 continue
@@ -141,6 +142,39 @@ final class SettingsWindowTests: XCTestCase {
         // The menu's toggle writes isAutoHide elsewhere; the popup follows.
         Preferences.isAutoHide = true
         XCTAssertEqual(popup.indexOfSelectedItem, AutoHideChoice.after(seconds: 30).index)
+    }
+
+    // Given a notch Mac on macOS 26, then on macOS 27
+    // When building the Advanced pane
+    // Then the notch switch writes its old key on 26 and is absent on 27
+    func test_notchSwitch_existsOnlyBeforeMacOS27() {
+        var context = fullContext()
+        context.build = .appStore
+        context.osMajorVersion = 26
+        let old = allViews(PreferencesWindowController(context: context))
+        let toggle = control(UserDefaults.Key.notchOverflowEnabled, in: old)
+        XCTAssertNotNil(toggle, "macOS 26 keeps the notch switch")
+        if let toggle {
+            let before = UserDefaults.standard.bool(forKey: UserDefaults.Key.notchOverflowEnabled)
+            click(toggle)
+            XCTAssertEqual(UserDefaults.standard.bool(forKey: UserDefaults.Key.notchOverflowEnabled), !before)
+        }
+
+        context.osMajorVersion = 27
+        XCTAssertNil(control(UserDefaults.Key.notchOverflowEnabled, in: allViews(PreferencesWindowController(context: context))),
+                     "macOS 27 never hides icons behind the notch, so no switch")
+    }
+
+    // Given the OS major version and whether the screen has a notch
+    // When asking whether notch overflow applies
+    // Then it does only on a notch before macOS 27
+    func test_notchOverflowSupport_gate() {
+        XCTAssertTrue(NotchOverflowSupport.isAvailable(osMajorVersion: 26, hasNotch: true))
+        XCTAssertTrue(NotchOverflowSupport.isAvailable(osMajorVersion: 14, hasNotch: true))
+        XCTAssertFalse(NotchOverflowSupport.isAvailable(osMajorVersion: 26, hasNotch: false))
+        XCTAssertFalse(NotchOverflowSupport.isAvailable(osMajorVersion: 27, hasNotch: true))
+        XCTAssertFalse(NotchOverflowSupport.isAvailable(osMajorVersion: 28, hasNotch: true))
+        XCTAssertFalse(NotchOverflowSupport.isAvailable(osMajorVersion: 27, hasNotch: false))
     }
 
     // Given the Appearance tiles

@@ -449,8 +449,8 @@ class StatusBarController: MenuBarItemProvider {
     private func getContextMenu() -> NSMenu {
         let menu = NSMenu()
 
-        // Notch overflow menu item (only on notch Macs, and only when enabled)
-        if NotchOverflowController.hasNotch && Preferences.notchOverflowEnabled {
+        // Notch overflow menu item (only where icons can hide behind a notch, and only when enabled)
+        if NotchOverflowSupport.isAvailableNow && Preferences.notchOverflowEnabled {
             let overflowItem = NSMenuItem(title: "Show Notch Items".localized, action: #selector(showNotchOverflow), keyEquivalent: "")
             overflowItem.target = self
             menu.addItem(overflowItem)
