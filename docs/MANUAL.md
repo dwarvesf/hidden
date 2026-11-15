@@ -62,11 +62,16 @@ Tabs in a centered control at the top (Cmd+1 to Cmd+5). A status card at the top
 | General | Hide icons again: Never, or after 5 s to 1 min | `isAutoHide`, `numberOfSecondForAutoHide` |
 | General | Always-hidden section: a second zone revealed by Option-clicking the arrow | `alwaysHiddenSectionEnabled` |
 | General | Keyboard shortcut: system-wide expand/collapse (F-keys display as F18, not Fn18) | `globalKey` |
+| General (macOS 27, direct) | Find a hidden icon: shortcut that opens a search under the arrow; unset means off | `findHiddenIconShortcut` |
 | General | Also show hidden icons when you: Rest the pointer on the menu bar | `hoverToExpand` |
 | General | Also show hidden icons when you: Scroll down on the menu bar (scroll up hides again) | `revealOnScrollEnabled` |
 | General (direct build) | Also show hidden icons when you: Click empty space in the menu bar | `revealOnEmptyClickEnabled` |
 | General | Also show hidden icons when you: Shake the pointer at the top of the screen | `revealOnShakeEnabled` |
 | General (macOS 27, direct) | Show all icons when the microphone or camera turns on | `showWholeBarWhenCaptureStarts` |
+| General (macOS 27, direct) | Presentation mode: Turn on automatically, when a display is mirrored | `presentationAutoMirrorEnabled` |
+| General (macOS 27, direct) | Presentation mode: Sensitive apps, an Edit picker; they stay hidden while presenting even when you click the arrow | `presentationSensitiveApps` |
+| General (macOS 27, direct) | Presentation mode: Keyboard shortcut that starts and stops it; unset means no shortcut | `presentationShortcut` |
+| Icons (macOS 27, direct) | When an app adds a new icon: Ask Me, Show It (default) or Hide It | `newAppDefaultSection` |
 | Appearance | Arrow style tiles | `arrowStyle` |
 | Appearance | Fade the arrow when icons are hidden | `stealthExpandIconEnabled` |
 | Advanced | Show this window when Hidden Bar opens | `isShowPreferences` |
@@ -74,6 +79,8 @@ Tabs in a centered control at the top (Cmd+1 to Cmd+5). A status card at the top
 | Advanced (notch Macs) | Reach icons behind the camera notch | `notchOverflowEnabled` |
 | Advanced (macOS 27, direct) | Show all icons while macOS hides one right of the arrow | `pauseHidingForUnkeepableItems` |
 | About (direct) | Check for updates automatically, Check for Updates… | Sparkle's `SUEnableAutomaticChecks` |
+
+The General pane scrolls when it is taller than the window (the window stops at 720 pt).
 
 An Icons tab joins the others on the macOS 27 direct build once the pinned sections beta registers it (`MenuBarAppsPane`).
 
@@ -105,6 +112,37 @@ Settings > General > "Also show hidden icons when you" groups every way to show 
 - **Shake the pointer at the top of the screen** (`revealOnShakeEnabled`): three quick side-to-side reversals within 0.6 seconds, each at least 12 points wide, inside the menu bar. Window drags do not count; there is no menu bar to shake in a full-screen app until it slides down.
 
 Clicking anywhere off the menu bar hides the icons that a gesture revealed (the same auto-collapse path waits while Settings or a popup is open); they also hide after the "Hide icons again" delay. A gesture does nothing while the bar is already expanded or Hidden Bar's own menu is open. Thresholds live in `RevealTuning` (`RevealGestures.swift`). Debug builds count each gesture (`revealTriggerCounts` in the `dump-state` output) and accept `reveal-sim scroll|scroll-up|click|shake`.
+
+## Find a hidden icon
+
+Direct build on macOS 27 only. Record a shortcut in Settings > General > "Find a hidden icon" (under Keyboard shortcut). It is unset by default, so the feature is off; once a shortcut is set, the arrow's right-click menu also offers "Find a Hidden Icon...".
+
+- The shortcut opens a small panel under the arrow, on the display with the pointer. It lists the hidden and always-hidden apps that are running.
+- Type part of a name or bundle id. Matches at the start of the name come first; letters in order and the bundle id also match. The arrow keys move the selection.
+- **Return** opens that app's own menu without expanding the bar, then hides it again when the menu closes. An app that opens a panel instead of a menu hides again when it loses focus, after 15 seconds at most. **Command-Return** moves the app to the visible section, **Option-Return** to always hidden. **Escape** or a click elsewhere closes the panel.
+- It uses the Accessibility permission hiding already needs and never reads the screen. Focus, Siri and Now Playing cannot be opened from here: macOS keeps them out of Accessibility while icons are hidden.
+- Debug builds accept `palette-open [query]`, `palette-query <text>`, `palette-select <bundle id>`, `palette-activate open|keep|hide` and `palette-close`.
+
+## New menu bar apps
+
+Direct build on macOS 27 only, and only with Pinned sections on. Settings > Icons > "When an app adds a new icon" decides what happens the first time Hidden Bar sees an app:
+
+- **Show It** (default): the app stays visible, which is how 1.12 behaves. Nothing is asked.
+- **Hide It**: the app is placed in the hidden section at once. Nothing is asked.
+- **Ask Me**: the app stays visible, the arrow gets a dot, and clicking the arrow asks once ("New in your menu bar": Show, Hide, or Always hide under the ellipsis). The answer is remembered, also after a restart. Closing the popover without an answer keeps the dot and the question. Waiting apps sit first in Settings > Icons with a NEW tag. A question nobody answers lapses after 24 hours and the Settings default applies; for Ask Me that leaves the app shown. An app is asked at most once.
+
+Apps Hidden Bar already knew when you upgraded are never announced. With Pinned sections off nothing is placed or asked, and the popup is disabled. Debug builds accept `arrivals-inject <bundle id>`, `arrivals-answer <bundle id>=show|hide|always-hide` and `arrivals-prompt`.
+
+## Presentation mode
+
+Direct build on macOS 27 only. While it is on, every third-party app icon is hidden (macOS's own items stay), and the apps in Settings > General > Presentation mode > "Sensitive apps" stay hidden even when you click the arrow. Presentation mode is a hide, not a quit: Hidden Bar never closes an app for you.
+
+- **Start and stop:** the shortcut in Settings > General > Presentation mode > "Keyboard shortcut" (unset by default), the arrow's right-click menu ("Start Presentation Mode" and "Stop Presentation Mode"), or the "Presenting" capsule that shows while it is on. Its panel gives counts of what is hidden and why, plus "Stop Presenting", and names no app because the screen may be shared. After you click the arrow, a note says how many apps stay hidden, also without names. A manual start stays on until you stop it and does not survive a quit or relaunch.
+- **Turn on automatically:** off by default. When on, mirroring a display starts the mode and ends it when mirroring stops. If you stop it while mirroring continues it stays off until mirroring starts again.
+- **Camera or microphone:** presentation mode follows the 1.12 switch "Show all icons when the microphone or camera turns on". With it on, a microphone or camera that turns on while presenting pauses hiding once, so macOS can show the capsule that names the app using it. The capsule reads Paused and offers "Hide again"; nothing is hidden while paused, sensitive apps included. "Hide again" or any collapse resumes, and hiding resumes by itself 2.5 seconds after the microphone and camera are off. With the switch off it never pauses. A microphone or camera already on when presenting starts does not pause it. The screen-sharing indicator cannot be paused for: share one window, not the whole screen.
+- **Other features while presenting:** reveal gestures do nothing, the new-app question waits (the dot stays on the arrow), and the find-a-hidden-icon search leaves your sensitive apps out of its list.
+- A clock click does nothing while presenting. If macOS refuses the request, every icon shows and the capsule says "Couldn't hide".
+- Debug builds accept `present on|off`.
 
 ## Hidden settings (Terminal)
 

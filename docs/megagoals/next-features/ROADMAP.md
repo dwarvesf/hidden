@@ -25,13 +25,13 @@ Merge order inside a wave (later PRs rebase): Wave 1 SG-01, SG-03, SG-02. Wave 2
 
 ## Sub-goals
 
-- [ ] SG-00 wave0-contract , gate , depends none
-- [ ] SG-01 foundation (shortcut recorder, item catalog, hb-cmd) , gate , depends SG-00
-- [ ] SG-02 F3 reveal without aiming , gate , depends SG-00
-- [ ] SG-03 F4 presentation detection spike , gate , depends SG-00
-- [ ] SG-04 F1 type-to-find palette , gate , depends SG-01
-- [ ] SG-05 F2 arrivals inbox , gate , depends SG-01
-- [ ] SG-06 F4 presentation mode build , gate , depends SG-01 SG-03
+- [x] SG-00 wave0-contract , gate , depends none, #490, merged 5c067b4
+- [x] SG-01 foundation (shortcut recorder, item catalog, hb-cmd) , gate , depends SG-00, #497, merged 70f6a82
+- [x] SG-02 F3 reveal without aiming , gate , depends SG-00, #493, merged dfa9148
+- [x] SG-03 F4 presentation detection spike , gate , depends SG-00, #492, merged c7cd242
+- [x] SG-04 F1 type-to-find palette , gate , depends SG-01, #505, merged 47086cf
+- [x] SG-05 F2 arrivals inbox , gate , depends SG-01, #503, merged c195025
+- [x] SG-06 F4 presentation mode build , gate , depends SG-01 SG-03, #504, merged b507df0
 - [ ] SG-07 integration, CHANGELOG 1.13.0, notarized candidate , gate! , depends SG-02 SG-04 SG-05 SG-06
 
 A box flips only with its PR: `- [x] SG-NN ..., #PR, merged <sha>`.

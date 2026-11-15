@@ -18,3 +18,11 @@ Mid-run decisions, one line each.
 - The arrow note while presenting gives a count of apps that stay hidden and never their names, since the room sees it.
 - A shortcut that clashes with another Hidden Bar shortcut is not saved; the registry makes every binding again whenever any shortcut changes.
 - The panel from the Presenting capsule gives counts only and never names an app, since it is on the shared screen; sensitive apps are named and edited only in Settings.
+- Slideshow trigger dropped for 1.13.0: it needs a live Keynote or PowerPoint show on Han's Mac to verify, so no key, row or code; recorded as an open backlog item.
+- Presentation mode keeps all macOS system items (ids 0..<64) until the clock and battery ids are measured live; every third-party app is hidden. Narrowing is a backlog item.
+- The General pane scrolls (window cap 720 pt) because F1, F3 and F4 together outgrow a fixed height; other panes are untouched.
+- Arrivals Show It places nothing: the default is exactly the 1.12 behavior (a new app stays where macOS puts it, written as visible), so no question is ever asked unless the user picks Ask Me.
+- Palette and presentation integration: the palette leaves sensitive apps out of its list while presenting, and a user toggle of the bar ends the palette's temporary allow.
+- A 1.12.0 build must be cut from ed5eddb (v1.12.0, #483), not from develop HEAD, because develop already carries the 1.13 features.
+- The 1.13.0 smoke test is static (codesign, spctl, stapler, Info.plist, host-state before and after); the candidate is never launched from a scratch path or copied into /Applications.
+- The CHANGELOG heading reads "v1.13.0 (unreleased)" until Han sets the release date.
