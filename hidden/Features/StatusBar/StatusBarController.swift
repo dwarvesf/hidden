@@ -78,7 +78,8 @@ class StatusBarController: MenuBarItemProvider {
         setupUI()
         restoreRemovedStatusItems()
         setupAlwayHideStatusBar()
-        setupHoverToExpandIfEnabled()
+        syncHoverToExpand()
+        NotificationCenter.default.addObserver(self, selector: #selector(syncHoverToExpand), name: .prefsChanged, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(syncActivationPolicyWithFullStatusBar), name: .useFullStatusBarToggle, object: nil)
@@ -106,10 +107,18 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
 
-    // Opt-in via `defaults write com.dwarvesv.minimalbar hoverToExpand -bool true`.
-    // No monitor is installed at all unless the pref is true at launch.
-    private func setupHoverToExpandIfEnabled() {
-        guard Preferences.hoverToExpand else { return }
+    // Opt-in via the Preferences checkbox (or `defaults write com.dwarvesv.minimalbar
+    // hoverToExpand -bool true` before launch). No monitor exists unless the pref is
+    // true; flipping it installs or removes the monitor at once.
+    @objc private func syncHoverToExpand() {
+        guard Preferences.hoverToExpand else {
+            if let monitor = hoverMonitor { NSEvent.removeMonitor(monitor) }
+            hoverMonitor = nil
+            hoverDwellTimer?.invalidate()
+            hoverDwellTimer = nil
+            return
+        }
+        guard hoverMonitor == nil else { return }
         NSLog("HoverToExpand: enabled, installing global mouse monitor")
         hoverMonitor = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved) { [weak self] _ in
             guard let self = self else { return }

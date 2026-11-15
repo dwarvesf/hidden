@@ -69,14 +69,17 @@ section is enabled.
 - **Display changes**: plugging in or removing monitors re-sizes the hidden zone
   for the widest attached screen automatically.
 
+## Hover to expand
+
+Preferences > Settings > "Expand the bar when the pointer rests on the menu bar"
+expands the collapsed bar after the pointer rests in the menu bar for about half a
+second. Off by default; it takes effect at once, no relaunch.
+
 ## Hidden settings (Terminal)
 
 All via `defaults`; quit and relaunch the app after changing them.
 
 ```sh
-# expand by hovering the menu bar for ~0.5s (off by default)
-defaults write com.dwarvesv.minimalbar hoverToExpand -bool true
-
 # auto-collapse delay in seconds (the UI offers a fixed list; any value works)
 defaults write com.dwarvesv.minimalbar numberOfSecondForAutoHide -float 5
 

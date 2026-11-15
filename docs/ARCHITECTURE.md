@@ -76,7 +76,7 @@ flowchart TD
 | Layer | Mechanism | Cost when unused |
 |---|---|---|
 | Auto-hide | one-shot `Timer` after expand; at fire, if the pointer sits in any screen's menubar band (`visibleFrame.maxY ... frame.maxY`), it re-arms instead of collapsing | none (single point-in-rect check at fire) |
-| Hover-to-expand (opt-in) | global `.mouseMoved` monitor + 0.5s dwell timer; installed only when the `hoverToExpand` default is true at launch | zero: monitor not installed |
+| Hover-to-expand (opt-in) | global `.mouseMoved` monitor + 0.5s dwell timer; installed while the `hoverToExpand` default is true (Preferences checkbox; installed or removed on change) | zero: monitor not installed |
 | Self-restore | `isVisible = true` forced on our items at launch; Cmd-dragging them off otherwise bricks the app (its only UI is those items) | none |
 | Always-hidden section | a second separator item; its own length games, gated by `alwaysHiddenSectionEnabled` | item not created |
 

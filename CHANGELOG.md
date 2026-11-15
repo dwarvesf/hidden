@@ -5,7 +5,10 @@
 ### Added
 - Direct build only: Sparkle auto-update. Context menu "Check for Updates...", plus an "Automatically check for updates" checkbox in Preferences (#220, #197). Updates are EdDSA-signed and served from the GitHub release's `appcast.xml`. The App Store build is unchanged and contains no Sparkle.
 
+- Preferences checkbox for hover-to-expand (it was `defaults write` only). It takes effect at once, without relaunching.
+
 ### Fixed
+- macOS 27 (direct build): the always-hidden tutorial now says to drag the translucent bar to the left of the arrow, since the arrow is the boundary there and there is no "|" separator. The text is English in every language for now.
 - macOS 27 (direct build): clicking the clock while the bar is collapsed expands it (as the arrow does), opens Notification Center, and collapses the bar again once the panel closes. A bar you expanded or toggled yourself is left as it is (#410).
 - macOS 27 (direct build): the microphone and camera indicators no longer stay hidden while icons are hidden (#432). Native hiding also hides the capsule naming the recording app, so while any app uses the microphone or a camera, Hidden Bar shows the whole bar, then hides again when that stops (#437, based on #438 by Kevin Hallmark).
 

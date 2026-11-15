@@ -38,8 +38,8 @@ Standard checks before any release:
   window while the pointer is parked in the menubar band, collapses within the
   window once the pointer leaves, and collapses normally if the pointer never
   entered;
-- `hoverToExpand` off: no monitor log line, hover does nothing; on: dwell
-  expands (synthesize a `mouseMoved` stream: cursor warping alone fires no
+- `hoverToExpand` off: no monitor log line, hover does nothing; on (the
+  Preferences checkbox, no relaunch): dwell expands (synthesize a `mouseMoved` stream: cursor warping alone fires no
   events);
 - autostart pref on -> `AutoStart: SMAppService.mainApp.status = 1` on stderr;
   off -> `= 0` (run the binary directly to capture stderr);

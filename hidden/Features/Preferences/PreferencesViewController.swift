@@ -61,6 +61,7 @@ class PreferencesViewController: NSViewController {
         // The containing stack view (detachesHiddenViews) reflows on its own.
         checkBoxNotchOverflow.isHidden = !NotchOverflowController.hasNotch
         addArrowStyleRow()
+        addHoverToExpandRow()
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
         #if HIDDENBAR_SPARKLE
         addUpdateRow()
@@ -462,7 +463,7 @@ extension PreferencesViewController {
     private func showHowToUseAlwayHiddenPopover(sender: NSButton) {
         let controller = NSViewController()
         let label = NSTextField()
-        let text = NSLocalizedString("Tutorial text", comment: "Step by step tutorial")
+        let text = NSLocalizedString(TutorialText.key(), comment: "Step by step tutorial")
         
         label.stringValue = text
         label.isBezeled = false
@@ -486,5 +487,39 @@ extension PreferencesViewController {
         popover.animates = true
         
         popover.show(relativeTo: self.view.bounds, of: sender , preferredEdge: NSRectEdge.maxX)
+    }
+}
+
+//MARK: - Hover to expand
+extension PreferencesViewController {
+
+    static let hoverToExpandCheckBoxIdentifier = NSUserInterfaceItemIdentifier("hoverToExpandCheckBox")
+
+    // One checkbox bound to Preferences.hoverToExpand, which used to be reachable
+    // only through `defaults write`. Built in code, so the storyboard is untouched.
+    func addHoverToExpandRow() {
+        guard let stack = checkBoxNotchOverflow.superview as? NSStackView else { return }
+        let checkBox = NSButton(checkboxWithTitle: "Expand the bar when the pointer rests on the menu bar".localized,
+                                target: self, action: #selector(hoverToExpandChanged(_:)))
+        checkBox.identifier = Self.hoverToExpandCheckBoxIdentifier
+        checkBox.state = Preferences.hoverToExpand ? .on : .off
+        stack.addArrangedSubview(checkBox)
+    }
+
+    @objc func hoverToExpandChanged(_ sender: NSButton) {
+        Preferences.hoverToExpand = sender.state == .on
+    }
+}
+
+//MARK: - Tutorial text per hiding engine
+// The always-hidden tutorial says where to drag the translucent bar. With the
+// separator engine the boundary is the normal bar "|"; with the native engine
+// (macOS 27, direct build) the arrow is the boundary and there is no "|".
+enum TutorialText {
+    static let separatorKey = "Tutorial text"
+    static let arrowBoundaryKey = "Tutorial text (arrow boundary)"
+
+    static func key(usesNativeEngine: Bool = MenuBarEngineFactory.usesNativeEngine()) -> String {
+        usesNativeEngine ? arrowBoundaryKey : separatorKey
     }
 }
