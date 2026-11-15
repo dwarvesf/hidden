@@ -3382,8 +3382,11 @@ final class PresentationModeEngineTests: XCTestCase {
         time.advance(to: 6)
         XCTAssertEqual(results, [.unavailable], "the session gave up")
         visibility.succeed(pending)
+        // The session ended the allow the moment it landed: the engine swaps it back.
+        visibility.succeed(visibility.requests.count - 1)
 
         engine.applicationLaunched("com.new")
+        visibility.succeed(visibility.requests.count - 1)
         XCTAssertFalse(engine.currentHold?.bundles.contains("com.hidden") ?? true, "the late allow must not ride along")
         XCTAssertEqual(engine.currentHold?.bundles, ["com.new", "com.visible"])
     }
