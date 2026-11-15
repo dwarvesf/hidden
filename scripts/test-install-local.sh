@@ -3,6 +3,7 @@
 #
 #   bash scripts/test-install-local.sh [T1 T6 ...]   run all cases, or just the named ones
 #
+# The --app and --restore cases swap a fixture dev build in and put the fixture release back.
 # Every case runs against a throwaway fixture tree: a fake install dir (HB_APPS_DIR), a fake
 # backup root, and PATH stubs for codesign, spctl, defaults, osascript, ps, open, ssh,
 # mini-run and ditto. Nothing touches the real /Applications, prefs, login items or processes.
@@ -47,7 +48,8 @@ write_stub defaults <<'EOF'
 #!/bin/bash
 case "$1" in
   read) [ "$2" = "com.dwarvesv.minimalbar" ] && exit "${STUB_PREFS_READ_RC:-0}" ;;
-  export) echo "<plist>stub prefs</plist>" > "$3"; exit "${STUB_EXPORT_RC:-0}" ;;
+  export) { cat "$STUB_STATE/prefs-store" 2>/dev/null || echo "<plist>stub prefs</plist>"; } > "$3"; exit "${STUB_EXPORT_RC:-0}" ;;
+  import) [ "$2" = "com.dwarvesv.minimalbar" ] || exit 1; cp "$3" "$STUB_STATE/prefs-store"; exit "${STUB_IMPORT_RC:-0}" ;;
 esac
 exec /usr/bin/defaults "$@"
 EOF
@@ -144,6 +146,7 @@ fresh_env() {
   APPS="$CASE_DIR/Applications"; BK="$CASE_DIR/backup"; STATE="$CASE_DIR/state"
   mkdir -p "$APPS" "$STATE" "$CASE_DIR/zipsrc"
   echo 1 > "$STATE/running"
+  echo "orig-prefs" > "$STATE/prefs-store"
   if [ "$with_old" -eq 1 ]; then
     make_app "$APPS" 1.11.3 17 "$OLD_CD" W777S7V8TN ok
     echo "old-marker" > "$APPS/Hidden Bar.app/Contents/marker.txt"
@@ -154,7 +157,7 @@ fresh_env() {
   printf '%s\n' "Hidden Bar|$APPS/Hidden Bar.app" "Raycast|/Applications/Raycast.app" > "$CASE_DIR/loginitems.txt"
   export HB_APPS_DIR="$APPS" STUB_STATE="$STATE" STUB_LI_FILE="$CASE_DIR/loginitems.txt"
   export HB_QUIT_WAIT=2
-  unset STUB_DITTO_FAIL STUB_LI_FAIL STUB_QUIT_IGNORES STUB_INSTALLED_CDHASH STUB_OTHER_COPY STUB_SSH_RC STUB_MINI_RC STUB_PREFS_READ_RC STUB_EXPORT_RC
+  unset STUB_DITTO_FAIL STUB_LI_FAIL STUB_QUIT_IGNORES STUB_INSTALLED_CDHASH STUB_OTHER_COPY STUB_SSH_RC STUB_MINI_RC STUB_PREFS_READ_RC STUB_EXPORT_RC STUB_IMPORT_RC
 }
 
 run_install() { # extra args... ; sets RC and OUT
@@ -329,7 +332,147 @@ case_T13() { # stray_copy_listed_and_not_counted_as_installed
   check "unrelated processes not listed" out_lacks "clang"
 }
 
-cases="T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12 T13"
+# dev_app [team] : a fixture dev build (signed, NOT notarized) in $CASE_DIR/dev, path in DEV_APP
+dev_app() {
+  mkdir -p "$CASE_DIR/dev"
+  make_app "$CASE_DIR/dev" 1.12.1 20 "$NEW_CD" "${1:-W777S7V8TN}" rejected
+  DEV_APP="$CASE_DIR/dev/Hidden Bar.app"
+}
+cd_of() { sed -n 's/^CDHash=//p' "$1/Contents/.stub-codesign"; }
+replaced_app() { find "$(only_backup)" -maxdepth 1 -name 'Hidden Bar.replaced.*.app' | head -1; }
+
+case_T14() { # app_dev_build_happy_path
+  fresh_env
+  dev_app
+  run_install --app "$DEV_APP"
+  check "exit 0" rc_is 0
+  check "dev version installed" is_version 1.12.1
+  check "old app kept in backup" test -f "$(only_backup)/Hidden Bar.app/Contents/marker.txt"
+  check "meta records the backed-up CDHash" grep -qx "backed_up_cdhash=$OLD_CD" "$(only_backup)/meta.txt"
+  check "meta says dev-app" grep -qx "mode=dev-app" "$(only_backup)/meta.txt"
+  check "table says Gatekeeper not required" out_has "not required (--app build)"
+  check "no notarization flag" out_lacks "gatekeeper-not-notarized"
+  check "verdict OK" out_has "verdict: OK"
+  check "tells how to undo" out_has "undo: scripts/install-local.sh --restore"
+  fresh_env
+  dev_app
+  run_install --app "$DEV_APP" "$ZIP"
+  check "an app and a ZIP together is a usage error" rc_is 64
+  fresh_env
+  dev_app
+  run_install --app "$ZIP"
+  check "--app needs a directory" rc_is 1
+}
+
+case_T15() { # app_team_mismatch_refused
+  fresh_env
+  dev_app ABCDE12345
+  run_install --app "$DEV_APP"
+  check "foreign team: exit 1" rc_is 1
+  check "foreign team: old app untouched" old_app_intact
+  check "foreign team: no backup folder" test -z "$(backup_dirs)"
+  check "foreign team: names the team" out_has "TeamIdentifier is 'ABCDE12345'"
+  fresh_env
+  make_app "$APPS" 1.11.3 17 "$OLD_CD" ABCDE12345 ok
+  echo "old-marker" > "$APPS/Hidden Bar.app/Contents/marker.txt"
+  dev_app
+  run_install --app "$DEV_APP"
+  check "installed app of another team: exit 1" rc_is 1
+  check "installed app of another team: old app untouched" old_app_intact
+  check "installed app of another team: no backup folder" test -z "$(backup_dirs)"
+  check "installed app of another team: says so" out_has "installed app is signed by team 'ABCDE12345'"
+}
+
+case_T16() { # restore_round_trip_identical_cdhash
+  fresh_env
+  dev_app
+  run_install --app "$DEV_APP"
+  check "setup: dev build installed" is_version 1.12.1
+  echo "dev-prefs" > "$STATE/prefs-store"
+  rm -f "$STATE/quit.log"
+  run_install --restore
+  check "exit 0" rc_is 0
+  check "release version back" is_version 1.11.3
+  check "release contents back" old_app_intact
+  check "CDHash identical to the original" test "$(cd_of "$APPS/Hidden Bar.app")" = "$OLD_CD"
+  check "table shows the dev CDHash before" out_has "$NEW_CD"
+  check "table shows the restored CDHash" out_has "$OLD_CD"
+  check "CDHash line says equal" out_has "equals the $OLD_CD recorded at backup time"
+  check "dev app kept, not deleted" test "$(cd_of "$(replaced_app)")" = "$NEW_CD"
+  check "prefs imported back" test "$(cat "$STATE/prefs-store")" = "orig-prefs"
+  check "dev prefs kept aside" grep -q dev-prefs "$(only_backup)"/prefs.replaced.*.plist
+  check "app quit before the swap" grep -q quit "$STATE/quit.log"
+  check "relaunched" test "$(cat "$STATE/running")" = "1"
+  check "verdict OK" out_has "verdict: OK"
+  run_install --restore "$(only_backup)"
+  check "a second restore of the same run refuses" rc_is 1
+  check "second restore leaves the release alone" old_app_intact
+}
+
+case_T17() { # restore_cdhash_mismatch_flagged
+  fresh_env
+  dev_app
+  run_install --app "$DEV_APP"
+  export STUB_INSTALLED_CDHASH="deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+  run_install --restore
+  check "exit 4" rc_is 4
+  check "names the mismatch" out_has "CDHASH-differs-from-backup"
+  check "CDHash line says differs" out_has "DIFFERS from the $OLD_CD"
+  unset STUB_INSTALLED_CDHASH
+  fresh_env
+  dev_app
+  run_install --app "$DEV_APP"
+  sed -i '' "s/^backed_up_cdhash=.*/backed_up_cdhash=1111111111111111111111111111111111111111/" "$(only_backup)/meta.txt"
+  run_install --restore
+  check "a backup that disagrees with meta.txt: exit 1" rc_is 1
+  check "it says the backup was altered" out_has "recorded at backup time"
+  check "dev build still installed, nothing moved" is_version 1.12.1
+}
+
+case_T18() { # restore_check_only_and_no_backup
+  fresh_env
+  dev_app
+  run_install --app "$DEV_APP"
+  before="$(apps_listing)"
+  run_install --restore --check-only
+  check "exit 0" rc_is 0
+  check "install dir listing unchanged" test "$(apps_listing)" = "$before"
+  check "dev build still installed" is_version 1.12.1
+  check "verdict CHECK-ONLY" out_has "CHECK-ONLY OK"
+  fresh_env
+  run_install --restore
+  check "no backup folder at all: exit 1" rc_is 1
+  check "says no run folder" out_has "no backup run folder"
+  run_install --restore "$ZIP"
+  check "restore with a file instead of a folder: exit 1" rc_is 1
+}
+
+case_T19() { # host_dispatch_for_app_and_restore
+  fresh_env
+  dev_app
+  run_install --host air --app "$DEV_APP"
+  zip_arg="$(grep -x '.*Hidden-Bar-dev.zip' "$STATE/mini-run.args" | head -1)"
+  check "mini-run got --host air" grep -qx -- "air" "$STATE/mini-run.args"
+  check "the shipped zip exists" test -f "$zip_arg"
+  check "remote gets it as an app zip" grep -qx -- "--app-zip" "$STATE/mini-run.args"
+  check "remote path is ./name" grep -qx -- "./Hidden-Bar-dev.zip" "$STATE/mini-run.args"
+  check "nothing touched here" old_app_intact
+  fresh_env
+  run_install --host air --restore /var/backup/20260101-000000
+  check "restore: --run-local passed" grep -qx -- "--run-local" "$STATE/mini-run.args"
+  check "restore: --restore passed" grep -qx -- "--restore" "$STATE/mini-run.args"
+  check "restore: run dir passed" grep -qx -- "/var/backup/20260101-000000" "$STATE/mini-run.args"
+  check "restore: nothing shipped" test -z "$(grep -x -- '--with' "$STATE/mini-run.args")"
+  fresh_env "" rejected
+  run_install --run-local --app-zip "$ZIP"
+  check "the shipped form installs an unnotarized build" rc_is 0
+  check "and is installed" is_version 1.12.0
+  fresh_env "" rejected
+  run_install --run-local "$ZIP"
+  check "the same zip without --app-zip is refused" rc_is 1
+}
+
+cases="T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12 T13 T14 T15 T16 T17 T18 T19"
 [ $# -eq 0 ] || cases="$*"
 for c in $cases; do
   CURRENT="$c"

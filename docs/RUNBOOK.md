@@ -45,14 +45,15 @@ Standard checks before any release:
   off -> `= 0` (run the binary directly to capture stderr);
 - localization tables stay parseable: `plutil -lint hidden/*.lproj/*.strings`.
 
-When testing on a machine that runs Hidden Bar daily: export the prefs domain
-first (`defaults export com.dwarvesv.minimalbar backup.plist`), quit the
-installed app, test the dev build, then re-import and relaunch.
+When testing on a machine that runs Hidden Bar daily: do not swap by hand. Build the Release-Direct
+app signed with the Developer ID team, then `scripts/install-local.sh --app "Hidden Bar.app"` (it
+backs up the prefs, quits the app, keeps the installed app aside and relaunches), test, and put
+everything back with `scripts/install-local.sh --restore` (see the next section).
 
 ## Install a notarized zip on this Mac or another
 
-`scripts/install-local.sh [--host ALIAS [--when-online]] [--check-only] ZIP` installs a
-`Hidden-Bar-vX.Y.Z-macos.zip` into `/Applications`; `--host` goes over `mini-run`, and
+`scripts/install-local.sh [--host ALIAS [--when-online]] [--check-only] ZIP|--app PATH|--restore [RUN_DIR]`
+installs a `Hidden-Bar-vX.Y.Z-macos.zip` into `/Applications`; `--host` goes over `mini-run`, and
 `--when-online` waits (bounded, `--wait-max`) for a host that is offline. It refuses a zip that
 is not signed by team `W777S7V8TN` or that Gatekeeper does not call `Notarized Developer ID`,
 before touching `/Applications`. It then backs up the prefs domain and moves the replaced app
@@ -60,7 +61,17 @@ into `~/Library/Application Support/HiddenBar-backup/<stamp>/` (nothing is delet
 `ditto`, relaunches, and prints a before/after table: version, CDHash, Gatekeeper, and the System
 Events login items named "Hidden Bar", which must all point at `/Applications/Hidden Bar.app`
 (exit 4 flags a stray; remove it by hand). `--check-only` verifies the zip and shows what is
-installed now, changing nothing. Tests: `bash scripts/test-install-local.sh` (fixtures only, never
+installed now, changing nothing.
+
+`--app PATH` installs a built `Hidden Bar.app` directory instead (test a branch build against the
+real app). It needs the same Developer ID team as the installed app, skips the notarization
+requirement and says so in the table (signature, bundle id and team are still checked); over `--host`
+the app travels as a zip. Every run writes `meta.txt` into its backup folder with the CDHash of the
+app it set aside. `--restore [RUN_DIR]` (latest run when omitted) quits the app, moves the current
+app into the run folder as `Hidden Bar.replaced.<stamp>.app`, moves the backed-up app back, runs
+`defaults import` on the saved prefs (the replaced prefs stay as `prefs.replaced.<stamp>.plist`),
+relaunches, and checks the restored CDHash equals the recorded one (exit 4 if not). Nothing is
+deleted. Tests: `bash scripts/test-install-local.sh` (fixtures only, never
 the real `/Applications`). Never judge arrow or hiding behaviour on a copy outside `/Applications`.
 
 ## Release
