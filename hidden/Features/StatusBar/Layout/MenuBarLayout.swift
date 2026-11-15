@@ -36,6 +36,43 @@ struct MenuBarInventoryItem: Equatable {
     var ownerName: String? = nil
 }
 
+// One connected display. Every display has its own menu bar, but AppKit hands
+// over the arrow's frame on whichever display it is drawn on right now, while
+// Accessibility may list the other apps' items on another one. AppKit frames
+// start at the primary display's bottom-left, Accessibility frames at its
+// top-left, so each display carries both.
+struct MenuBarDisplay: Equatable {
+    let appKitFrame: CGRect
+    let accessibilityFrame: CGRect
+
+    init(appKitFrame: CGRect, primaryDisplayHeight: CGFloat) {
+        self.appKitFrame = appKitFrame
+        accessibilityFrame = CGRect(x: appKitFrame.minX, y: primaryDisplayHeight - appKitFrame.maxY,
+                                    width: appKitFrame.width, height: appKitFrame.height)
+    }
+
+    static func current() -> [MenuBarDisplay] {
+        return displays(screenFrames: NSScreen.screens.map(\.frame))
+    }
+
+    // The primary display is the first screen. It is not always the topmost
+    // one: a display arranged above it has a negative Accessibility y.
+    static func displays(screenFrames: [CGRect]) -> [MenuBarDisplay] {
+        guard let primary = screenFrames.first else { return [] }
+        return screenFrames.map { MenuBarDisplay(appKitFrame: $0, primaryDisplayHeight: primary.height) }
+    }
+
+    static func containing(appKitFrame frame: CGRect, in displays: [MenuBarDisplay]) -> MenuBarDisplay? {
+        let point = CGPoint(x: frame.midX, y: frame.midY)
+        return displays.first { $0.appKitFrame.contains(point) }
+    }
+
+    static func containing(accessibilityFrame frame: CGRect, in displays: [MenuBarDisplay]) -> MenuBarDisplay? {
+        let point = CGPoint(x: frame.midX, y: frame.midY)
+        return displays.first { $0.accessibilityFrame.contains(point) }
+    }
+}
+
 protocol MenuBarInventoryProviding: AnyObject {
     var isAuthorized: Bool { get }
     func requestAuthorization()
@@ -54,6 +91,16 @@ struct MenuBarLayout: Equatable {
     // Visible-section system extras that no system item identifier covers. Only
     // their bundle can try to keep them, so the engine checks they stay shown.
     var unprovenVisibleSystemItems: [String] = []
+    // The active display's menu bar overflowed (a narrow display), and macOS
+    // lists only the items that fit, so apps are missing from `sections`.
+    var isIncomplete = false
+
+    // An incomplete read with the apps it missed taken from an earlier read.
+    func fillingIn(from earlier: MenuBarLayout) -> MenuBarLayout {
+        var layout = self
+        layout.sections.merge(earlier.sections) { current, _ in current }
+        return layout
+    }
 
     func bundles(in wanted: Set<MenuBarSection>) -> [String] {
         return sections.filter { wanted.contains($0.value) }.map(\.key).sorted()
@@ -97,23 +144,52 @@ enum MenuBarLayoutResolver {
     // keep them visible.
     static let systemExtrasBundle = "com.apple.controlcenter"
 
+    // The chevron macOS 27 puts in a menu bar too narrow for every item.
+    static let overflowIndicator = "menu-bar-overflow-indicator"
+
     static func resolve(inventory: [MenuBarInventoryItem],
                         separatorFrame: CGRect,
                         alwaysHiddenSeparatorFrame: CGRect?,
+                        displays: [MenuBarDisplay] = [],
                         isLTR: Bool,
                         excludingBundle ownBundle: String?) -> MenuBarLayout {
         var layout = MenuBarLayout(sections: [:])
+        // With no display list, or an arrow on none of them, every frame is
+        // taken as being on the arrow's display, as on a single display.
+        let arrowDisplay = MenuBarDisplay.containing(appKitFrame: separatorFrame, in: displays)
         for item in inventory {
             if let ownBundle = ownBundle, item.bundleIdentifier == ownBundle { continue }
-            // Where an unreadable app's items sit is unknown: count them visible.
-            let section = item.isUnreadable ? .visible : self.section(of: item.frame,
-                                                                      separatorFrame: separatorFrame,
-                                                                      alwaysHiddenSeparatorFrame: alwaysHiddenSeparatorFrame,
-                                                                      isLTR: isLTR)
+            let section: MenuBarSection
+            if item.isUnreadable {
+                // Where an unreadable app's items sit is unknown: count them visible.
+                section = .visible
+            } else if let arrowDisplay = arrowDisplay {
+                if let itemDisplay = MenuBarDisplay.containing(accessibilityFrame: item.frame, in: displays) {
+                    section = self.section(of: item.frame,
+                                           separatorFrame: projected(separatorFrame, from: arrowDisplay, to: itemDisplay, isLTR: isLTR),
+                                           alwaysHiddenSeparatorFrame: alwaysHiddenSeparatorFrame.map {
+                                               projected($0, from: arrowDisplay, to: itemDisplay, isLTR: isLTR)
+                                           },
+                                           isLTR: isLTR)
+                } else {
+                    // On no display (pushed off a narrow one, mid-reflow): its
+                    // side is unknown, so it counts visible, like an unreadable one.
+                    section = .visible
+                }
+            } else {
+                section = self.section(of: item.frame,
+                                       separatorFrame: separatorFrame,
+                                       alwaysHiddenSeparatorFrame: alwaysHiddenSeparatorFrame,
+                                       isLTR: isLTR)
+            }
             guard var key = item.bundleIdentifier else {
                 if section == .visible {
                     layout.unnameableVisibleItems.append("\(item.ownerName ?? "unknown owner") at x=\(Int(item.frame.midX))")
                 }
+                continue
+            }
+            if systemItemOwners.contains(key), item.systemIdentifier == overflowIndicator {
+                layout.isIncomplete = true
                 continue
             }
             if systemItemOwners.contains(key) {
@@ -131,6 +207,17 @@ enum MenuBarLayoutResolver {
             layout.sections[key] = min(layout.sections[key] ?? section, section)
         }
         return layout
+    }
+
+    // Status items line up from the arrow's edge of each display (the right
+    // edge left to right), so the same item keeps its distance from that edge
+    // on every display. Moves a separator frame from the display AppKit drew it
+    // on to the one an item was listed on, keeping that distance.
+    static func projected(_ frame: CGRect, from source: MenuBarDisplay, to target: MenuBarDisplay, isLTR: Bool) -> CGRect {
+        guard source != target else { return frame }
+        let dx = isLTR ? target.appKitFrame.maxX - source.appKitFrame.maxX
+                       : target.appKitFrame.minX - source.appKitFrame.minX
+        return frame.offsetBy(dx: dx, dy: 0)
     }
 
     // Hidden system extras drop out of Accessibility, unlike apps' items. With

@@ -27,8 +27,8 @@ protocol MenuBarEngine: AnyObject {
     // Whether the always-hidden separator sits beyond the regular hidden section.
     var isAlwaysHiddenSeparatorPlaced: Bool { get }
 
-    // Display geometry changed. Re-applies the collapse to the live items when
-    // collapsed, so a hot-plug does not leave a stale length behind (PR #354).
+    // Display geometry changed. Re-applies each hidden section to the live items,
+    // so a hot-plug does not leave a stale length behind (PR #354).
     func invalidateLayout()
 }
 

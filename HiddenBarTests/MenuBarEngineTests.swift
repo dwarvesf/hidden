@@ -110,6 +110,9 @@ private func item(_ bundle: String?, x: CGFloat, width: CGFloat = 24) -> MenuBar
 // (the separator for the resolver, the arrow for the native engine).
 private let alwaysHiddenSeparator = CGRect(x: 1000, y: 0, width: 20, height: 24)
 private let separator = CGRect(x: 1300, y: 0, width: 20, height: 24)
+// One display that holds every frame above, so engine tests stay off real screens.
+private let mainDisplay = MenuBarDisplay(appKitFrame: CGRect(x: 0, y: 0, width: 2000, height: 1000),
+                                         primaryDisplayHeight: 1000)
 
 // MARK: - Layout resolver
 
@@ -164,6 +167,204 @@ final class MenuBarLayoutResolverTests: XCTestCase {
         let layout = MenuBarLayout(sections: ["b": .visible, "a": .visible, "c": .hidden, "d": .alwaysHidden])
         XCTAssertEqual(layout.bundles(in: [.visible]), ["a", "b"])
         XCTAssertEqual(layout.bundles(in: [.visible, .hidden]), ["a", "b", "c"])
+    }
+}
+
+// MARK: - Several displays (#390, #422)
+
+// The test Mac: a 1600x900 primary display and a 900x1600 portrait display to
+// its right, arranged so its top sits 358 points above the primary's top.
+private let bothDisplays = MenuBarDisplay.displays(screenFrames: [CGRect(x: 0, y: 0, width: 1600, height: 900),
+                                                                  CGRect(x: 1600, y: -342, width: 900, height: 1600)])
+private let primary = bothDisplays[0]
+private let portrait = bothDisplays[1]
+
+// A status item in Accessibility coordinates on a display's menu bar, its
+// centre `fromRight` points from that display's right edge.
+private func listed(_ bundle: String, on display: MenuBarDisplay, fromRight: CGFloat) -> MenuBarInventoryItem {
+    let frame = display.accessibilityFrame
+    return MenuBarInventoryItem(bundleIdentifier: bundle,
+                                frame: CGRect(x: frame.maxX - fromRight - 12, y: frame.minY + 3, width: 24, height: 24))
+}
+
+// The arrow's window in AppKit coordinates on a display's menu bar.
+private func arrow(on display: MenuBarDisplay, fromRight: CGFloat) -> CGRect {
+    let frame = display.appKitFrame
+    return CGRect(x: frame.maxX - fromRight - 10, y: frame.maxY - 24, width: 20, height: 24)
+}
+
+final class MultiDisplayLayoutTests: XCTestCase {
+    func testAccessibilityFramesStartAtThePrimaryDisplaysTopLeft() {
+        XCTAssertEqual(bothDisplays.map(\.appKitFrame), [CGRect(x: 0, y: 0, width: 1600, height: 900),
+                                                          CGRect(x: 1600, y: -342, width: 900, height: 1600)])
+        XCTAssertEqual(primary.accessibilityFrame, CGRect(x: 0, y: 0, width: 1600, height: 900))
+        // Above the primary display, so a negative y. Measured from the topmost
+        // display instead, the primary display would move down by 358 points
+        // and its menu bar would be on no display.
+        XCTAssertEqual(portrait.accessibilityFrame, CGRect(x: 1600, y: -358, width: 900, height: 1600))
+    }
+
+    func testFramesAreFoundOnTheDisplayTheyAreOn() {
+        XCTAssertEqual(MenuBarDisplay.containing(accessibilityFrame: listed("a", on: primary, fromRight: 150).frame,
+                                                 in: bothDisplays), primary)
+        XCTAssertEqual(MenuBarDisplay.containing(accessibilityFrame: listed("a", on: portrait, fromRight: 150).frame,
+                                                 in: bothDisplays), portrait)
+        XCTAssertEqual(MenuBarDisplay.containing(appKitFrame: arrow(on: primary, fromRight: 200), in: bothDisplays), primary)
+        XCTAssertEqual(MenuBarDisplay.containing(appKitFrame: arrow(on: portrait, fromRight: 200), in: bothDisplays), portrait)
+    }
+
+    // AppKit draws the arrow on the portrait display while Accessibility lists
+    // the items on the primary one. Compared as raw x, every item is left of
+    // the arrow and the whole bar vanishes on collapse.
+    func testArrowOnTheOtherDisplayIsMeasuredFromTheSameEdge() {
+        let layout = MenuBarLayoutResolver.resolve(
+            inventory: [listed("com.visible", on: primary, fromRight: 150),
+                        listed("com.hidden", on: primary, fromRight: 300)],
+            separatorFrame: arrow(on: portrait, fromRight: 200), alwaysHiddenSeparatorFrame: nil,
+            displays: bothDisplays, isLTR: true, excludingBundle: nil)
+        XCTAssertEqual(layout.sections, ["com.visible": .visible, "com.hidden": .hidden])
+    }
+
+    // The reverse: compared as raw x, every item is right of the arrow and
+    // nothing ever hides.
+    func testItemsOnTheOtherDisplayAreMeasuredFromTheSameEdge() {
+        let layout = MenuBarLayoutResolver.resolve(
+            inventory: [listed("com.visible", on: portrait, fromRight: 150),
+                        listed("com.hidden", on: portrait, fromRight: 300)],
+            separatorFrame: arrow(on: primary, fromRight: 200), alwaysHiddenSeparatorFrame: nil,
+            displays: bothDisplays, isLTR: true, excludingBundle: nil)
+        XCTAssertEqual(layout.sections, ["com.visible": .visible, "com.hidden": .hidden])
+    }
+
+    func testAlwaysHiddenSeparatorMovesWithTheArrow() {
+        let layout = MenuBarLayoutResolver.resolve(
+            inventory: [listed("com.visible", on: primary, fromRight: 150),
+                        listed("com.hidden", on: primary, fromRight: 300),
+                        listed("com.always", on: primary, fromRight: 500)],
+            separatorFrame: arrow(on: portrait, fromRight: 200),
+            alwaysHiddenSeparatorFrame: arrow(on: portrait, fromRight: 400),
+            displays: bothDisplays, isLTR: true, excludingBundle: nil)
+        XCTAssertEqual(layout.sections, ["com.visible": .visible, "com.hidden": .hidden, "com.always": .alwaysHidden])
+    }
+
+    func testRightToLeftBarsAreMeasuredFromTheLeftEdge() {
+        // The arrow is 200 points from the portrait display's left edge, so
+        // items nearer than that to the primary's left edge are visible.
+        let rtlArrow = CGRect(x: 1600 + 200 - 10, y: 1234, width: 20, height: 24)
+        let layout = MenuBarLayoutResolver.resolve(
+            inventory: [MenuBarInventoryItem(bundleIdentifier: "com.visible", frame: CGRect(x: 150 - 12, y: 3, width: 24, height: 24)),
+                        MenuBarInventoryItem(bundleIdentifier: "com.hidden", frame: CGRect(x: 300 - 12, y: 3, width: 24, height: 24))],
+            separatorFrame: rtlArrow, alwaysHiddenSeparatorFrame: nil,
+            displays: bothDisplays, isLTR: false, excludingBundle: nil)
+        XCTAssertEqual(layout.sections, ["com.visible": .visible, "com.hidden": .hidden])
+    }
+
+    // An item outside every display (pushed off a narrow menu bar, or listed
+    // mid-reflow) has no known side: it stays visible, and the rest still hide.
+    func testItemOnNoDisplayStaysVisibleWithoutStoppingTheRest() {
+        let layout = MenuBarLayoutResolver.resolve(
+            inventory: [MenuBarInventoryItem(bundleIdentifier: "com.lost", frame: CGRect(x: 600, y: -300, width: 24, height: 24)),
+                        listed("com.hidden", on: primary, fromRight: 300)],
+            separatorFrame: arrow(on: primary, fromRight: 200), alwaysHiddenSeparatorFrame: nil,
+            displays: bothDisplays, isLTR: true, excludingBundle: nil)
+        XCTAssertEqual(layout.sections, ["com.lost": .visible, "com.hidden": .hidden])
+    }
+
+    func testCollapseOnTwoDisplaysAllowsOnlyWhatIsRightOfTheArrow() {
+        let items = FakeItems()
+        let inventory = FakeInventory()
+        inventory.items = [listed("com.visible", on: primary, fromRight: 150),
+                           listed("com.hidden", on: primary, fromRight: 300)]
+        let visibility = FakeVisibility()
+        let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
+                                            ownBundleIdentifier: "com.dwarvesv.minimalbar",
+                                            itemFrame: { _ in arrow(on: portrait, fromRight: 200) },
+                                            displays: { bothDisplays }, isLTR: { true })
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.visible"])
+    }
+
+    // A narrow display's menu bar overflows: macOS shows a chevron and lists
+    // only the items that fit, so the read misses apps.
+    private let overflow = MenuBarInventoryItem(bundleIdentifier: "com.apple.MenuBarAgent",
+                                                frame: CGRect(x: 2200, y: -355, width: 24, height: 24),
+                                                systemIdentifier: "menu-bar-overflow-indicator")
+
+    func testOverflowIndicatorMarksTheReadIncompleteAndIsNoItem() {
+        let layout = MenuBarLayoutResolver.resolve(
+            inventory: [overflow, listed("com.visible", on: portrait, fromRight: 150)],
+            separatorFrame: arrow(on: portrait, fromRight: 200), alwaysHiddenSeparatorFrame: nil,
+            displays: bothDisplays, isLTR: true, excludingBundle: nil)
+        XCTAssertTrue(layout.isIncomplete)
+        XCTAssertEqual(layout.sections, ["com.visible": .visible])
+        XCTAssertEqual(layout.unprovenVisibleSystemItems, [], "the chevron is not an item macOS could be asked to keep")
+    }
+
+    func testIncompleteReadTakesMissingAppsFromAnEarlierRead() {
+        let earlier = MenuBarLayout(sections: ["com.kept": .visible, "com.moved": .visible, "com.hidden": .hidden])
+        var now = MenuBarLayout(sections: ["com.moved": .hidden])
+        now.isIncomplete = true
+        XCTAssertEqual(now.fillingIn(from: earlier).sections,
+                       ["com.kept": .visible, "com.moved": .hidden, "com.hidden": .hidden])
+    }
+
+    private func engineOnBothDisplays(_ inventory: FakeInventory, _ visibility: FakeVisibility, arrowOn display: MenuBarDisplay) -> NativeVisibilityEngine {
+        let items = FakeItems()
+        return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
+                                      ownBundleIdentifier: "com.dwarvesv.minimalbar",
+                                      itemFrame: { _ in arrow(on: display, fromRight: 200) },
+                                      displays: { bothDisplays }, isLTR: { true })
+    }
+
+    func testOverflowingFirstReadLeavesTheBarWhole() {
+        let inventory = FakeInventory()
+        inventory.items = [overflow, listed("com.visible", on: portrait, fromRight: 150)]
+        let visibility = FakeVisibility()
+        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait)
+        var result: CollapseResult?
+        engine.collapse { result = $0 }
+        XCTAssertEqual(result, .unavailable)
+        XCTAssertTrue(visibility.requests.isEmpty)
+    }
+
+    // Collapsed once on the wide display, then again while the narrow one is
+    // active: the apps it could not fit stay allowed instead of vanishing.
+    func testOverflowingReadKeepsAppsTheLastCompleteReadSawVisible() {
+        let inventory = FakeInventory()
+        inventory.items = [listed("com.visible", on: primary, fromRight: 150),
+                           listed("com.crowded-out", on: primary, fromRight: 180),
+                           listed("com.hidden", on: primary, fromRight: 300)]
+        let visibility = FakeVisibility()
+        var arrowDisplay = primary
+        let items = FakeItems()
+        let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
+                                            ownBundleIdentifier: "com.dwarvesv.minimalbar",
+                                            itemFrame: { _ in arrow(on: arrowDisplay, fromRight: 200) },
+                                            displays: { bothDisplays }, isLTR: { true })
+        engine.collapse { _ in }
+        visibility.succeed(0)
+        engine.expand()
+
+        arrowDisplay = portrait
+        inventory.items = [overflow, listed("com.visible", on: portrait, fromRight: 150)]
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.last?.bundles, ["com.dwarvesv.minimalbar", "com.crowded-out", "com.visible"])
+    }
+
+    func testArrowOnNoDisplayLeavesTheBarWhole() {
+        let items = FakeItems()
+        let inventory = FakeInventory()
+        inventory.items = [listed("com.hidden", on: primary, fromRight: 300)]
+        let visibility = FakeVisibility()
+        let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
+                                            ownBundleIdentifier: "com.dwarvesv.minimalbar",
+                                            itemFrame: { _ in CGRect(x: -10_000, y: -10_000, width: 20, height: 24) },
+                                            displays: { bothDisplays }, isLTR: { true })
+        var result: CollapseResult?
+        engine.collapse { result = $0 }
+        XCTAssertEqual(result, .unavailable)
+        XCTAssertTrue(visibility.requests.isEmpty)
+        XCTAssertEqual(engine.state, .expanded)
     }
 }
 
@@ -275,6 +476,7 @@ final class FailOpenEngineTests: XCTestCase {
         let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                             ownBundleIdentifier: "com.dwarvesv.minimalbar",
                                             itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            displays: { [mainDisplay] },
                                             isLTR: { true },
                                             pausesHidingForUnkeepableItems: { true })
         engine.scheduleVisibilityCheck = { $0() }
@@ -359,6 +561,7 @@ final class UnkeepableItemsDefaultTests: XCTestCase {
         let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                             ownBundleIdentifier: "com.dwarvesv.minimalbar",
                                             itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            displays: { [mainDisplay] },
                                             isLTR: { true })
         engine.scheduleVisibilityCheck = { $0() }
         return engine
@@ -412,6 +615,7 @@ final class UnkeepableItemsOptInTests: XCTestCase {
         let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                             ownBundleIdentifier: "com.dwarvesv.minimalbar",
                                             itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            displays: { [mainDisplay] },
                                             isLTR: { true },
                                             pausesHidingForUnkeepableItems: { optIn })
         engine.scheduleVisibilityCheck = { $0() }
@@ -446,6 +650,7 @@ final class UnkeepableItemsOptInTests: XCTestCase {
         let engine = NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                             ownBundleIdentifier: "com.dwarvesv.minimalbar",
                                             itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                            displays: { [mainDisplay] },
                                             isLTR: { true })
         engine.scheduleVisibilityCheck = { $0() }
         let posted = expectation(forNotification: .unkeepableSystemItemsChanged, object: nil)
@@ -483,6 +688,7 @@ final class NativeVisibilityEngineTests: XCTestCase {
         return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility, clock: clock,
                                       ownBundleIdentifier: "com.dwarvesv.minimalbar",
                                       itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                      displays: { [mainDisplay] },
                                       isLTR: { true })
     }
 
@@ -783,6 +989,77 @@ final class NativeVisibilityEngineTests: XCTestCase {
 // MARK: - Legacy engine
 
 final class LegacyLengthEngineTests: XCTestCase {
+    func testUsesWidestScreenRegardlessOfDisplayOrder() {
+        let configurations: [([CGFloat], CGFloat)] = [
+            ([1200], 2400),
+            ([800, 1600, 1200], 3200),
+            ([2560, 1440, 3840, 1920], 7680)
+        ]
+        for (configuration, expected) in configurations {
+            for widths in [configuration, Array(configuration.reversed())] {
+                let items = FakeItems()
+                let engine = LegacyLengthEngine(items: items, screenWidths: { widths })
+                engine.collapse { _ in }
+                XCTAssertEqual(items.separatorItem.length, expected)
+            }
+        }
+    }
+
+    // Expanding the ordinary section leaves the always-hidden spacer inflated;
+    // a display change must resize it too, or a wider display shows its icons.
+    func testDisplayChangesRefreshHiddenSectionsIndependently() {
+        for collapsed in [false, true] {
+            for alwaysHiddenEnabled in [false, true] {
+                for separatorHidden in [false, true] {
+                    let items = FakeItems()
+                    var widths: [CGFloat] = [900]
+                    let engine = LegacyLengthEngine(items: items, screenWidths: { widths })
+                    engine.expand()
+                    if collapsed { engine.collapse { _ in } }
+                    engine.updateAlwaysHiddenSection(enabled: alwaysHiddenEnabled, separatorHidden: separatorHidden)
+
+                    let transitions: [([CGFloat], CGFloat)] = [
+                        ([900, 1800, 1200], 3600), // attach wider displays
+                        ([900], 1800),             // detach them
+                        ([], 3456),                // no display listed for a moment
+                        ([6000], 10000)            // very wide logical display
+                    ]
+                    for (nextWidths, hiddenLength) in transitions {
+                        widths = nextWidths
+                        engine.invalidateLayout()
+                        let context = "collapsed=\(collapsed), alwaysHidden=\(alwaysHiddenEnabled), separatorHidden=\(separatorHidden), screens=\(widths)"
+                        XCTAssertEqual(items.separatorItem.length, collapsed ? hiddenLength : 20, context)
+                        XCTAssertEqual(items.alwaysHiddenItem?.length,
+                                       alwaysHiddenEnabled ? (separatorHidden ? hiddenLength : 20) : 0, context)
+                        XCTAssertEqual(engine.state, collapsed ? .collapsed : .expanded, context)
+                    }
+                }
+            }
+        }
+    }
+
+    func testRotationAndScalingChangesUseLatestWidths() {
+        let items = FakeItems()
+        var widths: [CGFloat] = [2400, 1200]
+        let engine = LegacyLengthEngine(items: items, screenWidths: { widths })
+        engine.collapse { _ in }
+        widths = [1350, 2000]
+        engine.invalidateLayout()
+        XCTAssertEqual(items.separatorItem.length, 4000)
+        widths = [1600, 1000]
+        engine.invalidateLayout()
+        XCTAssertEqual(items.separatorItem.length, 3200)
+    }
+
+    func testMissingScreensAndExtremeWidthsStayBounded() {
+        for (widths, expected): ([CGFloat], CGFloat) in [([], 3456), ([100], 500), ([8000], 10000)] {
+            let items = FakeItems()
+            let engine = LegacyLengthEngine(items: items, screenWidths: { widths })
+            engine.collapse { _ in }
+            XCTAssertEqual(items.separatorItem.length, expected)
+        }
+    }
+
     func testCollapseAndExpandFlipSeparatorLength() {
         let items = FakeItems()
         let engine = LegacyLengthEngine(items: items)

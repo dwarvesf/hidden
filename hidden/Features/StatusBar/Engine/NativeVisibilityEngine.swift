@@ -50,6 +50,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private let clock: MenuBarClockProviding
     private let ownBundleIdentifier: String?
     private let itemFrame: (NSStatusItem) -> CGRect?
+    private let displays: () -> [MenuBarDisplay]
     private let isLTR: () -> Bool
 
     private let expandedLength: CGFloat = 20
@@ -57,6 +58,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // .calibrating stands for "an activation is in flight".
     private(set) var state: MenuBarEngineState = .expanded
     private(set) var layout: MenuBarLayout?
+    // The last read that listed every item, to fill in a read from an
+    // overflowing menu bar. Kept across display changes: sections are per app.
+    private var lastCompleteLayout: MenuBarLayout?
 
     private var assertion: NativeVisibilityAssertion?
     // What the held assertion allows besides Hidden Bar, and the generation it was
@@ -90,6 +94,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
          clock: MenuBarClockProviding = SystemMenuBarClock(),
          ownBundleIdentifier: String? = Bundle.main.bundleIdentifier,
          itemFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
+         displays: @escaping () -> [MenuBarDisplay] = MenuBarDisplay.current,
          isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage },
          pausesHidingForUnkeepableItems: @escaping () -> Bool = { false }) {
         self.items = items
@@ -99,6 +104,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         self.clock = clock
         self.ownBundleIdentifier = ownBundleIdentifier
         self.itemFrame = itemFrame
+        self.displays = displays
         self.isLTR = isLTR
         items.separatorItem.isVisible = false
     }
@@ -185,8 +191,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
         return alwaysHiddenEnabled && alwaysHiddenSeparatorHidden
     }
 
-    // Native hiding does not depend on display geometry, so only drop the cached
-    // sections; the next read from an unrestricted bar replaces them.
+    // Sections are per app and come from the arrangement, which a display change
+    // does not alter, so a held restriction stays right and the bar stays
+    // collapsed. Only an unused cache is dropped; the next read from an
+    // unrestricted bar measures against the displays connected then.
     func invalidateLayout() {
         if assertion == nil {
             layout = nil
@@ -240,11 +248,33 @@ final class NativeVisibilityEngine: MenuBarEngine {
         let generation = self.generation
         inventory.snapshot { [weak self] inventory in
             guard let self = self, generation == self.generation else { return }
-            let layout = MenuBarLayoutResolver.resolve(inventory: inventory,
+            // Read after the snapshot, which takes about a second: a display
+            // attached meanwhile is then known. An arrow on no display has no
+            // edge to measure the sections from.
+            let displays = self.displays()
+            guard displays.isEmpty || MenuBarDisplay.containing(appKitFrame: boundary, in: displays) != nil else {
+                NSLog("NativeVisibility: the arrow at \(NSStringFromRect(boundary)) is on no display \(displays.map { NSStringFromRect($0.appKitFrame) })")
+                return body(nil)
+            }
+            var layout = MenuBarLayoutResolver.resolve(inventory: inventory,
                                                        separatorFrame: boundary,
                                                        alwaysHiddenSeparatorFrame: alwaysHiddenFrame,
+                                                       displays: displays,
                                                        isLTR: isLTR,
                                                        excludingBundle: self.ownBundleIdentifier)
+            if layout.isIncomplete {
+                // Apps macOS left out would be hidden although they may be
+                // right of the arrow; with no complete read to take them from,
+                // nothing may be hidden.
+                guard let complete = self.lastCompleteLayout else {
+                    NSLog("NativeVisibility: the active menu bar overflows and no complete read exists yet; leaving the bar whole")
+                    return body(nil)
+                }
+                layout = layout.fillingIn(from: complete)
+                NSLog("NativeVisibility: the active menu bar overflows; apps it does not list keep their last known section")
+            } else {
+                self.lastCompleteLayout = layout
+            }
             NSLog("NativeVisibility: arrow at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
             if !layout.unnameableVisibleItems.isEmpty || !layout.unprovenVisibleSystemItems.isEmpty {
                 NSLog("NativeVisibility: visible without a bundle id \(layout.unnameableVisibleItems); visible system extras to check \(layout.unprovenVisibleSystemItems)")
@@ -427,6 +457,7 @@ extension NativeVisibilityEngine {
             "unkeepableSystemItems": unkeepableSystemItems.sorted(),
             "pausesHidingForUnkeepableItems": pausesHidingForUnkeepableItems(),
             "lastUnavailableReason": lastUnavailableReason ?? NSNull(),
+            "displays": displays().map { NSStringFromRect($0.appKitFrame) },
             "debugBoundaryX": Self.debugBoundaryX.map { Double($0) } ?? NSNull(),
             "debugAlwaysHiddenX": Self.debugAlwaysHiddenX.map { Double($0) } ?? NSNull()
         ]

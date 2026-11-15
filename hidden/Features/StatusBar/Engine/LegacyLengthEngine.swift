@@ -12,6 +12,7 @@ import AppKit
 // be large enough to cover the widest attached display.
 final class LegacyLengthEngine: MenuBarEngine {
     private weak var items: MenuBarItemProvider?
+    private let screenWidths: () -> [CGFloat]
 
     private let expandedLength: CGFloat = 20
 
@@ -25,8 +26,10 @@ final class LegacyLengthEngine: MenuBarEngine {
     // for a working user. The action lands once this log calibrates the signal.
     private var hideMechanismChecked = false
 
-    init(items: MenuBarItemProvider) {
+    init(items: MenuBarItemProvider,
+         screenWidths: @escaping () -> [CGFloat] = { NSScreen.screens.map { $0.frame.width } }) {
         self.items = items
+        self.screenWidths = screenWidths
     }
 
     // Derived from the live length rather than stored, and compared with > rather
@@ -42,7 +45,7 @@ final class LegacyLengthEngine: MenuBarEngine {
         // length must cover the WIDEST screen, not NSScreen.main (the focused one);
         // sizing from a narrower screen leaks hidden icons on wider displays.
         // frame.width, not visibleFrame: the menubar spans the full frame width.
-        let screenWidth = NSScreen.screens.map { $0.frame.width }.max() ?? 1728
+        let screenWidth = screenWidths().max() ?? 1728
         // Keep collapse length bounded to avoid pathological layout/memory behavior;
         // macOS enforces a hard 10,000pt maximum on NSStatusItem.length (PR #354).
         return max(500, min(screenWidth * 2, 10_000))
@@ -78,9 +81,15 @@ final class LegacyLengthEngine: MenuBarEngine {
         return MenuBarOrder.isItem(items?.alwaysHiddenItem, onHiddenSideOf: items?.separatorItem)
     }
 
+    // Each section is hidden on its own: an expanded bar can still have the
+    // always-hidden section hidden, and its spacer must cover a newly attached
+    // wider display too. Only inflated items are touched, so each keeps its state.
     func invalidateLayout() {
-        guard state == .collapsed else { return }
-        items?.separatorItem.length = collapsedLength
+        let length = collapsedLength
+        for item in [items?.separatorItem, items?.alwaysHiddenItem].compactMap({ $0 })
+            where item.length > expandedLength {
+            item.length = length
+        }
     }
 
     // After a collapse, confirm on the next runloop tick (so layout settles) that
