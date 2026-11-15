@@ -19,7 +19,7 @@
 #     incremental).
 #   - the two schemes run at the same time. Each gets its own derived-data
 #     subdir (direct/, appstore/): two xcodebuilds on one dir lock each other.
-#   - -parallel-testing-enabled YES.
+#   - parallel testing from the schemes (HiddenBarTests parallel, HiddenTests one process).
 #   - separate result bundles per scheme: <dd>/results/<timestamp>/<scheme>.xcresult.
 #
 # Exit code: 0 only when every selected scheme built, ran at least one test and
@@ -33,6 +33,7 @@ DD_ROOT="${HIDDEN_TEST_DD:-$HOME/.cache/hidden-bar/dd}"
 CHANGED=0
 BASE_REF="origin/develop"
 PARALLEL_TESTING=YES
+PARALLEL_ARGS=()
 SERIAL=0
 ONLY_SCHEME=""
 read -r -a EXTRA_SETTINGS <<< "${HIDDEN_TEST_EXTRA_SETTINGS:-}"
@@ -49,6 +50,12 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
+
+# The shared schemes mark HiddenBarTests parallelizable and HiddenTests not (its
+# classes write the real UserDefaults domain, so clones would race). A
+# -parallel-testing-enabled YES flag would override that and parallelize both,
+# so only the off switch goes on the command line.
+[ "$PARALLEL_TESTING" = NO ] && PARALLEL_ARGS=(-parallel-testing-enabled NO)
 
 now() { perl -MTime::HiRes=time -e 'printf "%.2f\n", time'; }
 elapsed() { perl -e 'printf "%.1f\n", $ARGV[1] - $ARGV[0]' "$1" "$2"; }
@@ -141,7 +148,7 @@ run_scheme() { # run_scheme KEY SCHEME CONFIG
   if [ "$rc_b" = 0 ]; then
     xcodebuild test-without-building -project "Hidden Bar.xcodeproj" -scheme "$scheme" -configuration "$config" \
       -derivedDataPath "$dd" CODE_SIGNING_ALLOWED=NO ${EXTRA_SETTINGS[@]+"${EXTRA_SETTINGS[@]}"} \
-      -parallel-testing-enabled "$PARALLEL_TESTING" \
+      ${PARALLEL_ARGS[@]+"${PARALLEL_ARGS[@]}"} \
       -resultBundlePath "$RUN/$key.xcresult" ${ONLY_ARGS[@]+"${ONLY_ARGS[@]}"} > "$RUN/$key-test.log" 2>&1 || rc_t=$?
   fi
   t2=$(now)
