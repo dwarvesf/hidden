@@ -170,3 +170,5 @@ Steps to view always hidden icons:
 "Keep this app in its section even when its icon moves on its own, as BitBar and SwiftBar do. Dragging no longer changes it; the popup still does." = "Keep this app in its section even when its icon moves on its own, as BitBar and SwiftBar do. Dragging no longer changes it; the popup still does.";
 "Visible" = "Visible";
 "Show Everything" = "Show Everything";
+"Your menu bar is full" = "Your menu bar is full";
+"macOS moved the Hidden Bar arrow into the « button. Click « to reach it, or use the Hidden Bar hotkey. To keep the arrow in view, move some icons to the left of the arrow." = "macOS moved the Hidden Bar arrow into the « button. Click « to reach it, or use the Hidden Bar hotkey. To keep the arrow in view, move some icons to the left of the arrow.";

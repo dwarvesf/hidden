@@ -147,6 +147,11 @@
 		F80B23306D1F68AFB1BFACFA /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = D3AEEECE9B56BDA708904FAB /* HotKey */; };
 		FEDF14D1A5762D05124A8462 /* AdvancedSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13F6B1FCE2F0F29887382BF5 /* AdvancedSettingsViewController.swift */; };
 		FEF7D4B02EACBB21DC3E194B /* AccessibilityPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51314A736131BE28182E378 /* AccessibilityPermission.swift */; };
+		58C8755BED99099ABB07CE58 /* SystemOverflowIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC578DAB31FEC93C94CF9848 /* SystemOverflowIndicator.swift */; };
+		7ECB2AB00086F6C27E2AB196 /* SystemOverflowNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE84E518F665B2584F8277A /* SystemOverflowNotice.swift */; };
+		FFDA98BB7A1B238575886EE9 /* SystemOverflowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6813D114EE2C521C387AAC16 /* SystemOverflowTests.swift */; };
+		9A45112B101B255E674A2EA7 /* SystemOverflowIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC578DAB31FEC93C94CF9848 /* SystemOverflowIndicator.swift */; };
+		008288B9A42486B6E8FCD1CB /* SystemOverflowNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE84E518F665B2584F8277A /* SystemOverflowNotice.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -269,6 +274,9 @@
 		FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityMenuBarInventory.swift; sourceTree = "<group>"; };
 		FF57A44B25E6C50200988FC2 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		FF8A0FB5265E10DB00C76226 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Main.strings"; sourceTree = "<group>"; };
+		CC578DAB31FEC93C94CF9848 /* SystemOverflowIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemOverflowIndicator.swift; sourceTree = "<group>"; };
+		BEE84E518F665B2584F8277A /* SystemOverflowNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemOverflowNotice.swift; sourceTree = "<group>"; };
+		6813D114EE2C521C387AAC16 /* SystemOverflowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemOverflowTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -326,6 +334,7 @@
 			children = (
 				08C20FDC23AABC440035D978 /* About */,
 				A27C0DE00000000000000007 /* MacOS27Notice */,
+				7E420BF745FD82A32C220494 /* SystemOverflow */,
 				A57E0DE0000000000000C007 /* AppStoreMigration */,
 				905962CD99D24D0C893AFFA7 /* NotchOverflow */,
 				0842CDFE23A9FF7C00D14BD4 /* Preferences */,
@@ -419,6 +428,7 @@
 				B6B0DE00000000000000B002 /* PreferencesSmallFixesTests.swift */,
 				A57E0DE0000000000000C004 /* AppStoreMigrationTests.swift */,
 				1218DDCA0B5E85481E4F8F3B /* SettingsWindowTests.swift */,
+				6813D114EE2C521C387AAC16 /* SystemOverflowTests.swift */,
 			);
 			name = HiddenTests;
 			path = HiddenTests;
@@ -544,6 +554,15 @@
 				A27C0DE00000000000000001 /* MacOS27Notice.swift */,
 			);
 			path = MacOS27Notice;
+			sourceTree = "<group>";
+		};
+		7E420BF745FD82A32C220494 /* SystemOverflow */ = {
+			isa = PBXGroup;
+			children = (
+				CC578DAB31FEC93C94CF9848 /* SystemOverflowIndicator.swift */,
+				BEE84E518F665B2584F8277A /* SystemOverflowNotice.swift */,
+			);
+			path = SystemOverflow;
 			sourceTree = "<group>";
 		};
 		A56D368B6ABF45B5283FE4FA /* Layout */ = {
@@ -796,6 +815,8 @@
 				FEDF14D1A5762D05124A8462 /* AdvancedSettingsViewController.swift in Sources */,
 				837108CD16BDBEB2B6A4B064 /* MenuBarAppsSettingsViewController.swift in Sources */,
 				E200010F880C7CE35022B50A /* SettingsSnapshot.swift in Sources */,
+				58C8755BED99099ABB07CE58 /* SystemOverflowIndicator.swift in Sources */,
+				7ECB2AB00086F6C27E2AB196 /* SystemOverflowNotice.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -813,6 +834,7 @@
 				B6B0DE00000000000000B001 /* PreferencesSmallFixesTests.swift in Sources */,
 				A57E0DE0000000000000C003 /* AppStoreMigrationTests.swift in Sources */,
 				F1B66A86232AE9B22A7B54FF /* SettingsWindowTests.swift in Sources */,
+				FFDA98BB7A1B238575886EE9 /* SystemOverflowTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -865,6 +887,8 @@
 				D61D23037A1EB8F7DD848EA4 /* AdvancedSettingsViewController.swift in Sources */,
 				142B73DAE4B1D30D0775D310 /* MenuBarAppsSettingsViewController.swift in Sources */,
 				A3B15C1FDF934AFBADF438B6 /* SettingsSnapshot.swift in Sources */,
+				9A45112B101B255E674A2EA7 /* SystemOverflowIndicator.swift in Sources */,
+				008288B9A42486B6E8FCD1CB /* SystemOverflowNotice.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -312,13 +312,13 @@ class StatusBarController: MenuBarItemProvider {
         if AccessibilityPermission.shared.arrowClickOpensPreferences(isCollapsed: isCollapsed) {
             Util.showPrefWindow()
         }
-        self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar()
+        self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar(userInitiated: true)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             self?.isToggle = false
         }
     }
     
-    private func collapseMenuBar() {
+    private func collapseMenuBar(userInitiated: Bool = false) {
         guard menuBarEngine.isArrangementValid && !self.isCollapsed else {
             autoCollapseIfNeeded()
             return
@@ -332,7 +332,7 @@ class StatusBarController: MenuBarItemProvider {
             guard let self = self else { return }
             switch result {
             case .collapsed:
-                self.didCollapseMenuBar()
+                self.didCollapseMenuBar(userInitiated: userInitiated)
             case .unavailable:
                 self.didFailToCollapseMenuBar()
             }
@@ -368,7 +368,7 @@ class StatusBarController: MenuBarItemProvider {
         btnExpandCollapse.button?.image = isCollapsed ? collapsedArrowImage : Assets.collapseImage
     }
 
-    private func didCollapseMenuBar() {
+    private func didCollapseMenuBar(userInitiated: Bool) {
         if let button = btnExpandCollapse.button {
             button.image = collapsedArrowImage
         }
@@ -377,6 +377,12 @@ class StatusBarController: MenuBarItemProvider {
             NSApp.deactivate()
         }
         fullBarThisExpansion = false
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        if userInitiated {
+            SystemOverflowNotice.shared.checkAfterCollapse(arrow: btnExpandCollapse,
+                                                           isCollapsed: { [weak self] in self?.isCollapsed ?? false })
+        }
+        #endif
     }
 
     private func expandMenubar(activatingApp: Bool = true) {
