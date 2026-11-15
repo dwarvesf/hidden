@@ -60,13 +60,16 @@ collapse state machine) are HIGH RISK and require a mandatory review-team pass.
 - **#242 permanent icon-loss repro.** Needs a throwaway defaults profile (a live repro
   risks losing real menu-bar icons). Required before the always-hidden decouple lands.
 
-## Architectural epic (Option D, #366)
+## Architectural epic (#366, decided: option B, pinned sections)
 
-- **Managed-overflow / second-bar redesign.** The real fix behind the icon-drift,
-  always-hidden, notch and macOS 26/27 clusters. Replaces length-inflation with a managed
-  overflow bar, likely via Accessibility. Needs a design decision from Han. The cluster
-  list lives in the epic body; still open from it today: #107 #174 #224 #225 #233 #242
-  #327 #330 #334 (`gh issue view 366`, then `gh issue list`).
+- **Decided.** Option B, pinned sections, shipped in 6e33618 (beta, macOS 27 direct build):
+  a per-app section table in place of positions. Brief: `docs/briefs/DECISION-BRIEF-366-overflow-bar.md`;
+  notes: `docs/implementation-notes/pinned-sections.md`. The cluster list lives in the epic
+  body (`gh issue view 366`, then `gh issue list`).
+- **Remains.** Hidden-items menu (phase 4, thin A). Per-app drag lock for apps that recreate
+  their icon without relaunching (this PR, #107). macOS 26 run of the legacy patches
+  (always-hidden decoupled from "hide separators", "Show everything"). A 27.3 inventory dump
+  for #469.
 - **What already landed that the epic builds on.** Native hiding on 27 (#403), notch
   overflow menu (#420, in #468). The community second-bar PR (#358) was closed as
   superseded: its window capture no longer works on macOS 27, so the idea continues here.
