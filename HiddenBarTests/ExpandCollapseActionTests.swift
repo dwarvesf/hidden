@@ -28,6 +28,23 @@ final class ExpandCollapseActionTests: XCTestCase {
         XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .leftMouseUp, optionPressed: true), .toggleSeparators)
     }
 
+    func testShiftLeftTogglesWithFullBar() {
+        XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .leftMouseUp, optionPressed: false, shiftPressed: true), .toggleWithFullBar)
+    }
+
+    func testShiftRightStillShowsContextMenu() {
+        XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .rightMouseUp, optionPressed: false, shiftPressed: true), .contextMenu)
+    }
+
+    func testOptionWinsOverShift() {
+        XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .leftMouseUp, optionPressed: true, shiftPressed: true), .toggleSeparators)
+    }
+
+    func testShiftDetectedFromLiveFlagsWhenEventFlagsAreEmpty() {
+        XCTAssertTrue(ExpandCollapseActionResolver.isShiftPressed(eventFlags: [], liveFlags: .shift))
+        XCTAssertFalse(ExpandCollapseActionResolver.isShiftPressed(eventFlags: nil, liveFlags: .option))
+    }
+
     func testOptionRightTogglesSeparators() {
         XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .rightMouseUp, optionPressed: true), .toggleSeparators)
     }
