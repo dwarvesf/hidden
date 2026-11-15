@@ -123,7 +123,9 @@ the RUNBOOK for how that split is built and checked.
   (issue #360). The direct build hides natively there (`NativeVisibilityEngine`,
   which reads the sections over Accessibility); the App Store build cannot,
   because the sandbox blocks those reads, and keeps `LegacyLengthEngine`, which
-  does not hide on 27.
+  does not hide on 27. The behavior of macOS 27's own overflow « (when items
+  land in it, never behind the notch) is re-measured by
+  [`scripts/overflow-probe`](../scripts/overflow-probe/README.md).
 - **Other apps' open menus**: interaction-awareness is pointer-position-based;
   a pointer deep inside another app's open dropdown is below the menubar band,
   so the collapse can still fire there.
