@@ -220,9 +220,14 @@ class StatusBarController: MenuBarItemProvider {
         // AXPress synthesis carries no NSEvent; the resolver maps nil to .toggle
         // so VoiceOver can operate the bar.
         let optionPressed = ExpandCollapseActionResolver.isOptionPressed(eventFlags: event?.modifierFlags, liveFlags: NSEvent.modifierFlags)
-        switch ExpandCollapseActionResolver.action(eventType: event?.type, optionPressed: optionPressed) {
+        let shiftPressed = ExpandCollapseActionResolver.isShiftPressed(eventFlags: event?.modifierFlags, liveFlags: NSEvent.modifierFlags)
+        switch ExpandCollapseActionResolver.action(eventType: event?.type, optionPressed: optionPressed, shiftPressed: shiftPressed) {
         case .toggle:
             self.expandCollapseIfNeeded()
+        case .toggleWithFullBar:
+            // Shift-click expands with the full menu bar for this expansion only;
+            // the stored setting is untouched. Collapsing works as a plain click.
+            self.expandCollapseIfNeeded(fullBarOnce: true)
         case .contextMenu:
             // Right-click opens the same context menu the separator has (#356),
             // making settings reachable from the control everyone clicks.
@@ -296,10 +301,11 @@ class StatusBarController: MenuBarItemProvider {
         menuBarEngine.updateAlwaysHiddenSection(enabled: Preferences.alwaysHiddenSectionEnabled, separatorHidden: true)
     }
     
-    func expandCollapseIfNeeded() {
+    func expandCollapseIfNeeded(fullBarOnce: Bool = false) {
         //prevented rapid click cause icon show many in Dock
         if isToggle {return}
         isToggle = true
+        if fullBarOnce && isCollapsed { fullBarThisExpansion = true }
         menuBarEngine.userChangedBar()
         // Without Accessibility the collapse below hides nothing; show the
         // Preferences, which explain what is missing, instead of a dead click.
@@ -336,11 +342,18 @@ class StatusBarController: MenuBarItemProvider {
     // Nothing was hidden (the engine cannot hide on this system, or is waiting for
     // a permission), so show the bar as expanded, and restore the activation
     // policy in case the UI had already switched to collapsed.
+    // Set by a Shift-click expansion; didCollapseMenuBar clears it.
+    private var fullBarThisExpansion = false
+
+    private var wantsFullBar: Bool {
+        return Preferences.useFullStatusBarOnExpandEnabled || fullBarThisExpansion
+    }
+
     private func didFailToCollapseMenuBar() {
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
         }
-        if Preferences.useFullStatusBarOnExpandEnabled {
+        if wantsFullBar {
             NSApp.setActivationPolicy(.regular)
         }
     }
@@ -359,10 +372,11 @@ class StatusBarController: MenuBarItemProvider {
         if let button = btnExpandCollapse.button {
             button.image = collapsedArrowImage
         }
-        if Preferences.useFullStatusBarOnExpandEnabled {
+        if wantsFullBar {
             NSApp.setActivationPolicy(.accessory)
             NSApp.deactivate()
         }
+        fullBarThisExpansion = false
     }
 
     private func expandMenubar(activatingApp: Bool = true) {
@@ -374,7 +388,7 @@ class StatusBarController: MenuBarItemProvider {
         popupGuard.reset()
         autoCollapseIfNeeded()
         
-        if activatingApp && Preferences.useFullStatusBarOnExpandEnabled {
+        if activatingApp && wantsFullBar {
             NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
             
@@ -383,7 +397,7 @@ class StatusBarController: MenuBarItemProvider {
     
     // Expand/collapse skips the policy change when the option is off, so sync it on toggle.
     @objc private func syncActivationPolicyWithFullStatusBar() {
-        let wantsRegular = Preferences.useFullStatusBarOnExpandEnabled && !isCollapsed
+        let wantsRegular = wantsFullBar && !isCollapsed
         let policy: NSApplication.ActivationPolicy = wantsRegular ? .regular : .accessory
         guard NSApp.activationPolicy() != policy else { return }
         let keyWindow = NSApp.isActive ? NSApp.keyWindow : nil

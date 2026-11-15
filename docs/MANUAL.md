@@ -11,6 +11,9 @@ Everything Hidden Bar can do, including the parts with no UI.
   the separator's left are hidden when collapsed.
 - **Option-click the arrow**: show/hide the separators and the always-hidden
   area without expanding.
+- **Shift-click the arrow**: expand and use the full menu bar for this
+  expansion only, like "Use the full menu bar on expanding" but without
+  changing the setting. It reverts when the bar collapses.
 
 ### macOS 27, direct download build
 
