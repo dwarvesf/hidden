@@ -19,21 +19,24 @@ final class ArrivalsInboxTests: XCTestCase {
 
     // MARK: Show It and Hide It
 
-    // Given Show It, when an app arrives that the table has hidden (macOS put its icon far left)
-    // Then it is placed visible, and never asked
-    func test_showIt_placesVisibleAndNeverAsks() {
+    // Given Show It, when an app arrives that the engine's resolver left on its read position (hidden)
+    // Then nothing is written: the app stays hidden, exactly as 1.12 places it, and nothing is asked
+    func test_showIt_leavesTheResolversPlacementAlone() {
         var inbox = ArrivalsInbox()
         let placements = inbox.receive(["com.a"], choice: .show, pinsSections: true, table: ["com.a": .hidden])
 
-        XCTAssertEqual(placements, [place("com.a", .visible)])
+        XCTAssertEqual(placements, [])
         XCTAssertEqual(inbox.pending, [])
     }
 
-    // Given Show It and a table that already has the app visible
-    // Then nothing is written (no needless change notification)
-    func test_showIt_writesNothingWhenAlreadyVisible() {
+    // Given Show It and an arrival the catalog never saw but the pinned table already holds
+    //       (an App Store import, say), including one the user hid
+    // Then the entry is left untouched
+    func test_showIt_leavesAPinnedEntryTheCatalogNeverSawUntouched() {
         var inbox = ArrivalsInbox()
-        XCTAssertEqual(inbox.receive(["com.a"], choice: .show, pinsSections: true, table: ["com.a": .visible]), [])
+        let table: [String: MenuBarSection] = ["com.imported": .alwaysHidden, "com.other": .hidden]
+
+        XCTAssertEqual(inbox.receive(["com.imported", "com.other"], choice: .show, pinsSections: true, table: table), [])
     }
 
     // Given Hide It, when an app arrives

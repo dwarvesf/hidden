@@ -353,6 +353,30 @@ final class SettingsWindowTests: XCTestCase {
         }
     }
 
+    // Given the Icons pane
+    // When picking each option in the new-app popup
+    // Then the caption under the title describes that option
+    func test_menuBarApps_newAppCaptionFollowsTheSelectedOption() throws {
+        UserDefaults.standard.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        UserDefaults.standard.removeObject(forKey: UserDefaults.Key.newAppDefaultSection)
+        let pane = MenuBarAppsSettingsViewController(context: fullContext())
+        let views = Self.subviews(of: pane.view)
+        let popup = try XCTUnwrap(control(UserDefaults.Key.newAppDefaultSection, in: views) as? NSPopUpButton)
+        func captions() -> [String] { Self.subviews(of: pane.view).compactMap { ($0 as? NSTextField)?.stringValue } }
+
+        XCTAssertTrue(captions().contains(MenuBarAppsSettingsViewController.newAppCaption(for: .show)))
+        for choice in [NewAppDefault.ask, .hide, .show] {
+            popup.selectItem(withTag: choice.rawValue)
+            popup.sendAction(popup.action, to: popup.target)
+            let shown = captions()
+            XCTAssertTrue(shown.contains(MenuBarAppsSettingsViewController.newAppCaption(for: choice)), "\(choice) caption missing")
+            for other in [NewAppDefault.ask, .show, .hide] where other != choice {
+                XCTAssertFalse(shown.contains(MenuBarAppsSettingsViewController.newAppCaption(for: other)), "\(other) caption still shown")
+            }
+        }
+        XCTAssertEqual(Set([NewAppDefault.ask, .show, .hide].map(MenuBarAppsSettingsViewController.newAppCaption)).count, 3)
+    }
+
     // Given a stored value outside 0 to 2, or none
     // Then the preference reads as Show It, the 1.12 behavior
     func test_newAppDefaultReadsShowItUnlessSet() {

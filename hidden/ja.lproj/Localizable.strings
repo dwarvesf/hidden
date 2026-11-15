@@ -182,3 +182,5 @@ Steps to view always hidden icons:
 "and %d more" = "and %d more";
 "Hide All" = "Hide All";
 "Show All" = "Show All";
+"Show leaves a new icon where macOS puts it. Nothing is asked." = "Show leaves a new icon where macOS puts it. Nothing is asked.";
+"Hide moves a new icon to Hidden at once. Nothing is asked." = "Hide moves a new icon to Hidden at once. Nothing is asked.";

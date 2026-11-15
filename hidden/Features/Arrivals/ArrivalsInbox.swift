@@ -67,12 +67,15 @@ struct ArrivalsInbox: Equatable {
 
     // Apps a read found for the first time. Returns the sections to write.
     // `pinsSections` false (the beta is off): the table is not applied, so nobody
-    // is placed or asked. Ask Me keeps the app shown until it is answered.
+    // is placed or asked. Ask Me keeps the app shown until it is answered; Show It places nothing.
     mutating func receive(_ arrivals: [String], choice: NewAppDefault, pinsSections: Bool,
                           table: [String: MenuBarSection]) -> [Placement] {
         var placements: [Placement] = []
         for bundle in arrivals where Self.isAskable(bundle) && handled.insert(bundle).inserted {
-            guard pinsSections else { continue }
+            // Show It is 1.12 exactly: the engine's resolver already places a never-seen
+            // app (launched apps visible, others at their read position), and a pinned
+            // entry this catalog never saw stays as it is.
+            guard pinsSections, choice != .show else { continue }
             let section = choice.section ?? .visible
             if choice == .ask, !pending.contains(bundle) {
                 pending.append(bundle)

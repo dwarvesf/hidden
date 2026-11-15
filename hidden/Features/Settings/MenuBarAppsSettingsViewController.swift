@@ -101,6 +101,14 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
     /// Identifier of the "When an app adds a new icon" popup: the defaults key.
     static let newAppDefaultIdentifier = UserDefaults.Key.newAppDefaultSection
     static let newAppDefaultTitles: [(NewAppDefault, String)] = [(.ask, "Ask Me"), (.show, "Show It"), (.hide, "Hide It")]
+    /// What the popup's current choice does, in a line.
+    static func newAppCaption(for choice: NewAppDefault) -> String {
+        switch choice {
+        case .ask: return "Ask puts a dot on the arrow and keeps the icon shown until you choose.".localized
+        case .show: return "Show leaves a new icon where macOS puts it. Nothing is asked.".localized
+        case .hide: return "Hide moves a new icon to Hidden at once. Nothing is asked.".localized
+        }
+    }
     static let maxListHeight: CGFloat = 360
 
     private let store: MenuBarAppsStore
@@ -141,14 +149,15 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         popup.identifier = NSUserInterfaceItemIdentifier(Self.newAppDefaultIdentifier)
         popup.target = self
         popup.action = #selector(newAppDefaultPicked(_:))
-        addSection(nil, rows: [SettingsForm.row(
-            "When an app adds a new icon".localized,
-            caption: "Ask puts a dot on the arrow and keeps the icon shown until you choose.".localized,
-            control: popup)])
-        onRefresh { [weak self, weak popup] in
+        let row = SettingsForm.row("When an app adds a new icon".localized,
+                                   caption: Self.newAppCaption(for: store.newAppDefault), control: popup)
+        addSection(nil, rows: [row])
+        let caption = (row.subviews.first { $0 is NSStackView } as? NSStackView)?.arrangedSubviews.last as? NSTextField
+        onRefresh { [weak self, weak popup, weak caption] in
             guard let self, let popup else { return }
             popup.selectItem(withTag: self.store.newAppDefault.rawValue)
             popup.isEnabled = self.store.isEnabled
+            caption?.stringValue = Self.newAppCaption(for: self.store.newAppDefault)
         }
         popup.selectItem(withTag: store.newAppDefault.rawValue)
         popup.isEnabled = store.isEnabled

@@ -84,14 +84,17 @@ final class ArrivalsControllerTests: XCTestCase {
         return controller
     }
 
-    // Given Show It, when an app arrives that macOS put on the hidden side
-    // Then the table says visible, nothing waits, and nothing is announced
-    func test_showIt_placesVisibleAndAsksNothing() {
+    // Given Show It, when an app arrives that the table has at its hidden read position
+    // Then the controller writes nothing, nothing waits, and nothing is announced
+    func test_showIt_writesNothingAndAsksNothing() {
         choice = .show
-        let controller = seededController()
+        var placed: [String] = []
+        let controller = makeController(place: { _, bundle in placed.append(bundle) })
+        read(["com.test.old"])
         read(["com.test.old", "com.test.new"])
 
-        XCTAssertEqual(table.sections["com.test.new"], .visible)
+        XCTAssertEqual(table.sections["com.test.new"], .hidden)
+        XCTAssertEqual(placed, [])
         XCTAssertEqual(controller.pending, [])
         XCTAssertEqual(changes, 0)
     }
