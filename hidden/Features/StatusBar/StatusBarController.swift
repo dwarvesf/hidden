@@ -613,6 +613,16 @@ extension StatusBarController {
         case "reset-pinned":
             // What the Preferences "Reset all to visible" button runs.
             PinnedSectionEdits.resetAllToVisible(in: UserDefaultsPinnedSections())
+        case "drag-lock":
+            // What a Menu Bar Apps row's "Ignore drags" checkbox runs: "<bundle id>=on|off".
+            let parts = (argument ?? "").components(separatedBy: "=")
+            if parts.count == 2 {
+                LiveMenuBarAppsStore().setIgnoresDrags(parts[1] == "on", for: parts[0])
+            }
+        case "settings":
+            // Shows Settings on a tab without activating the app: "<tab>[,light|dark][,<bundle id>]",
+            // the bundle's Menu Bar Apps row scrolled into view; "close" closes it.
+            debugShowSettings(argument ?? "")
         case "show-everything":
             // What the arrow menu's "Show Everything" runs.
             showEverything()
@@ -626,6 +636,36 @@ extension StatusBarController {
         if let out = note.userInfo?["out"] as? String {
             debugWriteState(to: out)
         }
+    }
+
+    // Ordered front without activating, so the user's frontmost app keeps the
+    // keyboard; drawn as the key window, as the snapshots are.
+    private func debugShowSettings(_ argument: String) {
+        let parts = argument.components(separatedBy: ",")
+        let controller = PreferencesWindowController.shared
+        guard let window = controller.window as? SettingsWindow else { return }
+        if parts[0] == "close" {
+            window.drawsAsKey = false
+            return window.close()
+        }
+        if let tab = SettingsTab(rawValue: parts[0]) {
+            controller.select(tab, animate: false)
+        }
+        let appearances: [String: NSAppearance.Name] = ["light": .aqua, "dark": .darkAqua]
+        window.appearance = parts.count > 1 ? appearances[parts[1]].flatMap { NSAppearance(named: $0) } : nil
+        window.drawsAsKey = true
+        window.orderFrontRegardless()
+        if parts.count > 2, let row = Self.debugView(in: window.contentView,
+                                                     identifier: MenuBarAppsSettingsViewController.lockIdentifier(for: parts[2])) {
+            row.scrollToVisible(row.bounds)
+        }
+        window.display()
+    }
+
+    static func debugView(in view: NSView?, identifier: String) -> NSView? {
+        guard let view else { return nil }
+        if view.identifier?.rawValue == identifier { return view }
+        return view.subviews.lazy.compactMap { debugView(in: $0, identifier: identifier) }.first
     }
 
     // A click on the clock without moving the pointer: the mouse-down/up pair is
