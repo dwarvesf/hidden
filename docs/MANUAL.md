@@ -11,6 +11,9 @@ Everything Hidden Bar can do, including the parts with no UI.
   the separator's left are hidden when collapsed.
 - **Option-click the arrow**: show/hide the separators and the always-hidden
   area without expanding.
+- **Shift-click the arrow**: expand and use the full menu bar for this
+  expansion only, like "Use the full menu bar on expanding" but without
+  changing the setting. It reverts when the bar collapses.
 
 ### macOS 27, direct download build
 
@@ -118,19 +121,26 @@ To undo any of them: `defaults delete com.dwarvesv.minimalbar <key>`.
 | A ghost "LauncherApplication" login item from old versions | Launch the current version once; it deauthorizes the legacy item automatically |
 | App language stuck | See the `AppleLanguages` command above, or System Settings > General > Language & Region > Applications |
 | Nothing hides on a macOS 27 beta | Known (issue #360); the menu bar re-architecture broke the hiding mechanism, fix under investigation |
-| A new or just-updated app's icon shows up already hidden | Expected, see "Why new icons start hidden" below; ⌘-drag it to the right of the separator once |
+| A new or just-updated app's icon shows up already hidden | macOS 26 and earlier, or the App Store build: expected, see "Why new icons start hidden" below; ⌘-drag it to the right of the separator once. macOS 27 direct build: new and relaunched apps start visible (Pinned sections, beta) |
+| An app jumps into the hidden section by itself (BitBar, SwiftBar) | macOS 27 direct build: in Settings > Menu Bar Apps, tick "Ignore drags" on that app; it then keeps the section you picked |
 | Date disappears from the clock when collapsed (macOS 26 and earlier) | The collapsed bar takes the space macOS measures; set System Settings > Control Center > Clock > Show date to Always. macOS 27 with the direct build is not affected |
 
 ### Why new icons start hidden
 
-Hidden Bar hides icons by widening its separator so everything to the *left* of
-it slides off-screen. macOS always inserts a brand-new menu-bar icon at the
-far-left slot, which is inside that hidden zone, so a freshly launched or updated
-app can appear "swallowed". This is macOS positioning behavior, not Hidden Bar
-moving your icon: there is no way for one app to reposition another app's menu-bar
-icon. The one-time fix is to ⌘-drag the icon to the right of the separator;
-macOS remembers that placement per app. A built-in way to keep chosen icons
-pinned is being explored as part of the larger menu-bar redesign.
+On macOS 26 and earlier, and in the App Store build, Hidden Bar hides icons by
+widening its separator so everything to the *left* of it slides off-screen. macOS
+always inserts a brand-new menu-bar icon at the far-left slot, which is inside that
+hidden zone, so a freshly launched or updated app can appear "swallowed". This is
+macOS positioning behavior, not Hidden Bar moving your icon: there is no way for
+one app to reposition another app's menu-bar icon. The one-time fix is to ⌘-drag
+the icon to the right of the separator; macOS remembers that placement per app.
+
+On macOS 27 with the direct build, Hidden Bar keeps a section per app instead
+(Pinned sections, beta, on by default; Settings > Menu Bar Apps). A new or
+relaunched app starts visible and stays in the section you pick, also after it
+restarts. A ⌘-drag across the arrow still moves it. An app that recreates its
+icon without relaunching (BitBar, SwiftBar) can look like a drag; tick "Ignore
+drags" on its row to keep it where you put it.
 
 ## Requirements
 

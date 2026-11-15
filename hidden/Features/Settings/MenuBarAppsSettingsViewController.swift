@@ -15,6 +15,7 @@ protocol MenuBarAppsStore {
     func entries() -> [PinnedSectionsList.Entry]
     func icon(for bundle: String) -> NSImage?
     func set(_ section: MenuBarSection, for bundle: String)
+    func setIgnoresDrags(_ ignores: Bool, for bundle: String)
     func resetAllToVisible()
     func enable()
 }
@@ -23,7 +24,8 @@ struct LiveMenuBarAppsStore: MenuBarAppsStore {
     var isEnabled: Bool { Preferences.pinnedSectionsEnabled }
 
     func entries() -> [PinnedSectionsList.Entry] {
-        PinnedSectionsList.entries(table: UserDefaultsPinnedSections().sections, name: Self.appName)
+        PinnedSectionsList.entries(table: UserDefaultsPinnedSections().sections, name: Self.appName,
+                                   ignoringDrags: UserDefaultsDragLocks().bundles)
     }
 
     // "Safari", without ".app" even when Finder shows extensions.
@@ -38,6 +40,11 @@ struct LiveMenuBarAppsStore: MenuBarAppsStore {
 
     func set(_ section: MenuBarSection, for bundle: String) {
         PinnedSectionEdits.set(section, for: bundle, in: UserDefaultsPinnedSections())
+    }
+
+    func setIgnoresDrags(_ ignores: Bool, for bundle: String) {
+        let locks = UserDefaultsDragLocks()
+        if ignores { locks.bundles.insert(bundle) } else { locks.bundles.remove(bundle) }
     }
 
     func resetAllToVisible() {
@@ -58,6 +65,10 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
     /// Identifier of each row's popup: the defaults key, then the bundle id.
     static func popupIdentifier(for bundle: String) -> String {
         "\(UserDefaultsPinnedSections.key).\(bundle)"
+    }
+    /// Identifier of each row's "Ignore drags" checkbox.
+    static func lockIdentifier(for bundle: String) -> String {
+        "\(UserDefaultsDragLocks.key).\(bundle)"
     }
     static let maxListHeight: CGFloat = 360
 
@@ -159,7 +170,15 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         popup.target = self
         popup.action = #selector(sectionPicked(_:))
 
-        let row = SettingsForm.row(entry.name, control: popup)
+        let lock = NSButton(checkboxWithTitle: "Ignore drags".localized, target: self, action: #selector(lockToggled(_:)))
+        lock.controlSize = .small
+        lock.state = entry.ignoresDrags ? .on : .off
+        lock.identifier = NSUserInterfaceItemIdentifier(Self.lockIdentifier(for: entry.bundle))
+        lock.toolTip = "Keep this app in its section even when its icon moves on its own, as BitBar and SwiftBar do. Dragging no longer changes it; the popup still does.".localized
+        let controls = NSStackView(views: [lock, popup])
+        controls.spacing = 10
+
+        let row = SettingsForm.row(entry.name, control: controls)
         row.toolTip = entry.bundle
         let icon = NSImageView(image: store.icon(for: entry.bundle) ?? NSWorkspace.shared.icon(for: .applicationBundle))
         icon.translatesAutoresizingMaskIntoConstraints = false
@@ -182,6 +201,11 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         guard let raw = sender.identifier?.rawValue,
               let section = sender.selectedItem.flatMap({ MenuBarSection(rawValue: $0.tag) }) else { return }
         store.set(section, for: String(raw.dropFirst(UserDefaultsPinnedSections.key.count + 1)))
+    }
+
+    @objc private func lockToggled(_ sender: NSButton) {
+        guard let raw = sender.identifier?.rawValue else { return }
+        store.setIgnoresDrags(sender.state == .on, for: String(raw.dropFirst(UserDefaultsDragLocks.key.count + 1)))
     }
 
     @objc private func resetAll() {
@@ -220,6 +244,7 @@ struct SnapshotMenuBarAppsStore: MenuBarAppsStore {
 
     func icon(for bundle: String) -> NSImage? { LiveMenuBarAppsStore().icon(for: bundle) }
     func set(_ section: MenuBarSection, for bundle: String) {}
+    func setIgnoresDrags(_ ignores: Bool, for bundle: String) {}
     func resetAllToVisible() {}
     func enable() {}
 }

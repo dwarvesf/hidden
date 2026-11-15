@@ -34,6 +34,7 @@ enum MenuBarEngineFactory {
                                           workspaceNotifications: NSWorkspace.shared.notificationCenter,
                                           pinnedSections: UserDefaultsPinnedSections(),
                                           pinsSections: { Preferences.pinnedSectionsEnabled },
+                                          ignoredDrags: { UserDefaultsDragLocks().bundles },
                                           agentLaunches: AgentLaunchNotifications(isActive: {
                                               AgentLaunchNotifications.isActive(pinnedSectionsEnabled: Preferences.pinnedSectionsEnabled)
                                           }))
