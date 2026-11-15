@@ -71,12 +71,12 @@ write_stub pgrep <<'EOF'
 #!/bin/bash
 running="$(cat "$STUB_STATE/running" 2>/dev/null)"
 inst="$HB_APPS_DIR/Hidden Bar.app/Contents/MacOS/Hidden Bar"
-if [ "$1" = "-fl" ]; then
-  [ "$running" = "1" ] && echo "4242 $inst"
-  [ -z "${STUB_OTHER_COPY:-}" ] || echo "5151 $STUB_OTHER_COPY"
-  exit 0
-fi
-[ "$running" = "1" ] && { echo 4242; exit 0; }
+# like the real pgrep -fl: every command line that mentions the pattern, including a build
+# command that only names the path (it must NOT count as a running copy)
+[ "$running" = "1" ] && echo "4242 $inst"
+[ -z "${STUB_OTHER_COPY:-}" ] || echo "5151 $STUB_OTHER_COPY"
+echo "6060 /usr/bin/clang -bundle_loader $inst -o /tmp/HiddenTests"
+exit 0
 exit 1
 EOF
 
@@ -320,7 +320,18 @@ case_T12() { # quit_timeout_refused
   check "says it did not quit" out_has "did not quit"
 }
 
-cases="T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12"
+case_T13() { # other_copies_listed_and_build_commands_ignored
+  fresh_env
+  echo 0 > "$STATE/running"
+  export STUB_OTHER_COPY="/private/var/x/dd/Hidden Bar.app/Contents/MacOS/Hidden Bar"
+  run_install --check-only "$ZIP"
+  check "exit 0" rc_is 0
+  check "stray copy listed" out_has "/private/var/x/dd/Hidden Bar.app/Contents/MacOS/Hidden Bar"
+  check "compiler command mentioning the path is not a copy" out_lacks "clang"
+  check "not running reads no despite the build command" out_has "running  *| no"
+}
+
+cases="T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12 T13"
 [ $# -eq 0 ] || cases="$*"
 for c in $cases; do
   CURRENT="$c"

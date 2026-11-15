@@ -113,7 +113,24 @@ probe() {
   echo "${ver:-?} (${build:-?})|$(cs_field "$app" CDHash)|$(cs_field "$app" TeamIdentifier)|$(cs_field "$app" Identifier)|$src|$ok"
 }
 
-app_pids() { pgrep -f "$APPS_DIR/$APP_NAME/Contents/MacOS/Hidden Bar" 2>/dev/null; }
+# running_exes : "pid path" for every process whose command IS a Hidden Bar executable. pgrep -f
+# alone also matches any command line that merely mentions the path (a compiler or linker run
+# building a test bundle), so keep only commands that start with the executable itself.
+running_exes() {
+  local pid rest
+  pgrep -fl "Hidden Bar.app/Contents/MacOS/Hidden Bar" 2>/dev/null | while read -r pid rest; do
+    case "$rest" in
+      /*"Hidden Bar.app/Contents/MacOS/Hidden Bar"|/*"Hidden Bar.app/Contents/MacOS/Hidden Bar "*) echo "$pid $rest" ;;
+    esac
+  done
+}
+
+app_pids() {
+  local exe="$APPS_DIR/$APP_NAME/Contents/MacOS/Hidden Bar" pid rest
+  running_exes | while read -r pid rest; do
+    case "$rest" in "$exe"|"$exe "*) echo "$pid" ;; esac
+  done
+}
 
 running_text() {
   local pids
@@ -123,7 +140,7 @@ running_text() {
 
 other_copies() { # running Hidden Bar copies outside the install dir, informational
   local lines
-  lines="$(pgrep -fl "Hidden Bar.app/Contents/MacOS/Hidden Bar" 2>/dev/null | grep -v "$APPS_DIR/$APP_NAME/" | sed 's/^[0-9]* //')"
+  lines="$(running_exes | grep -v " $APPS_DIR/$APP_NAME/" | sed 's/^[0-9]* //')"
   if [ -n "$lines" ]; then echo "$lines"; else echo "none"; fi
 }
 
