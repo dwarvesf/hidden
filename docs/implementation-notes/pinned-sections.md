@@ -36,7 +36,7 @@ This file is force-added: `.gitignore` keeps `docs/implementation-notes/` in the
 | Negative controls | pinned always-hidden ignored: 2 fail; no re-hide at collapse: 1; edits skip the expanded bar: 1; list unsorted: 1; agent center not observed: 1; Dock apps reported twice: 1 |
 | Release warnings | clean Release-Direct (signed) and App Store Release: identical set to `af0f151` (one new Sendable warning was found and fixed) |
 | On screen (this Mini, 27.2.1, two displays) | helper `foundation.dwarves.pinprobe` launched while collapsed: `launchedSinceRead` has it, section visible at once; first read finds its icon at x=686, left of the arrow (x=724-756): observed `hidden`, pinned `visible`; same on a second read; quit and relaunch while collapsed: still `visible`; `pin =hidden` (the list row's action): `hidden`, survives the next read; `boundary 656` (drag stand-in): `visible`; `pin =alwaysHidden` on the expanded bar and `reset-pinned`: table follows, reset leaves 34 apps all `visible`; beta off: the same relaunch reads `hidden` (v1.11.2 drift). Prefs exported before and identical after, no new SU* keys, installed app relaunched. No pointer or key input. |
-| Not provable on screen | the restriction swap itself: a microphone or camera was in use during all three runs (`captureActive: true`), so by design no restriction was held (`assertionHeld: false`). The swap is covered by the unit tests (allow-lists per step). Re-run the on-screen script with no capture active to see `allowed=` flip. |
+| Restriction swap on screen | first runs were blocked by a microphone in use; proven after #475, see "On screen from /Applications" below |
 
 ## Phase 3: legacy patches (option C)
 
@@ -72,6 +72,21 @@ The redesigned Settings window (#481) replaced the storyboard Preferences, so th
 | `bash scripts/test.sh` | Direct 285, App Store 210, 0 failed |
 | Negative controls | Advanced switch unbound: `test_everyOldSwitch_stillWritesItsKey` fails; popup writes nothing: `test_menuBarApps_popupsAndResetWriteThePinnedTable` fails; beta keys out of the whitelist: `testWhitelistCoversEveryPreferenceKeyTheAppDefines` fails |
 | Snapshots | Menu Bar Apps on, off, empty, light and dark, plus Advanced, drawn offscreen with `-settingsSnapshotDir` |
+
+## On screen from /Applications (after #475)
+
+macOS 27 applies the allow-list only to apps it keys by bundle id, which in practice means apps in /Applications; a copy run elsewhere hides even its own arrow. So the #473 Debug-Direct build (head `b0a283d`, Developer ID signed) and a helper status-item app with a magenta 16 pt icon (`foundation.dwarves.pinprobeb`) ran from /Applications. The installed app was renamed aside and renamed back; its CDHash was identical after, login items unchanged, prefs identical (extra test keys removed before the re-import). Truth is pixels: magenta pixels in a screenshot of the menu bar (1024 = the whole icon at 2x), plus AX x of the probe and the arrow. No pointer or key input.
+
+| Step | Beta | Magenta px | Result |
+|---|---|---|---|
+| New app launched while collapsed | on | 1024 | shown at once (new-app default) |
+| Pinned visible, quit and relaunched while collapsed, then a read | on | 1024 | stays shown |
+| List sets it hidden (collapsed) | on | 0 | hidden at once |
+| Pinned hidden, relaunched while collapsed; expanded; collapsed again | on | 0 / 1024 / 0 | hidden, shown with the bar, hidden again |
+| Relaunched, its icon then read on the hidden side (boundary hook) | on | 1024 | stays shown: pinned `visible`, observed `hidden` |
+| Same relaunch and read | off | 0 | drifts to hidden (v1.11.2) |
+
+macOS kept this probe's slot right of the arrow across relaunches, so "macOS re-placed the icon on the hidden side" was stood in for with the debug boundary moved just right of the probe after the relaunch, for both runs. Crops: `docs/implementation-notes/pinned-sections-proof/`.
 
 ## Decided (Han, 2026-11-15)
 
