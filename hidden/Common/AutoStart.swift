@@ -44,6 +44,45 @@ enum LegacyLoginItem {
 }
 
 enum AutoStart {
+    // A test host launched from the build cache would otherwise register itself
+    // as a second "Hidden Bar" login item whenever the developer's real prefs
+    // have start-at-login on, so tests and Debug builds never touch the system
+    // registration. Release behaviour is unchanged.
+    static var isRunningUnderXCTest: Bool {
+        NSClassFromString("XCTestCase") != nil
+            || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
+
+    static var isDebugBuild: Bool {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    static func shouldTouchLoginItems(
+        underXCTest: Bool = isRunningUnderXCTest,
+        debugBuild: Bool = isDebugBuild
+    ) -> Bool {
+        !underXCTest && !debugBuild
+    }
+
+    // The entry point the app uses: apply(), unless this is a test or Debug run.
+    // Skipping reports success so a Preferences toggle still sticks in Debug.
+    @discardableResult
+    static func applyUnlessTesting(
+        enabled: Bool,
+        service: LoginItemServing = SMAppService.mainApp,
+        touchLoginItems: Bool = shouldTouchLoginItems()
+    ) -> Bool {
+        guard touchLoginItems else {
+            NSLog("AutoStart: skipped (test or Debug build), login items untouched")
+            return true
+        }
+        return apply(enabled: enabled, service: service)
+    }
+
     // Returns whether the system ended up in the desired state. A throw is one
     // failure mode; a register() that lands on .requiresApproval (or any status
     // other than the terminal one) is another, so the post-call status is what
