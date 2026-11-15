@@ -34,7 +34,7 @@ struct MigrationOfferLedger {
 
 /// The settings import, free of AppKit so it is testable with plain dictionaries.
 enum AppStoreSettingsImport {
-    enum Kind { case number, string, data }
+    enum Kind { case number, string, data, dictionary }
 
     /// Every preference the app defines, with the plist type it is stored as.
     /// Anything else in the container (Sparkle SU* keys, window frames, status
@@ -53,6 +53,8 @@ enum AppStoreSettingsImport {
         UserDefaults.Key.hoverToExpand: .number,
         UserDefaults.Key.notchOverflowEnabled: .number,
         UserDefaults.Key.pauseHidingForUnkeepableItems: .number,
+        UserDefaults.Key.pinnedSectionsEnabled: .number,
+        UserDefaultsPinnedSections.key: .dictionary,
     ]
 
     static func containerPreferencesURL(home: URL, bundleIdentifier: String) -> URL {
@@ -71,6 +73,7 @@ enum AppStoreSettingsImport {
             case .number?: return value is NSNumber
             case .string?: return value is String
             case .data?: return value is Data
+            case .dictionary?: return value is [String: Any]
             case nil: return false
             }
         }

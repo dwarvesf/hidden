@@ -180,4 +180,17 @@ enum Preferences {
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
+
+    // macOS 27, direct build: the section table decides where each app goes
+    // (beta). On by default; off is v1.11.2's position-based sections.
+    static var pinnedSectionsEnabled: Bool {
+        get {
+            UserDefaults.standard.object(forKey: UserDefaults.Key.pinnedSectionsEnabled) as? Bool ?? true
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
 }

@@ -41,6 +41,19 @@ enum SettingsSnapshot {
                 shoot(PreferencesWindowController(context: context), tab: .general, appearance: appearance,
                       to: dir.appendingPathComponent("\(build)-status-\(status)-\(mode).png"))
             }
+            // Menu Bar Apps with the pinned sections on, off and empty, from
+            // fixed data: the live table would put this Mac's apps in the shots.
+            let registered = MenuBarAppsPane.makeViewController
+            for (state, store) in SnapshotMenuBarAppsStore.states {
+                var context = live
+                context.build = .direct
+                context.osMajorVersion = 27
+                context.menuBarAppsAvailable = true
+                MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: context, store: store) }
+                shoot(PreferencesWindowController(context: context), tab: .menuBarApps, appearance: appearance,
+                      to: dir.appendingPathComponent("\(build)-menubarapps-\(state)-\(mode).png"))
+            }
+            MenuBarAppsPane.makeViewController = registered
             // The preview strip per engine, with the always-hidden section on.
             for (os, engine) in [(27, "macos27"), (26, "macos26")] {
                 var context = live

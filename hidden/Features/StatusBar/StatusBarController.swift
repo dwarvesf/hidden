@@ -49,6 +49,7 @@ class StatusBarController: MenuBarItemProvider {
     private var isToggle = false
 
     private var hoverMonitor: Any?
+    private var pinnedSectionsObserver: NSObjectProtocol?
     private var hoverDwellTimer: Timer?
 
     // True while the pointer sits in any screen's menubar band (the strip between
@@ -101,6 +102,7 @@ class StatusBarController: MenuBarItemProvider {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+        pinnedSectionsObserver.map(NotificationCenter.default.removeObserver)
         hoverDwellTimer?.invalidate()
         if let monitor = hoverMonitor {
             NSEvent.removeMonitor(monitor)
@@ -164,6 +166,9 @@ class StatusBarController: MenuBarItemProvider {
             native.expandBar = { [weak self] in self?.expandMenubar() }
             native.collapseBar = { [weak self] in self?.collapseMenuBar() }
             native.expandBarForCapture = { [weak self] in self?.expandMenubar(activatingApp: false) }
+            pinnedSectionsObserver = NotificationCenter.default.addObserver(forName: .pinnedSectionsChanged, object: nil, queue: .main) { [weak native] _ in
+                native?.pinnedSectionsDidChange()
+            }
         }
     }
 
@@ -312,6 +317,10 @@ class StatusBarController: MenuBarItemProvider {
             autoCollapseIfNeeded()
             return
         }
+        if !Preferences.areSeparatorsHidden
+            && menuBarEngine.separatorsHiddenForCollapse(current: Preferences.areSeparatorsHidden) {
+            hideSeparators()
+        }
 
         menuBarEngine.collapse { [weak self] result in
             guard let self = self else { return }
@@ -432,6 +441,12 @@ class StatusBarController: MenuBarItemProvider {
         prefItem.target = self
         menu.addItem(prefItem)
 
+        if menuBarEngine.offersShowEverything {
+            let showEverythingItem = NSMenuItem(title: "Show Everything".localized, action: #selector(showEverything), keyEquivalent: "")
+            showEverythingItem.target = self
+            menu.addItem(showEverythingItem)
+        }
+
         let toggleAutoHideTitle = Preferences.isAutoHide ? "Disable Auto Collapse" : "Enable Auto Collapse"
         let toggleAutoHideItem = NSMenuItem(title: toggleAutoHideTitle.localized, action: #selector(toggleAutoHide), keyEquivalent: "t")
         toggleAutoHideItem.target = self
@@ -467,6 +482,16 @@ class StatusBarController: MenuBarItemProvider {
     
     @objc func toggleAutoHide() {
         Preferences.isAutoHide.toggle()
+    }
+
+    // Expands the bar with the always-hidden section shown, until the next
+    // collapse hides it again. The way back to icons lost there (#242).
+    @objc func showEverything() {
+        menuBarEngine.userChangedBar()
+        if Preferences.areSeparatorsHidden {
+            showSeparators()
+        }
+        expandMenubar()
     }
 }
 
@@ -561,6 +586,22 @@ extension StatusBarController {
             menuBarEngine.invalidateLayout()
         case "install-location-check":
             NativeVisibilityEngine.debugChecksInstallLocation = argument == "on"
+        case "pinned-sections":
+            // What the Preferences checkbox runs.
+            Preferences.pinnedSectionsEnabled = argument == "on"
+        case "pin":
+            // What a Preferences "Menu bar apps" row runs: "<bundle id>=visible|hidden|alwaysHidden".
+            let parts = (argument ?? "").components(separatedBy: "=")
+            let sections: [String: MenuBarSection] = ["visible": .visible, "hidden": .hidden, "alwaysHidden": .alwaysHidden]
+            if parts.count == 2, let section = sections[parts[1]] {
+                PinnedSectionEdits.set(section, for: parts[0], in: UserDefaultsPinnedSections())
+            }
+        case "reset-pinned":
+            // What the Preferences "Reset all to visible" button runs.
+            PinnedSectionEdits.resetAllToVisible(in: UserDefaultsPinnedSections())
+        case "show-everything":
+            // What the arrow menu's "Show Everything" runs.
+            showEverything()
         case "click-clock":
             debugClickClock(pressingWithAX: argument == "ax")
         case "dump-state":

@@ -31,7 +31,12 @@ enum MenuBarEngineFactory {
                                           pausesHidingForUnkeepableItems: { Preferences.pauseHidingForUnkeepableItems },
                                           expandsWhenCaptureStarts: { Preferences.showWholeBarWhenCaptureStarts },
                                           sectionMemory: UserDefaultsSectionMemory(),
-                                          workspaceNotifications: NSWorkspace.shared.notificationCenter)
+                                          workspaceNotifications: NSWorkspace.shared.notificationCenter,
+                                          pinnedSections: UserDefaultsPinnedSections(),
+                                          pinsSections: { Preferences.pinnedSectionsEnabled },
+                                          agentLaunches: AgentLaunchNotifications(isActive: {
+                                              AgentLaunchNotifications.isActive(pinnedSectionsEnabled: Preferences.pinnedSectionsEnabled)
+                                          }))
         }
         #endif
         return LegacyLengthEngine(items: items)

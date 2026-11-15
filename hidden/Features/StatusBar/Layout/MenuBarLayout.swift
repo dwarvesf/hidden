@@ -112,6 +112,106 @@ final class UserDefaultsSectionMemory: MenuBarSectionMemory {
     }
 }
 
+// Pinned sections (beta, macOS 27 direct build): the section the user chose
+// for each app, which macOS's placement of a new or relaunched icon no longer
+// changes. Until it is first written it reads as the sections each app was
+// last read in, so turning the beta on keeps every app where it was.
+final class UserDefaultsPinnedSections: MenuBarSectionMemory {
+    static let key = "pinnedSections"
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    var sections: [String: MenuBarSection] {
+        get {
+            guard let stored = defaults.dictionary(forKey: Self.key) as? [String: Int] else {
+                return UserDefaultsSectionMemory(defaults: defaults).sections
+            }
+            return stored.compactMapValues(MenuBarSection.init(rawValue:))
+        }
+        set {
+            defaults.set(newValue.mapValues(\.rawValue), forKey: Self.key)
+        }
+    }
+}
+
+enum PinnedSectionResolver {
+    // Where an app that starts with no pinned section goes.
+    static let newAppSection: MenuBarSection = .visible
+
+    // Turns one read of the bar into the sections to apply, and edits the table
+    // from it. A position is the user's choice only when it changed since the
+    // app was last read and the app did not start meanwhile: macOS puts a new
+    // or relaunched icon far left, wherever the user had it. `observed` is the
+    // section each app was last read in; it follows every read.
+    static func resolve(read: [String: MenuBarSection],
+                        launchedSinceRead: Set<String>,
+                        observed: inout [String: MenuBarSection],
+                        table: inout [String: MenuBarSection]) -> [String: MenuBarSection] {
+        var resolved: [String: MenuBarSection] = [:]
+        for (bundle, position) in read {
+            let launched = launchedSinceRead.contains(bundle)
+            let moved = observed[bundle].map { $0 != position } ?? false
+            switch table[bundle] {
+            case nil:
+                table[bundle] = launched ? newAppSection : position
+            case .some(_) where moved && !launched:
+                table[bundle] = position
+            case .some:
+                break
+            }
+            observed[bundle] = position
+            resolved[bundle] = table[bundle]
+        }
+        return resolved
+    }
+
+    static func resetAllToVisible(_ table: [String: MenuBarSection]) -> [String: MenuBarSection] {
+        return table.mapValues { _ in .visible }
+    }
+}
+
+// Edits from Preferences (and the debug hooks). The engine applies them when
+// the controller passes on `.pinnedSectionsChanged`.
+enum PinnedSectionEdits {
+    static func set(_ section: MenuBarSection, for bundle: String, in table: MenuBarSectionMemory) {
+        table.sections[bundle] = section
+        NotificationCenter.default.post(name: .pinnedSectionsChanged, object: nil)
+    }
+
+    static func resetAllToVisible(in table: MenuBarSectionMemory) {
+        table.sections = PinnedSectionResolver.resetAllToVisible(table.sections)
+        NotificationCenter.default.post(name: .pinnedSectionsChanged, object: nil)
+    }
+}
+
+// The rows of the Preferences "Menu bar apps" list: every app the table
+// knows, by name. `name` is nil for an app that is not installed any more.
+enum PinnedSectionsList {
+    struct Entry: Equatable {
+        let bundle: String
+        let name: String
+        let section: MenuBarSection
+    }
+
+    static func entries(table: [String: MenuBarSection], name: (String) -> String?) -> [Entry] {
+        return table.map { bundle, section in
+            let label = bundle == MenuBarLayoutResolver.systemExtrasBundle ? "macOS extras (Focus, Now Playing...)" : (name(bundle) ?? bundle)
+            return Entry(bundle: bundle, name: label, section: section)
+        }.sorted {
+            let order = $0.name.localizedCaseInsensitiveCompare($1.name)
+            return order == .orderedSame ? $0.bundle < $1.bundle : order == .orderedAscending
+        }
+    }
+}
+
+extension Notification.Name {
+    // Posted on the main queue after Preferences edited the pinned sections.
+    static let pinnedSectionsChanged = Notification.Name("pinnedSectionsChanged")
+}
+
 struct MenuBarLayout: Equatable {
     // One section per owning bundle, because hiding is per bundle.
     var sections: [String: MenuBarSection]

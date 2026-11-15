@@ -26,10 +26,35 @@ final class LegacyLengthEngine: MenuBarEngine {
     // for a working user. The action lands once this log calibrates the signal.
     private var hideMechanismChecked = false
 
+    // The recovery patches (#224, #242) apply up to macOS 26, where this engine
+    // hides. On 27 (the App Store build) inflating is ejected anyway, and
+    // nothing changes there.
+    private let osMajorVersion: Int
+
     init(items: MenuBarItemProvider,
-         screenWidths: @escaping () -> [CGFloat] = { NSScreen.screens.map { $0.frame.width } }) {
+         screenWidths: @escaping () -> [CGFloat] = { NSScreen.screens.map { $0.frame.width } },
+         osMajorVersion: Int = ProcessInfo.processInfo.operatingSystemVersion.majorVersion) {
         self.items = items
         self.screenWidths = screenWidths
+        self.osMajorVersion = osMajorVersion
+    }
+
+    private var appliesRecoveryPatches: Bool {
+        return osMajorVersion < 27
+    }
+
+    // The always-hidden section used to stay hidden only while "hide
+    // separators" was on (Option-click), so with the default it showed on every
+    // expand (#224). Every collapse now hides it again; Option-click shows it
+    // until the next collapse.
+    func separatorsHiddenForCollapse(current: Bool) -> Bool {
+        return appliesRecoveryPatches ? true : current
+    }
+
+    // "Show everything" in the arrow's menu: expand and show the always-hidden
+    // section too, for icons the user lost there (#242).
+    var offersShowEverything: Bool {
+        return appliesRecoveryPatches
     }
 
     // Derived from the live length rather than stored, and compared with > rather

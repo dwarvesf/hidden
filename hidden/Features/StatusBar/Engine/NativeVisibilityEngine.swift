@@ -100,7 +100,16 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // Apps that started since a read last listed them.
     private var launchedSinceRead: Set<String> = []
     private let workspaceNotifications: NotificationCenter?
-    private var workspaceObservers: [NSObjectProtocol] = []
+    // Starts and quits of agent apps (no Dock icon), which NSWorkspace does
+    // not post; most menu-bar apps are agents. Fed only with pinned sections on.
+    private let agentLaunches: NotificationCenter?
+    private var workspaceObservers: [(NotificationCenter, NSObjectProtocol)] = []
+
+    // Pinned sections (beta): with it on, the table decides each app's section
+    // and a read only edits it (PinnedSectionResolver). Off, sections come from
+    // positions as in v1.11.2.
+    private let pinnedSections: MenuBarSectionMemory
+    private let pinsSections: () -> Bool
 
     // Items right of the arrow that the allow-list cannot keep visible: an item
     // whose owner has no bundle id, or a system extra no system item id covers
@@ -128,8 +137,14 @@ final class NativeVisibilityEngine: MenuBarEngine {
          pausesHidingForUnkeepableItems: @escaping () -> Bool = { false },
          expandsWhenCaptureStarts: @escaping () -> Bool = { true },
          sectionMemory: MenuBarSectionMemory = InMemorySectionMemory(),
-         workspaceNotifications: NotificationCenter? = nil) {
+         workspaceNotifications: NotificationCenter? = nil,
+         pinnedSections: MenuBarSectionMemory = InMemorySectionMemory(),
+         pinsSections: @escaping () -> Bool = { false },
+         agentLaunches: NotificationCenter? = nil) {
         self.items = items
+        self.agentLaunches = agentLaunches
+        self.pinnedSections = pinnedSections
+        self.pinsSections = pinsSections
         self.pausesHidingForUnkeepableItems = pausesHidingForUnkeepableItems
         self.inventory = inventory
         self.visibility = visibility
@@ -152,7 +167,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     }
 
     deinit {
-        workspaceObservers.forEach { workspaceNotifications?.removeObserver($0) }
+        workspaceObservers.forEach { center, observer in center.removeObserver(observer) }
     }
 
     func collapse(completion: @escaping (CollapseResult) -> Void) {
@@ -241,8 +256,18 @@ final class NativeVisibilityEngine: MenuBarEngine {
         }
     }
 
+    // With pinned sections an app can be always hidden without the separator
+    // (Preferences sets it), so a pinned always-hidden app counts too.
     private var hidesAlwaysHiddenSection: Bool {
-        return alwaysHiddenEnabled && alwaysHiddenSeparatorHidden
+        let hasSection = alwaysHiddenEnabled
+            || (pinsSections() && pinnedSections.sections.values.contains(.alwaysHidden))
+        return hasSection && alwaysHiddenSeparatorHidden
+    }
+
+    // Pinned sections hide the always-hidden section again at every collapse,
+    // so an expand never shows it unless Option-click revealed it since (#224).
+    func separatorsHiddenForCollapse(current: Bool) -> Bool {
+        return pinsSections() ? true : current
     }
 
     // Where macOS 27 knows an app by its bundle id: /Applications (and folders
@@ -344,11 +369,21 @@ final class NativeVisibilityEngine: MenuBarEngine {
             } else {
                 self.lastCompleteLayout = layout
             }
-            self.sectionMemory.sections.merge(layout.sections) { _, read in read }
+            if self.pinsSections() {
+                var observed = self.sectionMemory.sections
+                var table = self.pinnedSections.sections
+                layout.sections = PinnedSectionResolver.resolve(read: layout.sections,
+                                                                launchedSinceRead: self.launchedSinceRead,
+                                                                observed: &observed, table: &table)
+                self.sectionMemory.sections = observed
+                self.pinnedSections.sections = table
+            } else {
+                self.sectionMemory.sections.merge(layout.sections) { _, read in read }
+            }
             self.launchedSinceRead.subtract(layout.sections.keys)
             for bundle in self.launchedSinceRead {
                 // Started, but its icon was not listed yet.
-                layout.sections[bundle] = self.sectionMemory.sections[bundle] ?? .visible
+                layout.sections[bundle] = self.rememberedSection(of: bundle)
             }
             NSLog("NativeVisibility: arrow at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
             if !layout.unnameableVisibleItems.isEmpty || !layout.unprovenVisibleSystemItems.isEmpty {
@@ -548,18 +583,19 @@ final class NativeVisibilityEngine: MenuBarEngine {
     }
 
     private func observeLaunches() {
-        guard let center = workspaceNotifications else { return }
         func bundle(_ note: Notification) -> String? {
             return (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
         }
-        workspaceObservers = [
-            center.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] note in
-                bundle(note).map { self?.applicationLaunched($0) }
-            },
-            center.addObserver(forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main) { [weak self] note in
-                bundle(note).map { self?.applicationTerminated($0) }
-            }
-        ]
+        for center in [workspaceNotifications, agentLaunches].compactMap({ $0 }) {
+            workspaceObservers += [
+                (center, center.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] note in
+                    bundle(note).map { self?.applicationLaunched($0) }
+                }),
+                (center, center.addObserver(forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main) { [weak self] note in
+                    bundle(note).map { self?.applicationTerminated($0) }
+                })
+            ]
+        }
     }
 
     // A held restriction allows only the apps it was given, so an app that
@@ -572,9 +608,39 @@ final class NativeVisibilityEngine: MenuBarEngine {
               !MenuBarLayoutResolver.systemItemOwners.contains(bundle) else { return }
         launchedSinceRead.insert(bundle)
         guard var layout = layout, layout.sections[bundle] == nil else { return }
-        layout.sections[bundle] = sectionMemory.sections[bundle] ?? .visible
+        layout.sections[bundle] = rememberedSection(of: bundle)
         self.layout = layout
         allowLaunchedAppsIfIdle()
+    }
+
+    // The section of an app no read lists yet: its pinned one with the beta on,
+    // else where it was last read; visible when neither knows it.
+    private func rememberedSection(of bundle: String) -> MenuBarSection {
+        if pinsSections() {
+            return pinnedSections.sections[bundle] ?? PinnedSectionResolver.newAppSection
+        }
+        return sectionMemory.sections[bundle] ?? .visible
+    }
+
+    // Preferences changed the pinned sections: apply them to the held
+    // restriction at once. A collapse or expand in flight applies them when it
+    // lands. Apps no read listed yet keep the section they were given.
+    func pinnedSectionsDidChange() {
+        guard pinsSections(), var layout = layout else { return }
+        let table = pinnedSections.sections
+        for bundle in layout.sections.keys {
+            if let pinned = table[bundle] { layout.sections[bundle] = pinned }
+        }
+        self.layout = layout
+        NSLog("NativeVisibility: pinned sections changed; visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
+        switch state {
+        case .collapsed:
+            allowLaunchedAppsIfIdle()
+        case .expanded:
+            applyExpandedPresentation()
+        case .calibrating, .unavailable:
+            break
+        }
     }
 
     func applicationTerminated(_ bundle: String) {
@@ -660,6 +726,47 @@ final class NativeVisibilityEngine: MenuBarEngine {
     }
 }
 
+// NSWorkspace posts didLaunch/didTerminateApplication only for apps with a
+// Dock icon, and most menu-bar apps are agents (LSUIElement) it skips. Watching
+// runningApplications sees every app; this posts the agents' starts and quits
+// as those same notifications. Apps with a Dock icon are left to NSWorkspace,
+// so no start is reported twice or out of order.
+final class AgentLaunchNotifications: NotificationCenter, @unchecked Sendable {
+    private var observation: NSKeyValueObservation?
+
+    init(workspace: NSWorkspace = .shared, isActive: @escaping () -> Bool) {
+        super.init()
+        observation = workspace.observe(\.runningApplications, options: [.old, .new]) { [weak self] _, change in
+            guard let self = self, isActive() else { return }
+            let notes = Self.notifications(kind: change.kind, inserted: change.newValue ?? [], removed: change.oldValue ?? [],
+                                           isAgent: { $0.activationPolicy != .regular })
+            DispatchQueue.main.async {
+                for (name, app) in notes {
+                    self.post(name: name, object: nil, userInfo: [NSWorkspace.applicationUserInfoKey: app])
+                }
+            }
+        }
+    }
+
+    // Reported with or without pinned sections: without them, the launch
+    // handling for apps that start while collapsed (#446) misses every agent.
+    static func isActive(pinnedSectionsEnabled: Bool) -> Bool {
+        return true
+    }
+
+    static func notifications<App>(kind: NSKeyValueChange, inserted: [App], removed: [App],
+                                   isAgent: (App) -> Bool) -> [(Notification.Name, App)] {
+        switch kind {
+        case .insertion:
+            return inserted.filter(isAgent).map { (NSWorkspace.didLaunchApplicationNotification, $0) }
+        case .removal:
+            return removed.filter(isAgent).map { (NSWorkspace.didTerminateApplicationNotification, $0) }
+        default:
+            return []
+        }
+    }
+}
+
 extension Notification.Name {
     // Posted on the main queue when NativeVisibilityEngine.knownUnkeepableSystemItems changes.
     static let unkeepableSystemItemsChanged = Notification.Name("unkeepableSystemItemsChanged")
@@ -693,7 +800,11 @@ extension NativeVisibilityEngine {
             "debugAlwaysHiddenX": Self.debugAlwaysHiddenX.map { Double($0) } ?? NSNull(),
             "clockTimeline": ClockFlashTimeline.snapshot,
             "notificationCenterSession": ["active": notificationCenter.isActive,
-                                          "expandedBar": notificationCenter.expandedBar]
+                                          "expandedBar": notificationCenter.expandedBar],
+            "pinsSections": pinsSections(),
+            "pinnedSections": pinnedSections.sections.mapValues { String(describing: $0) },
+            "observedSections": sectionMemory.sections.mapValues { String(describing: $0) },
+            "launchedSinceRead": launchedSinceRead.sorted()
         ]
     }
 

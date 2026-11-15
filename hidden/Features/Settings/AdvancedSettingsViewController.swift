@@ -40,6 +40,13 @@ final class AdvancedSettingsViewController: SettingsPaneController {
             macOSAlsoHidesCaption = Self.captionLabel(in: row)
             rows.append(row)
             onRefresh { [weak self] in self?.refreshMacOSAlsoHides() }
+
+            let pinned = boundSwitch(UserDefaults.Key.pinnedSectionsEnabled,
+                                     read: { Preferences.pinnedSectionsEnabled },
+                                     write: { Preferences.pinnedSectionsEnabled = $0 })
+            rows.append(SettingsForm.row("Pinned sections (beta)".localized,
+                                         caption: "Keeps each app in the section you pick in Menu Bar Apps, also after it restarts. Applies at the next collapse.".localized,
+                                         control: pinned))
         }
 
         let method = NSTextField(labelWithString: (context.usesNativeEngine ? "macOS 27 visibility" : "Separator").localized)

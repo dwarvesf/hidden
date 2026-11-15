@@ -29,12 +29,14 @@ final class SettingsWindowTests: XCTestCase {
         UserDefaults.Key.notchOverflowEnabled,             // Enable Notch Overflow (notch Macs)
         UserDefaults.Key.pauseHidingForUnkeepableItems,    // macOS 27 direct only
         UserDefaults.Key.showWholeBarWhenCaptureStarts,    // macOS 27 direct only
+        UserDefaults.Key.pinnedSectionsEnabled,            // Pinned sections (beta), macOS 27 direct only
         "SUEnableAutomaticChecks",                         // Sparkle, direct only
     ]
     static let legacyOtherKeys = [
         UserDefaults.Key.isAutoHide, UserDefaults.Key.numberOfSecondForAutoHide, // checkbox + delay popup
         UserDefaults.Key.arrowStyle,                                              // arrow style popup
         UserDefaults.Key.globalKey,                                               // global shortcut
+        UserDefaultsPinnedSections.key,                                           // Menu Bar Apps section popups (beta)
     ]
 
     private var saved: [String: Any] = [:]
@@ -44,6 +46,8 @@ final class SettingsWindowTests: XCTestCase {
         for key in Self.legacyBoolKeys + Self.legacyOtherKeys {
             saved[key] = UserDefaults.standard.object(forKey: key)
         }
+        // The app registers the pane at launch; each test decides.
+        MenuBarAppsPane.makeViewController = nil
     }
 
     override func tearDown() {
@@ -180,7 +184,8 @@ final class SettingsWindowTests: XCTestCase {
         var context = fullContext()
         context.build = .appStore
         let views = allViews(PreferencesWindowController(context: context))
-        for key in [UserDefaults.Key.pauseHidingForUnkeepableItems, UserDefaults.Key.showWholeBarWhenCaptureStarts, "SUEnableAutomaticChecks"] {
+        for key in [UserDefaults.Key.pauseHidingForUnkeepableItems, UserDefaults.Key.showWholeBarWhenCaptureStarts,
+                    UserDefaults.Key.pinnedSectionsEnabled, "SUEnableAutomaticChecks"] {
             XCTAssertNil(control(key, in: views), "\(key) shows in the App Store build")
         }
         XCTAssertNil(control(AboutViewController.checkForUpdatesIdentifier.rawValue, in: views))
@@ -206,6 +211,50 @@ final class SettingsWindowTests: XCTestCase {
         XCTAssertNil(controller.window?.toolbar, "a toolbar brings back the glass item platters")
         XCTAssertEqual((0..<controller.tabControl.segmentCount).map { controller.tabControl.label(forSegment: $0) },
                        controller.tabs.map { $0.titleKey.localized })
+    }
+
+    // Given the pinned sections beta with two known apps
+    // When picking a section in an app's popup, then clicking Reset
+    // Then the table under the pinnedSections key follows, and nothing else is written
+    func test_menuBarApps_popupsAndResetWriteThePinnedTable() throws {
+        UserDefaults.standard.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        UserDefaults.standard.set(["com.test.a": MenuBarSection.hidden.rawValue, "com.test.b": MenuBarSection.visible.rawValue],
+                                  forKey: UserDefaultsPinnedSections.key)
+        var context = fullContext()
+        MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: context) }
+        context.menuBarAppsAvailable = true
+        let controller = PreferencesWindowController(context: context)
+        windows.append(controller)
+        let views = Self.subviews(of: controller.pane(.menuBarApps).view)
+
+        let popup = try XCTUnwrap(control(MenuBarAppsSettingsViewController.popupIdentifier(for: "com.test.a"), in: views) as? NSPopUpButton)
+        XCTAssertEqual(popup.selectedItem?.tag, MenuBarSection.hidden.rawValue)
+        popup.selectItem(withTag: MenuBarSection.alwaysHidden.rawValue)
+        popup.sendAction(popup.action, to: popup.target)
+        XCTAssertEqual(UserDefaults.standard.dictionary(forKey: UserDefaultsPinnedSections.key) as? [String: Int],
+                       ["com.test.a": MenuBarSection.alwaysHidden.rawValue, "com.test.b": MenuBarSection.visible.rawValue])
+
+        let views2 = Self.subviews(of: controller.pane(.menuBarApps).view)
+        let reset = try XCTUnwrap(views2.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "pinnedSectionsReset" })
+        reset.performClick(nil)
+        XCTAssertEqual(UserDefaults.standard.dictionary(forKey: UserDefaultsPinnedSections.key) as? [String: Int],
+                       ["com.test.a": 0, "com.test.b": 0])
+    }
+
+    // Given the beta off
+    // When opening Menu Bar Apps
+    // Then it says so and lists no app
+    func test_menuBarApps_offShowsNoList() {
+        UserDefaults.standard.set(false, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        UserDefaults.standard.set(["com.test.a": MenuBarSection.hidden.rawValue], forKey: UserDefaultsPinnedSections.key)
+        var context = fullContext()
+        MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: context) }
+        context.menuBarAppsAvailable = true
+        let controller = PreferencesWindowController(context: context)
+        windows.append(controller)
+        let views = Self.subviews(of: controller.pane(.menuBarApps).view)
+        XCTAssertNil(control(MenuBarAppsSettingsViewController.popupIdentifier(for: "com.test.a"), in: views))
+        XCTAssertTrue(views.contains { ($0 as? NSTextField)?.stringValue == "Pinned sections is off".localized })
     }
 
     // Given each tab
