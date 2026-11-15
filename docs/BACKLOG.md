@@ -20,7 +20,7 @@ collapse state machine) are HIGH RISK and require a mandatory review-team pass.
   the App Store build (shared prefs, the two cannot coexist). Confirm that is the
   decision, or move the direct build to `com.dwarvesv.minimalbar.direct`.
 
-## Shipped
+## Merged, not yet a GitHub release
 
 - **1.13.0 candidate (all opt-in):** reveal without aiming, scroll, empty click, shake (#493);
   type-to-find palette (#505); arrivals inbox (#503); presentation mode with manual start and a
@@ -28,6 +28,9 @@ collapse state machine) are HIGH RISK and require a mandatory review-team pass.
   pane scrolls (#504).
 - **1.12.0:** redesigned Settings, pinned sections (beta) on macOS 27, Ignore drags, Icons list
   clean-up, Shift-click full bar, the system overflow notice (#473, #481, #487, #488, #495, #498).
+
+## Shipped
+
 - **1.11.2:** the macOS 27 fixes, Sparkle auto-update, arrow styles, the microphone and camera
   fix. v1.11.1 shipped without Sparkle; the first Sparkle-capable release carried the signed zip
   and `appcast.xml` (`docs/RUNBOOK.md`).
