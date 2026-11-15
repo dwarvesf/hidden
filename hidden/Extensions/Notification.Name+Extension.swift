@@ -15,4 +15,5 @@ extension Notification.Name {
     static let useFullStatusBarToggle = Notification.Name("useFullStatusBarToggle")
     static let stealthExpandIconToggle = Notification.Name("stealthExpandIconToggle")
     static let arrowStyleChanged = Notification.Name("arrowStyleChanged")
+    static let accessibilityPermissionChanged = Notification.Name("accessibilityPermissionChanged")
 }

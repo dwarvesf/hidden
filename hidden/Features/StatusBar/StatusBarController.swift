@@ -84,6 +84,7 @@ class StatusBarController: MenuBarItemProvider {
         NotificationCenter.default.addObserver(self, selector: #selector(syncActivationPolicyWithFullStatusBar), name: .useFullStatusBarToggle, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(refreshArrow), name: .stealthExpandIconToggle, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(refreshArrow), name: .arrowStyleChanged, object: nil)
+        watchAccessibilityPermission()
         #if DEBUG
         installDebugHooks()
         #endif
@@ -167,6 +168,16 @@ class StatusBarController: MenuBarItemProvider {
         }
         if Preferences.areSeparatorsHidden { hideSeparators() }
         collapseMenuBar()
+    }
+
+    // macOS 27: Preferences shows the missing permission, and a grant hides at
+    // once instead of after the next click or a relaunch.
+    private func watchAccessibilityPermission() {
+        let permission = AccessibilityPermission.shared
+        permission.onChange = {
+            NotificationCenter.default.post(name: .accessibilityPermissionChanged, object: nil)
+        }
+        permission.onRestored = { [weak self] in self?.collapseMenuBar() }
     }
 
     private func setupUI() {
@@ -275,6 +286,11 @@ class StatusBarController: MenuBarItemProvider {
         if isToggle {return}
         isToggle = true
         menuBarEngine.userChangedBar()
+        // Without Accessibility the collapse below hides nothing; show the
+        // Preferences, which explain what is missing, instead of a dead click.
+        if AccessibilityPermission.shared.arrowClickOpensPreferences(isCollapsed: isCollapsed) {
+            Util.showPrefWindow()
+        }
         self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             self?.isToggle = false

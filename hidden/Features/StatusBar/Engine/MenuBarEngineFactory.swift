@@ -14,7 +14,7 @@ enum MenuBarEngineFactory {
         // direct build hides natively there instead. The App Store build cannot:
         // the sandbox blocks the Accessibility reads that locate the sections.
         #if HIDDENBAR_NATIVE_VISIBILITY
-        if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 {
+        if usesNativeVisibility {
             return NativeVisibilityEngine(items: items,
                                           captureActivity: CaptureActivityMonitor(),
                                           pausesHidingForUnkeepableItems: { Preferences.pauseHidingForUnkeepableItems },
@@ -24,4 +24,17 @@ enum MenuBarEngineFactory {
         #endif
         return LegacyLengthEngine(items: items)
     }
+
+    // Native hiding has no separator and needs the Accessibility permission.
+    static var usesNativeVisibility: Bool {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        return ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27
+        #else
+        return false
+        #endif
+    }
+}
+
+extension AccessibilityPermission {
+    static let shared = AccessibilityPermission(needsPermission: MenuBarEngineFactory.usesNativeVisibility)
 }

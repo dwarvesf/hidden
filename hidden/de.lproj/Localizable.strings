@@ -26,3 +26,5 @@ Zum Anzeigen der permanent ausgeblendeten Symbole:
 "Chevron" = "Chevron";
 "Dot" = "Dot";
 "Line" = "Line";
+"Hidden Bar needs Accessibility access to hide icons." = "Hidden Bar benötigt Bedienungshilfen-Zugriff, um Symbole auszublenden.";
+"Open Settings…" = "Einstellungen öffnen…";

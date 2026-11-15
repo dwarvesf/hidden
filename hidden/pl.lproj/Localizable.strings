@@ -26,3 +26,5 @@ Jak wyświetlić zawsze ukryte ikony:
 "Chevron" = "Chevron";
 "Dot" = "Dot";
 "Line" = "Line";
+"Hidden Bar needs Accessibility access to hide icons." = "Hidden Bar needs Accessibility access to hide icons.";
+"Open Settings…" = "Open Settings…";

@@ -67,6 +67,7 @@ class PreferencesViewController: NSViewController {
         #endif
         #if HIDDENBAR_NATIVE_VISIBILITY
         addMacOS27Rows()
+        addAccessibilityBanner()
         #endif
     }
 
@@ -152,6 +153,32 @@ class PreferencesViewController: NSViewController {
     @objc private func pauseHidingChanged(_ sender: NSButton) {
         Preferences.pauseHidingForUnkeepableItems = sender.state == .on
     }
+
+    // macOS 27: without Accessibility the arrow cannot hide anything. Say so at
+    // the top of the settings, with a way to the switch, until it is granted.
+    private var accessibilityBanner: NSView?
+
+    private func addAccessibilityBanner() {
+        guard let stack = checkBoxLogin.superview as? NSStackView else { return }
+        let label = NSTextField(wrappingLabelWithString: "Hidden Bar needs Accessibility access to hide icons.".localized)
+        label.textColor = .systemOrange
+        let button = NSButton(title: "Open Settings…".localized, target: self, action: #selector(openAccessibilitySettings(_:)))
+        let row = NSStackView(views: [label, button])
+        row.orientation = .horizontal
+        row.spacing = 8
+        stack.insertArrangedSubview(row, at: 0)
+        accessibilityBanner = row
+        NotificationCenter.default.addObserver(self, selector: #selector(updateAccessibilityBanner), name: .accessibilityPermissionChanged, object: nil)
+        updateAccessibilityBanner()
+    }
+
+    @objc private func updateAccessibilityBanner() {
+        accessibilityBanner?.isHidden = !AccessibilityPermission.shared.isMissing
+    }
+
+    @objc private func openAccessibilitySettings(_ sender: NSButton) {
+        AccessibilityPermission.openSystemSettings()
+    }
     #endif
 
     private var statusBarBelowToolbar: NSLayoutConstraint?
@@ -169,6 +196,7 @@ class PreferencesViewController: NSViewController {
         NotificationCenter.default.removeObserver(self, name: .prefsChanged, object: nil)
         #if HIDDENBAR_NATIVE_VISIBILITY
         NotificationCenter.default.removeObserver(self, name: .unkeepableSystemItemsChanged, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .accessibilityPermissionChanged, object: nil)
         #endif
     }
 
