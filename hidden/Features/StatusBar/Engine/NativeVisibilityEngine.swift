@@ -246,10 +246,11 @@ final class NativeVisibilityEngine: MenuBarEngine {
     }
 
     // Where macOS 27 knows an app by its bundle id: /Applications (and folders
-    // in it, such as Setapp's) or ~/Applications. Symlinks are resolved first.
+    // in it, such as Setapp's). Not ~/Applications: run from there, the arrow
+    // still disappears on collapse. Symlinks are resolved first.
     static func isInApplicationsFolder(_ bundleURL: URL,
                                        applicationFolders: [URL] = FileManager.default.urls(for: .applicationDirectory,
-                                                                                            in: [.localDomainMask, .userDomainMask])) -> Bool {
+                                                                                            in: .localDomainMask)) -> Bool {
         let path = bundleURL.resolvingSymlinksInPath().standardizedFileURL.path
         return applicationFolders.contains { folder in
             path.hasPrefix(folder.resolvingSymlinksInPath().standardizedFileURL.path + "/")

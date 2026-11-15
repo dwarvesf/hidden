@@ -30,6 +30,14 @@
 "Hidden Bar is running from outside Applications. The copy already in Applications goes to the Trash, then Hidden Bar relaunches from there." = "Hidden Bar is running from outside Applications. The copy already in Applications goes to the Trash, then Hidden Bar relaunches from there.";
 "Hidden Bar is running from outside Applications. Move it there so it keeps working after you empty Downloads, then relaunch." = "Hidden Bar is running from outside Applications. Move it there so it keeps working after you empty Downloads, then relaunch.";
 "Move to Applications" = "Move to Applications";
+"Hidden Bar from the App Store is running. Quit it and switch to this version?" = "Hidden Bar from the App Store is running. Quit it and switch to this version?";
+"Only one Hidden Bar can run at a time. The App Store version stays installed until you choose otherwise." = "Only one Hidden Bar can run at a time. The App Store version stays installed until you choose otherwise.";
+"Quit and Switch" = "Quit and Switch";
+"Cancel" = "Cancel";
+"OK" = "OK";
+"Hidden Bar can hide icons only from /Applications" = "Hidden Bar can hide icons only from /Applications";
+"The App Store copy is in /Applications. Quit Hidden Bar, move /Applications/Hidden Bar.app to the Trash, drag this copy into Applications, then open it from there." = "The App Store copy is in /Applications. Quit Hidden Bar, move /Applications/Hidden Bar.app to the Trash, drag this copy into Applications, then open it from there.";
+"This account can't add apps to /Applications. Ask an administrator to drag Hidden Bar into /Applications, then open it from there." = "This account can't add apps to /Applications. Ask an administrator to drag Hidden Bar into /Applications, then open it from there.";
 "Set Shortcut" = "Set Shortcut";
 "Show Notch Items" = "Show Notch Items";
 "Notch Overflow" = "Notch Overflow";
