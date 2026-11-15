@@ -1553,6 +1553,54 @@ final class LegacyLengthEngineTests: XCTestCase {
     }
 }
 
+// MARK: - Arrangement order (#336, PR #381)
+
+final class MenuBarOrderTests: XCTestCase {
+    // Given macOS 26 right after launch, every status item still at (0, 0)
+    // When the controller checks that the separator sits on the arrow's hidden side
+    // Then the check refuses, so the launch collapse cannot hide the arrow itself
+    func testUnplacedItemsAreNotAValidArrangement() {
+        for leftToRight in [true, false] {
+            XCTAssertFalse(MenuBarOrder.isOrigin(.zero, onHiddenSideOf: .zero, leftToRight: leftToRight))
+            XCTAssertFalse(MenuBarOrder.isOrigin(.zero, onHiddenSideOf: CGPoint(x: 1200, y: 1093), leftToRight: leftToRight))
+            XCTAssertFalse(MenuBarOrder.isOrigin(CGPoint(x: 1200, y: 1093), onHiddenSideOf: .zero, leftToRight: leftToRight))
+            XCTAssertFalse(MenuBarOrder.isOrigin(nil, onHiddenSideOf: CGPoint(x: 1200, y: 1093), leftToRight: leftToRight))
+        }
+        XCTAssertFalse(MenuBarOrder.isPlaced(CGPoint.zero))
+        XCTAssertFalse(MenuBarOrder.isPlaced(nil as CGPoint?))
+    }
+
+    // The geometry #381 measured a second later on 26.5.2: a stale saved order put
+    // the arrow (x -2991) left of the separator (x -2566), inside the hidden zone.
+    func testArrowInsideTheHiddenZoneIsRefused() {
+        let arrow = CGPoint(x: -2991, y: 1307)
+        let separator = CGPoint(x: -2566, y: 1307)
+        XCTAssertFalse(MenuBarOrder.isOrigin(separator, onHiddenSideOf: arrow, leftToRight: true))
+        XCTAssertTrue(MenuBarOrder.isPlaced(arrow))
+    }
+
+    func testPlacedItemsKeepTheirOrderInBothDirections() {
+        let left = CGPoint(x: 1300, y: 1093)
+        let right = CGPoint(x: 1340, y: 1093)
+        XCTAssertTrue(MenuBarOrder.isOrigin(left, onHiddenSideOf: right, leftToRight: true))
+        XCTAssertFalse(MenuBarOrder.isOrigin(right, onHiddenSideOf: left, leftToRight: true))
+        XCTAssertTrue(MenuBarOrder.isOrigin(right, onHiddenSideOf: left, leftToRight: false))
+        XCTAssertFalse(MenuBarOrder.isOrigin(left, onHiddenSideOf: right, leftToRight: false))
+        // A display left of the primary one has negative x; still placed.
+        XCTAssertTrue(MenuBarOrder.isOrigin(CGPoint(x: -400, y: 1093), onHiddenSideOf: CGPoint(x: -360, y: 1093), leftToRight: true))
+    }
+
+    // Status items that macOS has not put in the menu bar have no position, so the
+    // legacy engine reports the arrangement unknown and the launch collapse waits.
+    func testLegacyArrangementIsUnknownUntilTheItemsArePlaced() {
+        let items = FakeItems()
+        let engine = LegacyLengthEngine(items: items)
+        XCTAssertFalse(engine.isArrangementKnown)
+        XCTAssertFalse(engine.isArrangementValid, "never valid while unknown")
+        XCTAssertFalse(engine.isAlwaysHiddenSeparatorPlaced)
+    }
+}
+
 // MARK: - Inventory retry
 
 final class AccessibilityInventoryRetryTests: XCTestCase {

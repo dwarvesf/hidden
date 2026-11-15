@@ -81,6 +81,10 @@ final class LegacyLengthEngine: MenuBarEngine {
         return MenuBarOrder.isItem(items?.alwaysHiddenItem, onHiddenSideOf: items?.separatorItem)
     }
 
+    var isArrangementKnown: Bool {
+        return MenuBarOrder.isPlaced(items?.toggleItem) && MenuBarOrder.isPlaced(items?.separatorItem)
+    }
+
     // Each section is hidden on its own: an expanded bar can still have the
     // always-hidden section hidden, and its spacer must cover a newly attached
     // wider display too. Only inflated items are touched, so each keeps its state.

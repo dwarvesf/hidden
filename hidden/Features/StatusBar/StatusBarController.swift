@@ -91,8 +91,7 @@ class StatusBarController: MenuBarItemProvider {
         // them back in place (the always-hidden separator may have been taken
         // out of the bar when the app quit).
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            if Preferences.areSeparatorsHidden { self?.hideSeparators() }
-            self?.collapseMenuBar()
+            self?.collapseAtLaunch(retriesLeft: 16)
         }
 
         autoCollapseIfNeeded()
@@ -155,6 +154,19 @@ class StatusBarController: MenuBarItemProvider {
             native.expandBar = { [weak self] in self?.expandMenubar() }
             native.collapseBar = { [weak self] in self?.collapseMenuBar() }
         }
+    }
+
+    // macOS 26 can take more than the first second to place the items; the order
+    // checks refuse until then, so retry for up to 4 s more, then let them decide.
+    private func collapseAtLaunch(retriesLeft: Int) {
+        if !menuBarEngine.isArrangementKnown && retriesLeft > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                self?.collapseAtLaunch(retriesLeft: retriesLeft - 1)
+            }
+            return
+        }
+        if Preferences.areSeparatorsHidden { hideSeparators() }
+        collapseMenuBar()
     }
 
     private func setupUI() {
