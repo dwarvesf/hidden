@@ -11,6 +11,7 @@ Please note we have a code of conduct, please follow it in all your interactions
    build.
 2. Please fully test whether the existing features are affected by your modifications.
 3. Follow the git-flow workflow. You can see more about git-flow [here](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)
+4. Pull requests must pass CI (both schemes build and test); run `scripts/test.sh` locally first.
 
 ### Branch name convention
 
