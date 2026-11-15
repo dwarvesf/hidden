@@ -163,6 +163,7 @@ class StatusBarController: MenuBarItemProvider {
         if let native = menuBarEngine as? NativeVisibilityEngine {
             native.expandBar = { [weak self] in self?.expandMenubar() }
             native.collapseBar = { [weak self] in self?.collapseMenuBar() }
+            native.expandBarForCapture = { [weak self] in self?.expandMenubar(activatingApp: false) }
         }
     }
 
@@ -355,7 +356,7 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
 
-    private func expandMenubar() {
+    private func expandMenubar(activatingApp: Bool = true) {
         guard self.isCollapsed else {return}
         menuBarEngine.expand()
         if let button = btnExpandCollapse.button {
@@ -364,7 +365,7 @@ class StatusBarController: MenuBarItemProvider {
         popupGuard.reset()
         autoCollapseIfNeeded()
         
-        if Preferences.useFullStatusBarOnExpandEnabled {
+        if activatingApp && Preferences.useFullStatusBarOnExpandEnabled {
             NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
             
@@ -558,6 +559,8 @@ extension StatusBarController {
         case "always-hidden-boundary":
             NativeVisibilityEngine.debugAlwaysHiddenX = argument.flatMap(Double.init).map { CGFloat($0) }
             menuBarEngine.invalidateLayout()
+        case "install-location-check":
+            NativeVisibilityEngine.debugChecksInstallLocation = argument == "on"
         case "click-clock":
             debugClickClock(pressingWithAX: argument == "ax")
         case "dump-state":

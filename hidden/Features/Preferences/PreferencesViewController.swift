@@ -126,6 +126,7 @@ class PreferencesViewController: NSViewController {
     // arrow, and the opt-in to keep the whole bar shown while they are there.
     private var labelMacOSAlsoHides: NSTextField?
     private var checkBoxPauseHiding: NSButton?
+    private var checkBoxShowOnCapture: NSButton?
 
     private func addMacOS27Rows() {
         guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27,
@@ -138,6 +139,10 @@ class PreferencesViewController: NSViewController {
         label.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         stack.insertArrangedSubview(checkBox, at: index + 1)
         stack.insertArrangedSubview(label, at: index + 2)
+        let captureCheckBox = NSButton(checkboxWithTitle: "Show the whole bar when the microphone or camera turns on".localized,
+                                       target: self, action: #selector(showOnCaptureChanged(_:)))
+        stack.insertArrangedSubview(captureCheckBox, at: index + 3)
+        checkBoxShowOnCapture = captureCheckBox
         checkBoxPauseHiding = checkBox
         labelMacOSAlsoHides = label
         NotificationCenter.default.addObserver(self, selector: #selector(updateMacOS27Rows), name: .unkeepableSystemItemsChanged, object: nil)
@@ -146,6 +151,7 @@ class PreferencesViewController: NSViewController {
 
     @objc private func updateMacOS27Rows() {
         checkBoxPauseHiding?.state = Preferences.pauseHidingForUnkeepableItems ? .on : .off
+        checkBoxShowOnCapture?.state = Preferences.showWholeBarWhenCaptureStarts ? .on : .off
         let names = NativeVisibilityEngine.knownUnkeepableSystemItems.map(NativeVisibilityEngine.displayName(ofSystemItem:))
         labelMacOSAlsoHides?.stringValue = String(format: "macOS 27 also hides: %@".localized, names.joined(separator: ", "))
         labelMacOSAlsoHides?.isHidden = names.isEmpty
@@ -153,6 +159,10 @@ class PreferencesViewController: NSViewController {
 
     @objc private func pauseHidingChanged(_ sender: NSButton) {
         Preferences.pauseHidingForUnkeepableItems = sender.state == .on
+    }
+
+    @objc private func showOnCaptureChanged(_ sender: NSButton) {
+        Preferences.showWholeBarWhenCaptureStarts = sender.state == .on
     }
 
     // macOS 27: without Accessibility the arrow cannot hide anything. Say so at
