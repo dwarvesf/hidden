@@ -48,6 +48,35 @@ class StatusBarController: MenuBarItemProvider {
     
     private var isToggle = false
 
+    // Reveal without aiming: scroll, click on empty space, pointer shake.
+    private lazy var revealController = RevealController(
+        host: RevealHost(
+            isCollapsed: { [weak self] in self?.isCollapsed ?? false },
+            isOwnMenuOpen: { [weak self] in self?.isShowingOwnMenu ?? false },
+            show: { [weak self] in
+                self?.menuBarEngine.userChangedBar()
+                self?.expandMenubar()
+            },
+            hide: { [weak self] in
+                self?.menuBarEngine.userChangedBar()
+                self?.collapseMenuBar(userInitiated: true)
+            },
+            hideOffMenuBar: { [weak self] in
+                guard let self = self, !self.defersCollapseApartFromPointer else { return }
+                self.menuBarEngine.userChangedBar()
+                self.collapseMenuBar()
+            }),
+        isEnabled: { trigger in
+            switch trigger {
+            case .scroll: return Preferences.revealOnScrollEnabled
+            case .click: return Preferences.revealOnEmptyClickEnabled
+            case .shake: return Preferences.revealOnShakeEnabled
+            }
+        },
+        screens: ScreenBand.live)
+    // True while the arrow's context menu is up.
+    private var isShowingOwnMenu = false
+
     private var hoverMonitor: Any?
     private var pinnedSectionsObserver: NSObjectProtocol?
     private var hoverDwellTimer: Timer?
@@ -80,7 +109,9 @@ class StatusBarController: MenuBarItemProvider {
         restoreRemovedStatusItems()
         setupAlwayHideStatusBar()
         syncHoverToExpand()
+        revealController.sync()
         NotificationCenter.default.addObserver(self, selector: #selector(syncHoverToExpand), name: .prefsChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(syncReveal), name: .prefsChanged, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenParametersChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateAutoHide), name: .prefsChanged, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(syncActivationPolicyWithFullStatusBar), name: .useFullStatusBarToggle, object: nil)
@@ -142,6 +173,11 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
     
+    // Same rule as hover: monitors exist only while their pref is on.
+    @objc private func syncReveal() {
+        revealController.sync()
+    }
+
     @objc private func handleScreenParametersChanged() {
         // Re-apply the recomputed length to the LIVE item when collapsed, or a
         // display hot-plug leaves the separator at a stale length (PR #354).
@@ -269,6 +305,8 @@ class StatusBarController: MenuBarItemProvider {
     // on-screen space, growing downward from below the button.
     private func showContextMenu(from button: NSStatusBarButton) {
         let menu = getContextMenu()
+        isShowingOwnMenu = true
+        defer { isShowingOwnMenu = false }
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: 0), in: button)
     }
     
@@ -377,6 +415,7 @@ class StatusBarController: MenuBarItemProvider {
             NSApp.deactivate()
         }
         fullBarThisExpansion = false
+        revealController.barDidCollapse()
         #if HIDDENBAR_NATIVE_VISIBILITY
         if userInitiated {
             SystemOverflowNotice.shared.checkAfterCollapse(arrow: btnExpandCollapse,
@@ -423,6 +462,13 @@ class StatusBarController: MenuBarItemProvider {
         startTimerToAutoHide()
     }
 
+    // What holds an auto-collapse back besides the pointer sitting in the menu bar.
+    // A popup hanging from the menu bar (#319) defers for up to 10 minutes; the
+    // window list is read last, only when nothing else defers.
+    private var defersCollapseApartFromPointer: Bool {
+        return isPreferencesWindowVisible || menuBarEngine.defersAutoCollapse || popupGuard.defersCollapse()
+    }
+
     private func startTimerToAutoHide() {
         timer?.invalidate()
         self.timer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] _ in
@@ -434,8 +480,7 @@ class StatusBarController: MenuBarItemProvider {
             // from the clock collapses the bar itself once it closes. A popup
             // hanging from the menu bar (#319) defers too, for up to 10 minutes;
             // the window list is read last, only when nothing else defers.
-            if self.isMouseInMenuBar || self.isPreferencesWindowVisible || self.menuBarEngine.defersAutoCollapse
-                || self.popupGuard.defersCollapse() {
+            if self.isMouseInMenuBar || self.defersCollapseApartFromPointer {
                 self.startTimerToAutoHide()
             } else {
                 self.collapseMenuBar()
@@ -637,6 +682,9 @@ extension StatusBarController {
             showEverything()
         case "click-clock":
             debugClickClock(pressingWithAX: argument == "ax")
+        case "reveal-sim":
+            // What a real scroll, click or shake runs: "scroll", "scroll-up", "click" or "shake".
+            revealController.simulate(argument ?? "")
         case "dump-state":
             break
         default:
@@ -740,6 +788,7 @@ extension StatusBarController {
         if let engine = menuBarEngine as? NativeVisibilityEngine {
             state.merge(engine.debugState) { $1 }
         }
+        state.merge(revealController.debugState) { $1 }
         do {
             let data = try JSONSerialization.data(withJSONObject: state, options: [.prettyPrinted, .sortedKeys])
             try data.write(to: URL(fileURLWithPath: path))

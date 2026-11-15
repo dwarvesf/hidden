@@ -108,6 +108,44 @@ enum Preferences {
         }
     }
 
+    // Reveal without aiming at the arrow: each gesture is its own opt-in switch.
+    // Scroll down on the menu bar shows the hidden icons, scroll up hides them.
+    static var revealOnScrollEnabled: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.revealOnScrollEnabled)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.revealOnScrollEnabled)
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
+
+    // A click on empty menu bar space shows them. Needs Accessibility to tell
+    // empty space from an icon, so the direct build only.
+    static var revealOnEmptyClickEnabled: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.revealOnEmptyClickEnabled)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.revealOnEmptyClickEnabled)
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
+
+    // Three quick side-to-side moves of the pointer inside the menu bar show them.
+    static var revealOnShakeEnabled: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.revealOnShakeEnabled)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.revealOnShakeEnabled)
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
+
     static var useFullStatusBarOnExpandEnabled: Bool {
         get {
             UserDefaults.standard.bool(forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)

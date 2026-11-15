@@ -101,8 +101,8 @@ class PreferencesViewController: SettingsPaneController {
                              caption: "A second group, left of the hidden icons, that stays hidden when you click the arrow.".localized,
                              control: alwaysHiddenControls),
             SettingsForm.row("Keyboard shortcut".localized, control: shortcutControls),
-            SettingsForm.row("Show icons when the pointer rests on the menu bar".localized, control: hover),
         ], spacingBefore: 16)
+        addRevealSection(hover: hover)
         loadHotkey()
 
         if context.usesNativeEngine {
@@ -122,6 +122,31 @@ class PreferencesViewController: SettingsPaneController {
 
         onRefresh { [weak self] in self?.refreshStatus() }
         refreshAll()
+    }
+
+    // The ways to show hidden icons without aiming at the arrow. Scroll and
+    // shake need no permission; telling empty space from an icon needs
+    // Accessibility, which the sandboxed App Store build cannot have, so the
+    // click row is the direct build's alone.
+    private func addRevealSection(hover: NSView) {
+        let scroll = boundSwitch(UserDefaults.Key.revealOnScrollEnabled, read: { Preferences.revealOnScrollEnabled },
+                                 write: { Preferences.revealOnScrollEnabled = $0 })
+        let shake = boundSwitch(UserDefaults.Key.revealOnShakeEnabled, read: { Preferences.revealOnShakeEnabled },
+                                write: { Preferences.revealOnShakeEnabled = $0 })
+        var rows = [
+            SettingsForm.row("Rest the pointer on the menu bar".localized, control: hover),
+            SettingsForm.row("Scroll down on the menu bar".localized,
+                             caption: "Scroll up to hide them again.".localized, control: scroll),
+        ]
+        if context.build == .direct {
+            let click = boundSwitch(UserDefaults.Key.revealOnEmptyClickEnabled, read: { Preferences.revealOnEmptyClickEnabled },
+                                    write: { Preferences.revealOnEmptyClickEnabled = $0 })
+            rows.append(SettingsForm.row("Click empty space in the menu bar".localized, control: click))
+        }
+        rows.append(SettingsForm.row("Shake the pointer at the top of the screen".localized,
+                                     caption: "Three quick side-to-side moves.".localized, control: shake))
+        addSection("Also show hidden icons when you".localized, rows: rows)
+        addFootnote("Clicking anywhere off the menu bar hides them again.".localized)
     }
 
     override func viewWillAppear() {
