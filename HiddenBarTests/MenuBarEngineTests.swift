@@ -91,10 +91,13 @@ private final class FakeVisibility: NativeVisibilityProviding {
 // has been handled.
 private final class FakeClock: MenuBarClockProviding {
     var onClick: ((CGPoint) -> Void)?
-    var presses: [(location: CGPoint, completion: () -> Void)] = []
+    // `completion` brings the restriction back; `finished` reports the panel.
+    var presses: [(location: CGPoint, mode: ClockPressMode, completion: () -> Void,
+                   finished: (ClockPressOutcome) -> Void)] = []
 
-    func press(at location: CGPoint, completion: @escaping () -> Void) {
-        presses.append((location, completion))
+    func press(at location: CGPoint, mode: ClockPressMode,
+               restore: @escaping () -> Void, finished: @escaping (ClockPressOutcome) -> Void) {
+        presses.append((location, mode, restore, finished))
     }
 
     func click(at location: CGPoint = CGPoint(x: 1900, y: 12)) {
@@ -1014,6 +1017,58 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertNil(clock.onClick)
     }
 
+    func testClockPressThatOpensNothingIsRetriedOnceHoldingTheLift() {
+        let engine = makeEngine()
+        engine.scheduleRestoreWatchdog = { _, _ in }
+        engine.collapse { _ in }
+        visibility.succeed(0)
+
+        clock.click()
+        XCTAssertEqual(clock.presses[0].mode, .restoreAfterPress)
+        clock.presses[0].completion()
+        let restored = visibility.succeed(1)
+        clock.presses[0].finished(.noPanel)
+        XCTAssertEqual(clock.presses.count, 2, "a press that opened nothing is retried")
+        XCTAssertEqual(clock.presses[1].mode, .restoreWhenPanelShows)
+        XCTAssertTrue(restored.isInvalidated, "the retry lifts again")
+
+        clock.presses[1].completion()
+        visibility.succeed(2)
+        clock.presses[1].finished(.noPanel)
+        XCTAssertEqual(clock.presses.count, 2, "only once")
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertNotNil(clock.onClick)
+    }
+
+    func testClockPressThatOpensThePanelIsNotRetried() {
+        let engine = makeEngine()
+        engine.scheduleRestoreWatchdog = { _, _ in }
+        engine.collapse { _ in }
+        visibility.succeed(0)
+        clock.click()
+        clock.presses[0].completion()
+        visibility.succeed(1)
+        clock.presses[0].finished(.panelShown)
+        XCTAssertEqual(clock.presses.count, 1)
+    }
+
+    func testWatchdogRestoresTheRestrictionWhenThePressNeverReports() {
+        let engine = makeEngine()
+        var watchdog: (delay: TimeInterval, fire: () -> Void)?
+        engine.scheduleRestoreWatchdog = { watchdog = ($0, $1) }
+        engine.collapse { _ in }
+        visibility.succeed(0)
+
+        clock.click()
+        XCTAssertEqual(visibility.requests.count, 1)
+        XCTAssertEqual(try XCTUnwrap(watchdog).delay, NativeVisibilityEngine.clockLiftHardCap)
+        XCTAssertLessThanOrEqual(NativeVisibilityEngine.clockLiftHardCap, 0.6)
+        watchdog?.fire()
+        XCTAssertEqual(visibility.requests.count, 2, "the restriction comes back without the press")
+        clock.presses[0].completion()
+        XCTAssertEqual(visibility.requests.count, 2, "and only once")
+    }
+
     func testClockClickDuringAnActivationLeavesItAlone() {
         let engine = makeEngine()
         engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
@@ -1452,5 +1507,92 @@ final class AccessibilityInventoryRetryTests: XCTestCase {
             return []
         })
         XCTAssertEqual(calls, 4)
+    }
+}
+
+// MARK: - Clock replay timing
+
+// A manual clock: scheduled steps run only when the test advances time.
+private final class ManualTime {
+    private(set) var now: TimeInterval = 0
+    private var pending: [(due: TimeInterval, step: () -> Void)] = []
+
+    func after(_ delay: TimeInterval, _ step: @escaping () -> Void) {
+        pending.append((now + delay, step))
+    }
+
+    func advance(to time: TimeInterval) {
+        while let next = pending.enumerated().filter({ $0.element.due <= time }).min(by: { $0.element.due < $1.element.due }) {
+            pending.remove(at: next.offset)
+            now = max(now, next.element.due)
+            next.element.step()
+        }
+        now = time
+    }
+}
+
+final class ClockReplayTests: XCTestCase {
+    private var time: ManualTime!
+    private var panelOpensAt: TimeInterval = .infinity
+    private var restoredAt: TimeInterval?
+    private var outcome: (ClockPressOutcome, TimeInterval)?
+
+    override func setUp() {
+        super.setUp()
+        time = ManualTime()
+        panelOpensAt = .infinity
+        restoredAt = nil
+        outcome = nil
+    }
+
+    private func replay(_ mode: ClockPressMode, restoreAfterPress: TimeInterval = 0.04) -> ClockReplay {
+        let replay = ClockReplay(timing: .init(restoreAfterPress: restoreAfterPress), mode: mode,
+                                 now: { [unowned self] in time.now },
+                                 after: { [unowned self] in time.after($0, $1) },
+                                 panelIsOpen: { [unowned self] in time.now >= panelOpensAt },
+                                 restore: { [unowned self] in
+                                     XCTAssertNil(restoredAt, "restored once")
+                                     restoredAt = time.now
+                                 },
+                                 finished: { [unowned self] in outcome = ($0, time.now) })
+        replay.pressed()
+        return replay
+    }
+
+    func testRestoresRightAfterThePressWithoutWaitingForThePanel() {
+        panelOpensAt = 0.09
+        let replay = replay(.restoreAfterPress)
+        time.advance(to: 0.04)
+        XCTAssertEqual(restoredAt, 0.04, "hidden icons show only until MenuBarAgent has the press")
+        XCTAssertNil(outcome)
+        time.advance(to: 1)
+        XCTAssertEqual(outcome?.0, .panelShown)
+        XCTAssertEqual(outcome?.1 ?? 0, 0.09, accuracy: 0.0051)
+        _ = replay
+    }
+
+    func testASynchronousPressRestoresAtOnce() {
+        _ = replay(.restoreAfterPress, restoreAfterPress: 0)
+        XCTAssertEqual(restoredAt, 0)
+    }
+
+    func testFallbackRestoresWithinOnePollOfThePanelShowing() {
+        panelOpensAt = 0.071
+        _ = replay(.restoreWhenPanelShows)
+        time.advance(to: 0.07)
+        XCTAssertNil(restoredAt, "the fallback holds the lift until the panel shows")
+        time.advance(to: 1)
+        XCTAssertEqual(outcome?.0, .panelShown)
+        XCTAssertEqual(restoredAt ?? 1, 0.071, accuracy: 0.0051)
+    }
+
+    func testNoPanelIsReportedAtTheTimeoutAndTheRestrictionIsBack() {
+        _ = replay(.restoreWhenPanelShows)
+        time.advance(to: 2)
+        XCTAssertEqual(outcome?.0, .noPanel)
+        XCTAssertEqual(outcome?.1 ?? 2, 0.3, accuracy: 0.0051)
+        XCTAssertEqual(restoredAt ?? 2, 0.3, accuracy: 0.0051)
+        XCTAssertLessThan(0.3 + 0.03 + 0.15, NativeVisibilityEngine.clockLiftHardCap,
+                          "the fallback fits inside the watchdog's cap")
     }
 }

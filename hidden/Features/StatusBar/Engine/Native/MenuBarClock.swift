@@ -18,9 +18,112 @@ protocol MenuBarClockProviding: AnyObject {
     // while Notification Center was closed. Nothing is watched while nil.
     var onClick: ((CGPoint) -> Void)? { get set }
 
-    // Presses the clock at that location. The completion runs on the main queue
-    // once macOS has handled the press.
-    func press(at location: CGPoint, completion: @escaping () -> Void)
+    // Presses the clock at that location with the restriction lifted. `restore`
+    // runs once on the main queue when the restriction may come back: right after
+    // the press for `.restoreAfterPress`, once the panel shows for
+    // `.restoreWhenPanelShows`. `finished` runs once on the main queue after it.
+    func press(at location: CGPoint, mode: ClockPressMode,
+               restore: @escaping () -> Void, finished: @escaping (ClockPressOutcome) -> Void)
+}
+
+enum ClockPressMode: Equatable {
+    // Measured on 27.2: the panel opens and stays open when the restriction is
+    // back a moment after MenuBarAgent took the press, so hidden icons show only
+    // for that moment.
+    case restoreAfterPress
+    // The fallback when that press opened nothing: hold the lift until the panel
+    // shows or the timeout passes.
+    case restoreWhenPanelShows
+}
+
+enum ClockPressOutcome: Equatable {
+    case panelShown
+    case noPanel
+    case noClock
+}
+
+// When to bring the restriction back around one replayed press, and when to
+// stop waiting for the panel. Times are seconds since the press was posted.
+// Runs on one serial queue; `now` and `after` are injectable for tests.
+final class ClockReplay {
+    struct Timing: Equatable {
+        // How long MenuBarAgent gets to take the press before the restriction is
+        // back. Zero for a synchronous press (AXPress returns once it is handled).
+        var restoreAfterPress: TimeInterval
+        var panelTimeout: TimeInterval = 0.3
+        // A window-list read costs about 1 ms without .excludeDesktopElements.
+        var pollInterval: TimeInterval = 0.005
+    }
+
+    private let timing: Timing
+    private let mode: ClockPressMode
+    private let now: () -> TimeInterval
+    private let after: (TimeInterval, @escaping () -> Void) -> Void
+    private let panelIsOpen: () -> Bool
+    private let restore: () -> Void
+    private let finished: (ClockPressOutcome) -> Void
+    private var pressedAt: TimeInterval = 0
+    private var restored = false
+    private var done = false
+
+    init(timing: Timing, mode: ClockPressMode,
+         now: @escaping () -> TimeInterval,
+         after: @escaping (TimeInterval, @escaping () -> Void) -> Void,
+         panelIsOpen: @escaping () -> Bool,
+         restore: @escaping () -> Void,
+         finished: @escaping (ClockPressOutcome) -> Void) {
+        self.timing = timing
+        self.mode = mode
+        self.now = now
+        self.after = after
+        self.panelIsOpen = panelIsOpen
+        self.restore = restore
+        self.finished = finished
+    }
+
+    // Call right after the press is posted.
+    func pressed() {
+        pressedAt = now()
+        tick()
+    }
+
+    private func tick() {
+        guard !done else { return }
+        let elapsed = now() - pressedAt
+        if mode == .restoreAfterPress, elapsed >= timing.restoreAfterPress {
+            restoreOnce()
+        }
+        if panelIsOpen() {
+            return finish(.panelShown)
+        }
+        if elapsed >= timing.panelTimeout {
+            return finish(.noPanel)
+        }
+        var wait = min(timing.pollInterval, timing.panelTimeout - elapsed)
+        if mode == .restoreAfterPress, !restored {
+            wait = min(wait, timing.restoreAfterPress - elapsed)
+        }
+        // At least 1 ms, so float rounding can never schedule a step at the same instant.
+        after(max(wait, 0.001)) { [self] in tick() }
+    }
+
+    private func restoreOnce() {
+        guard !restored else { return }
+        restored = true
+        #if DEBUG
+        ClockFlashTimeline.mark("restoreDue")
+        #endif
+        restore()
+    }
+
+    private func finish(_ outcome: ClockPressOutcome) {
+        restoreOnce()
+        done = true
+        #if DEBUG
+        ClockFlashTimeline.mark(outcome == .panelShown ? "panelAppeared" : "panelTimeout")
+        #endif
+        finished(outcome)
+    }
 }
 
 // Finds the clock through public Accessibility API: MenuBarAgent's menu extra
@@ -61,43 +164,55 @@ final class SystemMenuBarClock: MenuBarClockProviding {
         }
     }
 
-    // AXPress opens and immediately closes the panel on macOS 27.2. Replay a
-    // mouse click instead, and restore hiding only after the panel appears (or
-    // a bounded timeout). The engine removes our monitor before calling here.
-    private static let openTimeout: TimeInterval = 0.5
-    private static let pollInterval: TimeInterval = 0.02
+    // AXPress opens and immediately closes the panel on macOS 27.2 (with or without
+    // a restriction), so a mouse click is replayed instead. The engine removes our
+    // monitor before calling here.
+    // MenuBarAgent takes a posted click within a few ms; this leaves room to spare.
+    private static let hidRestoreAfterPress: TimeInterval = 0.04
 
-    func press(at location: CGPoint, completion: @escaping () -> Void) {
+    func press(at location: CGPoint, mode: ClockPressMode,
+               restore: @escaping () -> Void, finished: @escaping (ClockPressOutcome) -> Void) {
         // NSScreen must be read on the main thread, before the background AX walk.
         let minimumPanelHeight = (NSScreen.screens.map(\.frame.height).min() ?? 0) / 2
-        DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + Self.liftDelay) {
+        let queue = DispatchQueue.global(qos: .userInteractive)
+        let onMain = { (outcome: ClockPressOutcome) in
+            DispatchQueue.main.async { restore(); finished(outcome) }
+        }
+        queue.asyncAfter(deadline: .now() + Self.liftDelay) {
             let clocks = Self.clocks()
             // Never replay on a different display if its clock cannot be found.
             guard let clock = clocks.first(where: { $0.frame.contains(location) }),
                   let events = Self.clickEvents(at: CGPoint(x: clock.frame.midX, y: clock.frame.midY)) else {
-                return DispatchQueue.main.async(execute: completion)
+                return onMain(.noClock)
             }
             #if DEBUG
             ClockFlashTimeline.mark("liftEffective")
+            #endif
+            // A panel that opened late from the first press must not be closed again.
+            if Self.notificationCenterIsOpen(minimumHeight: minimumPanelHeight) {
+                return onMain(.panelShown)
+            }
+            var restoreAfterPress = Self.hidRestoreAfterPress
+            #if DEBUG
             if Self.debugPressWithAX {
                 AXUIElementPerformAction(clock.element, kAXPressAction as CFString)
-                ClockFlashTimeline.mark("replayPosted")
-                return Self.waitForPanel(until: ProcessInfo.processInfo.systemUptime + Self.openTimeout,
-                                         minimumHeight: minimumPanelHeight, completion: completion)
-            }
-            if let pid = Self.debugPostToPid {
+                restoreAfterPress = 0
+            } else if let pid = Self.debugPostToPid {
                 events.forEach { $0.postToPid(pid) }
-                ClockFlashTimeline.mark("replayPosted")
-                return Self.waitForPanel(until: ProcessInfo.processInfo.systemUptime + Self.openTimeout,
-                                         minimumHeight: minimumPanelHeight, completion: completion)
+            } else {
+                events.forEach { $0.post(tap: .cghidEventTap) }
             }
-            #endif
-            events.forEach { $0.post(tap: .cghidEventTap) }
-            #if DEBUG
             ClockFlashTimeline.mark("replayPosted")
+            #else
+            events.forEach { $0.post(tap: .cghidEventTap) }
             #endif
-            Self.waitForPanel(until: ProcessInfo.processInfo.systemUptime + Self.openTimeout,
-                              minimumHeight: minimumPanelHeight, completion: completion)
+            let replay = ClockReplay(timing: .init(restoreAfterPress: restoreAfterPress), mode: mode,
+                                     now: { ProcessInfo.processInfo.systemUptime },
+                                     after: { queue.asyncAfter(deadline: .now() + $0, execute: $1) },
+                                     panelIsOpen: { Self.notificationCenterIsOpen(minimumHeight: minimumPanelHeight) },
+                                     restore: { DispatchQueue.main.async(execute: restore) },
+                                     finished: { outcome in DispatchQueue.main.async { finished(outcome) } })
+            replay.pressed()
         }
     }
 
@@ -114,20 +229,6 @@ final class SystemMenuBarClock: MenuBarClockProviding {
             event.setIntegerValueField(.mouseEventClickState, value: 1)
         }
         return [down, up]
-    }
-
-    private static func waitForPanel(until deadline: TimeInterval, minimumHeight: CGFloat,
-                                     completion: @escaping () -> Void) {
-        let isOpen = notificationCenterIsOpen(minimumHeight: minimumHeight)
-        if isOpen || ProcessInfo.processInfo.systemUptime >= deadline {
-            #if DEBUG
-            ClockFlashTimeline.mark(isOpen ? "panelAppeared" : "panelTimeout")
-            #endif
-            return DispatchQueue.main.async(execute: completion)
-        }
-        DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + pollInterval) {
-            waitForPanel(until: deadline, minimumHeight: minimumHeight, completion: completion)
-        }
     }
 
     private func updateMonitor() {
@@ -207,7 +308,9 @@ final class SystemMenuBarClock: MenuBarClockProviding {
     private static func notificationCenterIsOpen(minimumHeight: CGFloat) -> Bool {
         let owners = Set(NSRunningApplication.runningApplications(withBundleIdentifier: notificationCenterBundleIdentifier).map(\.processIdentifier))
         guard !owners.isEmpty,
-              let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return false }
+              // .excludeDesktopElements costs about 5 ms more per read; layer >= 0
+              // already leaves the desktop out.
+              let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] else { return false }
         return windows.contains { window in
             guard let pid = window[kCGWindowOwnerPID as String] as? pid_t, owners.contains(pid),
                   let layer = window[kCGWindowLayer as String] as? Int, layer >= 0,

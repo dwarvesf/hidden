@@ -452,23 +452,35 @@ final class NativeVisibilityEngine: MenuBarEngine {
         }
     }
 
+    // The longest the restriction may stay lifted for one press, whatever the
+    // press does: the lift, the AX lookup and the panel timeout fit well inside.
+    static let clockLiftHardCap: TimeInterval = 0.6
+    var scheduleRestoreWatchdog: (TimeInterval, @escaping () -> Void) -> Void = {
+        DispatchQueue.main.asyncAfter(deadline: .now() + $0, execute: $1)
+    }
+
     // macOS ignores the clock while a restriction is held, so lift it just long
     // enough for a press to land, then put the same one back. The panel stays
-    // open under the restriction; hidden icons can show for a moment.
-    private func openNotificationCenter(from location: CGPoint) {
+    // open under the restriction; hidden icons show for that moment. If the
+    // press opened nothing, the clock is pressed once more, holding the lift
+    // until the panel shows.
+    private func openNotificationCenter(from location: CGPoint, mode: ClockPressMode = .restoreAfterPress) {
         // Not while an activation, a section read or a collapse's visibility
         // check is in flight: lifting now would cancel it, and a cancelled
         // collapse never reports back, leaving the bar stuck calibrating.
         guard assertion != nil, generation == assertionGeneration, state != .calibrating else { return }
         NSLog("NativeVisibility: lifting the restriction for a click on the clock")
         #if DEBUG
-        ClockFlashTimeline.reset()
-        ClockFlashTimeline.mark("liftRequested")
+        if mode == .restoreAfterPress { ClockFlashTimeline.reset() }
+        ClockFlashTimeline.mark(mode == .restoreAfterPress ? "liftRequested" : "retryLiftRequested")
         #endif
         let bundles = assertionBundles
         releaseAssertion()
         let generation = self.generation
-        clock.press(at: location) { [weak self] in
+        var restored = false
+        let restore = { [weak self] in
+            guard !restored else { return }
+            restored = true
             // An expand or collapse meanwhile already applied what the user wants.
             guard let self = self, generation == self.generation else { return }
             #if DEBUG
@@ -483,6 +495,19 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 self.state = .expanded
                 self.setSeparatorsVisible(true)
             }
+        }
+        // Never leave the bar unrestricted, even if the press never reports back.
+        scheduleRestoreWatchdog(Self.clockLiftHardCap) {
+            #if DEBUG
+            if !restored { ClockFlashTimeline.mark("watchdog") }
+            #endif
+            restore()
+        }
+        clock.press(at: location, mode: mode, restore: restore) { [weak self] outcome in
+            guard outcome == .noPanel, mode == .restoreAfterPress, let self = self else { return }
+            NSLog("NativeVisibility: the clock press opened nothing; pressing once more")
+            // Runs only once the restriction is back (the guard checks it).
+            self.openNotificationCenter(from: location, mode: .restoreWhenPanelShows)
         }
     }
 
