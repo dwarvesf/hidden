@@ -28,8 +28,6 @@ final class AboutViewController: SettingsPaneController {
     private var lastCheckedCaption: NSTextField?
 
     override func buildForm() {
-        addFullWidth(header())
-
         let whatsNew = SettingsForm.link("What's new".localized, url: Self.changelogURL)
         if context.build == .direct {
             let autoCheck = boundSwitch("SUEnableAutomaticChecks", read: { Self.automaticallyChecksForUpdates },
@@ -39,9 +37,9 @@ final class AboutViewController: SettingsPaneController {
             check.identifier = Self.checkForUpdatesIdentifier
             check.bezelStyle = .rounded
             let linkRow = Self.linkRow(whatsNew, trailing: check)
-            addSection("Updates".localized, rows: [autoRow, linkRow])
+            addSection(nil, rows: [header(), autoRow, linkRow])
         } else {
-            addSection("Updates".localized, rows: [Self.linkRow(whatsNew, caption: "Updates come from the Mac App Store.".localized)])
+            addSection(nil, rows: [header(), Self.linkRow(whatsNew, caption: "Updates come from the Mac App Store.".localized)])
         }
 
         let email = NSTextField(labelWithString: Self.emailAddress)
@@ -51,9 +49,6 @@ final class AboutViewController: SettingsPaneController {
             Self.linkRow(SettingsForm.link("Report a problem".localized, url: Self.issuesURL),
                          caption: "On GitHub. Please say your macOS version and which Hidden Bar you use.".localized),
             SettingsForm.row("Email".localized, control: email),
-        ])
-
-        addSection(nil, rows: [
             Self.linkRow(SettingsForm.link("Source code".localized, url: Self.sourceURL),
                          caption: "Free and open source, MIT license.".localized),
             Self.linkRow(SettingsForm.link("Follow @dwarvesf on X".localized, url: Self.xURL, image: Self.xLogo)),
@@ -84,7 +79,7 @@ final class AboutViewController: SettingsPaneController {
         row.spacing = 16
         row.edgeInsets = NSEdgeInsets(top: 14, left: 14, bottom: 14, right: 14)
         row.alignment = .centerY
-        return SettingsGroupView(rows: [row])
+        return row
     }
 
     private static func linkRow(_ link: NSButton, caption: String? = nil, trailing: NSView? = nil) -> NSView {

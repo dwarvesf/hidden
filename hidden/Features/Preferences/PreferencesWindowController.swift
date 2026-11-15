@@ -148,6 +148,7 @@ class PreferencesWindowController: NSWindowController, NSToolbarDelegate {
         let item = NSToolbarItem(itemIdentifier: itemIdentifier)
         item.label = tab.titleKey.localized
         item.image = NSImage(systemSymbolName: tab.symbolName, accessibilityDescription: item.label)
+        // Plain item; macOS 26 and later wrap each one in the system's glass platter.
         item.isBordered = false
         item.target = self
         item.action = #selector(toolbarItemClicked(_:))

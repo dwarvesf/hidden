@@ -52,7 +52,6 @@ class PreferencesViewController: SettingsPaneController {
         let login = boundSwitch(UserDefaults.Key.isAutoStart, read: { Preferences.isAutoStart }) { [weak self] wanted in
             self?.loginChanged(wanted)
         }
-        addSection("Startup".localized, rows: [SettingsForm.row("Open Hidden Bar at login".localized, control: login)])
 
         for choice in AutoHideChoice.all {
             let title: String
@@ -80,12 +79,6 @@ class PreferencesViewController: SettingsPaneController {
         help.controlSize = .small
         let alwaysHiddenControls = NSStackView(views: [help, alwaysHidden])
         alwaysHiddenControls.spacing = 10
-        addSection("Hiding".localized, rows: [
-            SettingsForm.row("Hide icons again".localized, control: autoHidePopup),
-            SettingsForm.row("Always-hidden section".localized,
-                             caption: "A second group, left of the hidden icons, that stays hidden when you click the arrow.".localized,
-                             control: alwaysHiddenControls),
-        ])
 
         btnShortcut.bezelStyle = .rounded
         btnShortcut.identifier = Self.shortcutButtonIdentifier
@@ -100,10 +93,16 @@ class PreferencesViewController: SettingsPaneController {
         shortcutControls.spacing = 4
         let hover = boundSwitch(UserDefaults.Key.hoverToExpand, read: { Preferences.hoverToExpand },
                                 write: { Preferences.hoverToExpand = $0 })
-        addSection("Showing hidden icons".localized, rows: [
+        // One group for everything you set once; the preview above names it.
+        addSection(nil, rows: [
+            SettingsForm.row("Open Hidden Bar at login".localized, control: login),
+            SettingsForm.row("Hide icons again".localized, control: autoHidePopup),
+            SettingsForm.row("Always-hidden section".localized,
+                             caption: "A second group, left of the hidden icons, that stays hidden when you click the arrow.".localized,
+                             control: alwaysHiddenControls),
             SettingsForm.row("Keyboard shortcut".localized, control: shortcutControls),
             SettingsForm.row("Show icons when the pointer rests on the menu bar".localized, control: hover),
-        ])
+        ], spacingBefore: 16)
         loadHotkey()
 
         if context.usesNativeEngine {
