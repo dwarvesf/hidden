@@ -179,6 +179,30 @@ final class ShortcutRecorderRowTests: XCTestCase {
         XCTAssertEqual(row.clashIcon.toolTip, String(format: "Also used by %@".localized, "Show or hide icons"))
     }
 
+    // Given another Hidden Bar shortcut already on a combination
+    // When the user records that same combination here
+    // Then it is not saved (macOS would refuse it silently), the old shortcut stays, and the warning names the other
+    func test_recordingAClashingCombinationIsRefused() {
+        store(combo(40, "k", flags: 0x300), for: otherKey)
+        let previous = combo(38, "j")
+        store(previous, for: key)
+        row.refresh()
+
+        row.button.performClick(nil)
+        XCTAssertTrue(row.handle(keyDown("K", code: 40, flags: [.command, .shift])))
+
+        XCTAssertEqual(stored, previous, "the clashing combination is not stored")
+        XCTAssertFalse(row.isListening)
+        XCTAssertEqual(row.button.title, previous.description)
+        XCTAssertFalse(row.clashIcon.isHidden)
+        XCTAssertEqual(row.clashIcon.toolTip, String(format: "Also used by %@".localized, "Show or hide icons"))
+
+        row.button.performClick(nil)
+        row.handle(keyDown("L", code: 37, flags: [.command, .shift]))
+        XCTAssertEqual(stored?.keyCode, 37)
+        XCTAssertTrue(row.clashIcon.isHidden)
+    }
+
     // Given a combination no other shortcut uses, then there is no warning
     func test_noClashShowsNoWarning() {
         store(combo(38, "j"), for: otherKey)

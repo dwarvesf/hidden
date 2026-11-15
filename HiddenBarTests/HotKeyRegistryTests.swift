@@ -209,4 +209,79 @@ final class HotKeyRegistryTests: XCTestCase {
         registry.register(key: toggleKey) {}
         XCTAssertEqual(registry.clashingTitle(for: combo, excluding: findKey), toggleKey)
     }
+
+    // Given two shortcuts on one combination (macOS keeps the first and refuses the second silently)
+    // When the first is cleared
+    // Then the second works: every binding is made again on a change, not skipped as unchanged
+    func test_clearingTheOtherShortcutRevivesTheOneThatLostTheClash() {
+        let combo = shortcut("k", keyCode: 40)
+        let carbon = CarbonLikeBinder()
+        let registry = HotKeyRegistry(defaults: defaults, center: center) { carbon.bind($0, $1) }
+        store(combo, for: toggleKey)
+        store(combo, for: findKey)
+        var ran: [String] = []
+        registry.register(key: toggleKey, title: "Show or hide icons") { ran.append("toggle") }
+        registry.register(key: findKey, title: "Find a hidden icon") { ran.append("find") }
+        carbon.fire(combo)
+        XCTAssertEqual(ran.count, 1, "one of the two owns the combination")
+        let loser = ran[0] == "toggle" ? findKey : toggleKey
+        let winner = loser == findKey ? toggleKey : findKey
+
+        store(nil, for: winner)
+        ran = []
+        carbon.fire(combo)
+        XCTAssertEqual(ran, [loser == findKey ? "find" : "toggle"], "the survivor works once the other is cleared")
+        XCTAssertTrue(registry.isBound(loser))
+    }
+
+    // Given live shortcuts
+    // When an unrelated preference changes, then one changes
+    // Then the first touches nothing and the second makes every binding again
+    func test_onlyAShortcutChangeRebindsEverything() {
+        store(shortcut("k", keyCode: 40), for: toggleKey)
+        store(shortcut("f", keyCode: 3, shift: true), for: findKey)
+        registry.register(key: toggleKey) {}
+        registry.register(key: findKey) {}
+        XCTAssertEqual(binder.calls.count, 2)
+        center.post(name: .prefsChanged, object: nil)
+        XCTAssertEqual(binder.calls.count, 2)
+        store(shortcut("j", keyCode: 38), for: toggleKey)
+        XCTAssertEqual(binder.calls.count, 4)
+        XCTAssertEqual(Set(binder.liveBindings.map(\.keyCode)), [38, 3])
+    }
+}
+
+/// Stands in for Carbon: a combination already held by a live registration is
+/// refused silently (the call "succeeds", the handler never fires, even after the
+/// holder goes away).
+private final class CarbonLikeBinder {
+    private final class Binding {
+        let combo: GlobalKeybindPreferences
+        let handler: () -> Void
+        let refused: Bool
+        init(_ combo: GlobalKeybindPreferences, refused: Bool, _ handler: @escaping () -> Void) {
+            self.combo = combo
+            self.refused = refused
+            self.handler = handler
+        }
+    }
+
+    private final class WeakBox {
+        weak var value: Binding?
+        init(_ value: Binding) { self.value = value }
+    }
+
+    private var registered: [WeakBox] = []
+
+    func bind(_ combo: GlobalKeybindPreferences, _ handler: @escaping () -> Void) -> AnyObject? {
+        let held = registered.compactMap(\.value).contains { !$0.refused && $0.combo.isSameCombo(as: combo) }
+        let binding = Binding(combo, refused: held, handler)
+        registered.append(WeakBox(binding))
+        return binding
+    }
+
+    /// Runs the handler of the live registration that owns the combination.
+    func fire(_ combo: GlobalKeybindPreferences) {
+        registered.compactMap(\.value).first { !$0.refused && $0.combo.isSameCombo(as: combo) }?.handler()
+    }
 }

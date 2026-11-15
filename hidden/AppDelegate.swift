@@ -53,11 +53,17 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     private func applyImportedPreferences() {
         Util.setUpAutoStart(isAutoStart: Preferences.isAutoStart)
         hotKeys.reload()
-        for name: Notification.Name in [.prefsChanged, .alwayHideToggle, .useFullStatusBarToggle,
-                                        .stealthExpandIconToggle, .arrowStyleChanged] {
+        for name in Self.importedPreferenceNotifications {
             NotificationCenter.default.post(name: name, object: nil)
         }
     }
+
+    /// What an import tells the rest of the app. The pinned-sections switch and
+    /// table are read through their own notice, not `.prefsChanged`.
+    static let importedPreferenceNotifications: [Notification.Name] = [
+        .prefsChanged, .pinnedSectionsChanged, .alwayHideToggle, .useFullStatusBarToggle,
+        .stealthExpandIconToggle, .arrowStyleChanged,
+    ]
     #endif
 
     /// Hidden Bar is a menu bar utility with no visible window, so launching it a
@@ -126,17 +132,25 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             self?.statusBarController.expandCollapseIfNeeded()
         }
         #if HIDDENBAR_NATIVE_VISIBILITY
-        // Unset by default, so the palette is off until the user records a shortcut.
-        hotKeys.register(key: UserDefaults.Key.findHiddenIconShortcut, title: "Find a hidden icon".localized) { [weak self] in
-            self?.statusBarController.togglePalette()
-        }
-        if MenuBarEngineFactory.usesNativeEngine() {
-            hotKeys.register(key: UserDefaults.Key.presentationShortcut, title: "Presentation mode".localized) { [weak self] in
-                self?.statusBarController.togglePresentationMode()
-            }
-        }
+        Self.registerNativeEngineHotKeys(in: hotKeys, usesNativeEngine: MenuBarEngineFactory.usesNativeEngine(),
+                                         togglePalette: { [weak self] in self?.statusBarController.togglePalette() },
+                                         togglePresentation: { [weak self] in self?.statusBarController.togglePresentationMode() })
         #endif
     }
+
+    #if HIDDENBAR_NATIVE_VISIBILITY
+    /// The palette and presentation shortcuts exist only where the native engine
+    /// runs. Both are unset by default, so the features are off until recorded.
+    static func registerNativeEngineHotKeys(in hotKeys: HotKeyRegistry, usesNativeEngine: Bool,
+                                            togglePalette: @escaping () -> Void,
+                                            togglePresentation: @escaping () -> Void) {
+        guard usesNativeEngine else { return }
+        hotKeys.register(key: UserDefaults.Key.findHiddenIconShortcut, title: "Find a hidden icon".localized,
+                         handler: togglePalette)
+        hotKeys.register(key: UserDefaults.Key.presentationShortcut, title: "Presentation mode".localized,
+                         handler: togglePresentation)
+    }
+    #endif
     
     func detectLTRLang() {
         // Languages like Arabic uses right to left (RTL) writing direction,
