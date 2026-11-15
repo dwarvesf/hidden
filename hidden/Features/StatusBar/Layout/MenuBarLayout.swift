@@ -204,6 +204,14 @@ enum PinnedSectionEdits {
         table.sections = PinnedSectionResolver.resetAllToVisible(table.sections)
         NotificationCenter.default.post(name: .pinnedSectionsChanged, object: nil)
     }
+
+    // Forgets an app that is gone: its section and its drag lock. If it runs
+    // again it comes back as a new app (`newAppSection`).
+    static func remove(_ bundle: String, in table: MenuBarSectionMemory, locks: UserDefaultsDragLocks = UserDefaultsDragLocks()) {
+        table.sections.removeValue(forKey: bundle)
+        locks.bundles.remove(bundle)
+        NotificationCenter.default.post(name: .pinnedSectionsChanged, object: nil)
+    }
 }
 
 // The rows of the Preferences "Menu bar apps" list: every app the table

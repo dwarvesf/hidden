@@ -275,6 +275,51 @@ final class SettingsWindowTests: XCTestCase {
                        ["com.test.a": 0, "com.test.b": 0])
     }
 
+    // Given a running app, one that is not, and the macOS extras row (never an app)
+    // When the Icons pane builds
+    // Then only the app that is not running says so and offers Remove; Remove goes to the store
+    func test_menuBarApps_removeIsOfferedOnlyForAppsNotRunning() throws {
+        let store = FakeAppsStore(bundles: ["com.test.run", "com.test.gone", MenuBarLayoutResolver.systemExtrasBundle], running: ["com.test.run"])
+        let pane = MenuBarAppsSettingsViewController(context: fullContext(), store: store)
+        let views = Self.subviews(of: pane.view)
+        func remove(_ bundle: String) -> NSControl? {
+            control(MenuBarAppsSettingsViewController.removeIdentifier(for: bundle), in: views)
+        }
+        XCTAssertNil(remove("com.test.run"))
+        XCTAssertNil(remove(MenuBarLayoutResolver.systemExtrasBundle))
+        let button = try XCTUnwrap(remove("com.test.gone") as? NSButton)
+        XCTAssertEqual(button.title, "Remove".localized)
+        XCTAssertEqual(button.accessibilityLabel(), "Remove".localized + " com.test.gone")
+        XCTAssertFalse(button.isBordered, "a link in the caption line, so the controls column is the same on every row")
+        XCTAssertEqual(views.compactMap { ($0 as? NSTextField)?.stringValue }.filter { $0.hasPrefix("Not running".localized) }.count, 1)
+        pane.view.layoutSubtreeIfNeeded()
+        let edges = Set(views.compactMap { $0 as? NSPopUpButton }.map { $0.superview?.frame.minX ?? 0 })
+        XCTAssertEqual(edges.count, 1, "the controls column starts at the same x on every row")
+        XCTAssertGreaterThan(edges.first ?? 0, 0, "the pane was laid out")
+        XCTAssertEqual(store.runningReads, 1, "the running set is read once per rebuild, not per row")
+
+        button.performClick(nil)
+        XCTAssertEqual(store.removed, ["com.test.gone"])
+    }
+
+    // Given a pane built while an app runs
+    // When the app quits and the pane appears again, then appears again with nothing changed
+    // Then the first appearance gives the row its Remove button and the second keeps the same rows
+    func test_menuBarApps_aQuitAppUpdatesItsRowOnTheNextAppearance() throws {
+        let store = FakeAppsStore(bundles: ["com.test.a", "com.test.b"], running: ["com.test.a", "com.test.b"])
+        let pane = MenuBarAppsSettingsViewController(context: fullContext(), store: store)
+        let removeA = MenuBarAppsSettingsViewController.removeIdentifier(for: "com.test.a")
+        XCTAssertNil(control(removeA, in: Self.subviews(of: pane.view)))
+
+        store.running = ["com.test.b"]
+        pane.viewWillAppear()
+        let button = try XCTUnwrap(control(removeA, in: Self.subviews(of: pane.view)))
+
+        pane.viewWillAppear()
+        XCTAssertTrue(control(removeA, in: Self.subviews(of: pane.view)) === button, "nothing changed: the rows are not rebuilt")
+        XCTAssertEqual(store.runningReads, 3, "one read per appearance")
+    }
+
     // Given the beta off
     // When opening Icons
     // Then it says so and lists no app
@@ -363,4 +408,30 @@ final class SettingsWindowTests: XCTestCase {
         _ = legacy.view
         XCTAssertEqual(legacy.preview.boundary, .separator)
     }
+}
+
+/// A store with fixed apps and a running set the test can change.
+private final class FakeAppsStore: MenuBarAppsStore {
+    let bundles: [String]
+    var running: Set<String>
+    private(set) var runningReads = 0
+    private(set) var removed: [String] = []
+
+    init(bundles: [String], running: Set<String>) {
+        self.bundles = bundles
+        self.running = running
+    }
+
+    var isEnabled: Bool { true }
+    func entries() -> [PinnedSectionsList.Entry] {
+        PinnedSectionsList.entries(table: Dictionary(uniqueKeysWithValues: bundles.map { ($0, MenuBarSection.visible) }), name: { $0 })
+    }
+    func identity(for bundle: String) -> MenuBarAppIdentity.Resolved { .init(name: bundle, icon: .generic, caption: nil) }
+    func icon(for bundle: String) -> NSImage { NSImage() }
+    func runningBundles() -> Set<String> { runningReads += 1; return running }
+    func set(_ section: MenuBarSection, for bundle: String) {}
+    func setIgnoresDrags(_ ignores: Bool, for bundle: String) {}
+    func resetAllToVisible() {}
+    func remove(_ bundle: String) { removed.append(bundle) }
+    func enable() {}
 }

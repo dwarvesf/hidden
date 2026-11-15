@@ -1899,6 +1899,71 @@ final class PinnedSectionsTests: XCTestCase {
                        "a flagged app with no entry still gets its first read as its section")
         XCTAssertEqual(observed["locked"], .hidden, "the observed position still follows every read")
     }
+
+    private func isolatedLocks() throws -> (UserDefaultsDragLocks, UserDefaults, String) {
+        let suite = "HiddenBarTests.dragLocks.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        return (UserDefaultsDragLocks(defaults: defaults), defaults, suite)
+    }
+
+    // Given an app with a section and a drag lock, and another app
+    // When Remove runs for the first
+    // Then it leaves both tables, the other app is untouched, and the change is announced
+    func testRemoveDeletesTheAppFromTheTableAndTheDragLocks() throws {
+        let (locks, defaults, suite) = try isolatedLocks()
+        defer { defaults.removePersistentDomain(forName: suite) }
+        table.sections = ["com.gone": .hidden, "com.other": .alwaysHidden]
+        locks.bundles = ["com.gone", "com.other"]
+        let posted = XCTNSNotificationExpectation(name: .pinnedSectionsChanged)
+        PinnedSectionEdits.remove("com.gone", in: table, locks: locks)
+        wait(for: [posted], timeout: 0)
+        XCTAssertEqual(table.sections, ["com.other": .alwaysHidden])
+        XCTAssertEqual(locks.bundles, ["com.other"])
+    }
+
+    // Given a removed app, with the table left empty
+    // When it runs again and a read lists it
+    // Then it is a new app: visible, with no drag lock
+    func testARemovedAppThatRunsAgainComesBackAsANewApp() throws {
+        let (locks, defaults, suite) = try isolatedLocks()
+        defer { defaults.removePersistentDomain(forName: suite) }
+        table.sections = ["com.gone": .alwaysHidden]
+        locks.bundles = ["com.gone"]
+        PinnedSectionEdits.remove("com.gone", in: table, locks: locks)
+        XCTAssertEqual(table.sections, [:])
+
+        var seen: [String: MenuBarSection] = ["com.gone": .alwaysHidden]
+        var pinned = table.sections
+        let resolved = PinnedSectionResolver.resolve(read: ["com.gone": .hidden], launchedSinceRead: ["com.gone"],
+                                                     ignoringDrags: locks.bundles, observed: &seen, table: &pinned)
+        XCTAssertEqual(resolved, ["com.gone": PinnedSectionResolver.newAppSection])
+        XCTAssertEqual(locks.bundles, [])
+    }
+
+    // Given an app that quit after the last complete read
+    // When it is removed, then a read on an overflowing bar borrows from the earlier read
+    // Then the app is not added to the table again
+    func testARemovedAppIsNotReAddedByAnOverflowingRead() throws {
+        let (locks, defaults, suite) = try isolatedLocks()
+        defer { defaults.removePersistentDomain(forName: suite) }
+        inventory.items = [item("com.visible", x: 1400), item("com.gone", x: 1450)]
+        let engine = makeEngine()
+        XCTAssertEqual(collapse(engine), [own, "com.gone", "com.visible"])
+        XCTAssertEqual(table.sections["com.gone"], .visible)
+
+        PinnedSectionEdits.remove("com.gone", in: table, locks: locks)
+        engine.pinnedSectionsDidChange()
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.visible"], "the held restriction drops it at once")
+
+        engine.expand()
+        let chevron = MenuBarInventoryItem(bundleIdentifier: "com.apple.MenuBarAgent", frame: CGRect(x: 1500, y: 0, width: 24, height: 24),
+                                           systemIdentifier: "menu-bar-overflow-indicator")
+        inventory.items = [chevron, item("com.visible", x: 1400)]
+        XCTAssertEqual(collapse(engine), [own, "com.visible"])
+        XCTAssertNil(table.sections["com.gone"], "an overflowing read must not bring a removed app back")
+        XCTAssertEqual(table.sections, ["com.visible": .visible])
+    }
 }
 
 // MARK: - Legacy engine

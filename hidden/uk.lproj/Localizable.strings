@@ -144,5 +144,7 @@ Steps to view always hidden icons:
 "Shows every app, including ones that are not running now." = "Shows every app, including ones that are not running now.";
 "Ignore drags" = "Ignore drags";
 "Keep this app in its section even when its icon moves on its own, as BitBar and SwiftBar do. Dragging no longer changes it; the popup still does." = "Keep this app in its section even when its icon moves on its own, as BitBar and SwiftBar do. Dragging no longer changes it; the popup still does.";
+"Remove" = "Видалити";
+"Not running" = "Не запущено";
 "Visible" = "Visible";
 "Show Everything" = "Show Everything";
