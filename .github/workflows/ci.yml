@@ -31,8 +31,8 @@ jobs:
           newest=$(ls -d /Applications/Xcode_*.app | grep -E '/Xcode_[0-9]+\.[0-9]+\.app$' | sort -V | tail -1)
           echo "Selecting $newest"
           sudo xcode-select -s "$newest/Contents/Developer"
-          xcodebuild -version | tee xcode-version.txt
-          echo "XCODE_VERSION=$(tr -d '\n' < xcode-version.txt | tr ' ' '-')" >> "$GITHUB_ENV"
+          xcodebuild -version
+          echo "XCODE_VERSION=$(xcodebuild -version | awk '/Build version/ {print $3}')" >> "$GITHUB_ENV"
 
       - name: Cache derived data
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
