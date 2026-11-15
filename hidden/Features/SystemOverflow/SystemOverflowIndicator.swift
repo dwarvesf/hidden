@@ -60,6 +60,18 @@ enum SystemOverflowMatcher {
         return root.children.flatMap { findAll(in: $0, depth: depth + 1) }
     }
 
+    // The live tree reaches the same « through two parents. One « per identifier
+    // and frame; a button with no readable frame cannot be compared, so it stays.
+    static func findUnique(in root: SystemOverflowNode) -> [(node: SystemOverflowNode, state: SystemOverflowState)] {
+        var seen: [(identifier: String?, frame: CGRect)] = []
+        return findAll(in: root).filter { found in
+            guard let frame = found.node.frame else { return true }
+            if seen.contains(where: { $0.identifier == found.node.identifier && $0.frame == frame }) { return false }
+            seen.append((found.node.identifier, frame))
+            return true
+        }
+    }
+
     // Accessibility frames are top-left based and global; AppKit's are bottom-left,
     // flipped about the top edge of the screen that holds the menu bar origin.
     static func cocoaFrame(fromAccessibilityFrame frame: CGRect, primaryScreenMaxY: CGFloat) -> CGRect {
@@ -131,7 +143,7 @@ final class SystemOverflowIndicator {
     private func read() -> [(node: SystemOverflowNode, button: SystemOverflowButton)] {
         guard let root = root() else { return [] }
         let maxY = primaryScreenMaxY()
-        return SystemOverflowMatcher.findAll(in: root).map { found in
+        return SystemOverflowMatcher.findUnique(in: root).map { found in
             let frame = found.node.frame.flatMap { axFrame in
                 maxY.map { SystemOverflowMatcher.cocoaFrame(fromAccessibilityFrame: axFrame, primaryScreenMaxY: $0) }
             }

@@ -67,6 +67,20 @@ final class SystemOverflowTests: XCTestCase {
         XCTAssertEqual(found.map { $0.node.frame }, [portraitAXFrame, mainAXFrame])
     }
 
+    func test_buttonReachableThroughTwoParentsIsReturnedOnce() {
+        let button = FakeNode(identifier: Self.closed, frame: portraitAXFrame)
+        let tree = FakeNode(children: [FakeNode(children: [button]), FakeNode(children: [FakeNode(children: [button])])])
+        XCTAssertEqual(SystemOverflowMatcher.findAll(in: tree).count, 2)
+        XCTAssertEqual(SystemOverflowMatcher.findUnique(in: tree).count, 1)
+        XCTAssertEqual(SystemOverflowIndicator(root: { tree }, primaryScreenMaxY: { 900 }).buttons, [portraitButton])
+    }
+
+    func test_buttonsOnDifferentDisplaysAreKept() {
+        let tree = FakeNode(children: [FakeNode(identifier: Self.closed, frame: portraitAXFrame),
+                                       FakeNode(identifier: Self.closed, frame: mainAXFrame)])
+        XCTAssertEqual(SystemOverflowMatcher.findUnique(in: tree).count, 2)
+    }
+
     func test_noButtonMeansAbsent() {
         let tree = FakeNode(children: [FakeNode(identifier: "AXMenuBarItem"), FakeNode()])
         XCTAssertTrue(SystemOverflowMatcher.findAll(in: tree).isEmpty)

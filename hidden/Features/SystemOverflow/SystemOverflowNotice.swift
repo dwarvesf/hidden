@@ -32,6 +32,7 @@ final class SystemOverflowNotice {
     // The bar needs a moment to relayout after a collapse before the arrow's
     // window settles in its final place.
     private static let settleDelay: TimeInterval = 1.5
+    private static let retryDelay: TimeInterval = 1
 
     private let indicator = SystemOverflowIndicator()
     private let policy = SystemOverflowNoticePolicy(defaults: .standard)
@@ -40,14 +41,27 @@ final class SystemOverflowNotice {
     func checkAfterCollapse(arrow: NSStatusItem) {
         guard MenuBarEngineFactory.usesNativeEngine(), policy.shouldShow(), !isChecking else { return }
         isChecking = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.settleDelay) { [weak self, weak arrow] in
+        check(arrow: arrow, after: Self.settleDelay, retriesLeft: 1)
+    }
+
+    private func check(arrow: NSStatusItem, after delay: TimeInterval, retriesLeft: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self, weak arrow] in
             guard let self = self else { return }
+            guard let window = arrow?.button?.window else { self.isChecking = false; return }
+            let hasScreen = window.screen != nil
+            let occlusionVisible = window.occlusionState.contains(.visible)
+            let buttons = self.indicator.buttons
+            // MenuBarAgent can time out while it relays out; an arrow that looks
+            // hidden with no « read is worth one more read.
+            if buttons.isEmpty, retriesLeft > 0, !hasScreen || !occlusionVisible, let arrow = arrow {
+                self.check(arrow: arrow, after: Self.retryDelay, retriesLeft: retriesLeft - 1)
+                return
+            }
             self.isChecking = false
-            guard let window = arrow?.button?.window else { return }
             guard SystemOverflowMatcher.isItemInSystemOverflow(windowFrame: window.frame,
-                                                               hasScreen: window.screen != nil,
-                                                               occlusionVisible: window.occlusionState.contains(.visible),
-                                                               indicators: self.indicator.buttons) else { return }
+                                                               hasScreen: hasScreen,
+                                                               occlusionVisible: occlusionVisible,
+                                                               indicators: buttons) else { return }
             self.present()
         }
     }
