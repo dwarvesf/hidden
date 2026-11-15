@@ -4,7 +4,7 @@
 #   bash scripts/test-install-local.sh [T1 T6 ...]   run all cases, or just the named ones
 #
 # Every case runs against a throwaway fixture tree: a fake install dir (HB_APPS_DIR), a fake
-# backup root, and PATH stubs for codesign, spctl, defaults, osascript, pgrep, open, ssh,
+# backup root, and PATH stubs for codesign, spctl, defaults, osascript, ps, open, ssh,
 # mini-run and ditto. Nothing touches the real /Applications, prefs, login items or processes.
 # The fixture root is left behind in $TMPDIR for the OS to clean.
 
@@ -67,17 +67,15 @@ esac
 exit 1
 EOF
 
-write_stub pgrep <<'EOF'
+write_stub ps <<'EOF'
 #!/bin/bash
+# like `ps -axo pid=,comm=`: one line per process, comm is the executable path only
 running="$(cat "$STUB_STATE/running" 2>/dev/null)"
 inst="$HB_APPS_DIR/Hidden Bar.app/Contents/MacOS/Hidden Bar"
-# like the real pgrep -fl: every command line that mentions the pattern, including a build
-# command that only names the path (it must NOT count as a running copy)
 [ "$running" = "1" ] && echo "4242 $inst"
 [ -z "${STUB_OTHER_COPY:-}" ] || echo "5151 $STUB_OTHER_COPY"
-echo "6060 /usr/bin/clang -bundle_loader $inst -o /tmp/HiddenTests"
+echo "6060 /usr/bin/clang"
 exit 0
-exit 1
 EOF
 
 write_stub open <<'EOF'
@@ -320,15 +318,15 @@ case_T12() { # quit_timeout_refused
   check "says it did not quit" out_has "did not quit"
 }
 
-case_T13() { # other_copies_listed_and_build_commands_ignored
+case_T13() { # stray_copy_listed_and_not_counted_as_installed
   fresh_env
   echo 0 > "$STATE/running"
   export STUB_OTHER_COPY="/private/var/x/dd/Hidden Bar.app/Contents/MacOS/Hidden Bar"
   run_install --check-only "$ZIP"
   check "exit 0" rc_is 0
   check "stray copy listed" out_has "/private/var/x/dd/Hidden Bar.app/Contents/MacOS/Hidden Bar"
-  check "compiler command mentioning the path is not a copy" out_lacks "clang"
-  check "not running reads no despite the build command" out_has "running  *| no"
+  check "installed app not running even though a stray copy is" out_has "running  *| no"
+  check "unrelated processes not listed" out_lacks "clang"
 }
 
 cases="T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12 T13"

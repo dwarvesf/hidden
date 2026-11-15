@@ -113,14 +113,14 @@ probe() {
   echo "${ver:-?} (${build:-?})|$(cs_field "$app" CDHash)|$(cs_field "$app" TeamIdentifier)|$(cs_field "$app" Identifier)|$src|$ok"
 }
 
-# running_exes : "pid path" for every process whose command IS a Hidden Bar executable. pgrep -f
-# alone also matches any command line that merely mentions the path (a compiler or linker run
-# building a test bundle), so keep only commands that start with the executable itself.
+# running_exes : "pid path" for every process whose EXECUTABLE is a Hidden Bar binary. `ps comm`
+# gives the executable path alone, so a compiler or linker run that merely names the path in its
+# arguments (a test bundle build) is not mistaken for a running copy, which pgrep -f would do.
 running_exes() {
   local pid rest
-  pgrep -fl "Hidden Bar.app/Contents/MacOS/Hidden Bar" 2>/dev/null | while read -r pid rest; do
+  ps -axo pid=,comm= 2>/dev/null | while read -r pid rest; do
     case "$rest" in
-      /*"Hidden Bar.app/Contents/MacOS/Hidden Bar"|/*"Hidden Bar.app/Contents/MacOS/Hidden Bar "*) echo "$pid $rest" ;;
+      /*"/Hidden Bar.app/Contents/MacOS/Hidden Bar") echo "$pid $rest" ;;
     esac
   done
 }
@@ -128,7 +128,7 @@ running_exes() {
 app_pids() {
   local exe="$APPS_DIR/$APP_NAME/Contents/MacOS/Hidden Bar" pid rest
   running_exes | while read -r pid rest; do
-    case "$rest" in "$exe"|"$exe "*) echo "$pid" ;; esac
+    [ "$rest" != "$exe" ] || echo "$pid"
   done
 }
 
