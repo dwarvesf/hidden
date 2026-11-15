@@ -53,6 +53,14 @@ enum AutoStart {
             || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 
+    // Xcode parallel testing launches several clones of the host app from one
+    // bundle path. The single-instance check would quit every clone after the
+    // first, and each exits 0 before the test runner connects. A test host
+    // never enforces it; a real launch always does.
+    static func shouldEnforceSingleInstance(underXCTest: Bool = isRunningUnderXCTest) -> Bool {
+        !underXCTest
+    }
+
     static var isDebugBuild: Bool {
         #if DEBUG
         return true
