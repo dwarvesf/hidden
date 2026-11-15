@@ -33,6 +33,7 @@ final class SettingsWindowTests: XCTestCase {
         UserDefaults.Key.pauseHidingForUnkeepableItems,    // macOS 27 direct only
         UserDefaults.Key.showWholeBarWhenCaptureStarts,    // macOS 27 direct only
         UserDefaults.Key.pinnedSectionsEnabled,            // Pinned sections (beta), macOS 27 direct only
+        UserDefaults.Key.presentationAutoMirrorEnabled,    // Presentation mode: turn on while a display is mirrored, macOS 27 direct only
         "SUEnableAutomaticChecks",                         // Sparkle, direct only
     ]
     static let legacyOtherKeys = [
@@ -42,6 +43,8 @@ final class SettingsWindowTests: XCTestCase {
         UserDefaults.Key.findHiddenIconShortcut,                                  // Find a hidden icon shortcut, direct on macOS 27
         UserDefaultsPinnedSections.key,                                           // Icons section popups (beta)
         UserDefaults.Key.newAppDefaultSection,                                    // Icons: when an app adds a new icon
+        UserDefaults.Key.presentationShortcut,                                    // Presentation mode shortcut, macOS 27 direct only
+        UserDefaults.Key.presentationSensitiveApps,                               // Presentation mode sensitive apps, macOS 27 direct only
     ]
 
     private var saved: [String: Any] = [:]
@@ -226,7 +229,8 @@ final class SettingsWindowTests: XCTestCase {
         for key in [UserDefaults.Key.pauseHidingForUnkeepableItems, UserDefaults.Key.showWholeBarWhenCaptureStarts,
                     UserDefaults.Key.pinnedSectionsEnabled, UserDefaults.Key.revealOnEmptyClickEnabled,
                     UserDefaults.Key.newAppDefaultSection, UserDefaults.Key.findHiddenIconShortcut,
-                    "SUEnableAutomaticChecks"] {
+                    UserDefaults.Key.presentationAutoMirrorEnabled, UserDefaults.Key.presentationShortcut,
+                    UserDefaults.Key.presentationSensitiveApps, "SUEnableAutomaticChecks"] {
             XCTAssertNil(control(key, in: views), "\(key) shows in the App Store build")
         }
         // Scroll and shake need no Accessibility, so the App Store build keeps them.
@@ -447,8 +451,8 @@ final class SettingsWindowTests: XCTestCase {
 
     // Given each tab
     // When selecting it
-    // Then the tab control and the (hidden) window title follow, and General stays within 840 pt
-    // (720 until the reveal group joined General, 780 after it; the find-a-hidden-icon row with its caption adds 61)
+    // Then the tab control and the (hidden) window title follow, and General stays within the window cap
+    // (720 pt) by scrolling: the fullest window, macOS 27 on the direct build, is taller than that
     func test_selectingATab_titlesTheWindow() throws {
         let controller = PreferencesWindowController(context: fullContext())
         for tab in controller.tabs {
@@ -460,7 +464,13 @@ final class SettingsWindowTests: XCTestCase {
         }
         controller.select(.general, animate: false)
         let height = try XCTUnwrap(controller.window?.frame.height)
-        XCTAssertLessThanOrEqual(height, 840)
+        XCTAssertLessThanOrEqual(height, PreferencesWindowController.maxWindowHeight)
+        XCTAssertNotNil(controller.paneScroll.documentView, "General is taller than the cap, so it scrolls")
+        XCTAssertTrue(controller.currentPane.view.isDescendant(of: controller.paneScroll))
+        // A pane that fits is not wrapped in the scroll view.
+        controller.select(.about, animate: false)
+        XCTAssertNil(controller.paneScroll.documentView)
+        XCTAssertNil(controller.paneScroll.superview)
     }
 
     // MARK: status card

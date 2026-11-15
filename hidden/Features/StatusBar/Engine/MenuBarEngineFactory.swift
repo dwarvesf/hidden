@@ -33,6 +33,7 @@ enum MenuBarEngineFactory {
                                                 runsFromApplicationsFolder: runsFromApplicationsFolder,
                                                 pausesHidingForUnkeepableItems: { Preferences.pauseHidingForUnkeepableItems },
                                                 expandsWhenCaptureStarts: { Preferences.showWholeBarWhenCaptureStarts },
+                                                sensitiveApps: { Preferences.presentationSensitiveApps },
                                                 sectionMemory: UserDefaultsSectionMemory(),
                                                 workspaceNotifications: NSWorkspace.shared.notificationCenter,
                                                 pinnedSections: UserDefaultsPinnedSections(),

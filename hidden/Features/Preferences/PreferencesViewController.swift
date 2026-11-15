@@ -82,6 +82,11 @@ class PreferencesViewController: SettingsPaneController {
         everydayRows.append(contentsOf: findHiddenIconRows())
         addSection(nil, rows: everydayRows, spacingBefore: 16)
         addRevealSection(hover: hover)
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        if context.usesNativeEngine {
+            addPresentationSection()
+        }
+        #endif
 
         if context.usesNativeEngine {
             let value = NSTextField(labelWithString: "")
@@ -146,6 +151,38 @@ class PreferencesViewController: SettingsPaneController {
         addSection("Also show hidden icons when you".localized, rows: rows)
         addFootnote("Clicking anywhere off the menu bar hides them again.".localized)
     }
+
+    #if HIDDENBAR_NATIVE_VISIBILITY
+    // Presentation mode: the automatic trigger, the sensitive apps and the
+    // shortcut. The camera rule is said where people set it up.
+    private func addPresentationSection() {
+        let mirror = boundSwitch(UserDefaults.Key.presentationAutoMirrorEnabled,
+                                 read: { Preferences.presentationAutoMirrorEnabled },
+                                 write: { Preferences.presentationAutoMirrorEnabled = $0 })
+        let sensitive = PresentationSensitiveAppsControl(apps: {
+            PresentationSensitiveAppsControl.chips(for: Preferences.presentationSensitiveApps)
+        })
+        sensitive.editButton.target = self
+        sensitive.editButton.action = #selector(editSensitiveApps(_:))
+        onRefresh { [weak sensitive] in sensitive?.refresh() }
+        let recorder = ShortcutRecorderRow(key: UserDefaults.Key.presentationShortcut)
+        onRefresh { [weak recorder] in recorder?.refresh() }
+        addSection("Presentation mode".localized, rows: [
+            SettingsForm.row("Turn on automatically".localized, caption: "When a display is mirrored.".localized, control: mirror),
+            SettingsForm.row("Sensitive apps".localized,
+                             caption: "Stay hidden while presenting, even when you click the arrow.".localized, control: sensitive),
+            SettingsForm.row("Keyboard shortcut".localized, control: recorder),
+        ])
+        addFootnote("Hiding pauses while the camera or microphone is on, so the capsule that names the app using them stays visible.".localized)
+    }
+
+    @objc private func editSensitiveApps(_ sender: NSButton) {
+        let popover = NSPopover()
+        popover.contentViewController = PresentationSensitiveAppsEditor()
+        popover.behavior = .transient
+        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+    }
+    #endif
 
     override func viewWillAppear() {
         super.viewWillAppear()

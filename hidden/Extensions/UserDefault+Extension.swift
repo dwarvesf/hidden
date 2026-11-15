@@ -30,8 +30,12 @@ extension UserDefaults {
         static let showWholeBarWhenCaptureStarts = "showWholeBarWhenCaptureStarts"
         static let pinnedSectionsEnabled = "pinnedSectionsEnabled"
         static let newAppDefaultSection = "newAppDefaultSection"
+        static let presentationAutoMirrorEnabled = "presentationAutoMirrorEnabled"
+        static let presentationSensitiveApps = "presentationSensitiveApps"
+        static let presentationShortcut = "presentationShortcut"
         // Internal: not user-facing, so not in the App Store import whitelist.
         static let menuBarCatalogFirstSeen = "menuBarCatalogFirstSeen"
         static let arrivalsPending = "arrivalsPending"
+        static let presentationModeActive = "presentationModeActive"
     }
 }

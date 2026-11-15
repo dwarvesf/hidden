@@ -193,6 +193,10 @@ final class PaletteContentView: NSView, NSTextFieldDelegate {
             views.append(emptyState(title: "Hidden Bar is not hiding icons right now".localized,
                                     detail: "Every icon is already in the menu bar, so there is nothing to find. Open Settings to see why.".localized,
                                     badge: "exclamationmark.triangle.fill"))
+        case .sensitiveWhilePresenting(let appName):
+            views.append(emptyState(title: String(format: "%@ stays hidden while presenting".localized, appName),
+                                    detail: "Presentation mode keeps it out of view. Stop presenting to open it.".localized,
+                                    badge: "lock.fill"))
         case .cannotOpen(let appName):
             views.append(emptyState(title: String(format: "%@ can't be opened from here".localized, appName),
                                     detail: "Its icon does not answer Accessibility. Click the arrow to show everything, then click its icon.".localized,

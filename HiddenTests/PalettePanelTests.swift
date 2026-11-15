@@ -318,7 +318,7 @@ final class PalettePanelTests: XCTestCase {
             XCTAssertTrue(written.contains("direct-palette-settings-\(mode).png"))
         }
         XCTAssertEqual(Set(PaletteSnapshot.scenes.map(\.name)),
-                       ["results", "all", "opening", "nomatch", "nothinghidden", "accessibilityoff", "macositem", "appquit", "cannotopen", "enginedown"])
+                       ["results", "all", "opening", "nomatch", "nothinghidden", "accessibilityoff", "macositem", "appquit", "cannotopen", "sensitive", "enginedown"])
     }
 }
 #endif

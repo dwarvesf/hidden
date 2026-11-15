@@ -130,6 +130,11 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         hotKeys.register(key: UserDefaults.Key.findHiddenIconShortcut, title: "Find a hidden icon".localized) { [weak self] in
             self?.statusBarController.togglePalette()
         }
+        if MenuBarEngineFactory.usesNativeEngine() {
+            hotKeys.register(key: UserDefaults.Key.presentationShortcut, title: "Presentation mode".localized) { [weak self] in
+                self?.statusBarController.togglePresentationMode()
+            }
+        }
         #endif
     }
     
