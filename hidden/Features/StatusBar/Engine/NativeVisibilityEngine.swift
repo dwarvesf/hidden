@@ -41,6 +41,12 @@ import AppKit
 //   Notification Center cannot open from it (#410). A click on the clock lifts
 //   the restriction for a moment and presses it (MenuBarClock); hidden icons
 //   can flash while it is lifted.
+// - Assessment mode also hides the capsule naming the app that uses the
+//   microphone or camera (#432, #437; the dot in the screen corner stays). No
+//   other restriction origin filters icons (measured on 27.0), so no
+//   restriction is held while a microphone or camera is in use: the bar is
+//   whole until capture stops, then the user's state is re-applied from a fresh
+//   read. The arrow keeps its look meanwhile.
 final class NativeVisibilityEngine: MenuBarEngine {
     // System item identifiers to keep visible. Unknown identifiers are ignored,
     // so the range covers items a given Mac does not have (0-63 checked on 27.0).
@@ -50,6 +56,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private let inventory: MenuBarInventoryProviding
     private let visibility: NativeVisibilityProviding
     private let clock: MenuBarClockProviding
+    private let captureActivity: CaptureActivityMonitoring
     private let ownBundleIdentifier: String?
     private let itemFrame: (NSStatusItem) -> CGRect?
     private let displays: () -> [MenuBarDisplay]
@@ -73,6 +80,8 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // activation); a late success is then invalidated straight away.
     private var generation = 0
     private var lastUnavailableReason: String?
+    // The capture state last acted on, so only a change moves the restriction.
+    private var isCaptureActive: Bool
 
     private var alwaysHiddenEnabled = false
     private var alwaysHiddenSeparatorHidden = false
@@ -101,6 +110,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
          inventory: MenuBarInventoryProviding = AccessibilityMenuBarInventory(),
          visibility: NativeVisibilityProviding = NativeVisibilityBridge(),
          clock: MenuBarClockProviding = SystemMenuBarClock(),
+         captureActivity: CaptureActivityMonitoring = NoCaptureActivity(),
          ownBundleIdentifier: String? = Bundle.main.bundleIdentifier,
          itemFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
          displays: @escaping () -> [MenuBarDisplay] = MenuBarDisplay.current,
@@ -113,6 +123,8 @@ final class NativeVisibilityEngine: MenuBarEngine {
         self.inventory = inventory
         self.visibility = visibility
         self.clock = clock
+        self.captureActivity = captureActivity
+        isCaptureActive = captureActivity.isActive
         self.ownBundleIdentifier = ownBundleIdentifier
         self.itemFrame = itemFrame
         self.displays = displays
@@ -121,6 +133,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
         self.workspaceNotifications = workspaceNotifications
         items.separatorItem.isVisible = false
         observeLaunches()
+        captureActivity.onChange = { [weak self] in
+            self?.captureActivityDidChange()
+        }
     }
 
     deinit {
@@ -316,9 +331,16 @@ final class NativeVisibilityEngine: MenuBarEngine {
 
     // Activates the new restriction before dropping the old one, so switching
     // between collapsed and expanded never flashes the whole bar visible.
+    // While a microphone or camera is in use nothing is activated, but the
+    // request still succeeds: the bar keeps the state the user asked for and the
+    // restriction follows once capture stops.
     private func activate(allowing bundles: [String], completion: @escaping (Bool) -> Void) {
         generation += 1
         let generation = self.generation
+        guard !captureActivity.isActive else {
+            dropAssertionForCapture()
+            return completion(true)
+        }
         let allowed = (ownBundleIdentifier.map { [$0] } ?? []) + bundles
         visibility.activate(allowedSystemItems: Self.systemItemsToKeep,
                             allowedBundleIdentifiers: allowed) { [weak self] result in
@@ -327,6 +349,11 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 return
             }
             switch result {
+            case .success(let newAssertion) where self.captureActivity.isActive:
+                // Capture started while this was in flight.
+                newAssertion.invalidate()
+                self.dropAssertionForCapture()
+                completion(true)
             case .success(let newAssertion):
                 let old = self.assertion
                 self.assertion = newAssertion
@@ -367,6 +394,54 @@ final class NativeVisibilityEngine: MenuBarEngine {
         assertion?.invalidate()
         assertion = nil
         watchClock()
+    }
+
+    // Unlike releaseAssertion, an activation in flight is not superseded: it
+    // still answers the collapse that started it, and drops its own result
+    // because capture is active.
+    private func dropAssertionForCapture() {
+        assertion?.invalidate()
+        assertion = nil
+        watchClock()
+    }
+
+    private func captureActivityDidChange() {
+        let isActive = captureActivity.isActive
+        guard isActive != isCaptureActive else { return }
+        isCaptureActive = isActive
+        if isActive {
+            NSLog("NativeVisibility: a microphone or camera is in use; showing the whole menu bar until it stops")
+            dropAssertionForCapture()
+        } else {
+            NSLog("NativeVisibility: capture stopped; hiding again")
+            restorePresentation()
+        }
+    }
+
+    // Re-applies the current state from a fresh read of the bar, which nothing
+    // restricts at this point. A failure leaves the bar whole (fail open).
+    private func restorePresentation() {
+        switch state {
+        case .collapsed:
+            withLayout { [weak self] layout in
+                guard let self = self else { return }
+                guard let layout = layout else { return self.failOpen() }
+                self.activate(allowing: layout.bundles(in: [.visible])) { [weak self] succeeded in
+                    guard let self = self else { return }
+                    succeeded ? self.allowLaunchedAppsIfIdle() : self.failOpen()
+                }
+            }
+        case .expanded:
+            applyExpandedPresentation()
+        case .calibrating, .unavailable:
+            // An activation in flight checks capture itself; unavailable holds nothing.
+            break
+        }
+    }
+
+    private func failOpen() {
+        state = .expanded
+        setSeparatorsVisible(true)
     }
 
     // Any held restriction, collapsed or expanded with the always-hidden section
@@ -534,6 +609,7 @@ extension NativeVisibilityEngine {
             "allowedBundles": assertion == nil ? [] : assertionBundles,
             "sections": sections,
             "clockWatched": clock.onClick != nil,
+            "captureActive": captureActivity.isActive,
             "unprovenVisibleSystemItems": layout?.unprovenVisibleSystemItems ?? [],
             "unnameableVisibleItems": layout?.unnameableVisibleItems ?? [],
             "unkeepableSystemItems": unkeepableSystemItems.sorted(),

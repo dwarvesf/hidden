@@ -16,6 +16,7 @@ enum MenuBarEngineFactory {
         #if HIDDENBAR_NATIVE_VISIBILITY
         if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 {
             return NativeVisibilityEngine(items: items,
+                                          captureActivity: CaptureActivityMonitor(),
                                           pausesHidingForUnkeepableItems: { Preferences.pauseHidingForUnkeepableItems },
                                           sectionMemory: UserDefaultsSectionMemory(),
                                           workspaceNotifications: NSWorkspace.shared.notificationCenter)

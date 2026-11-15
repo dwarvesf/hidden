@@ -43,6 +43,7 @@ section is enabled.
   briefly appear. Clicking an already-open panel's clock is left alone so it
   closes normally. If the clicked clock cannot be located, no click is replayed
   on another display.
+- Native hiding also hides the menu-bar capsule that names the app using the microphone or camera (the orange or green indicator); the dot in the screen corner still shows. So while any app uses the microphone or a camera, Hidden Bar stops hiding and shows the whole bar, and hides again when that stops. The arrow keeps its collapsed look meanwhile. Screen recording is not covered: macOS offers no public way to detect it.
 
 ## Preferences window
 
