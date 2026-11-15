@@ -19,9 +19,10 @@ enum PresentationPhase: Equatable {
     case off
     // On and holding the strict list.
     case presenting
-    // On, but nothing is hidden: a camera or microphone turned on (or was on when
-    // the mode started), so the restriction is lifted once, as on the main bar
-    // (1.12). The restriction also hides the capsule macOS shows for the app that
+    // On, but nothing is hidden: a camera or microphone turned on while the mode
+    // was on, so the restriction is lifted once, as on the main bar (1.12). A
+    // capture already running when the mode starts does not pause it: its capsule
+    // showed when it began. The restriction also hides the capsule macOS shows for the app that
     // records (#437). The user can resume hiding; it also resumes by itself when
     // capture ends.
     case paused
@@ -49,6 +50,9 @@ struct PresentationState: Equatable {
     private(set) var captureWasActive = false
     // A capture start paused the mode and the user has not resumed hiding since.
     private(set) var capturePaused = false
+    // The mode has resolved at least once since it came on, so a capture seen
+    // later is a start and one seen first was already running.
+    private(set) var captureSeen = false
     private(set) var hideFailed = false
 
     var isOn: Bool {
@@ -100,7 +104,8 @@ struct PresentationState: Equatable {
     // The capture rule is the one the main bar follows (1.12): a camera or
     // microphone that turns on pauses the mode once, `pausesForCapture` being the
     // "show the whole bar when capture starts" switch. Capture already on when the
-    // mode starts counts as a start. With the switch off nothing ever pauses.
+    // mode starts is not a start (a collapsed main bar does not expand for it
+    // either), so the mode starts hidden. With the switch off nothing ever pauses.
     // The caller reads the capture state at this moment, every time; the start is
     // seen here as an off-to-on change, and a pause ends when the user resumes or
     // when capture has been quiet for `resumeDelay`.
@@ -111,15 +116,18 @@ struct PresentationState: Equatable {
             lastCaptureAt = nil
             captureWasActive = false
             capturePaused = false
+            captureSeen = false
             return .off
         }
         guard pausesForCapture else {
             lastCaptureAt = nil
             captureWasActive = captureActive
             capturePaused = false
+            captureSeen = true
             return hideFailed ? .couldNotHide : .presenting
         }
-        if captureActive && !captureWasActive { capturePaused = true }
+        if captureActive && !captureWasActive && captureSeen { capturePaused = true }
+        captureSeen = true
         if captureActive || captureWasActive { lastCaptureAt = now }
         captureWasActive = captureActive
         if capturePaused {

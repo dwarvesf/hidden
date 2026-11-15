@@ -173,7 +173,7 @@ class PreferencesViewController: SettingsPaneController {
                              caption: "Stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone.".localized, control: sensitive),
             SettingsForm.row("Keyboard shortcut".localized, control: recorder),
         ])
-        addFootnote("Sensitive apps stay hidden while presenting, except while hiding is paused for the camera or microphone. Then nothing is hidden, so the capsule that names the app using them stays visible.".localized)
+        addFootnote("Sensitive apps stay hidden while presenting, except when \"Show all icons when the microphone or camera turns on\" pauses hiding. Then nothing is hidden, so the capsule that names the app using them stays visible.".localized)
     }
 
     @objc private func editSensitiveApps(_ sender: NSButton) {

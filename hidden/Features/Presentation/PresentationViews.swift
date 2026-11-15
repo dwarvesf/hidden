@@ -25,10 +25,10 @@ struct PresentationPanelModel {
 
     var kind: Kind
     var cause: PresentationCause?
-    var hidden: [PresentationAppChip] = []
-    var staysHidden: [PresentationAppChip] = []
-
-    static let maxChips = 6
+    // Counts only: the panel is on the shared screen, so it never names an app.
+    // Sensitive apps are named only in Settings.
+    var hiddenCount = 0
+    var sensitiveCount = 0
 }
 
 // MARK: - Capsule
@@ -262,11 +262,6 @@ final class PresentationPanelView: NSView {
         return view
     }
 
-    private func chips(_ chips: [PresentationAppChip]) -> NSView {
-        let shown = Array(chips.prefix(PresentationPanelModel.maxChips))
-        return PresentationChipFlow(chips: shown, overflow: chips.count - shown.count, width: contentWidth)
-    }
-
     private func footer(note: String, button: NSButton) -> NSView {
         let label = NSTextField(labelWithString: note)
         label.font = .systemFont(ofSize: 11)
@@ -285,22 +280,20 @@ final class PresentationPanelView: NSView {
         stack.addArrangedSubview(heading("Presentation mode is on".localized))
         stack.addArrangedSubview(body(Self.causeText(model.cause)))
         stack.setCustomSpacing(10, after: stack.arrangedSubviews.last!)
-        let count = model.hidden.count
+        let count = model.hiddenCount
         let hiddenTitle = count == 1 ? "Hidden now: 1 app".localized : String(format: "Hidden now: %d apps".localized, count)
         stack.addArrangedSubview(body(hiddenTitle))
-        stack.setCustomSpacing(4, after: stack.arrangedSubviews.last!)
-        stack.addArrangedSubview(chips(model.hidden))
-        if !model.staysHidden.isEmpty {
-            stack.setCustomSpacing(12, after: stack.arrangedSubviews.last!)
+        if model.sensitiveCount > 0 {
+            stack.setCustomSpacing(6, after: stack.arrangedSubviews.last!)
             let lock = NSImageView(image: NSImage(systemSymbolName: "lock", accessibilityDescription: nil) ?? NSImage())
             lock.contentTintColor = .secondaryLabelColor
             lock.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 10, weight: .regular)
-            let label = body("Stay hidden even if you click the arrow".localized)
-            let title = NSStackView(views: [lock, label])
+            let text = model.sensitiveCount == 1
+                ? "1 sensitive app stays hidden even if you click the arrow".localized
+                : String(format: "%d sensitive apps stay hidden even if you click the arrow".localized, model.sensitiveCount)
+            let title = NSStackView(views: [lock, body(text)])
             title.spacing = 4
             stack.addArrangedSubview(title)
-            stack.setCustomSpacing(4, after: title)
-            stack.addArrangedSubview(chips(model.staysHidden))
         }
         stack.setCustomSpacing(10, after: stack.arrangedSubviews.last!)
         stack.addArrangedSubview(line())

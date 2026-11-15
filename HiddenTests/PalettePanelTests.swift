@@ -332,6 +332,32 @@ final class PalettePanelTests: XCTestCase {
         XCTAssertTrue(texts.contains("1Password"))
     }
 
+    // MARK: live wiring
+
+    // Given the app's own status bar controller, a sensitive set in the preferences
+    // When the palette environment is read with presentation mode on, then off
+    // Then the live wiring hands the sensitive list over only while presenting, and the pinned-sections switch follows the preference
+    func test_liveEnvironmentCarriesTheSensitiveListOnlyWhilePresenting() throws {
+        let bar = try XCTUnwrap((NSApp.delegate as? AppDelegate)?.statusBarController, "the test host owns the status bar controller")
+        let keys = [UserDefaults.Key.presentationSensitiveApps, UserDefaults.Key.pinnedSectionsEnabled]
+        let saved = keys.map { UserDefaults.standard.object(forKey: $0) }
+        defer {
+            for (key, value) in zip(keys, saved) {
+                if let value { UserDefaults.standard.set(value, forKey: key) } else { UserDefaults.standard.removeObject(forKey: key) }
+            }
+            bar.presentingOverride = nil
+        }
+        Preferences.presentationSensitiveApps = ["com.paste", "com.1password"]
+        Preferences.pinnedSectionsEnabled = false
+
+        bar.presentingOverride = true
+        XCTAssertEqual(bar.paletteEnvironment().hiddenWhilePresenting, ["com.paste", "com.1password"])
+        XCTAssertFalse(bar.paletteEnvironment().pinsSections)
+
+        bar.presentingOverride = false
+        XCTAssertEqual(bar.paletteEnvironment().hiddenWhilePresenting, [])
+    }
+
     // MARK: placement
 
     // Given an arrow on the display with the pointer

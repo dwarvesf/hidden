@@ -54,9 +54,10 @@ import AppKit
 //   and `reconcileHold()`, so no event (an app launch, a clock click, a capture
 //   change) can swap the strict list back to the normal one. The restriction
 //   hides the capsule naming the app that records, so presentation follows the
-//   main bar's rule: it lifts once when a microphone or camera turns on (or is
-//   on when the mode starts), if that switch is on, and the user may hide again
-//   at once. It lifts when the app quits (PresentationState).
+//   main bar's rule: it lifts once when a microphone or camera turns on, if
+//   that switch is on, and the user may hide again at once. A capture already
+//   running when the mode starts does not lift it, as it would not expand a
+//   collapsed main bar. It lifts when the app quits (PresentationState).
 // - macOS matches the allow-list only to apps it knows by bundle id, which
 //   (measured on 27.2) it does for an app in an Applications folder but not for
 //   one run from elsewhere (Downloads, a build folder): it hides that app's

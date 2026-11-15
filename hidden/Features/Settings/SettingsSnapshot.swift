@@ -65,7 +65,7 @@ enum SettingsSnapshot {
             presentation.build = .direct
             presentation.osMajorVersion = 27
             presentation.statusOverride = .working
-            PresentationSensitiveAppsControl.snapshotChips = PresentationSnapshot.fixtureModel(for: .presenting).staysHidden
+            PresentationSensitiveAppsControl.snapshotChips = PresentationSnapshot.sensitiveChipsFixture
             shoot(PreferencesWindowController(context: presentation), tab: .general, appearance: appearance,
                   to: dir.appendingPathComponent("\(build)-present-settings-\(mode).png"), scrollsToEnd: true)
             PresentationSensitiveAppsControl.snapshotChips = nil

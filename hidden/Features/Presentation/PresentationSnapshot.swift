@@ -43,14 +43,16 @@ enum PresentationSnapshot {
 
     static func fixtureModel(for phase: PresentationPhase) -> PresentationPanelModel {
         let kind: PresentationPanelModel.Kind = phase == .paused ? .paused : (phase == .couldNotHide ? .couldNotHide : .presenting)
+        return PresentationPanelModel(kind: kind, cause: .mirroring(displayName: "Meeting Room TV"), hiddenCount: 11, sensitiveCount: 3)
+    }
+
+    // Settings is where sensitive apps are named.
+    static var sensitiveChipsFixture: [PresentationAppChip] {
         let named: [(String, String, NSColor)] = [
             ("Slack", "number", .systemPurple), ("1Password", "key.fill", .systemBlue), ("Tailscale", "circle.grid.3x3.fill", .darkGray),
             ("Dropbox", "shippingbox.fill", .systemBlue), ("Docker Desktop", "shippingbox", .systemTeal), ("Paste", "doc.on.clipboard", .systemIndigo),
         ]
-        let chips = named.map { PresentationAppChip(name: $0.0, icon: icon($0.1, $0.2)) }
-        let more = (1...5).map { PresentationAppChip(name: "App \($0)", icon: icon("app.fill", .systemGray)) }
-        return PresentationPanelModel(kind: kind, cause: .mirroring(displayName: "Meeting Room TV"),
-                                      hidden: chips + more, staysHidden: Array(chips.prefix(3)))
+        return named.prefix(3).map { PresentationAppChip(name: $0.0, icon: icon($0.1, $0.2)) }
     }
 
     // Stand-ins for the apps' own icons.

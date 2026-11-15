@@ -81,6 +81,8 @@ class StatusBarController: MenuBarItemProvider {
         },
         isSuspended: { [weak self] in self?.isPresenting ?? false },
         screens: ScreenBand.live)
+    // Tests stand in for presentation mode, which would hold a real restriction.
+    var presentingOverride: Bool?
     // True while the arrow's context menu is up.
     private var isShowingOwnMenu = false
 
@@ -88,6 +90,7 @@ class StatusBarController: MenuBarItemProvider {
     // quiet, since the room sees the screen.
     private var isPresenting: Bool {
         #if HIDDENBAR_NATIVE_VISIBILITY
+        if let presentingOverride { return presentingOverride }
         return presentationController?.isOn ?? false
         #else
         return false
@@ -676,6 +679,15 @@ extension StatusBarController {
         return item
     }
 
+    /// What the palette reads each time it opens or refreshes. While presenting it
+    /// carries the sensitive apps, which the palette leaves out of its list.
+    func paletteEnvironment() -> PaletteEnvironment {
+        return PaletteEnvironment(accessibilityTrusted: !AccessibilityPermission.shared.isMissing,
+                                  engineAvailable: menuBarEngine.state != .unavailable,
+                                  pinsSections: Preferences.pinnedSectionsEnabled,
+                                  hiddenWhilePresenting: isPresenting ? Preferences.presentationSensitiveApps : [])
+    }
+
     fileprivate func makePalette() -> PaletteController {
         let session = PaletteRevealSession(
             now: { ProcessInfo.processInfo.systemUptime },
@@ -690,13 +702,7 @@ extension StatusBarController {
             restore: { [weak self] in self?.menuBarEngine.endTemporaryAllow() })
         paletteSession = session
         let host = PaletteHost(
-            environment: { [weak self] in
-                let presenting = self?.isPresenting ?? false
-                return PaletteEnvironment(accessibilityTrusted: !AccessibilityPermission.shared.isMissing,
-                                          engineAvailable: self?.menuBarEngine.state != .unavailable,
-                                          pinsSections: Preferences.pinnedSectionsEnabled,
-                                          hiddenWhilePresenting: presenting ? Preferences.presentationSensitiveApps : [])
-            },
+            environment: { [weak self] in self?.paletteEnvironment() ?? PaletteEnvironment(accessibilityTrusted: false, engineAvailable: false) },
             arrowFrame: { [weak self] in self?.btnExpandCollapse.button?.window?.frame },
             open: { bundle, done in session.open(bundle: bundle, completion: done) },
             move: { section, bundle in PinnedSectionEdits.set(section, for: bundle, in: UserDefaultsPinnedSections()) },

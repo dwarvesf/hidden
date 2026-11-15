@@ -254,7 +254,8 @@ Steps to view always hidden icons:
 "Started by you. It stays on until you stop it." = "Started by you. It stays on until you stop it.";
 "Hidden now: 1 app" = "Hidden now: 1 app";
 "Hidden now: %d apps" = "Hidden now: %d apps";
-"Stay hidden even if you click the arrow" = "Stay hidden even if you click the arrow";
+"1 sensitive app stays hidden even if you click the arrow" = "1 sensitive app stays hidden even if you click the arrow";
+"%d sensitive apps stay hidden even if you click the arrow" = "%d sensitive apps stay hidden even if you click the arrow";
 "Stop Presenting" = "Stop Presenting";
 "macOS's own items stay." = "macOS's own items stay.";
 "Hiding paused: camera or microphone in use" = "Hiding paused: camera or microphone in use";
@@ -277,7 +278,7 @@ Steps to view always hidden icons:
 "When a display is mirrored." = "When a display is mirrored.";
 "Sensitive apps" = "Sensitive apps";
 "Stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone." = "Stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone.";
-"Sensitive apps stay hidden while presenting, except while hiding is paused for the camera or microphone. Then nothing is hidden, so the capsule that names the app using them stays visible." = "Sensitive apps stay hidden while presenting, except while hiding is paused for the camera or microphone. Then nothing is hidden, so the capsule that names the app using them stays visible.";
+"Sensitive apps stay hidden while presenting, except when \"Show all icons when the microphone or camera turns on\" pauses hiding. Then nothing is hidden, so the capsule that names the app using them stays visible." = "Sensitive apps stay hidden while presenting, except when \"Show all icons when the microphone or camera turns on\" pauses hiding. Then nothing is hidden, so the capsule that names the app using them stays visible.";
 "Edit..." = "Edit...";
 "None" = "None";
 "Choose the apps that stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone." = "Choose the apps that stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone.";

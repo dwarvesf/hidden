@@ -3043,19 +3043,27 @@ final class PresentationModeEngineTests: XCTestCase {
         XCTAssertEqual(visibility.requests.last?.bundles, strict)
     }
 
-    // Given capture already running
+    // Given capture already running (a call under way), the switch on
     // When the mode starts
-    // Then no strict list is ever requested: it begins paused
-    func testStartWhileCaptureIsActiveNeverHolds() {
+    // Then the strict list is held at once and nothing is lifted; a fresh capture start afterwards lifts once
+    func testStartWhileCaptureIsActiveStartsHidden() {
         capture.isActive = true
         let engine = makeEngine()
-        let held = collapsed(engine)
+        collapsed(engine)
         engine.startPresentation()
 
-        XCTAssertTrue(held.isInvalidated)
+        XCTAssertEqual(visibility.requests.last?.bundles, strict)
+        let held = visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(engine.currentPhase(), .presenting)
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertFalse(held.isInvalidated)
+        XCTAssertEqual(phases, [.presenting])
+
+        capture.set(false)
+        capture.set(true)
+        XCTAssertTrue(held.isInvalidated, "a fresh start while presenting lifts once")
         XCTAssertEqual(engine.currentPhase(), .paused)
-        XCTAssertNil(engine.currentHold)
-        XCTAssertFalse(visibility.requests.contains { $0.bundles == strict })
+        XCTAssertEqual(phases, [.presenting, .paused])
     }
 
     // Given a bar with no layout to read (Accessibility off)
@@ -3283,24 +3291,6 @@ final class PresentationModeEngineTests: XCTestCase {
         engine.startPresentation()
         XCTAssertEqual(visibility.requests.last?.bundles, strict, "already on at start: still held")
         XCTAssertEqual(engine.currentPhase(), .presenting)
-    }
-
-    // Given a camera already on, the switch on
-    // When the user presses "Hide again"
-    // Then the mode that began paused holds the strict list
-    func testStartedDuringCaptureResumesOnTheUsersWord() {
-        capture.isActive = true
-        let engine = makeEngine()
-        collapsed(engine)
-        engine.startPresentation()
-        XCTAssertEqual(engine.currentPhase(), .paused)
-        XCTAssertFalse(visibility.requests.contains { $0.bundles == strict })
-
-        engine.resumePresentationHiding()
-        XCTAssertEqual(visibility.requests.last?.bundles, strict)
-        visibility.succeed(visibility.requests.count - 1)
-        XCTAssertEqual(engine.state, .collapsed)
-        XCTAssertEqual(phases, [.paused, .presenting])
     }
 
     // Given a presentation, an app the palette allowed, a clock click, then the microphone on and off

@@ -165,17 +165,9 @@ final class PresentationController {
         case .couldNotHide: kind = .couldNotHide
         case .off, .presenting: kind = .presenting
         }
-        let hidden = engine.presentationHiddenBundles.map(chip(for:))
-        let stays = Preferences.presentationSensitiveApps.sorted().map(chip(for:))
-        return PresentationPanelModel(kind: kind, cause: engine.presentationCause, hidden: hidden, staysHidden: stays)
-    }
-
-    private func chip(for bundle: String) -> PresentationAppChip {
-        if let entry = catalog.entry(for: bundle) {
-            return PresentationAppChip(name: entry.name, icon: entry.icon)
-        }
-        let resolver = WorkspaceAppResolver()
-        return PresentationAppChip(name: resolver.name(of: bundle) ?? bundle, icon: resolver.icon(of: bundle))
+        return PresentationPanelModel(kind: kind, cause: engine.presentationCause,
+                                      hiddenCount: engine.presentationHiddenBundles.count,
+                                      sensitiveCount: Preferences.presentationSensitiveApps.count)
     }
 }
 
