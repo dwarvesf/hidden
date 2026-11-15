@@ -205,14 +205,9 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         lock.toolTip = "Keep this app in its section even when its icon moves on its own, as BitBar and SwiftBar do. Dragging no longer changes it; the popup still does.".localized
         let controls = NSStackView(views: [lock, popup])
         controls.spacing = 10
-        if canRemove {
-            let remove = NSButton(title: "Remove".localized, target: self, action: #selector(removeTapped(_:)))
-            remove.controlSize = .small
-            remove.identifier = NSUserInterfaceItemIdentifier(Self.removeIdentifier(for: entry.bundle))
-            controls.addArrangedSubview(remove)
-        }
 
         let row = SettingsForm.row(entry.name, caption: caption, control: controls)
+        if canRemove { addRemoveLink(to: row, for: entry) }
         row.toolTip = entry.bundle
         let image = store.icon(for: entry.bundle)
         let icon = NSImageView(image: image)
@@ -232,6 +227,34 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
             icon.heightAnchor.constraint(equalToConstant: 18),
         ])
         return row
+    }
+
+    // Remove sits in the caption line, not the controls column, so every row's controls line up.
+    private func addRemoveLink(to row: NSView, for entry: PinnedSectionsList.Entry) {
+        guard let texts = row.subviews.first(where: { $0 is NSStackView }) as? NSStackView,
+              let caption = texts.arrangedSubviews.last as? NSTextField else { return }
+        caption.stringValue += " \u{B7}"
+        caption.lineBreakMode = .byTruncatingTail
+        caption.maximumNumberOfLines = 1
+        caption.setContentHuggingPriority(.required, for: .horizontal)
+
+        let title = "Remove".localized
+        let remove = NSButton(title: title, target: self, action: #selector(removeTapped(_:)))
+        remove.isBordered = false
+        remove.controlSize = .small
+        remove.attributedTitle = NSAttributedString(string: title, attributes: [
+            .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize),
+            .foregroundColor: NSColor.linkColor,
+        ])
+        remove.identifier = NSUserInterfaceItemIdentifier(Self.removeIdentifier(for: entry.bundle))
+        remove.setAccessibilityLabel("\(title) \(entry.name)")
+        remove.heightAnchor.constraint(greaterThanOrEqualToConstant: 16).isActive = true
+
+        texts.removeArrangedSubview(caption)
+        let line = NSStackView(views: [caption, remove])
+        line.spacing = 3
+        line.alignment = .firstBaseline
+        texts.addArrangedSubview(line)
     }
 
     @objc private func sectionPicked(_ sender: NSPopUpButton) {
