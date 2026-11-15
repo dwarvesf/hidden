@@ -31,6 +31,12 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         if SettingsSnapshot.runIfRequested() { return }
         #endif
         guard ensureSingleInstance() else { return }
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        // Pinned sections (beta) fill the Settings tab the native engine has.
+        if MenuBarEngineFactory.usesNativeEngine() {
+            MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: .live) }
+        }
+        #endif
         setupAutoStartApp()
         registerDefaultValues()
         setupHotKey()
@@ -113,7 +119,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         UserDefaults.Key.notchOverflowEnabled: true,
         UserDefaults.Key.stealthExpandIconEnabled: false,
         UserDefaults.Key.arrowStyle: ArrowStyle.default.rawValue,
-        UserDefaults.Key.showWholeBarWhenCaptureStarts: true
+        UserDefaults.Key.showWholeBarWhenCaptureStarts: true,
+        UserDefaults.Key.pinnedSectionsEnabled: true
     ]
 
     func registerDefaultValues() {

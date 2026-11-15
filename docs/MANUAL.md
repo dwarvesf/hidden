@@ -35,10 +35,10 @@ section is enabled.
   and no longer reads it from where macOS put the icon after the app started.
   An app seen for the first time starts visible. A ⌘-drag still moves an app
   between sections, except in the moment right after it relaunched.
-  Preferences › "Menu bar apps" lists every app with a Visible / Hidden /
+  Settings › Menu Bar Apps lists every app with a Visible / Hidden /
   Always hidden choice, which applies at once, and "Reset all to visible". An
   app set to always hidden stays hidden when the bar expands; Option-click the
-  arrow to show it until the next collapse. Turn the beta off in Preferences to
+  arrow to show it until the next collapse. Turn the beta off in Settings › Advanced to
   get the position-based behavior above; it takes effect at the next collapse.
 - An icon whose app has no bundle identifier (a script run by an interpreter,
   some helpers) cannot be kept visible on macOS 27. Preferences offers to show

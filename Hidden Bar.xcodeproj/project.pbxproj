@@ -130,6 +130,8 @@
 		D3F13FAFD4676A6D14884887 /* SelectedSecond.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A5F85B23AA013100981CA5 /* SelectedSecond.swift */; };
 		D44900914DCA23195B7C7843 /* HyperlinkTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C20FDD23AABDD10035D978 /* HyperlinkTextField.swift */; };
 		D61D23037A1EB8F7DD848EA4 /* AdvancedSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13F6B1FCE2F0F29887382BF5 /* AdvancedSettingsViewController.swift */; };
+		837108CD16BDBEB2B6A4B064 /* MenuBarAppsSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FFC448CD0476AF4799FA5DA /* MenuBarAppsSettingsViewController.swift */; };
+		142B73DAE4B1D30D0775D310 /* MenuBarAppsSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FFC448CD0476AF4799FA5DA /* MenuBarAppsSettingsViewController.swift */; };
 		D62C67552025B67BCCE48642 /* SettingsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60AFBE8D4C25548192E7D135 /* SettingsModelTests.swift */; };
 		D66609979150D0030CBE89E0 /* MenuBarEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DDBB306F3907BFB2D9E6DCF /* MenuBarEngine.swift */; };
 		E191D3FECED22D5FF5B8AD46 /* SettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A559ED44CB2BAC9DAE646EE7 /* SettingsModel.swift */; };
@@ -183,6 +185,7 @@
 		08C20FE123AB452C0035D978 /* AboutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutViewController.swift; sourceTree = "<group>"; };
 		092D9DE26A006349D87B304D /* MenuBarLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLayout.swift; sourceTree = "<group>"; };
 		1218DDCA0B5E85481E4F8F3B /* SettingsWindowTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsWindowTests.swift; sourceTree = "<group>"; };
+		9FFC448CD0476AF4799FA5DA /* MenuBarAppsSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarAppsSettingsViewController.swift; sourceTree = "<group>"; };
 		13F6B1FCE2F0F29887382BF5 /* AdvancedSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsViewController.swift; sourceTree = "<group>"; };
 		15C9D233ED7802C9AB5C7240 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
 		1AE90FC41D6BE7A8B6C61303 /* SettingsViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsViews.swift; sourceTree = "<group>"; };
@@ -429,6 +432,7 @@
 				1AE90FC41D6BE7A8B6C61303 /* SettingsViews.swift */,
 				1FBC806D51AA2E70183A5308 /* AppearanceSettingsViewController.swift */,
 				13F6B1FCE2F0F29887382BF5 /* AdvancedSettingsViewController.swift */,
+				9FFC448CD0476AF4799FA5DA /* MenuBarAppsSettingsViewController.swift */,
 				22AF1A1AA5ABA4C7881D1682 /* SettingsSnapshot.swift */,
 			);
 			name = Settings;
@@ -790,6 +794,7 @@
 				CD55D62C6EB16728FDE6E311 /* SettingsViews.swift in Sources */,
 				0BDB4054A4822D299F534B34 /* AppearanceSettingsViewController.swift in Sources */,
 				FEDF14D1A5762D05124A8462 /* AdvancedSettingsViewController.swift in Sources */,
+				837108CD16BDBEB2B6A4B064 /* MenuBarAppsSettingsViewController.swift in Sources */,
 				E200010F880C7CE35022B50A /* SettingsSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -858,6 +863,7 @@
 				1E55107E50681D0C905D60F6 /* SettingsViews.swift in Sources */,
 				7C149D7BC182147B87C08982 /* AppearanceSettingsViewController.swift in Sources */,
 				D61D23037A1EB8F7DD848EA4 /* AdvancedSettingsViewController.swift in Sources */,
+				142B73DAE4B1D30D0775D310 /* MenuBarAppsSettingsViewController.swift in Sources */,
 				A3B15C1FDF934AFBADF438B6 /* SettingsSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

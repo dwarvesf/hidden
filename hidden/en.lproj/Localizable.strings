@@ -56,14 +56,6 @@ Steps to view always hidden icons:
 ";
 "Show all icons while macOS would also hide one right of the arrow" = "Show all icons while macOS would also hide one right of the arrow";
 "macOS 27 also hides: %@" = "macOS 27 also hides: %@";
-"Pinned sections (beta): keep each app in its section when it restarts" = "Pinned sections (beta): keep each app in its section when it restarts";
-"Reset all to visible" = "Reset all to visible";
-"Show Everything" = "Show Everything";
-"Menu bar apps" = "Menu bar apps";
-"Visible" = "Visible";
-"Hidden" = "Hidden";
-"Always hidden" = "Always hidden";
-"Apps appear here after the first collapse." = "Apps appear here after the first collapse.";
 "Check for Updates..." = "Check for Updates...";
 "Automatically check for updates" = "Automatically check for updates";
 "Arrow style" = "Arrow style";
@@ -161,3 +153,18 @@ Steps to view always hidden icons:
 "Free and open source, MIT license." = "Free and open source, MIT license.";
 "Follow @dwarvesf on X" = "Follow @dwarvesf on X";
 "Made by Dwarves Foundation" = "Made by Dwarves Foundation";
+
+/* Pinned sections (beta), Menu Bar Apps; English until translated */
+"Pinned sections (beta)" = "Pinned sections (beta)";
+"Keeps each app in the section you pick in Menu Bar Apps, also after it restarts. Applies at the next collapse." = "Keeps each app in the section you pick in Menu Bar Apps, also after it restarts. Applies at the next collapse.";
+"Turn On" = "Turn On";
+"Pinned sections is off" = "Pinned sections is off";
+"Icons follow where macOS puts them. Turn on Pinned sections (beta) in Advanced to choose a section for each app." = "Icons follow where macOS puts them. Turn on Pinned sections (beta) in Advanced to choose a section for each app.";
+"Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too." = "Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too.";
+"No apps yet" = "No apps yet";
+"Apps with a menu bar icon appear here after the bar collapses once." = "Apps with a menu bar icon appear here after the bar collapses once.";
+"Reset" = "Reset";
+"Reset all to visible" = "Reset all to visible";
+"Shows every app, including ones that are not running now." = "Shows every app, including ones that are not running now.";
+"Visible" = "Visible";
+"Show Everything" = "Show Everything";

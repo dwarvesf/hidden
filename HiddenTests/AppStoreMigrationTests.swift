@@ -94,6 +94,7 @@ final class AppStoreMigrationTests: XCTestCase {
             UserDefaults.Key.alwaysHiddenSectionEnabled, UserDefaults.Key.useFullStatusBarOnExpandEnabled,
             UserDefaults.Key.stealthExpandIconEnabled, UserDefaults.Key.arrowStyle, UserDefaults.Key.hoverToExpand,
             UserDefaults.Key.notchOverflowEnabled, UserDefaults.Key.pauseHidingForUnkeepableItems,
+            UserDefaults.Key.pinnedSectionsEnabled, UserDefaultsPinnedSections.key,
         ]
         XCTAssertEqual(Set(AppStoreSettingsImport.importableKeys.keys), appKeys)
     }

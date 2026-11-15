@@ -57,6 +57,22 @@ This file is force-added: `.gitignore` keeps `docs/implementation-notes/` in the
 
 Follow-up, as the brief's phase 3: generalise `NotchOverflowController` into a menu off the arrow on 27 (direct): one row per app the table has in `hidden` / `alwaysHidden`, app icon from NSWorkspace (no Screen Recording, Q3). A click allows that bundle (swap the restriction, as `allowLaunchedAppsIfIdle` does), AXPresses its item, and re-hides when its menu closes, reusing the `NotificationCenterSession` pattern. The table from this PR gives the menu its rows for free. Test without input: a Debug hook that opens the menu, a helper that writes a marker file when its menu opens, AXPress through the proxy, and `dump-state` showing the restriction back within one check.
 
+## Settings window (after #481)
+
+The redesigned Settings window (#481) replaced the storyboard Preferences, so the phase 1 and 2 UI notes above (checkbox, 150 pt list) are superseded:
+
+- **Menu Bar Apps tab** (`MenuBarAppsSettingsViewController`): registered in `MenuBarAppsPane.makeViewController` at launch when the native engine runs (direct build, macOS 27), after `-settingsSnapshotDir` is checked, so the generic snapshot loop never draws this Mac's apps. Grouped rows: app icon (NSWorkspace, no capture), name without ".app", a Visible / Hidden / Always hidden popup; a second group "Reset all to visible". Beta off: one row "Pinned sections is off" with a Turn On button (the tab stays, so the switch is findable). No apps yet: one row saying apps appear after a collapse. The list scrolls past 360 pt. It rebuilds on open, on every pref change and on `.pinnedSectionsChanged`.
+- **Store seam**: the pane reads and writes through `MenuBarAppsStore`; `LiveMenuBarAppsStore` is the app's prefs, `SnapshotMenuBarAppsStore` (Debug) gives the on / off / empty fixtures for `-settingsSnapshotDir` (`direct-menubarapps-<state>-<light|dark>.png`).
+- **"Pinned sections (beta)" switch** is in Advanced, native engine only, bound to `pinnedSectionsEnabled`, now also a registered default (`true`) in `AppDelegate.defaultPreferenceValues`.
+- **Keys in the tests and the import whitelist**: `pinnedSectionsEnabled` joins `SettingsWindowTests.legacyBoolKeys` (and the App Store build's no-direct-rows list); `pinnedSections` joins `legacyOtherKeys`. Both join `AppStoreSettingsImport.importableKeys` (#474); the table is a dictionary, so the importer gains a `.dictionary` kind.
+- New strings carry English text in every locale, like #481's.
+
+| Proof | Result |
+|---|---|
+| `bash scripts/test.sh` | Direct 285, App Store 210, 0 failed |
+| Negative controls | Advanced switch unbound: `test_everyOldSwitch_stillWritesItsKey` fails; popup writes nothing: `test_menuBarApps_popupsAndResetWriteThePinnedTable` fails; beta keys out of the whitelist: `testWhitelistCoversEveryPreferenceKeyTheAppDefines` fails |
+| Snapshots | Menu Bar Apps on, off, empty, light and dark, plus Advanced, drawn offscreen with `-settingsSnapshotDir` |
+
 ## Decided (Han, 2026-11-15)
 
 1. Agent-launch source for beta-off users too: yes, shipped as its own commit (see the phase 2 finding). Test counts after it: Direct 233, App Store 189.
