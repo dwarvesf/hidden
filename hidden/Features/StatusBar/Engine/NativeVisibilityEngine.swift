@@ -109,6 +109,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // and a read only edits it (PinnedSectionResolver). Off, sections come from
     // positions as in v1.11.2.
     private let pinnedSections: MenuBarSectionMemory
+    private let ignoredDrags: () -> Set<String>
     private let pinsSections: () -> Bool
 
     // Items right of the arrow that the allow-list cannot keep visible: an item
@@ -140,8 +141,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
          workspaceNotifications: NotificationCenter? = nil,
          pinnedSections: MenuBarSectionMemory = InMemorySectionMemory(),
          pinsSections: @escaping () -> Bool = { false },
+         ignoredDrags: @escaping () -> Set<String> = { [] },
          agentLaunches: NotificationCenter? = nil) {
         self.items = items
+        self.ignoredDrags = ignoredDrags
         self.agentLaunches = agentLaunches
         self.pinnedSections = pinnedSections
         self.pinsSections = pinsSections
@@ -374,6 +377,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 var table = self.pinnedSections.sections
                 layout.sections = PinnedSectionResolver.resolve(read: layout.sections,
                                                                 launchedSinceRead: self.launchedSinceRead,
+                                                                ignoringDrags: self.ignoredDrags(),
                                                                 observed: &observed, table: &table)
                 self.sectionMemory.sections = observed
                 self.pinnedSections.sections = table

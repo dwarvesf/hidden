@@ -1564,6 +1564,7 @@ final class PinnedSectionsTests: XCTestCase {
     private var observed: InMemorySectionMemory!
     private var table: InMemorySectionMemory!
     private var pins = true
+    private var dragLocked: Set<String> = []
 
     override func setUp() {
         super.setUp()
@@ -1574,6 +1575,7 @@ final class PinnedSectionsTests: XCTestCase {
         observed = InMemorySectionMemory()
         table = InMemorySectionMemory()
         pins = true
+        dragLocked = []
     }
 
     private func makeEngine() -> NativeVisibilityEngine {
@@ -1585,7 +1587,8 @@ final class PinnedSectionsTests: XCTestCase {
                                       isLTR: { true },
                                       sectionMemory: observed,
                                       pinnedSections: table,
-                                      pinsSections: { [unowned self] in pins })
+                                      pinsSections: { [unowned self] in pins },
+                                      ignoredDrags: { [unowned self] in dragLocked })
     }
 
     @discardableResult
@@ -1615,6 +1618,32 @@ final class PinnedSectionsTests: XCTestCase {
         // Later collapses with the icon still there keep it visible too.
         engine.expand()
         XCTAssertEqual(collapse(engine), [own, "com.visible"])
+    }
+
+    // Given an app that recreates its status item without relaunching (BitBar, SwiftBar)
+    // When "Ignore drags" is on for it and its icon lands on the hidden side
+    // Then it stays in its pinned section; an app without the flag still follows the move
+    func testAnAppIgnoringDragsKeepsItsSectionWhenItsIconMoves() {
+        table.sections = ["com.visible": .visible, "com.hidden": .hidden]
+        dragLocked = ["com.visible"]
+        let engine = makeEngine()
+        collapse(engine)
+        engine.expand()
+        move("com.visible", to: 1120)
+        move("com.hidden", to: 1450)
+        XCTAssertEqual(collapse(engine), [own, "com.hidden", "com.visible"])
+        XCTAssertEqual(table.sections["com.visible"], .visible, "the flagged app keeps its pinned section")
+        XCTAssertEqual(table.sections["com.hidden"], .visible, "an app without the flag follows the drag")
+    }
+
+    func testTheDragLocksPersistAsABundleList() throws {
+        let suite = "HiddenBarTests.dragLocks.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        XCTAssertEqual(UserDefaultsDragLocks(defaults: defaults).bundles, [])
+        UserDefaultsDragLocks(defaults: defaults).bundles = ["com.b", "com.a"]
+        XCTAssertEqual(UserDefaultsDragLocks(defaults: defaults).bundles, ["com.a", "com.b"])
+        XCTAssertEqual(defaults.stringArray(forKey: UserDefaultsDragLocks.key), ["com.a", "com.b"])
     }
 
     // Without the beta, the same relaunch hides the app (v1.11.2, the drift #366 is about).
@@ -1858,6 +1887,17 @@ final class PinnedSectionsTests: XCTestCase {
         XCTAssertEqual(resolved, ["moved": .visible, "still": .visible, "relaunched": .visible, "new": .visible, "running": .alwaysHidden])
         XCTAssertEqual(table, resolved)
         XCTAssertEqual(observed, ["moved": .visible, "still": .hidden, "relaunched": .hidden, "new": .hidden, "running": .alwaysHidden])
+    }
+
+    func testResolverKeepsTheSectionOfAnAppIgnoringDrags() {
+        var observed: [String: MenuBarSection] = ["locked": .visible, "free": .visible]
+        var table: [String: MenuBarSection] = ["locked": .visible, "free": .visible]
+        let resolved = PinnedSectionResolver.resolve(
+            read: ["locked": .hidden, "free": .hidden, "lockedNew": .hidden],
+            launchedSinceRead: [], ignoringDrags: ["locked", "lockedNew"], observed: &observed, table: &table)
+        XCTAssertEqual(resolved, ["locked": .visible, "free": .hidden, "lockedNew": .hidden],
+                       "a flagged app with no entry still gets its first read as its section")
+        XCTAssertEqual(observed["locked"], .hidden, "the observed position still follows every read")
     }
 }
 
