@@ -481,6 +481,13 @@ final class NativeVisibilityEngine: MenuBarEngine {
         return notificationCenter.isActive
     }
 
+    // The last read, plus apps an overflowing menu bar left out of it.
+    var menuBarItemOwners: Set<String> {
+        let read = layout?.sections.keys.map { $0 } ?? []
+        let complete = lastCompleteLayout?.sections.keys.map { $0 } ?? []
+        return Set(read + complete)
+    }
+
     func userChangedBar() {
         notificationCenter.userChangedBar()
     }

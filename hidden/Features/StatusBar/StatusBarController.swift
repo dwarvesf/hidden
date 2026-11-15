@@ -29,6 +29,11 @@ class StatusBarController: MenuBarItemProvider {
     // How hiding is achieved (separator lengths) lives in the engine; this class
     // owns the items, the UI, and when to collapse or expand.
     private lazy var menuBarEngine: MenuBarEngine = MenuBarEngineFactory.make(items: self)
+
+    // Read only when the auto-hide timer fires.
+    private lazy var popupGuard = AutoCollapsePopupGuard(menuBarItemOwners: { [weak self] in
+        self?.menuBarEngine.menuBarItemOwners ?? []
+    })
     
     private let imgIconLine = NSImage(named:NSImage.Name("ic_line"))
     
@@ -319,6 +324,7 @@ class StatusBarController: MenuBarItemProvider {
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
         }
+        popupGuard.reset()
         autoCollapseIfNeeded()
         
         if Preferences.useFullStatusBarOnExpandEnabled {
@@ -358,8 +364,11 @@ class StatusBarController: MenuBarItemProvider {
             // menubar (hovering, clicking, dragging icons), defer and re-arm.
             // Intentionally unbounded; each re-arm invalidates the previous timer,
             // so deferral never accumulates timers. Notification Center opened
-            // from the clock collapses the bar itself once it closes.
-            if self.isMouseInMenuBar || self.isPreferencesWindowVisible || self.menuBarEngine.defersAutoCollapse {
+            // from the clock collapses the bar itself once it closes. A popup
+            // hanging from the menu bar (#319) defers too, for up to 10 minutes;
+            // the window list is read last, only when nothing else defers.
+            if self.isMouseInMenuBar || self.isPreferencesWindowVisible || self.menuBarEngine.defersAutoCollapse
+                || self.popupGuard.defersCollapse() {
                 self.startTimerToAutoHide()
             } else {
                 self.collapseMenuBar()

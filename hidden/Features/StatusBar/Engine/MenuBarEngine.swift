@@ -35,6 +35,10 @@ protocol MenuBarEngine: AnyObject {
     // still open; auto-collapse waits.
     var defersAutoCollapse: Bool { get }
 
+    // Bundles whose items the engine last read in the menu bar, so auto-collapse
+    // can tell a menu-bar app's popup window. Empty when the engine reads none.
+    var menuBarItemOwners: Set<String> { get }
+
     // The user expanded or collapsed the bar, so a clock click no longer
     // collapses it when Notification Center closes.
     func userChangedBar()
@@ -42,6 +46,7 @@ protocol MenuBarEngine: AnyObject {
 
 extension MenuBarEngine {
     var defersAutoCollapse: Bool { return false }
+    var menuBarItemOwners: Set<String> { return [] }
     func userChangedBar() {}
 }
 

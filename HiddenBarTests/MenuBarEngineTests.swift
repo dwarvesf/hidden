@@ -553,6 +553,16 @@ final class FailOpenEngineTests: XCTestCase {
         XCTAssertEqual(engine.state, .expanded)
     }
 
+    func testMenuBarItemOwnersAreTheAppsTheLastReadListed() {
+        inventory.items = [item("com.hidden", x: 1100), item("com.visible", x: 1400)]
+        let engine = makeEngine()
+        XCTAssertEqual(engine.menuBarItemOwners, [])
+        engine.collapse { _ in }
+        visibility.succeed(0)
+        engine.expand()
+        XCTAssertEqual(engine.menuBarItemOwners, ["com.hidden", "com.visible"], "kept while expanded, for auto-collapse")
+    }
+
     func testUnreadableAppIsAllowed() {
         inventory.items = [MenuBarInventoryItem(bundleIdentifier: "com.bjango.istatmenus", frame: .zero, isUnreadable: true)]
         makeEngine().collapse { _ in }
