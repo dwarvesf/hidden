@@ -22,6 +22,7 @@ A redesigned Settings window, pinned sections (beta) on macOS 27, and the fixes 
 - The app icon follows the macOS icon margin and shadow, so it no longer looks oversized in the Dock ([#198](https://github.com/dwarvesf/hidden/issues/198); [#485](https://github.com/dwarvesf/hidden/pull/485)).
 
 ### macOS 27 (direct build)
+- On a full menu bar, macOS 27 can move the Hidden Bar arrow into its own « button. After you collapse, Hidden Bar now checks for this and, once, says how to reach the arrow: click «, or use the hotkey.
 - Pinned sections (beta, on by default): each app keeps the section you gave it when it restarts, instead of falling into the hidden section where macOS puts a relaunched icon. Apps seen for the first time start visible. Settings › Menu Bar Apps lists your menu-bar apps with a section choice per app and "Reset all to visible" (#366, #334, #107; [#473](https://github.com/dwarvesf/hidden/pull/473)).
 - Apps set to always hidden stay hidden when the bar expands (#224).
 - Menu-bar apps without a Dock icon are now noticed when they start, so they get their section back too.
