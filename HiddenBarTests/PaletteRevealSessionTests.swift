@@ -141,16 +141,31 @@ final class PaletteRevealSessionTests: XCTestCase {
 
     // Given a menu left open past the cap
     // When the cap passes
-    // Then the session stops watching and leaves the bar as it is
-    func test_menuCap_leavesTheBarAlone() {
+    // Then the app is hidden again like after a normal close, so it does not stay in a collapsed bar for ever
+    func test_menuCap_putsTheRestrictionBack() {
         let session = makeSession()
         open(session)
         time.advance(to: 0.06)
         menuOpen = true
         time.advance(to: 700)
         XCTAssertFalse(session.isActive)
-        XCTAssertFalse(log.contains("restore"))
         XCTAssertEqual(session.lastEndReason, "menuCap")
+        XCTAssertEqual(log, ["allow com.paste", "press com.paste", "restore"])
+    }
+
+    // Given the user changed the bar while a menu was open past the cap
+    // When the cap passes
+    // Then the bar stays as they left it
+    func test_menuCap_keepsABarTheUserChanged() {
+        let session = makeSession()
+        open(session)
+        time.advance(to: 0.06)
+        menuOpen = true
+        time.advance(to: 1)
+        session.userChangedBar()
+        time.advance(to: 700)
+        XCTAssertEqual(session.lastEndReason, "menuCap")
+        XCTAssertFalse(log.contains("restore"))
     }
 
     // MARK: apps that open a panel
@@ -173,8 +188,8 @@ final class PaletteRevealSessionTests: XCTestCase {
 
     // Given a panel that keeps focus for ever
     // When 15 seconds pass
-    // Then the session stops and does not restore under the open panel
-    func test_panelCap_is15Seconds() {
+    // Then the session ends and puts the restriction back
+    func test_panelCap_putsTheRestrictionBackAfter15Seconds() {
         let session = makeSession()
         open(session)
         time.advance(to: 0.06)
@@ -184,7 +199,7 @@ final class PaletteRevealSessionTests: XCTestCase {
         time.advance(to: 16.2)
         XCTAssertFalse(session.isActive)
         XCTAssertEqual(session.lastEndReason, "panelCap")
-        XCTAssertFalse(log.contains("restore"))
+        XCTAssertEqual(log, ["allow com.paste", "press com.paste", "restore"])
     }
 
     // Given a press that opened neither a menu nor a panel

@@ -183,7 +183,7 @@ final class PaletteRevealSession {
             return end(.opened, "menuClosed")
         }
         if menuSeen {
-            if elapsed >= timing.menuCap { return end(.opened, "menuCap", restoring: false) }
+            if elapsed >= timing.menuCap { return end(.opened, "menuCap") }
         } else if elapsed >= timing.menuAppearTimeout {
             // A panel, not a menu: it lasts while the app keeps focus.
             if appIsActive(bundle) {
@@ -193,7 +193,7 @@ final class PaletteRevealSession {
             } else if elapsed >= timing.menuAppearTimeout + timing.panelGrace {
                 return end(.opened, "nothingShown")
             }
-            if elapsed >= timing.panelCap { return end(.opened, "panelCap", restoring: false) }
+            if elapsed >= timing.panelCap { return end(.opened, "panelCap") }
         }
         after(timing.pollInterval) { [weak self] in self?.poll(id) }
     }
@@ -204,9 +204,10 @@ final class PaletteRevealSession {
         done?(result)
     }
 
-    /// `restoring: false` leaves the restriction as it is (a menu left open for the cap).
-    private func end(_ result: PaletteOpenResult, _ reason: String, restoring: Bool = true) {
-        let restores = restoring && liftedRestriction
+    /// Every ending, the caps included, goes through here: the one app is hidden again
+    /// when Hidden Bar lifted it and the user has not changed the bar since.
+    private func end(_ result: PaletteOpenResult, _ reason: String) {
+        let restores = liftedRestriction
         lastEndReason = reason
         phase = .idle
         liftedRestriction = false
