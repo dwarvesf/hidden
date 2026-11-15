@@ -48,6 +48,11 @@ import AppKit
 //   Preferences option, on by default). Hiding is never blocked: apps such as
 //   dictation tools keep the microphone open all day, so a collapse while
 //   capture continues hides as usual, and only the next start expands again.
+// - macOS matches the allow-list only to apps it knows by bundle id, which
+//   (measured on 27.2) it does for an app in an Applications folder but not for
+//   one run from elsewhere (Downloads, a build folder): it hides that app's
+//   icons although they are allowed, Hidden Bar's own arrow included, leaving no
+//   arrow to expand with. Outside an Applications folder nothing is hidden.
 final class NativeVisibilityEngine: MenuBarEngine {
     // System item identifiers to keep visible. Unknown identifiers are ignored,
     // so the range covers items a given Mac does not have (0-63 checked on 27.0).
@@ -62,6 +67,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private let itemFrame: (NSStatusItem) -> CGRect?
     private let displays: () -> [MenuBarDisplay]
     private let isLTR: () -> Bool
+    private let runsFromApplicationsFolder: () -> Bool
 
     private let expandedLength: CGFloat = 20
 
@@ -118,6 +124,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
          itemFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
          displays: @escaping () -> [MenuBarDisplay] = MenuBarDisplay.current,
          isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage },
+         runsFromApplicationsFolder: @escaping () -> Bool = { true },
          pausesHidingForUnkeepableItems: @escaping () -> Bool = { false },
          expandsWhenCaptureStarts: @escaping () -> Bool = { true },
          sectionMemory: MenuBarSectionMemory = InMemorySectionMemory(),
@@ -134,6 +141,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         self.itemFrame = itemFrame
         self.displays = displays
         self.isLTR = isLTR
+        self.runsFromApplicationsFolder = runsFromApplicationsFolder
         self.sectionMemory = sectionMemory
         self.workspaceNotifications = workspaceNotifications
         items.separatorItem.isVisible = false
@@ -163,6 +171,11 @@ final class NativeVisibilityEngine: MenuBarEngine {
 
         guard visibility.isAvailable else {
             logUnavailableOnce("the native menu-bar visibility API is not available in this build or on this macOS")
+            state = .unavailable
+            return completion(.unavailable)
+        }
+        guard runsFromApplicationsFolder() else {
+            logUnavailableOnce("macOS 27 would also hide Hidden Bar's own arrow: it hides only apps it knows by bundle id, and Hidden Bar runs from outside an Applications folder (\(Bundle.main.bundlePath))")
             state = .unavailable
             return completion(.unavailable)
         }
@@ -232,6 +245,17 @@ final class NativeVisibilityEngine: MenuBarEngine {
         return alwaysHiddenEnabled && alwaysHiddenSeparatorHidden
     }
 
+    // Where macOS 27 knows an app by its bundle id: /Applications (and folders
+    // in it, such as Setapp's) or ~/Applications. Symlinks are resolved first.
+    static func isInApplicationsFolder(_ bundleURL: URL,
+                                       applicationFolders: [URL] = FileManager.default.urls(for: .applicationDirectory,
+                                                                                            in: [.localDomainMask, .userDomainMask])) -> Bool {
+        let path = bundleURL.resolvingSymlinksInPath().standardizedFileURL.path
+        return applicationFolders.contains { folder in
+            path.hasPrefix(folder.resolvingSymlinksInPath().standardizedFileURL.path + "/")
+        }
+    }
+
     // Sections are per app and come from the arrangement, which a display change
     // does not alter, so a held restriction stays right and the bar stays
     // collapsed. Only an unused cache is dropped; the next read from an
@@ -247,7 +271,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // the restriction altogether. Its separator goes and comes back with it, only
     // once the icons are hidden, so it never disappears on its own.
     private func applyExpandedPresentation() {
-        guard hidesAlwaysHiddenSection, visibility.isAvailable, inventory.isAuthorized else {
+        guard hidesAlwaysHiddenSection, visibility.isAvailable, runsFromApplicationsFolder(), inventory.isAuthorized else {
             return revealAll()
         }
         withLayout { [weak self] layout in
@@ -647,6 +671,7 @@ extension NativeVisibilityEngine {
     // harness can place sections without ⌘-dragging anything.
     static var debugBoundaryX: CGFloat?
     static var debugAlwaysHiddenX: CGFloat?
+    static var debugChecksInstallLocation = false
 
     var debugState: [String: Any] {
         var sections: [String: String] = [:]

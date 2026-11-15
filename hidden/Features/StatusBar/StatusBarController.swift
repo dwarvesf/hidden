@@ -559,6 +559,8 @@ extension StatusBarController {
         case "always-hidden-boundary":
             NativeVisibilityEngine.debugAlwaysHiddenX = argument.flatMap(Double.init).map { CGFloat($0) }
             menuBarEngine.invalidateLayout()
+        case "install-location-check":
+            NativeVisibilityEngine.debugChecksInstallLocation = argument == "on"
         case "click-clock":
             debugClickClock(pressingWithAX: argument == "ax")
         case "dump-state":

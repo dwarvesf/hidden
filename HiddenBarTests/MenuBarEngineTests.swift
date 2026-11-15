@@ -1533,6 +1533,71 @@ final class AppsLaunchedWhileHidingTests: XCTestCase {
 
 // MARK: - Legacy engine
 
+// macOS 27 hides the allowed icons of an app it does not know by bundle id
+// (one run from outside an Applications folder), Hidden Bar's own arrow
+// included. Nothing may be hidden then, or no arrow is left to expand with.
+final class ApplicationsFolderTests: XCTestCase {
+    private var items: FakeItems!
+    private var inventory: FakeInventory!
+    private var visibility: FakeVisibility!
+
+    override func setUp() {
+        super.setUp()
+        items = FakeItems()
+        inventory = FakeInventory()
+        inventory.items = [item("com.always", x: 900), item("com.hidden", x: 1100), item("com.visible", x: 1400)]
+        visibility = FakeVisibility()
+    }
+
+    private func makeEngine(inApplications: Bool) -> NativeVisibilityEngine {
+        let items = self.items!
+        return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
+                                      ownBundleIdentifier: "com.dwarvesv.minimalbar",
+                                      itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                      displays: { [mainDisplay] },
+                                      isLTR: { true },
+                                      runsFromApplicationsFolder: { inApplications })
+    }
+
+    func testOutsideApplicationsFolderNothingIsHidden() {
+        let engine = makeEngine(inApplications: false)
+        var result: CollapseResult?
+        engine.collapse { result = $0 }
+
+        XCTAssertEqual(result, .unavailable)
+        XCTAssertEqual(engine.state, .unavailable)
+        XCTAssertTrue(visibility.requests.isEmpty, "a restriction would hide the arrow")
+    }
+
+    func testOutsideApplicationsFolderAlwaysHiddenSectionStaysShown() {
+        let engine = makeEngine(inApplications: false)
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+
+        XCTAssertTrue(visibility.requests.isEmpty, "a restriction would hide the arrow")
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 20)
+    }
+
+    func testInApplicationsFolderHides() {
+        let engine = makeEngine(inApplications: true)
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.visible"])
+    }
+
+    func testApplicationsFolderCheck() {
+        let folders = [URL(fileURLWithPath: "/Applications"), URL(fileURLWithPath: "/Users/me/Applications")]
+        func inside(_ path: String) -> Bool {
+            NativeVisibilityEngine.isInApplicationsFolder(URL(fileURLWithPath: path), applicationFolders: folders)
+        }
+        XCTAssertTrue(inside("/Applications/Hidden Bar.app"))
+        XCTAssertTrue(inside("/Applications/Setapp/Hidden Bar.app"))
+        XCTAssertTrue(inside("/Users/me/Applications/Hidden Bar.app"))
+        XCTAssertFalse(inside("/Users/me/Downloads/Hidden Bar.app"))
+        XCTAssertFalse(inside("/private/var/folders/x/T/AppTranslocation/1234/d/Hidden Bar.app"), "translocated from Downloads")
+        XCTAssertFalse(inside("/private/tmp/build/Debug-Direct/Hidden Bar.app"))
+        XCTAssertFalse(inside("/ApplicationsOld/Hidden Bar.app"))
+    }
+}
+
 final class LegacyLengthEngineTests: XCTestCase {
     func testUsesWidestScreenRegardlessOfDisplayOrder() {
         let configurations: [([CGFloat], CGFloat)] = [
