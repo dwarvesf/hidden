@@ -39,16 +39,27 @@ final class ArrivalsArrowDot: NSView {
 // Asks from the arrow: a popover under it with one row per waiting app. It opens
 // when the user clicks the arrow while something waits (the click that shows the
 // hidden icons), and it stays until it is answered or clicked away; the dot on
-// the arrow stays while anything waits.
+// the arrow stays while anything waits. While presentation mode is on it does not
+// open at all: the question names apps, and the room sees the screen. It waits
+// for the first arrow click after the mode ends.
 final class ArrivalsPresenter: NSObject, NSPopoverDelegate {
     private let controller: ArrivalsController
     private let openSettings: () -> Void
+    private let isSuppressed: () -> Bool
+    private let showPopover: (NSPopover, NSStatusBarButton) -> Void
     private var popover: NSPopover?
     private var promptView: ArrivalsPromptView?
     private var observer: NSObjectProtocol?
 
-    init(controller: ArrivalsController = .shared, openSettings: @escaping () -> Void) {
+    init(controller: ArrivalsController = .shared,
+         isSuppressed: @escaping () -> Bool = { false },
+         showPopover: @escaping (NSPopover, NSStatusBarButton) -> Void = { popover, button in
+             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+         },
+         openSettings: @escaping () -> Void) {
         self.controller = controller
+        self.isSuppressed = isSuppressed
+        self.showPopover = showPopover
         self.openSettings = openSettings
         super.init()
         observer = NotificationCenter.default.addObserver(forName: .arrivalsChanged, object: nil, queue: .main) { [weak self] _ in
@@ -64,7 +75,7 @@ final class ArrivalsPresenter: NSObject, NSPopoverDelegate {
     var isShown: Bool { popover?.isShown ?? false }
 
     func present(from button: NSStatusBarButton?) {
-        guard let button, !isShown, !controller.pending.isEmpty else { return }
+        guard let button, !isShown, !isSuppressed(), !controller.pending.isEmpty else { return }
         controller.refresh()
         guard !controller.pending.isEmpty else { return }
         let view = makeView()
@@ -77,7 +88,7 @@ final class ArrivalsPresenter: NSObject, NSPopoverDelegate {
         popover.delegate = self
         self.popover = popover
         promptView = view
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        showPopover(popover, button)
     }
 
     func close() {

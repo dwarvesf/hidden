@@ -13,6 +13,13 @@ struct PaletteEnvironment: Equatable {
     /// False when the engine cannot hide anything right now (outside Applications,
     /// no native API). Then nothing is hidden and there is nothing to find.
     var engineAvailable: Bool
+    /// False when the pinned-sections beta is off: a section move would write a
+    /// table nothing reads, so the palette offers only opening.
+    var pinsSections = true
+    /// Apps presentation mode keeps out of sight while it is on. They are left
+    /// out of the list, and out of every hint that names an app, so the room
+    /// never learns they are there.
+    var hiddenWhilePresenting: Set<String> = []
 }
 
 /// A line in the result list.
@@ -34,8 +41,6 @@ enum PaletteContent: Equatable {
     case engineUnavailable
     /// Return found the app but its icon would not press.
     case cannotOpen(appName: String)
-    /// Presentation mode keeps this app hidden on purpose, so Return does not open it.
-    case sensitiveWhilePresenting(appName: String)
 }
 
 /// The palette's state: the query, the list it gives, and the selection.
@@ -51,7 +56,6 @@ struct PaletteModel: Equatable {
     private(set) var content: PaletteContent
     private(set) var selectedIndex = 0
     private var failure: String?
-    private var failureIsSensitive = false
 
     init(candidates: [PaletteCandidate], environment: PaletteEnvironment) {
         self.candidates = candidates
@@ -64,7 +68,6 @@ struct PaletteModel: Equatable {
         guard newValue != query else { return }
         query = newValue
         failure = nil
-        failureIsSensitive = false
         selectedIndex = 0
         recompute()
     }
@@ -83,14 +86,6 @@ struct PaletteModel: Equatable {
     /// Return found the app but could not press its icon.
     mutating func showCannotOpen(appName: String) {
         failure = appName
-        failureIsSensitive = false
-        recompute()
-    }
-
-    /// Return found the app but presentation mode keeps it hidden.
-    mutating func showSensitive(appName: String) {
-        failure = appName
-        failureIsSensitive = true
         recompute()
     }
 
@@ -121,19 +116,17 @@ struct PaletteModel: Equatable {
 
     private mutating func recompute() {
         selectedIndex = 0
-        content = Self.resolve(query: query, candidates: candidates, environment: environment, failure: failure,
-                           failureIsSensitive: failureIsSensitive)
+        content = Self.resolve(query: query, candidates: candidates, environment: environment, failure: failure)
     }
 
-    static func resolve(query: String, candidates: [PaletteCandidate], environment: PaletteEnvironment,
-                        failure: String? = nil, failureIsSensitive: Bool = false) -> PaletteContent {
+    static func resolve(query: String, candidates allCandidates: [PaletteCandidate], environment: PaletteEnvironment,
+                        failure: String? = nil) -> PaletteContent {
         // The permission comes first: without it nothing below can be read or pressed.
         guard environment.accessibilityTrusted else { return .accessibilityOff }
         guard environment.engineAvailable else { return .engineUnavailable }
-        if let failure {
-            return failureIsSensitive ? .sensitiveWhilePresenting(appName: failure) : .cannotOpen(appName: failure)
-        }
+        if let failure { return .cannotOpen(appName: failure) }
 
+        let candidates = allCandidates.filter { !environment.hiddenWhilePresenting.contains($0.bundleIdentifier) }
         let findable = candidates.filter(\.isFindable)
         guard !findable.isEmpty else { return .nothingHidden }
 

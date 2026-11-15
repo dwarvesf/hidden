@@ -34,6 +34,7 @@ final class RevealControllerTests: XCTestCase {
         var ownMenuOpen = false
         var enabled: Set<RevealTrigger> = []
         var shown = 0, hidden = 0, hiddenOffBar = 0
+        var presenting = false
         var canHitTest = true
         var hitTarget = HitTarget.emptySpace
         var hitTests = 0
@@ -52,6 +53,7 @@ final class RevealControllerTests: XCTestCase {
                 hide: { [unowned self] in self.hidden += 1; self.collapsed = true },
                 hideOffMenuBar: { [unowned self] in self.hiddenOffBar += 1; self.collapsed = true }),
             isEnabled: { [unowned self] in self.enabled.contains($0) },
+            isSuspended: { [unowned self] in self.presenting },
             screens: { [unowned self] in self.screens },
             monitoring: monitoring,
             canHitTest: { [unowned self] in self.canHitTest },
@@ -254,6 +256,30 @@ final class RevealControllerTests: XCTestCase {
                                     visibleFrame: CGRect(x: 0, y: 0, width: 1440, height: 900), notchGap: nil)]
         shake(at: 899)
         XCTAssertEqual(world.shown, 0)
+    }
+
+    // MARK: presentation mode
+
+    // Given every gesture on, and presentation mode on
+    // When each gesture fires (scroll down, scroll up, an empty click, a shake)
+    // Then nothing shows or hides and nothing is counted; with the mode off they work again
+    func test_gesturesDoNothingWhilePresenting() {
+        world.enabled = [.scroll, .click, .shake]
+        world.presenting = true
+        scrollDown()
+        controller.ingestMouseDown(at: world.barPoint)
+        shake()
+        world.collapsed = false
+        controller.ingestScroll(deltaY: 20, time: 200, isMomentum: false, at: world.barPoint)
+        XCTAssertEqual(world.shown, 0)
+        XCTAssertEqual(world.hidden, 0)
+        XCTAssertTrue(controller.triggerCounts.isEmpty)
+        XCTAssertFalse(controller.revealedByGesture)
+
+        world.presenting = false
+        world.collapsed = true
+        controller.ingestMouseDown(at: world.barPoint)
+        XCTAssertEqual(world.shown, 1)
     }
 
     // MARK: hide again

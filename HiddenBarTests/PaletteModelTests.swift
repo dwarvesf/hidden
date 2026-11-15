@@ -107,15 +107,21 @@ final class PaletteModelTests: XCTestCase {
         XCTAssertEqual(state.rows.map(\.candidate.name), ["Dropbox"])
     }
 
-    // Given Return found an app that presentation mode keeps hidden
-    // When the palette shows it
-    // Then the sensitive state names the app, until the query changes
-    func test_sensitiveWhilePresenting_clearsOnTheNextKeystroke() {
-        var state = model([app("Slack")], query: "sla")
-        state.showSensitive(appName: "Slack")
-        XCTAssertEqual(state.content, .sensitiveWhilePresenting(appName: "Slack"))
-        state.setQuery("slac")
-        XCTAssertEqual(state.rows.map(\.candidate.name), ["Slack"])
+    // Given presentation mode keeps two apps hidden
+    // When the list is built, and the query names one of them
+    // Then they are not listed and no hint names them, whichever section they sit in
+    func test_sensitiveAppsLeaveTheListWhilePresenting() {
+        let environment = PaletteEnvironment(accessibilityTrusted: true, engineAvailable: true,
+                                             hiddenWhilePresenting: ["com.test.slack", "com.test.bear", "com.test.dropbox"])
+        let apps = [app("Slack"), app("Paste"), app("Bear", .visible), app("Dropbox", .alwaysHidden, running: false)]
+        XCTAssertEqual(model(apps, environment: environment).rows.map(\.candidate.name), ["Paste"])
+        XCTAssertEqual(model(apps, query: "sla", environment: environment).content,
+                       .noMatch(query: "sla", shownApp: nil, quitApp: nil))
+        XCTAssertEqual(model(apps, query: "bear", environment: environment).content,
+                       .noMatch(query: "bear", shownApp: nil, quitApp: nil), "a shown sensitive app is not named either")
+        XCTAssertEqual(model(apps, query: "drop", environment: environment).content,
+                       .noMatch(query: "drop", shownApp: nil, quitApp: nil), "nor a quit one")
+        XCTAssertEqual(model(apps, query: "sla").rows.map(\.candidate.name), ["Slack"], "off presentation they list as before")
     }
 
     // MARK: results and selection

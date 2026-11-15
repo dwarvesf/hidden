@@ -15,6 +15,8 @@ struct PaletteViewState: Equatable {
     var content: PaletteContent
     var selectedIndex: Int
     var openingBundle: String?
+    /// False hides the two hints that move an app between sections.
+    var pinsSections = true
 }
 
 /// The buttons an edge state offers.
@@ -166,7 +168,7 @@ final class PaletteContentView: NSView, NSTextFieldDelegate {
         case .results(let items):
             views.append(resultsView(items, state: state, icon: icon))
             views.append(Self.divider())
-            views.append(keyHints())
+            views.append(keyHints(pinsSections: state.pinsSections))
         case .noMatch(let query, let shownApp, let quitApp):
             let detail: String
             if let shownApp {
@@ -193,10 +195,6 @@ final class PaletteContentView: NSView, NSTextFieldDelegate {
             views.append(emptyState(title: "Hidden Bar is not hiding icons right now".localized,
                                     detail: "Every icon is already in the menu bar, so there is nothing to find. Open Settings to see why.".localized,
                                     badge: "exclamationmark.triangle.fill"))
-        case .sensitiveWhilePresenting(let appName):
-            views.append(emptyState(title: String(format: "%@ stays hidden while presenting".localized, appName),
-                                    detail: "Presentation mode keeps it out of view. Stop presenting to open it.".localized,
-                                    badge: "lock.fill"))
         case .cannotOpen(let appName):
             views.append(emptyState(title: String(format: "%@ can't be opened from here".localized, appName),
                                     detail: "Its icon does not answer Accessibility. Click the arrow to show everything, then click its icon.".localized,
@@ -344,10 +342,12 @@ final class PaletteContentView: NSView, NSTextFieldDelegate {
     // MARK: Key hints
 
     // The board wraps the four hints; at this width the last one takes a second line.
-    private func keyHints() -> NSView {
-        let hints: [([String], String)] = [
-            (["↵"], "Open its menu"), (["⌘", "↵"], "Keep shown"), (["⌥", "↵"], "Always hide"), (["esc"], "Close"),
-        ]
+    private func keyHints(pinsSections: Bool) -> NSView {
+        // Without the pinned-sections beta the two move keys do nothing, so they
+        // are not offered.
+        let hints: [([String], String)] = pinsSections
+            ? [(["↵"], "Open its menu"), (["⌘", "↵"], "Keep shown"), (["⌥", "↵"], "Always hide"), (["esc"], "Close")]
+            : [(["↵"], "Open its menu"), (["esc"], "Close")]
         func line(_ items: ArraySlice<([String], String)>) -> NSStackView {
             let row = NSStackView()
             row.orientation = .horizontal
@@ -370,7 +370,7 @@ final class PaletteContentView: NSView, NSTextFieldDelegate {
             row.addArrangedSubview(spacer)
             return row
         }
-        let lines = NSStackView(views: [line(hints[0..<3]), line(hints[3...])])
+        let lines = NSStackView(views: pinsSections ? [line(hints[0..<3]), line(hints[3...])] : [line(hints[...])])
         lines.orientation = .vertical
         lines.alignment = .width
         lines.spacing = 4

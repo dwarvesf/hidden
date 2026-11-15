@@ -79,13 +79,24 @@ class StatusBarController: MenuBarItemProvider {
             case .shake: return Preferences.revealOnShakeEnabled
             }
         },
+        isSuspended: { [weak self] in self?.isPresenting ?? false },
         screens: ScreenBand.live)
     // True while the arrow's context menu is up.
     private var isShowingOwnMenu = false
 
+    // Presentation mode is on: the reveal gestures and the arrivals question stay
+    // quiet, since the room sees the screen.
+    private var isPresenting: Bool {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        return presentationController?.isOn ?? false
+        #else
+        return false
+        #endif
+    }
+
     #if HIDDENBAR_NATIVE_VISIBILITY
     // Asks about apps that add a first icon (Ask Me), from the arrow.
-    private lazy var arrivalsPresenter = ArrivalsPresenter(openSettings: {
+    private lazy var arrivalsPresenter = ArrivalsPresenter(isSuppressed: { [weak self] in self?.isPresenting ?? false }, openSettings: {
         Util.showPrefWindow()
         PreferencesWindowController.shared.select(.menuBarApps)
     })
@@ -680,8 +691,11 @@ extension StatusBarController {
         paletteSession = session
         let host = PaletteHost(
             environment: { [weak self] in
-                PaletteEnvironment(accessibilityTrusted: !AccessibilityPermission.shared.isMissing,
-                                   engineAvailable: self?.menuBarEngine.state != .unavailable)
+                let presenting = self?.isPresenting ?? false
+                return PaletteEnvironment(accessibilityTrusted: !AccessibilityPermission.shared.isMissing,
+                                          engineAvailable: self?.menuBarEngine.state != .unavailable,
+                                          pinsSections: Preferences.pinnedSectionsEnabled,
+                                          hiddenWhilePresenting: presenting ? Preferences.presentationSensitiveApps : [])
             },
             arrowFrame: { [weak self] in self?.btnExpandCollapse.button?.window?.frame },
             open: { bundle, done in session.open(bundle: bundle, completion: done) },
