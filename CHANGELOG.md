@@ -8,6 +8,15 @@
 - "Automatically hide icon after" and its delay are one "Hide icons again" popup with a Never choice.
 - About shows which build you run, links the changelog, and (direct build) has Check for Updates. X replaces Twitter.
 
+### macOS 27 (direct build)
+- Pinned sections (beta, on by default): each app keeps the section you gave it when it restarts, instead of falling into the hidden section where macOS puts a relaunched icon. Apps seen for the first time start visible. Settings › Menu Bar Apps lists your menu-bar apps with a section choice per app and "Reset all to visible" (#366, #334, #107).
+- Apps set to always hidden stay hidden when the bar expands (#224).
+- Menu-bar apps without a Dock icon are now noticed when they start, so they get their section back too.
+
+### macOS 26 and earlier
+- The always-hidden section stays hidden when the bar expands; Option-click shows it until the next collapse (#224).
+- "Show Everything" in the arrow's right-click menu shows the always-hidden section to recover icons lost there (#242).
+
 ## v1.11.2 (2026-11-15)
 
 Mostly macOS 27 fixes for the direct download build, plus auto-update. Thanks to everyone whose pull requests went into this release: @lllyt8, @bhaveshnigam, @Shigo-45, @kwvg, @renovys, @goosefraba, @DanishjeetSingh, @khallmark, @richarddemann, @antib0t, @Metekilic, @voltangle and @gmcinalli.

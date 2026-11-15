@@ -31,6 +31,15 @@ section is enabled.
   time, or stays visible if Hidden Bar has never seen it. The next collapse
   places it by where macOS put its icon, so a brand-new icon that macOS puts
   on the far left is hidden from then on; ⌘-drag it right of the arrow once.
+- **Pinned sections (beta, on by default):** Hidden Bar keeps a section per app
+  and no longer reads it from where macOS put the icon after the app started.
+  An app seen for the first time starts visible. A ⌘-drag still moves an app
+  between sections, except in the moment right after it relaunched.
+  Preferences › "Menu bar apps" lists every app with a Visible / Hidden /
+  Always hidden choice, which applies at once, and "Reset all to visible". An
+  app set to always hidden stays hidden when the bar expands; Option-click the
+  arrow to show it until the next collapse. Turn the beta off in Preferences to
+  get the position-based behavior above; it takes effect at the next collapse.
 - An icon whose app has no bundle identifier (a script run by an interpreter,
   some helpers) cannot be kept visible on macOS 27. Preferences offers to show
   all icons while one of them sits right of the arrow.
@@ -64,14 +73,12 @@ A Menu Bar Apps tab joins the others on the macOS 27 direct build once the pinne
 
 Debug builds can draw every pane and status state, light and dark, to PNGs without showing a window: run the built binary with `-settingsSnapshotDir <dir>`; it quits when done and writes no preference.
 
-> **Always-hidden section, current behavior:** items in the always-hidden zone
-> are reliably pushed off-screen only when "hide separators" is also on
-> (option-click the arrow). With the separators visible, always-hidden items can
-> still appear after expanding. This coupling is a known limitation being
-> reworked alongside the menu-bar redesign; for now, option-click to hide the
-> separators if always-hidden items keep showing. Avoid placing critical icons in
-> the always-hidden zone until the rework lands, since a stuck off-screen item has
-> to be recovered by ⌘-dragging it back (macOS persists its position per app).
+> **Always-hidden section:** every collapse hides the always-hidden section
+> again, so it stays hidden when the bar expands. Option-click the arrow to show
+> it (and ⌘-drag icons out of it) until the next collapse. To get lost icons
+> back on macOS 26 and earlier, right-click the arrow and choose **Show
+> Everything**. An icon macOS persisted off-screen still has to be ⌘-dragged
+> back (macOS keeps its position per app).
 
 ## Behaviors you get for free
 

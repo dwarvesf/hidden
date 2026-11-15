@@ -1994,6 +1994,57 @@ final class LegacyLengthEngineTests: XCTestCase {
     }
 }
 
+// MARK: - Legacy recovery patches (#224, #242)
+
+final class LegacyRecoveryPatchTests: XCTestCase {
+    // Given macOS 26 and the always-hidden section shown (the default after enabling it)
+    // When the bar collapses
+    // Then the collapse hides the section again, so the next expand keeps it hidden
+    func testEveryCollapseHidesTheAlwaysHiddenSectionAgainUpToMacOS26() {
+        for os in [13, 15, 26] {
+            let engine = LegacyLengthEngine(items: FakeItems(), osMajorVersion: os)
+            XCTAssertTrue(engine.separatorsHiddenForCollapse(current: false), "macOS \(os)")
+            XCTAssertTrue(engine.separatorsHiddenForCollapse(current: true), "macOS \(os)")
+        }
+    }
+
+    func testTheArrowMenuOffersShowEverythingUpToMacOS26() {
+        XCTAssertTrue(LegacyLengthEngine(items: FakeItems(), osMajorVersion: 26).offersShowEverything)
+        XCTAssertTrue(LegacyLengthEngine(items: FakeItems(), osMajorVersion: 13).offersShowEverything)
+    }
+
+    // The App Store build runs this engine on 27 too; nothing changes there.
+    func testNothingChangesOnMacOS27() {
+        let engine = LegacyLengthEngine(items: FakeItems(), osMajorVersion: 27)
+        XCTAssertFalse(engine.separatorsHiddenForCollapse(current: false))
+        XCTAssertTrue(engine.separatorsHiddenForCollapse(current: true))
+        XCTAssertFalse(engine.offersShowEverything)
+    }
+
+    func testTheNativeEngineOffersNoShowEverything() {
+        let native = NativeVisibilityEngine(items: FakeItems(), inventory: FakeInventory(), visibility: FakeVisibility(), clock: FakeClock())
+        XCTAssertFalse(native.offersShowEverything)
+        XCTAssertFalse(native.separatorsHiddenForCollapse(current: false), "beta off: unchanged")
+    }
+
+    // What the controller does on macOS 26 around a collapse, applied to the
+    // engine: the section is shown (revealed), the collapse hides it again,
+    // and the next expand keeps it hidden while the rest shows.
+    func testARevealLastsOnlyUntilTheNextCollapse() {
+        let items = FakeItems()
+        let engine = LegacyLengthEngine(items: items, screenWidths: { [1000] }, osMajorVersion: 26)
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: false)
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 20, "revealed")
+
+        let separatorsHidden = engine.separatorsHiddenForCollapse(current: false)
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: separatorsHidden)
+        engine.collapse { _ in }
+        engine.expand()
+        XCTAssertEqual(items.separatorItem.length, 20, "the hidden section shows")
+        XCTAssertEqual(items.alwaysHiddenItem?.length, 2000, "the always-hidden section stays hidden")
+    }
+}
+
 // MARK: - Arrangement order (#336, PR #381)
 
 final class MenuBarOrderTests: XCTestCase {

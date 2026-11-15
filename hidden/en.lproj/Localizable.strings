@@ -58,6 +58,7 @@ Steps to view always hidden icons:
 "macOS 27 also hides: %@" = "macOS 27 also hides: %@";
 "Pinned sections (beta): keep each app in its section when it restarts" = "Pinned sections (beta): keep each app in its section when it restarts";
 "Reset all to visible" = "Reset all to visible";
+"Show Everything" = "Show Everything";
 "Menu bar apps" = "Menu bar apps";
 "Visible" = "Visible";
 "Hidden" = "Hidden";

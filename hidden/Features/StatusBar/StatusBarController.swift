@@ -441,6 +441,12 @@ class StatusBarController: MenuBarItemProvider {
         prefItem.target = self
         menu.addItem(prefItem)
 
+        if menuBarEngine.offersShowEverything {
+            let showEverythingItem = NSMenuItem(title: "Show Everything".localized, action: #selector(showEverything), keyEquivalent: "")
+            showEverythingItem.target = self
+            menu.addItem(showEverythingItem)
+        }
+
         let toggleAutoHideTitle = Preferences.isAutoHide ? "Disable Auto Collapse" : "Enable Auto Collapse"
         let toggleAutoHideItem = NSMenuItem(title: toggleAutoHideTitle.localized, action: #selector(toggleAutoHide), keyEquivalent: "t")
         toggleAutoHideItem.target = self
@@ -476,6 +482,16 @@ class StatusBarController: MenuBarItemProvider {
     
     @objc func toggleAutoHide() {
         Preferences.isAutoHide.toggle()
+    }
+
+    // Expands the bar with the always-hidden section shown, until the next
+    // collapse hides it again. The way back to icons lost there (#242).
+    @objc func showEverything() {
+        menuBarEngine.userChangedBar()
+        if Preferences.areSeparatorsHidden {
+            showSeparators()
+        }
+        expandMenubar()
     }
 }
 
@@ -583,6 +599,9 @@ extension StatusBarController {
         case "reset-pinned":
             // What the Preferences "Reset all to visible" button runs.
             PinnedSectionEdits.resetAllToVisible(in: UserDefaultsPinnedSections())
+        case "show-everything":
+            // What the arrow menu's "Show Everything" runs.
+            showEverything()
         case "click-clock":
             debugClickClock(pressingWithAX: argument == "ax")
         case "dump-state":
