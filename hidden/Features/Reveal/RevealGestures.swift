@@ -198,6 +198,9 @@ struct HitProbe: Equatable {
     var role: String?
     var ownerPID: Int32?
     var frontmostPID: Int32?
+    /// The app whose menus the menu bar shows. It differs from the frontmost app
+    /// when that one has no menus (an agent app), so menu titles belong to this one.
+    var menuBarOwnerPID: Int32?
 }
 
 enum HitClassifier {
@@ -210,7 +213,7 @@ enum HitClassifier {
         case "AXMenuBar":
             return .emptySpace
         case "AXMenuBarItem", "AXMenuExtra", "AXMenuItem":
-            guard let owner = probe.ownerPID, owner == probe.frontmostPID else { return .statusItem }
+            guard let owner = probe.ownerPID, owner == probe.menuBarOwnerPID else { return .statusItem }
             return .menuTitle
         default:
             return .unknown
