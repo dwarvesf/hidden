@@ -377,6 +377,9 @@ class StatusBarController: MenuBarItemProvider {
             NSApp.deactivate()
         }
         fullBarThisExpansion = false
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        SystemOverflowNotice.shared.checkAfterCollapse(arrow: btnExpandCollapse)
+        #endif
     }
 
     private func expandMenubar(activatingApp: Bool = true) {
