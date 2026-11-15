@@ -24,5 +24,6 @@ extension UserDefaults {
         static let notchOverflowEnabled = "notchOverflowEnabled"
         static let pauseHidingForUnkeepableItems = "pauseHidingForUnkeepableItems"
         static let showWholeBarWhenCaptureStarts = "showWholeBarWhenCaptureStarts"
+        static let pinnedSectionsEnabled = "pinnedSectionsEnabled"
     }
 }

@@ -49,6 +49,7 @@ class StatusBarController: MenuBarItemProvider {
     private var isToggle = false
 
     private var hoverMonitor: Any?
+    private var pinnedSectionsObserver: NSObjectProtocol?
     private var hoverDwellTimer: Timer?
 
     // True while the pointer sits in any screen's menubar band (the strip between
@@ -101,6 +102,7 @@ class StatusBarController: MenuBarItemProvider {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+        pinnedSectionsObserver.map(NotificationCenter.default.removeObserver)
         hoverDwellTimer?.invalidate()
         if let monitor = hoverMonitor {
             NSEvent.removeMonitor(monitor)
@@ -164,6 +166,9 @@ class StatusBarController: MenuBarItemProvider {
             native.expandBar = { [weak self] in self?.expandMenubar() }
             native.collapseBar = { [weak self] in self?.collapseMenuBar() }
             native.expandBarForCapture = { [weak self] in self?.expandMenubar(activatingApp: false) }
+            pinnedSectionsObserver = NotificationCenter.default.addObserver(forName: .pinnedSectionsChanged, object: nil, queue: .main) { [weak native] _ in
+                native?.pinnedSectionsDidChange()
+            }
         }
     }
 
@@ -561,6 +566,19 @@ extension StatusBarController {
             menuBarEngine.invalidateLayout()
         case "install-location-check":
             NativeVisibilityEngine.debugChecksInstallLocation = argument == "on"
+        case "pinned-sections":
+            // What the Preferences checkbox runs.
+            Preferences.pinnedSectionsEnabled = argument == "on"
+        case "pin":
+            // What a Preferences "Menu bar apps" row runs: "<bundle id>=visible|hidden|alwaysHidden".
+            let parts = (argument ?? "").components(separatedBy: "=")
+            let sections: [String: MenuBarSection] = ["visible": .visible, "hidden": .hidden, "alwaysHidden": .alwaysHidden]
+            if parts.count == 2, let section = sections[parts[1]] {
+                PinnedSectionEdits.set(section, for: parts[0], in: UserDefaultsPinnedSections())
+            }
+        case "reset-pinned":
+            // What the Preferences "Reset all to visible" button runs.
+            PinnedSectionEdits.resetAllToVisible(in: UserDefaultsPinnedSections())
         case "click-clock":
             debugClickClock(pressingWithAX: argument == "ax")
         case "dump-state":

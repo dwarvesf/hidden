@@ -102,6 +102,12 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private let workspaceNotifications: NotificationCenter?
     private var workspaceObservers: [NSObjectProtocol] = []
 
+    // Pinned sections (beta): with it on, the table decides each app's section
+    // and a read only edits it (PinnedSectionResolver). Off, sections come from
+    // positions as in v1.11.2.
+    private let pinnedSections: MenuBarSectionMemory
+    private let pinsSections: () -> Bool
+
     // Items right of the arrow that the allow-list cannot keep visible: an item
     // whose owner has no bundle id, or a system extra no system item id covers
     // (Focus, Now Playing, User...) that macOS hid although Control Center's
@@ -128,8 +134,12 @@ final class NativeVisibilityEngine: MenuBarEngine {
          pausesHidingForUnkeepableItems: @escaping () -> Bool = { false },
          expandsWhenCaptureStarts: @escaping () -> Bool = { true },
          sectionMemory: MenuBarSectionMemory = InMemorySectionMemory(),
-         workspaceNotifications: NotificationCenter? = nil) {
+         workspaceNotifications: NotificationCenter? = nil,
+         pinnedSections: MenuBarSectionMemory = InMemorySectionMemory(),
+         pinsSections: @escaping () -> Bool = { false }) {
         self.items = items
+        self.pinnedSections = pinnedSections
+        self.pinsSections = pinsSections
         self.pausesHidingForUnkeepableItems = pausesHidingForUnkeepableItems
         self.inventory = inventory
         self.visibility = visibility
@@ -344,11 +354,21 @@ final class NativeVisibilityEngine: MenuBarEngine {
             } else {
                 self.lastCompleteLayout = layout
             }
-            self.sectionMemory.sections.merge(layout.sections) { _, read in read }
+            if self.pinsSections() {
+                var observed = self.sectionMemory.sections
+                var table = self.pinnedSections.sections
+                layout.sections = PinnedSectionResolver.resolve(read: layout.sections,
+                                                                launchedSinceRead: self.launchedSinceRead,
+                                                                observed: &observed, table: &table)
+                self.sectionMemory.sections = observed
+                self.pinnedSections.sections = table
+            } else {
+                self.sectionMemory.sections.merge(layout.sections) { _, read in read }
+            }
             self.launchedSinceRead.subtract(layout.sections.keys)
             for bundle in self.launchedSinceRead {
                 // Started, but its icon was not listed yet.
-                layout.sections[bundle] = self.sectionMemory.sections[bundle] ?? .visible
+                layout.sections[bundle] = self.rememberedSection(of: bundle)
             }
             NSLog("NativeVisibility: arrow at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
             if !layout.unnameableVisibleItems.isEmpty || !layout.unprovenVisibleSystemItems.isEmpty {
@@ -572,9 +592,39 @@ final class NativeVisibilityEngine: MenuBarEngine {
               !MenuBarLayoutResolver.systemItemOwners.contains(bundle) else { return }
         launchedSinceRead.insert(bundle)
         guard var layout = layout, layout.sections[bundle] == nil else { return }
-        layout.sections[bundle] = sectionMemory.sections[bundle] ?? .visible
+        layout.sections[bundle] = rememberedSection(of: bundle)
         self.layout = layout
         allowLaunchedAppsIfIdle()
+    }
+
+    // The section of an app no read lists yet: its pinned one with the beta on,
+    // else where it was last read; visible when neither knows it.
+    private func rememberedSection(of bundle: String) -> MenuBarSection {
+        if pinsSections() {
+            return pinnedSections.sections[bundle] ?? PinnedSectionResolver.newAppSection
+        }
+        return sectionMemory.sections[bundle] ?? .visible
+    }
+
+    // Preferences changed the pinned sections: apply them to the held
+    // restriction at once. A collapse or expand in flight applies them when it
+    // lands. Apps no read listed yet keep the section they were given.
+    func pinnedSectionsDidChange() {
+        guard pinsSections(), var layout = layout else { return }
+        let table = pinnedSections.sections
+        for bundle in layout.sections.keys {
+            if let pinned = table[bundle] { layout.sections[bundle] = pinned }
+        }
+        self.layout = layout
+        NSLog("NativeVisibility: pinned sections changed; visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
+        switch state {
+        case .collapsed:
+            allowLaunchedAppsIfIdle()
+        case .expanded:
+            applyExpandedPresentation()
+        case .calibrating, .unavailable:
+            break
+        }
     }
 
     func applicationTerminated(_ bundle: String) {
@@ -693,7 +743,11 @@ extension NativeVisibilityEngine {
             "debugAlwaysHiddenX": Self.debugAlwaysHiddenX.map { Double($0) } ?? NSNull(),
             "clockTimeline": ClockFlashTimeline.snapshot,
             "notificationCenterSession": ["active": notificationCenter.isActive,
-                                          "expandedBar": notificationCenter.expandedBar]
+                                          "expandedBar": notificationCenter.expandedBar],
+            "pinsSections": pinsSections(),
+            "pinnedSections": pinnedSections.sections.mapValues { String(describing: $0) },
+            "observedSections": sectionMemory.sections.mapValues { String(describing: $0) },
+            "launchedSinceRead": launchedSinceRead.sorted()
         ]
     }
 

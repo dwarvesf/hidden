@@ -1531,6 +1531,197 @@ final class AppsLaunchedWhileHidingTests: XCTestCase {
     }
 }
 
+// MARK: - Pinned sections (#366, beta)
+
+final class PinnedSectionsTests: XCTestCase {
+    private let own = "com.dwarvesv.minimalbar"
+    private var items: FakeItems!
+    private var inventory: FakeInventory!
+    private var visibility: FakeVisibility!
+    private var observed: InMemorySectionMemory!
+    private var table: InMemorySectionMemory!
+    private var pins = true
+
+    override func setUp() {
+        super.setUp()
+        items = FakeItems()
+        inventory = FakeInventory()
+        inventory.items = [item("com.always", x: 900), item("com.hidden", x: 1100), item("com.visible", x: 1400)]
+        visibility = FakeVisibility()
+        observed = InMemorySectionMemory()
+        table = InMemorySectionMemory()
+        pins = true
+    }
+
+    private func makeEngine() -> NativeVisibilityEngine {
+        let items = self.items!
+        return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility, clock: FakeClock(),
+                                      ownBundleIdentifier: own,
+                                      itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                      displays: { [mainDisplay] },
+                                      isLTR: { true },
+                                      sectionMemory: observed,
+                                      pinnedSections: table,
+                                      pinsSections: { [unowned self] in pins })
+    }
+
+    @discardableResult
+    private func collapse(_ engine: NativeVisibilityEngine) -> [String] {
+        engine.collapse { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+        return visibility.requests.last?.bundles ?? []
+    }
+
+    private func move(_ bundle: String, to x: CGFloat) {
+        inventory.items = inventory.items.filter { $0.bundleIdentifier != bundle } + [item(bundle, x: x)]
+    }
+
+    // Given an app the user keeps visible
+    // When it relaunches while the bar is collapsed and macOS puts its icon far left
+    // Then the next collapse keeps it visible and the table is unchanged
+    func testARelaunchedAppKeepsItsSectionWhereverMacOSPutsItsIcon() {
+        let engine = makeEngine()
+        XCTAssertEqual(collapse(engine), [own, "com.visible"])
+        engine.applicationLaunched("com.visible")
+        engine.expand()
+        move("com.visible", to: 1150)
+        XCTAssertEqual(collapse(engine), [own, "com.visible"])
+        XCTAssertEqual(table.sections["com.visible"], .visible)
+        XCTAssertEqual(engine.state, .collapsed)
+
+        // Later collapses with the icon still there keep it visible too.
+        engine.expand()
+        XCTAssertEqual(collapse(engine), [own, "com.visible"])
+    }
+
+    // Without the beta, the same relaunch hides the app (v1.11.2, the drift #366 is about).
+    func testWithTheBetaOffARelaunchedAppGoesWhereMacOSPutsIt() {
+        pins = false
+        table.sections = ["com.visible": .visible]
+        let engine = makeEngine()
+        XCTAssertEqual(collapse(engine), [own, "com.visible"])
+        engine.applicationLaunched("com.visible")
+        engine.expand()
+        move("com.visible", to: 1150)
+        XCTAssertEqual(collapse(engine), [own])
+        XCTAssertEqual(table.sections, ["com.visible": .visible], "the table is not touched while the beta is off")
+        XCTAssertEqual(observed.sections["com.visible"], .hidden)
+    }
+
+    func testADragOfAnAppThatDidNotRelaunchEditsTheTable() {
+        let engine = makeEngine()
+        collapse(engine)
+        engine.expand()
+        move("com.hidden", to: 1450)
+        XCTAssertEqual(collapse(engine), [own, "com.hidden", "com.visible"])
+        XCTAssertEqual(table.sections["com.hidden"], .visible)
+
+        engine.expand()
+        move("com.visible", to: 1120)
+        XCTAssertEqual(collapse(engine), [own, "com.hidden"])
+        XCTAssertEqual(table.sections["com.visible"], .hidden)
+    }
+
+    // Given an app Hidden Bar has never seen
+    // When it starts and macOS puts its icon on the hidden side
+    // Then it is shown, and stays shown on later reads of the same position
+    func testANeverSeenAppStartsVisibleAndStaysVisible() {
+        let engine = makeEngine()
+        collapse(engine)
+        engine.applicationLaunched("com.new")
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.new", "com.visible"], "shown at once")
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertNil(table.sections["com.new"], "an app without an icon in a read is not added")
+
+        engine.expand()
+        inventory.items.append(item("com.new", x: 1150))
+        XCTAssertEqual(collapse(engine), [own, "com.new", "com.visible"])
+        XCTAssertEqual(table.sections["com.new"], .visible)
+
+        engine.expand()
+        XCTAssertEqual(collapse(engine), [own, "com.new", "com.visible"], "an unchanged position is not a drag")
+    }
+
+    func testAppsAlreadyRunningWithNoTableEntryTakeTheirPosition() {
+        let engine = makeEngine()
+        XCTAssertEqual(collapse(engine), [own, "com.visible"])
+        XCTAssertEqual(table.sections, ["com.always": .hidden, "com.hidden": .hidden, "com.visible": .visible])
+    }
+
+    // A Preferences edit is not undone by the next read, though the icon did not move.
+    func testAPreferencesEditOutlivesTheNextRead() {
+        let engine = makeEngine()
+        collapse(engine)
+        PinnedSectionEdits.set(.hidden, for: "com.visible", in: table)
+        engine.pinnedSectionsDidChange()
+        XCTAssertEqual(visibility.requests.last?.bundles, [own], "applied at once")
+        visibility.succeed(visibility.requests.count - 1)
+
+        engine.expand()
+        XCTAssertEqual(collapse(engine), [own])
+        XCTAssertEqual(table.sections["com.visible"], .hidden)
+    }
+
+    func testResetAllToVisibleShowsEveryAppWithoutARelaunch() {
+        table.sections = ["com.always": .alwaysHidden, "com.hidden": .hidden, "com.visible": .visible, "com.gone": .hidden]
+        let engine = makeEngine()
+        XCTAssertEqual(collapse(engine), [own, "com.visible"])
+        PinnedSectionEdits.resetAllToVisible(in: table)
+        engine.pinnedSectionsDidChange()
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.always", "com.hidden", "com.visible"])
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertEqual(Set(table.sections.values), [.visible])
+        XCTAssertEqual(table.sections.count, 4, "apps not running are reset too")
+    }
+
+    func testAnAppThatStartsWhileHidingGetsItsPinnedSection() {
+        table.sections = ["com.later": .visible, "com.later-hidden": .hidden]
+        observed.sections = ["com.later": .hidden]
+        let engine = makeEngine()
+        collapse(engine)
+        engine.applicationLaunched("com.later-hidden")
+        XCTAssertEqual(visibility.requests.count, 1, "kept hidden")
+        engine.applicationLaunched("com.later")
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.later", "com.visible"], "the table wins over the last read")
+    }
+
+    func testEditsAreIgnoredWhileTheBetaIsOff() {
+        pins = false
+        let engine = makeEngine()
+        collapse(engine)
+        table.sections["com.visible"] = .hidden
+        engine.pinnedSectionsDidChange()
+        XCTAssertEqual(visibility.requests.count, 1)
+    }
+
+    func testTheTableStartsFromTheLastReadSections() throws {
+        let suite = "HiddenBarTests.pinnedSections.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        UserDefaultsSectionMemory(defaults: defaults).sections = ["com.a": .hidden, "com.b": .alwaysHidden]
+        let pinned = UserDefaultsPinnedSections(defaults: defaults)
+        XCTAssertEqual(pinned.sections, ["com.a": .hidden, "com.b": .alwaysHidden])
+        XCTAssertNil(defaults.object(forKey: UserDefaultsPinnedSections.key), "seeding writes nothing")
+
+        pinned.sections["com.a"] = .visible
+        UserDefaultsSectionMemory(defaults: defaults).sections = ["com.a": .alwaysHidden]
+        XCTAssertEqual(UserDefaultsPinnedSections(defaults: defaults).sections, ["com.a": .visible, "com.b": .alwaysHidden],
+                       "once written, the table no longer follows the reads")
+    }
+
+    func testResolverRules() {
+        var observed: [String: MenuBarSection] = ["moved": .hidden, "still": .hidden, "relaunched": .visible]
+        var table: [String: MenuBarSection] = ["moved": .hidden, "still": .visible, "relaunched": .visible]
+        let resolved = PinnedSectionResolver.resolve(
+            read: ["moved": .visible, "still": .hidden, "relaunched": .hidden, "new": .hidden, "running": .alwaysHidden],
+            launchedSinceRead: ["relaunched", "new"], observed: &observed, table: &table)
+        XCTAssertEqual(resolved, ["moved": .visible, "still": .visible, "relaunched": .visible, "new": .visible, "running": .alwaysHidden])
+        XCTAssertEqual(table, resolved)
+        XCTAssertEqual(observed, ["moved": .visible, "still": .hidden, "relaunched": .hidden, "new": .hidden, "running": .alwaysHidden])
+    }
+}
+
 // MARK: - Legacy engine
 
 // macOS 27 hides the allowed icons of an app it does not know by bundle id
