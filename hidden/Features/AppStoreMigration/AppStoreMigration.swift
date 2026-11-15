@@ -57,6 +57,7 @@ enum AppStoreSettingsImport {
         UserDefaults.Key.notchOverflowEnabled: .number,
         UserDefaults.Key.pauseHidingForUnkeepableItems: .number,
         UserDefaults.Key.pinnedSectionsEnabled: .number,
+        UserDefaults.Key.newAppDefaultSection: .number,
         UserDefaultsPinnedSections.key: .dictionary,
     ]
 

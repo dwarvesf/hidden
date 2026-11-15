@@ -40,6 +40,7 @@ final class SettingsWindowTests: XCTestCase {
         UserDefaults.Key.arrowStyle,                                              // arrow style popup
         UserDefaults.Key.globalKey,                                               // global shortcut
         UserDefaultsPinnedSections.key,                                           // Icons section popups (beta)
+        UserDefaults.Key.newAppDefaultSection,                                    // Icons: when an app adds a new icon
     ]
 
     private var saved: [String: Any] = [:]
@@ -223,7 +224,7 @@ final class SettingsWindowTests: XCTestCase {
         let views = allViews(PreferencesWindowController(context: context))
         for key in [UserDefaults.Key.pauseHidingForUnkeepableItems, UserDefaults.Key.showWholeBarWhenCaptureStarts,
                     UserDefaults.Key.pinnedSectionsEnabled, UserDefaults.Key.revealOnEmptyClickEnabled,
-                    "SUEnableAutomaticChecks"] {
+                    UserDefaults.Key.newAppDefaultSection, "SUEnableAutomaticChecks"] {
             XCTAssertNil(control(key, in: views), "\(key) shows in the App Store build")
         }
         // Scroll and shake need no Accessibility, so the App Store build keeps them.
@@ -300,7 +301,8 @@ final class SettingsWindowTests: XCTestCase {
         XCTAssertFalse(button.isBordered, "a link in the caption line, so the controls column is the same on every row")
         XCTAssertEqual(views.compactMap { ($0 as? NSTextField)?.stringValue }.filter { $0.hasPrefix("Not running".localized) }.count, 1)
         pane.view.layoutSubtreeIfNeeded()
-        let edges = Set(views.compactMap { $0 as? NSPopUpButton }.map { $0.superview?.frame.minX ?? 0 })
+        let sectionPopups = views.compactMap { $0 as? NSPopUpButton }.filter { $0.identifier?.rawValue != UserDefaults.Key.newAppDefaultSection }
+        let edges = Set(sectionPopups.map { $0.superview?.frame.minX ?? 0 })
         XCTAssertEqual(edges.count, 1, "the controls column starts at the same x on every row")
         XCTAssertGreaterThan(edges.first ?? 0, 0, "the pane was laid out")
         XCTAssertEqual(store.runningReads, 1, "the running set is read once per rebuild, not per row")
@@ -325,6 +327,104 @@ final class SettingsWindowTests: XCTestCase {
         pane.viewWillAppear()
         XCTAssertTrue(control(removeA, in: Self.subviews(of: pane.view)) === button, "nothing changed: the rows are not rebuilt")
         XCTAssertEqual(store.runningReads, 3, "one read per appearance")
+    }
+
+    // Given the Icons pane
+    // When picking Ask Me, then Hide It, then Show It in "When an app adds a new icon"
+    // Then newAppDefaultSection holds 0, 2, 1, and the popup starts on Show It when nothing is stored
+    func test_menuBarApps_newAppPopupWritesItsKey() throws {
+        UserDefaults.standard.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        UserDefaults.standard.removeObject(forKey: UserDefaults.Key.newAppDefaultSection)
+        var context = fullContext()
+        MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: context) }
+        context.menuBarAppsAvailable = true
+        let controller = PreferencesWindowController(context: context)
+        windows.append(controller)
+        let views = Self.subviews(of: controller.pane(.menuBarApps).view)
+        let popup = try XCTUnwrap(control(UserDefaults.Key.newAppDefaultSection, in: views) as? NSPopUpButton)
+
+        XCTAssertEqual(popup.selectedItem?.tag, NewAppDefault.show.rawValue)
+        XCTAssertEqual(popup.itemTitles, ["Ask Me", "Show It", "Hide It"])
+        for choice in [NewAppDefault.ask, .hide, .show] {
+            popup.selectItem(withTag: choice.rawValue)
+            popup.sendAction(popup.action, to: popup.target)
+            XCTAssertEqual(UserDefaults.standard.integer(forKey: UserDefaults.Key.newAppDefaultSection), choice.rawValue)
+            XCTAssertEqual(Preferences.newAppDefaultSection, choice)
+        }
+    }
+
+    // Given the Icons pane
+    // When picking each option in the new-app popup
+    // Then the caption under the title describes that option
+    func test_menuBarApps_newAppCaptionFollowsTheSelectedOption() throws {
+        UserDefaults.standard.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        UserDefaults.standard.removeObject(forKey: UserDefaults.Key.newAppDefaultSection)
+        let pane = MenuBarAppsSettingsViewController(context: fullContext())
+        let views = Self.subviews(of: pane.view)
+        let popup = try XCTUnwrap(control(UserDefaults.Key.newAppDefaultSection, in: views) as? NSPopUpButton)
+        func captions() -> [String] { Self.subviews(of: pane.view).compactMap { ($0 as? NSTextField)?.stringValue } }
+
+        XCTAssertTrue(captions().contains(MenuBarAppsSettingsViewController.newAppCaption(for: .show)))
+        for choice in [NewAppDefault.ask, .hide, .show] {
+            popup.selectItem(withTag: choice.rawValue)
+            popup.sendAction(popup.action, to: popup.target)
+            let shown = captions()
+            XCTAssertTrue(shown.contains(MenuBarAppsSettingsViewController.newAppCaption(for: choice)), "\(choice) caption missing")
+            for other in [NewAppDefault.ask, .show, .hide] where other != choice {
+                XCTAssertFalse(shown.contains(MenuBarAppsSettingsViewController.newAppCaption(for: other)), "\(other) caption still shown")
+            }
+        }
+        XCTAssertEqual(Set([NewAppDefault.ask, .show, .hide].map(MenuBarAppsSettingsViewController.newAppCaption)).count, 3)
+    }
+
+    // Given a stored value outside 0 to 2, or none
+    // Then the preference reads as Show It, the 1.12 behavior
+    func test_newAppDefaultReadsShowItUnlessSet() {
+        UserDefaults.standard.removeObject(forKey: UserDefaults.Key.newAppDefaultSection)
+        XCTAssertEqual(Preferences.newAppDefaultSection, .show)
+        UserDefaults.standard.set(9, forKey: UserDefaults.Key.newAppDefaultSection)
+        XCTAssertEqual(Preferences.newAppDefaultSection, .show)
+        UserDefaults.standard.set(0, forKey: UserDefaults.Key.newAppDefaultSection)
+        XCTAssertEqual(Preferences.newAppDefaultSection, .ask)
+    }
+
+    // Given the beta off
+    // Then the new-app popup is there but cannot be changed (nothing places a new app)
+    func test_menuBarApps_newAppPopupIsDisabledWithPinnedSectionsOff() throws {
+        UserDefaults.standard.set(false, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        var context = fullContext()
+        MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: context) }
+        context.menuBarAppsAvailable = true
+        let controller = PreferencesWindowController(context: context)
+        windows.append(controller)
+        let popup = try XCTUnwrap(control(UserDefaults.Key.newAppDefaultSection,
+                                          in: Self.subviews(of: controller.pane(.menuBarApps).view)) as? NSPopUpButton)
+
+        XCTAssertFalse(popup.isEnabled)
+    }
+
+    // Given two apps waiting for an answer and two that are settled
+    // When the Icons pane builds
+    // Then the waiting ones come first, each with a NEW tag, and the settled ones have none
+    func test_menuBarApps_undecidedAppsSitFirstWithANewTag() {
+        let waitingKey = UserDefaultsArrivalsPending.key
+        let before = UserDefaults.standard.object(forKey: waitingKey)
+        addTeardownBlock {
+            if let before { UserDefaults.standard.set(before, forKey: waitingKey) } else { UserDefaults.standard.removeObject(forKey: waitingKey) }
+        }
+        UserDefaults.standard.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        UserDefaults.standard.set(["com.test.a": 0, "com.test.b": 1, "com.test.z": 0, "com.test.y": 0], forKey: UserDefaultsPinnedSections.key)
+        UserDefaults.standard.set(["com.test.z", "com.test.y"], forKey: waitingKey)
+        let pane = MenuBarAppsSettingsViewController(context: fullContext())
+        let views = Self.subviews(of: pane.view)
+
+        XCTAssertEqual(views.filter { $0 is NewTag }.count, 2)
+        let prefix = UserDefaultsPinnedSections.key + "."
+        let order = views.compactMap { ($0 as? NSPopUpButton)?.identifier?.rawValue }
+            .filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) }
+        XCTAssertEqual(order, ["com.test.y", "com.test.z", "com.test.a", "com.test.b"])
+        XCTAssertTrue(views.contains { ($0 as? NSTextField)?.stringValue.hasPrefix("Not chosen yet".localized) == true })
+        XCTAssertEqual(UserDefaults.Key.arrivalsPending, waitingKey)
     }
 
     // Given the beta off

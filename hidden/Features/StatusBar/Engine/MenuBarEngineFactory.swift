@@ -40,7 +40,10 @@ enum MenuBarEngineFactory {
                                                 ignoredDrags: { UserDefaultsDragLocks().bundles },
                                                 agentLaunches: agentLaunches)
             let catalog = MenuBarItemCatalog.shared
-            engine.onUnrestrictedRead = { layout, inventory in catalog.record(layout: layout, inventory: inventory) }
+            engine.onUnrestrictedRead = { layout, inventory in
+                ArrivalsController.shared.noteInventory(inventory)
+                catalog.record(layout: layout, inventory: inventory)
+            }
             catalog.observeLaunches(on: [NSWorkspace.shared.notificationCenter, agentLaunches])
             return engine
         }
