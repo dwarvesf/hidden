@@ -33,6 +33,9 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         setupHotKey()
         openPreferencesIfNeeded()
         detectLTRLang()
+        #if HIDDENBAR_SPARKLE
+        _ = UpdateController.shared // starts the updater and its scheduled checks
+        #endif
         #if !HIDDENBAR_NATIVE_VISIBILITY
         MacOS27Notice.shared.showAtLaunchIfNeeded()
         #endif

@@ -61,10 +61,32 @@ class PreferencesViewController: NSViewController {
         // The containing stack view (detachesHiddenViews) reflows on its own.
         checkBoxNotchOverflow.isHidden = !NotchOverflowController.hasNotch
         NotificationCenter.default.addObserver(self, selector: #selector(updateData), name: .prefsChanged, object: nil)
+        #if HIDDENBAR_SPARKLE
+        addUpdateRow()
+        #endif
         #if HIDDENBAR_NATIVE_VISIBILITY
         addMacOS27Rows()
         #endif
     }
+
+    #if HIDDENBAR_SPARKLE
+    private var checkBoxAutoUpdate: NSButton?
+
+    // Direct build only: Sparkle owns the setting, the row just mirrors it.
+    private func addUpdateRow() {
+        guard let stack = checkBoxNotchOverflow.superview as? NSStackView,
+              let index = stack.arrangedSubviews.firstIndex(of: checkBoxNotchOverflow) else { return }
+        let checkBox = NSButton(checkboxWithTitle: "Automatically check for updates".localized,
+                                target: self, action: #selector(autoUpdateChanged(_:)))
+        checkBox.state = UpdateController.shared.automaticallyChecksForUpdates ? .on : .off
+        stack.insertArrangedSubview(checkBox, at: index + 1)
+        checkBoxAutoUpdate = checkBox
+    }
+
+    @objc private func autoUpdateChanged(_ sender: NSButton) {
+        UpdateController.shared.automaticallyChecksForUpdates = sender.state == .on
+    }
+    #endif
 
     #if HIDDENBAR_NATIVE_VISIBILITY
     // macOS 27: the icons macOS hides on collapse although they sit right of the
@@ -237,6 +259,9 @@ class PreferencesViewController: NSViewController {
         checkBoxStealthExpandIcon.state = Preferences.stealthExpandIconEnabled ? .on : .off
         #if HIDDENBAR_NATIVE_VISIBILITY
         updateMacOS27Rows()
+        #endif
+        #if HIDDENBAR_SPARKLE
+        checkBoxAutoUpdate?.state = UpdateController.shared.automaticallyChecksForUpdates ? .on : .off
         #endif
     }
     

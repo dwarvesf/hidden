@@ -1,0 +1,54 @@
+//
+//  UpdateController.swift
+//  Hidden Bar
+//
+//  Sparkle auto-update for the direct (GitHub / Homebrew) build only. The
+//  "Hidden Bar Direct" target compiles this file and defines HIDDENBAR_SPARKLE;
+//  the App Store target does neither, so Sparkle never reaches that binary.
+//
+
+#if HIDDENBAR_SPARKLE
+import AppKit
+import Sparkle
+
+final class UpdateController: NSObject, SPUStandardUserDriverDelegate {
+    static let shared = UpdateController()
+
+    private var standardController: SPUStandardUpdaterController!
+
+    override init() {
+        super.init()
+        standardController = SPUStandardUpdaterController(startingUpdater: true,
+                                                          updaterDelegate: nil,
+                                                          userDriverDelegate: self)
+    }
+
+    /// Persisted by Sparkle itself (SUEnableAutomaticChecks in user defaults).
+    var automaticallyChecksForUpdates: Bool {
+        get { standardController.updater.automaticallyChecksForUpdates }
+        set { standardController.updater.automaticallyChecksForUpdates = newValue }
+    }
+
+    func makeMenuItem() -> NSMenuItem {
+        let item = NSMenuItem(title: "Check for Updates...".localized,
+                              action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
+                              keyEquivalent: "")
+        item.target = standardController
+        return item
+    }
+
+    // MARK: SPUStandardUserDriverDelegate
+
+    // The app is LSUIElement (no Dock icon, never frontmost), so a scheduled
+    // update alert would open behind other windows. Opt in to gentle reminders
+    // and bring the alert forward ourselves.
+    var supportsGentleScheduledUpdateReminders: Bool { true }
+
+    func standardUserDriverWillHandleShowingUpdate(_ handleShowingUpdate: Bool,
+                                                   forUpdate update: SUAppcastItem,
+                                                   state: SPUUserUpdateState) {
+        guard handleShowingUpdate else { return }
+        NSApp.activate(ignoringOtherApps: true)
+    }
+}
+#endif

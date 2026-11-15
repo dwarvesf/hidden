@@ -385,6 +385,10 @@ class StatusBarController: MenuBarItemProvider {
         }
         #endif
 
+        #if HIDDENBAR_SPARKLE
+        menu.addItem(UpdateController.shared.makeMenuItem())
+        #endif
+
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit".localized, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 

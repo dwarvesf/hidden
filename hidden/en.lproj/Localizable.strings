@@ -36,3 +36,5 @@ Steps to view always hidden icons:
 ";
 "Show all icons while macOS would also hide one right of the arrow" = "Show all icons while macOS would also hide one right of the arrow";
 "macOS 27 also hides: %@" = "macOS 27 also hides: %@";
+"Check for Updates..." = "Check for Updates...";
+"Automatically check for updates" = "Automatically check for updates";

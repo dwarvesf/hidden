@@ -97,6 +97,14 @@ the committed `Package.resolved`. The opt-in hover monitor observes pointer
 position only and discards event payloads. About-window links are hardcoded.
 A full-tree audit (2026-06) scored 9/10 with hygiene-level findings only.
 
+The above describes the App Store build. The direct build (target **Hidden Bar
+Direct**, unsandboxed) additionally links [Sparkle](https://sparkle-project.org)
+2 for self-update: it fetches one appcast from the GitHub release assets over
+HTTPS and installs only archives whose EdDSA signature matches `SUPublicEDKey`.
+No system profile is sent (Sparkle's `SUEnableSystemProfiling` stays off). The
+App Store binary contains no Sparkle code, framework, or Info.plist keys; see
+the RUNBOOK for how that split is built and checked.
+
 ## Known architectural limits
 
 - **The notch**: hidden icons sit "under" the notch area on notched Macs; the

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Direct build only: Sparkle auto-update. Context menu "Check for Updates...", plus an "Automatically check for updates" checkbox in Preferences (#220, #197). Updates are EdDSA-signed and served from the GitHub release's `appcast.xml`. The App Store build is unchanged and contains no Sparkle.
+
 ### Fixed
 - macOS 27 (direct build): clicking the clock while icons are hidden temporarily releases the native restriction, replays the click, and restores the same hidden sections. Uses mouse events instead of AXPress to avoid the reported immediate-close behavior on macOS 27.2. Hidden icons can briefly appear during the transition (#410).
 - macOS 27 (direct build): the microphone and camera indicators no longer stay hidden while icons are hidden (#432). Native hiding also hides the capsule naming the recording app, so while any app uses the microphone or a camera, Hidden Bar shows the whole bar, then hides again when that stops (#437, based on #438 by Kevin Hallmark).
