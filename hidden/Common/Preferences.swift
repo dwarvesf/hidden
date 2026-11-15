@@ -164,6 +164,46 @@ enum Preferences {
         }
     }
 
+    // Presentation mode turns itself on while a display is mirrored. Off by default.
+    static var presentationAutoMirrorEnabled: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.presentationAutoMirrorEnabled)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.presentationAutoMirrorEnabled)
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
+
+    // Apps that stay hidden while presentation mode is on, even when the arrow
+    // is clicked. Stored as a dictionary [bundle id: true].
+    static var presentationSensitiveApps: Set<String> {
+        get {
+            let stored = UserDefaults.standard.dictionary(forKey: UserDefaults.Key.presentationSensitiveApps) ?? [:]
+            return Set(stored.filter { ($0.value as? Bool) == true }.keys)
+        }
+
+        set {
+            let stored = Dictionary(uniqueKeysWithValues: newValue.map { ($0, true) })
+            UserDefaults.standard.set(stored, forKey: UserDefaults.Key.presentationSensitiveApps)
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
+
+    // Internal: whether presentation mode is on right now, for scripts and the
+    // debug state. Never read back to resume a session: a manual start does not
+    // survive a relaunch, so a crash never re-hides the bar on its own.
+    static var presentationModeActive: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.presentationModeActive)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.presentationModeActive)
+        }
+    }
+
     static var useFullStatusBarOnExpandEnabled: Bool {
         get {
             UserDefaults.standard.bool(forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)

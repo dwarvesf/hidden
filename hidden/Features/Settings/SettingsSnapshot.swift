@@ -57,6 +57,19 @@ enum SettingsSnapshot {
             #if HIDDENBAR_NATIVE_VISIBILITY
             ArrivalsSnapshot.render(appearance: appearance, mode: mode, to: dir)
             #endif
+            // Presentation mode: the capsule, panels and note, then the General
+            // pane (which now scrolls) at the Presentation group.
+            #if HIDDENBAR_NATIVE_VISIBILITY
+            PresentationSnapshot.render(to: dir, appearance: appearance, mode: mode)
+            var presentation = live
+            presentation.build = .direct
+            presentation.osMajorVersion = 27
+            presentation.statusOverride = .working
+            PresentationSensitiveAppsControl.snapshotChips = PresentationSnapshot.fixtureModel(for: .presenting).staysHidden
+            shoot(PreferencesWindowController(context: presentation), tab: .general, appearance: appearance,
+                  to: dir.appendingPathComponent("\(build)-present-settings-\(mode).png"), scrollsToEnd: true)
+            PresentationSensitiveAppsControl.snapshotChips = nil
+            #endif
             // The preview strip per engine, with the always-hidden section on.
             for (os, engine) in [(27, "macos27"), (26, "macos26")] {
                 var context = live
@@ -74,12 +87,17 @@ enum SettingsSnapshot {
     }
 
     static func shoot(_ controller: PreferencesWindowController, tab: SettingsTab,
-                              appearance: NSAppearance.Name, to url: URL) {
+                              appearance: NSAppearance.Name, to url: URL, scrollsToEnd: Bool = false) {
         guard let window = controller.window else { return }
         window.appearance = NSAppearance(named: appearance)
         (window as? SettingsWindow)?.drawsAsKey = true
         controller.select(tab, animate: false)
         window.layoutIfNeeded()
+        if scrollsToEnd, let document = controller.paneScroll.documentView {
+            // A pane taller than the window scrolls: show its end.
+            controller.paneScroll.contentView.scroll(to: NSPoint(x: 0, y: max(0, document.frame.height - controller.paneScroll.contentView.bounds.height)))
+            controller.paneScroll.reflectScrolledClipView(controller.paneScroll.contentView)
+        }
         window.displayIfNeeded()
         guard let frameView = window.contentView?.superview,
               let rep = frameView.bitmapImageRepForCachingDisplay(in: frameView.bounds) else { return }

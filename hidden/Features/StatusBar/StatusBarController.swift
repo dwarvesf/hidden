@@ -48,6 +48,12 @@ class StatusBarController: MenuBarItemProvider {
     
     private var isToggle = false
 
+    #if HIDDENBAR_NATIVE_VISIBILITY
+    // Presentation mode (macOS 27, direct build): the capsule, the manual switch
+    // and the mirror trigger. Nil where the native engine does not run.
+    private var presentationController: PresentationController?
+    #endif
+
     // Reveal without aiming: scroll, click on empty space, pointer shake.
     private lazy var revealController = RevealController(
         host: RevealHost(
@@ -196,6 +202,9 @@ class StatusBarController: MenuBarItemProvider {
         // display hot-plug leaves the separator at a stale length (PR #354).
         let wasCollapsed = isCollapsed
         menuBarEngine.invalidateLayout()
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        presentationController?.syncMirror()
+        #endif
         if wasCollapsed && Preferences.areSeparatorsHidden {
             menuBarEngine.updateAlwaysHiddenSection(enabled: Preferences.alwaysHiddenSectionEnabled, separatorHidden: true)
         }
@@ -223,6 +232,9 @@ class StatusBarController: MenuBarItemProvider {
                 self?.paletteSession?.userChangedBar()
                 #endif
             }
+            #if HIDDENBAR_NATIVE_VISIBILITY
+            presentationController = PresentationController(engine: native, arrowButton: { [weak self] in self?.btnExpandCollapse.button })
+            #endif
         }
     }
 
@@ -236,6 +248,11 @@ class StatusBarController: MenuBarItemProvider {
             return
         }
         if Preferences.areSeparatorsHidden { hideSeparators() }
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        // A display already mirrored at launch starts presentation mode now that
+        // the items are placed, so the first collapse already holds the strict list.
+        presentationController?.syncMirror()
+        #endif
         collapseMenuBar()
     }
 
@@ -458,6 +475,9 @@ class StatusBarController: MenuBarItemProvider {
             NSApp.activate(ignoringOtherApps: true)
             
         }
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        presentationController?.barExpanded()
+        #endif
     }
     
     // Expand/collapse skips the policy change when the option is off, so sync it on toggle.
@@ -552,6 +572,17 @@ class StatusBarController: MenuBarItemProvider {
         toggleAutoHideItem.target = self
         menu.addItem(toggleAutoHideItem)
 
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        if let presentation = presentationController {
+            menu.addItem(NSMenuItem.separator())
+            let presentationItem = NSMenuItem(title: presentation.menuTitle, action: #selector(togglePresentationMode), keyEquivalent: "")
+            presentationItem.target = self
+            presentationItem.setShortcut(HotKeyRegistry.shared.shortcut(for: UserDefaults.Key.presentationShortcut))
+            menu.addItem(presentationItem)
+            menu.addItem(NSMenuItem.separator())
+        }
+        #endif
+
         #if !HIDDENBAR_NATIVE_VISIBILITY
         if let macOS27Item = MacOS27Notice.shared.makeMenuItem() {
             menu.addItem(macOS27Item)
@@ -583,6 +614,13 @@ class StatusBarController: MenuBarItemProvider {
     @objc func toggleAutoHide() {
         Preferences.isAutoHide.toggle()
     }
+
+    #if HIDDENBAR_NATIVE_VISIBILITY
+    // The shortcut, the arrow menu item and the debug hook all run this.
+    @objc func togglePresentationMode() {
+        presentationController?.toggle()
+    }
+    #endif
 
     // Expands the bar with the always-hidden section shown, until the next
     // collapse hides it again. The way back to icons lost there (#242).
@@ -779,6 +817,15 @@ extension StatusBarController {
             showEverything()
         case "click-clock":
             debugClickClock(pressingWithAX: argument == "ax")
+        case "present":
+            // What the shortcut and the arrow menu item run: "on", "off" or "toggle".
+            #if HIDDENBAR_NATIVE_VISIBILITY
+            switch argument {
+            case "on": presentationController?.start()
+            case "off": presentationController?.stop()
+            default: presentationController?.toggle()
+            }
+            #endif
         case "reveal-sim":
             // What a real scroll, click or shake runs: "scroll", "scroll-up", "click" or "shake".
             revealController.simulate(argument ?? "")

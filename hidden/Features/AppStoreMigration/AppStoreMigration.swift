@@ -60,6 +60,9 @@ enum AppStoreSettingsImport {
         UserDefaults.Key.pinnedSectionsEnabled: .number,
         UserDefaults.Key.newAppDefaultSection: .number,
         UserDefaultsPinnedSections.key: .dictionary,
+        UserDefaults.Key.presentationAutoMirrorEnabled: .number,
+        UserDefaults.Key.presentationSensitiveApps: .dictionary,
+        UserDefaults.Key.presentationShortcut: .data,
     ]
 
     static func containerPreferencesURL(home: URL, bundleIdentifier: String) -> URL {

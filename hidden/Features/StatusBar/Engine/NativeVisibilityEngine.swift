@@ -48,15 +48,34 @@ import AppKit
 //   Preferences option, on by default). Hiding is never blocked: apps such as
 //   dictation tools keep the microphone open all day, so a collapse while
 //   capture continues hides as usual, and only the next start expands again.
+// - Presentation mode (F4) is a second allow-list held through the same
+//   restriction: every app hidden, or the hidden section shown minus the
+//   sensitive apps. Every change to what is held goes through `hold(whenBar:)`
+//   and `reconcileHold()`, so no event (an app launch, a clock click, a capture
+//   change) can swap the strict list back to the normal one. It lifts while a
+//   microphone or camera is on, since the restriction hides the capsule naming
+//   the app that records, and it lifts when the app quits (PresentationState).
 // - macOS matches the allow-list only to apps it knows by bundle id, which
 //   (measured on 27.2) it does for an app in an Applications folder but not for
 //   one run from elsewhere (Downloads, a build folder): it hides that app's
 //   icons although they are allowed, Hidden Bar's own arrow included, leaving no
 //   arrow to expand with. Outside an Applications folder nothing is hidden.
+// Everything one held restriction allows besides Hidden Bar itself. Two holds are
+// the same only when every part matches, so a swap between lists that name the
+// same apps but different system items is not skipped.
+struct NativeHold: Equatable {
+    let systemItems: [Int]
+    let bundles: [String]
+}
+
 final class NativeVisibilityEngine: MenuBarEngine {
     // System item identifiers to keep visible. Unknown identifiers are ignored,
     // so the range covers items a given Mac does not have (0-63 checked on 27.0).
     static let systemItemsToKeep = Array(0..<64)
+    // Presentation mode keeps the clock and battery. Which of these ids are those
+    // two has not been measured on a live bar, so the strict list keeps the same
+    // ids; the apps, which are what a presentation must not show, are all hidden.
+    static let presentationSystemItems = systemItemsToKeep
 
     private weak var items: MenuBarItemProvider?
     private let inventory: MenuBarInventoryProviding
@@ -86,6 +105,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // What the held assertion allows besides Hidden Bar, and the generation it was
     // activated in, which stays current while nothing newer is in flight.
     private var assertionBundles: [String] = []
+    private var assertionSystemItems: [Int] = NativeVisibilityEngine.systemItemsToKeep
+    // The hold requested last and not landed yet, so a newer wish is compared
+    // with it and not only with what is held.
+    private var inFlightHold: NativeHold?
     private var assertionGeneration = 0
     // Bumped whenever a pending activation must no longer win (an expand, a newer
     // activation); a late success is then invalidated straight away.
@@ -95,6 +118,12 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // already running at launch is not a start.
     private var isCaptureActive: Bool
     private let expandsWhenCaptureStarts: () -> Bool
+    private let sensitiveApps: () -> Set<String>
+    private var presentation = PresentationState()
+    private var seenPhase: PresentationPhase = .off
+    private var terminationObserver: (NotificationCenter, NSObjectProtocol)?
+    // Told on the main queue whenever the phase changes; the capsule follows it.
+    var onPresentationChange: ((PresentationPhase) -> Void)?
 
     private var alwaysHiddenEnabled = false
     private var alwaysHiddenSeparatorHidden = false
@@ -145,6 +174,8 @@ final class NativeVisibilityEngine: MenuBarEngine {
          runsFromApplicationsFolder: @escaping () -> Bool = { true },
          pausesHidingForUnkeepableItems: @escaping () -> Bool = { false },
          expandsWhenCaptureStarts: @escaping () -> Bool = { true },
+         sensitiveApps: @escaping () -> Set<String> = { [] },
+         terminationNotifications: NotificationCenter = .default,
          sectionMemory: MenuBarSectionMemory = InMemorySectionMemory(),
          workspaceNotifications: NotificationCenter? = nil,
          pinnedSections: MenuBarSectionMemory = InMemorySectionMemory(),
@@ -163,6 +194,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         self.captureActivity = captureActivity
         isCaptureActive = captureActivity.isActive
         self.expandsWhenCaptureStarts = expandsWhenCaptureStarts
+        self.sensitiveApps = sensitiveApps
         self.ownBundleIdentifier = ownBundleIdentifier
         self.itemFrame = itemFrame
         self.displays = displays
@@ -175,13 +207,25 @@ final class NativeVisibilityEngine: MenuBarEngine {
         captureActivity.onChange = { [weak self] in
             self?.captureActivityDidChange()
         }
+        // Quit lifts the restriction explicitly as well as by process exit.
+        terminationObserver = (terminationNotifications, terminationNotifications.addObserver(
+            forName: NSApplication.willTerminateNotification, object: nil, queue: nil) { [weak self] _ in
+                self?.releaseAssertion()
+            })
     }
 
     deinit {
+        terminationObserver.map { $0.0.removeObserver($0.1) }
         workspaceObservers.forEach { center, observer in center.removeObserver(observer) }
     }
 
-    func collapse(completion: @escaping (CollapseResult) -> Void) {
+    func collapse(completion report: @escaping (CollapseResult) -> Void) {
+        // Presentation mode shows "could not hide" when a collapse that should
+        // have hidden everything did not.
+        let completion: (CollapseResult) -> Void = { [weak self] result in
+            self?.collapseFinished(result)
+            report(result)
+        }
         switch state {
         case .collapsed:
             return completion(.collapsed)
@@ -190,6 +234,13 @@ final class NativeVisibilityEngine: MenuBarEngine {
             return
         case .expanded, .unavailable:
             break
+        }
+        // A collapse during the camera or microphone pause (the user's, or the
+        // auto-hide timer's) stays lifted: holding the normal list now would only
+        // be undone, and would flash the capsule away. Resuming collapses again.
+        if presentation.isOn, currentPhase() == .paused {
+            NSLog("NativeVisibility: a collapse while presentation mode is paused; staying shown")
+            return completion(.unavailable)
         }
         if !hidesAlwaysHiddenSection {
             setSeparatorsVisible(true)
@@ -206,6 +257,11 @@ final class NativeVisibilityEngine: MenuBarEngine {
             return completion(.unavailable)
         }
         guard inventory.isAuthorized else {
+            // The strict presentation list names no app from a read, so it holds
+            // without Accessibility.
+            if holdsPresentationList {
+                return holdPresentationListUnread(completion)
+            }
             // Without Accessibility the sections cannot be read, and guessing would
             // hide icons the user kept visible. Not latched: it works as soon as
             // the permission is granted.
@@ -217,23 +273,31 @@ final class NativeVisibilityEngine: MenuBarEngine {
         withLayout { [weak self] layout in
             guard let self = self else { return }
             guard let layout = layout else {
+                // The strict presentation list needs no layout.
+                if self.holdsPresentationList {
+                    return self.holdPresentationListUnread(completion)
+                }
                 self.logUnavailableOnce("the arrow's position cannot be read yet")
                 self.state = .expanded
                 return completion(.unavailable)
             }
-            if self.pausesHidingForUnkeepableItems(),
+            if !self.holdsPresentationList, self.pausesHidingForUnkeepableItems(),
                let reason = layout.reasonToKeepBarWhole(unkeepableSystemItems: self.unkeepableSystemItems) {
                 self.logUnavailableOnce(reason)
                 self.state = .expanded
                 return completion(.unavailable)
             }
-            self.activate(allowing: layout.bundles(in: [.visible])) { [weak self] succeeded in
+            guard let wanted = self.hold(whenBar: .collapsed, layout: layout) else {
+                self.state = .expanded
+                return completion(.unavailable)
+            }
+            self.activate(wanted) { [weak self] succeeded in
                 guard let self = self else { return }
                 guard succeeded else {
                     self.state = .expanded
                     return completion(.unavailable)
                 }
-                self.checkStillShown(layout.unprovenVisibleSystemItems) { [weak self] shown in
+                self.checkStillShown(self.holdsPresentationList ? [] : layout.unprovenVisibleSystemItems) { [weak self] shown in
                     guard let self = self else { return }
                     self.state = shown ? .collapsed : .expanded
                     if shown {
@@ -241,7 +305,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
                     }
                     completion(shown ? .collapsed : .unavailable)
                     if shown {
-                        self.allowLaunchedAppsIfIdle()
+                        self.settleHold()
                     }
                 }
             }
@@ -307,19 +371,30 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // while "hide separators" is on, otherwise everything is revealed by dropping
     // the restriction altogether. Its separator goes and comes back with it, only
     // once the icons are hidden, so it never disappears on its own.
+    //
+    // While presenting, the expanded bar keeps a restriction too: the hidden
+    // section shows except the sensitive apps. A missing layout never falls back
+    // to revealing then; the strict list needs none.
     private func applyExpandedPresentation() {
-        guard hidesAlwaysHiddenSection, visibility.isAvailable, runsFromApplicationsFolder(), inventory.isAuthorized else {
+        let presenting = holdsPresentationList
+        guard hidesAlwaysHiddenSection || presenting, visibility.isAvailable, runsFromApplicationsFolder() else {
             return revealAll()
+        }
+        guard inventory.isAuthorized else {
+            guard presenting, let wanted = hold(whenBar: .expanded, layout: nil) else { return revealAll() }
+            return activate(wanted) { [weak self] succeeded in
+                self?.setSeparatorsVisible(!succeeded)
+            }
         }
         withLayout { [weak self] layout in
             guard let self = self else { return }
-            guard let layout = layout else {
+            guard let wanted = self.hold(whenBar: .expanded, layout: layout) else {
                 return self.revealAll()
             }
-            self.activate(allowing: layout.bundles(in: [.visible, .hidden])) { [weak self] succeeded in
+            self.activate(wanted) { [weak self] succeeded in
                 self?.setSeparatorsVisible(!succeeded)
                 if succeeded {
-                    self?.allowLaunchedAppsIfIdle()
+                    self?.settleHold()
                 }
             }
         }
@@ -411,21 +486,24 @@ final class NativeVisibilityEngine: MenuBarEngine {
 
     // Activates the new restriction before dropping the old one, so switching
     // between collapsed and expanded never flashes the whole bar visible.
-    private func activate(allowing bundles: [String], completion: @escaping (Bool) -> Void) {
+    private func activate(_ hold: NativeHold, completion: @escaping (Bool) -> Void) {
         generation += 1
         let generation = self.generation
-        let allowed = (ownBundleIdentifier.map { [$0] } ?? []) + bundles
-        visibility.activate(allowedSystemItems: Self.systemItemsToKeep,
+        inFlightHold = hold
+        let allowed = (ownBundleIdentifier.map { [$0] } ?? []) + hold.bundles
+        visibility.activate(allowedSystemItems: hold.systemItems,
                             allowedBundleIdentifiers: allowed) { [weak self] result in
             guard let self = self, generation == self.generation else {
                 if case .success(let stale) = result { stale.invalidate() }
                 return
             }
+            self.inFlightHold = nil
             switch result {
             case .success(let newAssertion):
                 let old = self.assertion
                 self.assertion = newAssertion
-                self.assertionBundles = bundles
+                self.assertionBundles = hold.bundles
+                self.assertionSystemItems = hold.systemItems
                 self.assertionGeneration = generation
                 // Any activation but the palette's own replaces what it allowed.
                 self.temporaryAllow = nil
@@ -436,6 +514,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 // Fail open: never leave icons hidden after an error.
                 NSLog("NativeVisibility: activation failed: \(error.localizedDescription)")
                 self.releaseAssertion()
+                self.presentationHideFailed()
                 completion(false)
             }
         }
@@ -462,6 +541,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private func releaseAssertion() {
         temporaryAllow = nil
         generation += 1
+        inFlightHold = nil
         assertion?.invalidate()
         assertion = nil
         watchClock()
@@ -472,6 +552,8 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // too. A collapse in flight is left to land. Nothing else follows capture.
     private func captureActivityDidChange() {
         let isActive = captureActivity.isActive
+        // Presentation mode reads the level at this moment and pauses at once.
+        presentationInputsChanged()
         guard isActive != isCaptureActive else { return }
         isCaptureActive = isActive
         guard isActive, expandsWhenCaptureStarts() else { return }
@@ -573,6 +655,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
         // check is in flight: expanding or lifting now would cancel it, and a
         // cancelled collapse never reports back, leaving the bar stuck calibrating.
         guard assertion != nil, generation == assertionGeneration, state != .calibrating else { return }
+        // Presenting: no lift (a flash on the shared screen) and no expand (it
+        // would show Notification Center to the room).
+        guard !holdsPresentationList else { return }
         NSLog("NativeVisibility: a click on the clock while \(state == .collapsed ? "collapsed; expanding" : "expanded")")
         notificationCenter.clockClicked(at: location, barCollapsed: state == .collapsed)
     }
@@ -601,7 +686,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         #if DEBUG
         ClockFlashTimeline.mark(mode == .restoreAfterPress ? "liftRequested" : "retryLiftRequested")
         #endif
-        let bundles = assertionBundles
+        let lifted = currentHold
         releaseAssertion()
         let generation = self.generation
         var restored = false
@@ -613,7 +698,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
             #if DEBUG
             ClockFlashTimeline.mark("reapplyRequested")
             #endif
-            self.activate(allowing: bundles) { [weak self] succeeded in
+            // What is wanted now, not what was held: presentation mode may have
+            // started while the restriction was lifted.
+            guard let wanted = self.hold(whenBar: self.state, layout: self.layout) ?? lifted else { return }
+            self.activate(wanted) { [weak self] succeeded in
                 #if DEBUG
                 ClockFlashTimeline.mark("reapplyEffective")
                 #endif
@@ -661,7 +749,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         guard var layout = layout, layout.sections[bundle] == nil else { return }
         layout.sections[bundle] = rememberedSection(of: bundle)
         self.layout = layout
-        allowLaunchedAppsIfIdle()
+        reconcileHold()
     }
 
     // The section of an app no read lists yet: its pinned one with the beta on,
@@ -696,7 +784,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         NSLog("NativeVisibility: pinned sections changed; visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
         switch state {
         case .collapsed:
-            allowLaunchedAppsIfIdle()
+            reconcileHold()
         case .expanded:
             applyExpandedPresentation()
         case .calibrating, .unavailable:
@@ -708,20 +796,207 @@ final class NativeVisibilityEngine: MenuBarEngine {
         launchedSinceRead.remove(bundle)
     }
 
-    // Swaps the held restriction for one that also allows apps placed since it
-    // was activated. Not while anything is in flight; the collapse or expand
-    // that lands calls this again.
-    private func allowLaunchedAppsIfIdle() {
-        guard assertion != nil, generation == assertionGeneration, state != .calibrating,
-              let layout = layout else { return }
-        let shownSections: Set<MenuBarSection> = state == .collapsed ? [.visible] : [.visible, .hidden]
-        let wanted = layout.bundles(in: shownSections)
-        guard wanted != assertionBundles else { return }
-        NSLog("NativeVisibility: allowing apps that started while hiding: \(Set(wanted).subtracting(assertionBundles).sorted())")
-        activate(allowing: wanted) { [weak self] succeeded in
-            guard let self = self, !succeeded else { return }
+    // Swaps the held restriction for the one wanted now: it also allows apps
+    // placed since it was activated, and follows presentation mode and the
+    // sensitive apps. Not while anything is in flight; the collapse or expand
+    // that lands calls this again. Every re-activation comes through here, so
+    // the list is always computed from the current state, never from the event.
+    //
+    // Presentation mode supersedes an activation in flight (a swap is safe to
+    // replace: the older list is invalidated when it lands); a launch waits.
+    private func reconcileHold(superseding: Bool = false) {
+        guard assertion != nil, state != .calibrating else { return }
+        guard superseding || generation == assertionGeneration else { return }
+        guard let wanted = hold(whenBar: state, layout: layout), wanted != (inFlightHold ?? currentHold) else { return }
+        NSLog("NativeVisibility: holding \(wanted.bundles.count) apps (was \(assertionBundles.count)); newly allowed \(Set(wanted.bundles).subtracting(assertionBundles).sorted())")
+        activate(wanted) { [weak self] succeeded in
+            guard let self = self else { return }
+            guard !succeeded else {
+                // What is wanted may have changed while this was in flight.
+                return self.reconcileHold()
+            }
             self.state = .expanded
             self.setSeparatorsVisible(true)
+        }
+    }
+
+    // What a hold in progress or one that has just landed may still owe
+    // presentation mode: paused means the bar must not stay collapsed.
+    private func settleHold() {
+        if presentation.isOn, currentPhase() == .paused, state == .collapsed {
+            return liftForCapture()
+        }
+        reconcileHold()
+    }
+
+    var currentHold: NativeHold? {
+        return assertion == nil ? nil : NativeHold(systemItems: assertionSystemItems, bundles: assertionBundles)
+    }
+
+    // The one place that says what a restriction allows, besides Hidden Bar
+    // itself. nil: nothing to hold (no layout read yet, or nothing settled).
+    private func hold(whenBar bar: MenuBarEngineState, layout: MenuBarLayout?) -> NativeHold? {
+        let presenting = holdsPresentationList
+        switch bar {
+        case .collapsed:
+            if presenting {
+                return NativeHold(systemItems: Self.presentationSystemItems, bundles: [])
+            }
+            return layout.map { NativeHold(systemItems: Self.systemItemsToKeep, bundles: $0.bundles(in: [.visible])) }
+        case .expanded:
+            let shown = layout?.bundles(in: [.visible, .hidden])
+            if presenting {
+                // The sensitive apps stay hidden, also when the user put one in
+                // the visible section.
+                let sensitive = sensitiveApps()
+                guard let shown = shown else { return NativeHold(systemItems: Self.presentationSystemItems, bundles: []) }
+                return NativeHold(systemItems: Self.presentationSystemItems, bundles: shown.filter { !sensitive.contains($0) })
+            }
+            return shown.map { NativeHold(systemItems: Self.systemItemsToKeep, bundles: $0) }
+        case .calibrating, .unavailable:
+            return nil
+        }
+    }
+
+    // MARK: - Presentation mode
+
+    // Starts and stops come from the user (shortcut, arrow menu, capsule), the
+    // mirror trigger from the display notice, and the pause from the capture
+    // monitor. Each only records its input; the phase decides the rest.
+    var isPresentationOn: Bool { return presentation.isOn }
+    var presentationCause: PresentationCause? { return presentation.cause }
+
+    func startPresentation() {
+        presentation.startManually()
+        presentationInputsChanged()
+    }
+
+    func stopPresentation() {
+        presentation.stop()
+        presentationInputsChanged()
+    }
+
+    func presentationMirrorChanged(_ mirror: PresentationMirror?) {
+        guard mirror != presentation.mirror else { return }
+        presentation.mirrorChanged(mirror)
+        presentationInputsChanged()
+    }
+
+    // The sensitive set changed in Preferences: apply it to the held list.
+    func sensitiveAppsDidChange() {
+        // Only a presentation holds a list that depends on them; every other
+        // preference change reaches this too and must leave the hold alone.
+        guard holdsPresentationList else { return }
+        reconcileHold(superseding: true)
+    }
+
+    // The phase, with the capture level read at this moment.
+    func currentPhase() -> PresentationPhase {
+        // Off is the common case: read the monitor only while a mode is on.
+        return presentation.resolve(captureActive: presentation.isOn && captureActivity.isActive, now: clockNow())
+    }
+
+    // Presenting and still trying to hide (also after a refusal, so the next
+    // collapse tries the strict list again).
+    private var holdsPresentationList: Bool {
+        let phase = currentPhase()
+        return phase == .presenting || phase == .couldNotHide
+    }
+
+    // Apps a restriction held now keeps hidden although Hidden Bar knows them.
+    var presentationHiddenBundles: [String] {
+        guard assertion != nil, let layout = layout else { return [] }
+        return layout.sections.keys.filter { !assertionBundles.contains($0) }.sorted()
+    }
+
+    private func presentationInputsChanged() {
+        let previous = seenPhase
+        // Reads the capture level first: the resume wait counts from it.
+        let phase = currentPhase()
+        scheduleResumeCheck()
+        guard phase != previous else { return }
+        seenPhase = phase
+        NSLog("NativeVisibility: presentation mode \(previous) -> \(phase)")
+        onPresentationChange?(phase)
+        switch phase {
+        case .paused:
+            liftForCapture()
+        case .presenting, .couldNotHide:
+            // On, or on again after a pause: the bar goes back to hidden.
+            if state == .collapsed {
+                reconcileHold(superseding: true)
+            } else if state == .expanded || state == .unavailable {
+                if let collapseBar = collapseBar { collapseBar() } else { collapse { _ in } }
+            }
+        case .off:
+            if state == .expanded {
+                hidesAlwaysHiddenSection ? reconcileHold(superseding: true) : revealAll()
+            } else if state == .collapsed, hold(whenBar: .collapsed, layout: layout) == nil {
+                // No read to take the normal list from: show the bar rather than
+                // leave the strict list held with the mode off.
+                if let expandBar = expandBar { expandBar() } else { expand() }
+            } else {
+                reconcileHold(superseding: true)
+            }
+        }
+    }
+
+    // A microphone or camera is on: the restriction hides the capsule naming the
+    // app that uses it, so it is lifted whatever the Preferences option says.
+    private func liftForCapture() {
+        NSLog("NativeVisibility: presentation mode paused: a microphone or camera is on; showing the whole menu bar")
+        if state == .collapsed {
+            if let expandBar = expandBarForCapture { expandBar() } else { expand() }
+        }
+        if state == .expanded {
+            revealAll()
+        }
+    }
+
+    // Capture goes quiet before the resume delay ends, so no event follows it.
+    private func scheduleResumeCheck() {
+        guard let wait = presentation.resumeWait(now: clockNow()) else { return }
+        scheduleClockStep(wait + 0.05) { [weak self] in
+            self?.presentationInputsChanged()
+        }
+    }
+
+    // A hold that was meant to hide everything did not land: icons are showing,
+    // and the capsule must say so instead of "Presenting".
+    private func presentationHideFailed() {
+        guard holdsPresentationList else { return }
+        presentation.hideDidFail()
+        notePhaseChange()
+    }
+
+    private func collapseFinished(_ result: CollapseResult) {
+        guard presentation.isOn else { return }
+        switch result {
+        case .collapsed:
+            presentation.hideDidSucceed()
+        case .unavailable:
+            if holdsPresentationList { presentation.hideDidFail() }
+        }
+        notePhaseChange()
+    }
+
+    private func notePhaseChange() {
+        let phase = currentPhase()
+        guard phase != seenPhase else { return }
+        seenPhase = phase
+        onPresentationChange?(phase)
+    }
+
+    // No Accessibility, so no layout: the strict list needs only Hidden Bar's own
+    // bundle, so a presentation still hides.
+    private func holdPresentationListUnread(_ completion: @escaping (CollapseResult) -> Void) {
+        guard let wanted = hold(whenBar: .collapsed, layout: nil) else { return completion(.unavailable) }
+        state = .calibrating
+        activate(wanted) { [weak self] succeeded in
+            guard let self = self else { return }
+            self.state = succeeded ? .collapsed : .expanded
+            if succeeded { self.setSeparatorsVisible(false) }
+            completion(succeeded ? .collapsed : .unavailable)
         }
     }
 
@@ -867,7 +1142,11 @@ extension NativeVisibilityEngine {
             "pinnedSections": pinnedSections.sections.mapValues { String(describing: $0) },
             "observedSections": sectionMemory.sections.mapValues { String(describing: $0) },
             "ignoredDrags": ignoredDrags().sorted(),
-            "launchedSinceRead": launchedSinceRead.sorted()
+            "launchedSinceRead": launchedSinceRead.sorted(),
+            "presentationPhase": String(describing: seenPhase),
+            "presentationOn": presentation.isOn,
+            "presentationCause": presentation.cause.map { String(describing: $0) } ?? NSNull(),
+            "allowedSystemItemCount": assertion == nil ? 0 : assertionSystemItems.count
         ]
     }
 
