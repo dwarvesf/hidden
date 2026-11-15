@@ -115,7 +115,14 @@ Steps to view always hidden icons:
 "Keyboard shortcut" = "Keyboard shortcut";
 "Type a Shortcut…" = "Type a Shortcut…";
 "Clear" = "Clear";
-"Show icons when the pointer rests on the menu bar" = "Show icons when the pointer rests on the menu bar";
+"Also show hidden icons when you" = "Also show hidden icons when you";
+"Rest the pointer on the menu bar" = "Rest the pointer on the menu bar";
+"Scroll down on the menu bar" = "Scroll down on the menu bar";
+"Scroll up to hide them again." = "Scroll up to hide them again.";
+"Click empty space in the menu bar" = "Click empty space in the menu bar";
+"Shake the pointer at the top of the screen" = "Shake the pointer at the top of the screen";
+"Three quick side-to-side moves." = "Three quick side-to-side moves.";
+"Clicking anywhere off the menu bar hides them again." = "Clicking anywhere off the menu bar hides them again.";
 "Privacy and permissions" = "Privacy and permissions";
 "Accessibility" = "Accessibility";
 "Allowed" = "Allowed";

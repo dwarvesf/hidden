@@ -155,6 +155,18 @@
 		FFDA98BB7A1B238575886EE9 /* SystemOverflowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6813D114EE2C521C387AAC16 /* SystemOverflowTests.swift */; };
 		9A45112B101B255E674A2EA7 /* SystemOverflowIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC578DAB31FEC93C94CF9848 /* SystemOverflowIndicator.swift */; };
 		008288B9A42486B6E8FCD1CB /* SystemOverflowNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE84E518F665B2584F8277A /* SystemOverflowNotice.swift */; };
+		D565D9DF89D674F3E8EA5E4F /* RevealGestures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2AE25F8621E7959B7E6429F /* RevealGestures.swift */; };
+		4A340F6F945CF10EAE81AE3F /* RevealGestures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2AE25F8621E7959B7E6429F /* RevealGestures.swift */; };
+		8225CDBF7071B4EF739D59EE /* RevealGestures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2AE25F8621E7959B7E6429F /* RevealGestures.swift */; };
+		3578E79939DDCBB73A725BD1 /* RevealController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AF94EE3BBA16579F005C9E /* RevealController.swift */; };
+		5C382ED17628495BF6FC961C /* RevealController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AF94EE3BBA16579F005C9E /* RevealController.swift */; };
+		D733A008882CF592FC92E323 /* RevealController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AF94EE3BBA16579F005C9E /* RevealController.swift */; };
+		E8E29408C483EC16F7B55649 /* RevealHitTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF7C355880C787EFB2ABF3C /* RevealHitTester.swift */; };
+		379BFB55610F4DB1203B844B /* RevealHitTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF7C355880C787EFB2ABF3C /* RevealHitTester.swift */; };
+		E3F15FF4836EDDCC09938454 /* RevealHitTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF7C355880C787EFB2ABF3C /* RevealHitTester.swift */; };
+		B06ACC3501C4C1D384ACCD79 /* RevealGesturesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0BB5C3EF47C0FD0DA210DF /* RevealGesturesTests.swift */; };
+		5410EA251B58DC6765531AF8 /* RevealControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38FE83E30C42F0771CE8AE7 /* RevealControllerTests.swift */; };
+		E6D398FD9277C7ACB911BBB3 /* RevealSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AAD0E40FFA01D5E3255A6C /* RevealSettingsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -282,6 +294,12 @@
 		CC578DAB31FEC93C94CF9848 /* SystemOverflowIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemOverflowIndicator.swift; sourceTree = "<group>"; };
 		BEE84E518F665B2584F8277A /* SystemOverflowNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemOverflowNotice.swift; sourceTree = "<group>"; };
 		6813D114EE2C521C387AAC16 /* SystemOverflowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemOverflowTests.swift; sourceTree = "<group>"; };
+		A2AE25F8621E7959B7E6429F /* RevealGestures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealGestures.swift; sourceTree = "<group>"; };
+		00AF94EE3BBA16579F005C9E /* RevealController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealController.swift; sourceTree = "<group>"; };
+		8CF7C355880C787EFB2ABF3C /* RevealHitTester.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealHitTester.swift; sourceTree = "<group>"; };
+		CF0BB5C3EF47C0FD0DA210DF /* RevealGesturesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealGesturesTests.swift; sourceTree = "<group>"; };
+		D38FE83E30C42F0771CE8AE7 /* RevealControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealControllerTests.swift; sourceTree = "<group>"; };
+		D7AAD0E40FFA01D5E3255A6C /* RevealSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealSettingsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -346,6 +364,7 @@
 				0842CDFD23A9FF7500D14BD4 /* StatusBar */,
 				8D80CEB42B2A2DF1177835EA /* Updates */,
 				8B146598250E90AA078F76E9 /* Settings */,
+				A9E70DE0000000000000D001 /* Reveal */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -416,6 +435,8 @@
 				A27C0DE00000000000000004 /* MacOS27NoticeTests.swift */,
 				CC5FC25336EC320548CF4C87 /* AccessibilityPermissionTests.swift */,
 				60AFBE8D4C25548192E7D135 /* SettingsModelTests.swift */,
+				CF0BB5C3EF47C0FD0DA210DF /* RevealGesturesTests.swift */,
+				D38FE83E30C42F0771CE8AE7 /* RevealControllerTests.swift */,
 			);
 			path = HiddenBarTests;
 			sourceTree = "<group>";
@@ -435,6 +456,7 @@
 				1218DDCA0B5E85481E4F8F3B /* SettingsWindowTests.swift */,
 				A1D0E1D0000000000000F002 /* MenuBarAppIdentityTests.swift */,
 				6813D114EE2C521C387AAC16 /* SystemOverflowTests.swift */,
+				D7AAD0E40FFA01D5E3255A6C /* RevealSettingsTests.swift */,
 			);
 			name = HiddenTests;
 			path = HiddenTests;
@@ -599,6 +621,16 @@
 				56DFDDDEF0042F0DBA1F3307 /* MenuBarEngineFactory.swift */,
 			);
 			path = Engine;
+			sourceTree = "<group>";
+		};
+		A9E70DE0000000000000D001 /* Reveal */ = {
+			isa = PBXGroup;
+			children = (
+				00AF94EE3BBA16579F005C9E /* RevealController.swift */,
+				A2AE25F8621E7959B7E6429F /* RevealGestures.swift */,
+				8CF7C355880C787EFB2ABF3C /* RevealHitTester.swift */,
+			);
+			path = Reveal;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -825,6 +857,9 @@
 				E200010F880C7CE35022B50A /* SettingsSnapshot.swift in Sources */,
 				58C8755BED99099ABB07CE58 /* SystemOverflowIndicator.swift in Sources */,
 				7ECB2AB00086F6C27E2AB196 /* SystemOverflowNotice.swift in Sources */,
+				D565D9DF89D674F3E8EA5E4F /* RevealGestures.swift in Sources */,
+				3578E79939DDCBB73A725BD1 /* RevealController.swift in Sources */,
+				E8E29408C483EC16F7B55649 /* RevealHitTester.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -844,6 +879,7 @@
 				F1B66A86232AE9B22A7B54FF /* SettingsWindowTests.swift in Sources */,
 				A1D0E1D0000000000000F013 /* MenuBarAppIdentityTests.swift in Sources */,
 				FFDA98BB7A1B238575886EE9 /* SystemOverflowTests.swift in Sources */,
+				E6D398FD9277C7ACB911BBB3 /* RevealSettingsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -899,6 +935,9 @@
 				A3B15C1FDF934AFBADF438B6 /* SettingsSnapshot.swift in Sources */,
 				9A45112B101B255E674A2EA7 /* SystemOverflowIndicator.swift in Sources */,
 				008288B9A42486B6E8FCD1CB /* SystemOverflowNotice.swift in Sources */,
+				4A340F6F945CF10EAE81AE3F /* RevealGestures.swift in Sources */,
+				5C382ED17628495BF6FC961C /* RevealController.swift in Sources */,
+				379BFB55610F4DB1203B844B /* RevealHitTester.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -930,6 +969,11 @@
 				3CD487062A87E743441FE10D /* AccessibilityPermissionTests.swift in Sources */,
 				E191D3FECED22D5FF5B8AD46 /* SettingsModel.swift in Sources */,
 				D62C67552025B67BCCE48642 /* SettingsModelTests.swift in Sources */,
+				8225CDBF7071B4EF739D59EE /* RevealGestures.swift in Sources */,
+				D733A008882CF592FC92E323 /* RevealController.swift in Sources */,
+				E3F15FF4836EDDCC09938454 /* RevealHitTester.swift in Sources */,
+				B06ACC3501C4C1D384ACCD79 /* RevealGesturesTests.swift in Sources */,
+				5410EA251B58DC6765531AF8 /* RevealControllerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

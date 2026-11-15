@@ -26,6 +26,9 @@ final class SettingsWindowTests: XCTestCase {
         UserDefaults.Key.useFullStatusBarOnExpandEnabled,  // Use the full MenuBar on expanding
         UserDefaults.Key.stealthExpandIconEnabled,         // Fade the arrow while collapsed
         UserDefaults.Key.hoverToExpand,                    // Expand the bar when the pointer rests...
+        UserDefaults.Key.revealOnScrollEnabled,            // Scroll down on the menu bar
+        UserDefaults.Key.revealOnEmptyClickEnabled,        // Click empty space in the menu bar, direct only
+        UserDefaults.Key.revealOnShakeEnabled,             // Shake the pointer at the top of the screen
         UserDefaults.Key.notchOverflowEnabled,             // Enable Notch Overflow (notch Macs)
         UserDefaults.Key.pauseHidingForUnkeepableItems,    // macOS 27 direct only
         UserDefaults.Key.showWholeBarWhenCaptureStarts,    // macOS 27 direct only
@@ -219,9 +222,13 @@ final class SettingsWindowTests: XCTestCase {
         context.build = .appStore
         let views = allViews(PreferencesWindowController(context: context))
         for key in [UserDefaults.Key.pauseHidingForUnkeepableItems, UserDefaults.Key.showWholeBarWhenCaptureStarts,
-                    UserDefaults.Key.pinnedSectionsEnabled, "SUEnableAutomaticChecks"] {
+                    UserDefaults.Key.pinnedSectionsEnabled, UserDefaults.Key.revealOnEmptyClickEnabled,
+                    "SUEnableAutomaticChecks"] {
             XCTAssertNil(control(key, in: views), "\(key) shows in the App Store build")
         }
+        // Scroll and shake need no Accessibility, so the App Store build keeps them.
+        XCTAssertNotNil(control(UserDefaults.Key.revealOnScrollEnabled, in: views))
+        XCTAssertNotNil(control(UserDefaults.Key.revealOnShakeEnabled, in: views))
         XCTAssertNil(control(AboutViewController.checkForUpdatesIdentifier.rawValue, in: views))
         let texts = views.compactMap { ($0 as? NSTextField)?.stringValue } + views.compactMap { ($0 as? NSButton)?.title }
         XCTAssertFalse(texts.contains { $0.localizedCaseInsensitiveContains("Direct Version") }, "App Store build links the direct version")
@@ -338,7 +345,8 @@ final class SettingsWindowTests: XCTestCase {
 
     // Given each tab
     // When selecting it
-    // Then the tab control and the (hidden) window title follow, and General stays within 720 pt
+    // Then the tab control and the (hidden) window title follow, and General stays within 780 pt
+    // (720 until the reveal group joined General; the fullest window, macOS 27 on the direct build, now measures 772)
     func test_selectingATab_titlesTheWindow() throws {
         let controller = PreferencesWindowController(context: fullContext())
         for tab in controller.tabs {
@@ -350,7 +358,7 @@ final class SettingsWindowTests: XCTestCase {
         }
         controller.select(.general, animate: false)
         let height = try XCTUnwrap(controller.window?.frame.height)
-        XCTAssertLessThanOrEqual(height, 720)
+        XCTAssertLessThanOrEqual(height, 780)
     }
 
     // MARK: status card

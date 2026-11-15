@@ -62,7 +62,10 @@ Tabs in a centered control at the top (Cmd+1 to Cmd+5). A status card at the top
 | General | Hide icons again: Never, or after 5 s to 1 min | `isAutoHide`, `numberOfSecondForAutoHide` |
 | General | Always-hidden section: a second zone revealed by Option-clicking the arrow | `alwaysHiddenSectionEnabled` |
 | General | Keyboard shortcut: system-wide expand/collapse (F-keys display as F18, not Fn18) | `globalKey` |
-| General | Show icons when the pointer rests on the menu bar | `hoverToExpand` |
+| General | Also show hidden icons when you: Rest the pointer on the menu bar | `hoverToExpand` |
+| General | Also show hidden icons when you: Scroll down on the menu bar (scroll up hides again) | `revealOnScrollEnabled` |
+| General (direct build) | Also show hidden icons when you: Click empty space in the menu bar | `revealOnEmptyClickEnabled` |
+| General | Also show hidden icons when you: Shake the pointer at the top of the screen | `revealOnShakeEnabled` |
 | General (macOS 27, direct) | Show all icons when the microphone or camera turns on | `showWholeBarWhenCaptureStarts` |
 | Appearance | Arrow style tiles | `arrowStyle` |
 | Appearance | Fade the arrow when icons are hidden | `stealthExpandIconEnabled` |
@@ -92,11 +95,16 @@ Debug builds can draw every pane and status state, light and dark, to PNGs witho
 - **Display changes**: plugging in or removing monitors re-sizes the hidden zone
   for the widest attached screen automatically.
 
-## Hover to expand
+## Reveal without aiming
 
-Settings > General > "Show icons when the pointer rests on the menu bar"
-expands the collapsed bar after the pointer rests in the menu bar for about half a
-second. Off by default; it takes effect at once, no relaunch.
+Settings > General > "Also show hidden icons when you" groups every way to show the hidden icons that does not need the arrow. All are off by default, take effect at once, and use only global mouse and scroll monitors, so none asks for a new permission.
+
+- **Rest the pointer on the menu bar** (`hoverToExpand`): expands the collapsed bar after the pointer rests in the menu bar for about half a second.
+- **Scroll down on the menu bar** (`revealOnScrollEnabled`): a two-finger or wheel scroll down on the menu bar of any screen shows the icons; scrolling up hides them. A scroll over another app's icon is left to that app.
+- **Click empty space in the menu bar** (`revealOnEmptyClickEnabled`, direct build only): a click on bare menu bar shows the icons. A click on an icon or a menu title keeps its normal meaning. It reads what is under the pointer through Accessibility, which the sandboxed App Store build cannot use, so that row is not there; without the Accessibility permission the click does nothing.
+- **Shake the pointer at the top of the screen** (`revealOnShakeEnabled`): three quick side-to-side reversals within 0.6 seconds, each at least 12 points wide, inside the menu bar. Window drags do not count; there is no menu bar to shake in a full-screen app until it slides down.
+
+Clicking anywhere off the menu bar hides the icons that a gesture revealed (the same auto-collapse path waits while Settings or a popup is open); they also hide after the "Hide icons again" delay. A gesture does nothing while the bar is already expanded or Hidden Bar's own menu is open. Thresholds live in `RevealTuning` (`RevealGestures.swift`). Debug builds count each gesture (`revealTriggerCounts` in the `dump-state` output) and accept `reveal-sim scroll|scroll-up|click|shake`.
 
 ## Hidden settings (Terminal)
 
