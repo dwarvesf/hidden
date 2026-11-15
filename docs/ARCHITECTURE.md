@@ -74,8 +74,8 @@ flowchart TD
   every global shortcut (expand/collapse, find a hidden icon, presentation mode)
   is a `Data` preference recorded by the one `ShortcutRecorderRow` and bound by
   the registry, which re-reads on `.prefsChanged`. The registry never imports the
-  hot key library; `AppDelegate` supplies the Carbon binding. A recorder warns
-  when a combination is also another Hidden Bar shortcut.
+  hot key library; `AppDelegate` supplies the Carbon binding. A recorder refuses
+  a combination that is already another Hidden Bar shortcut and names that one.
 - **`MenuBarItemCatalog`** (`Features/StatusBar/Layout`, direct build only): the
   list of menu-bar apps (bundle id, name, icon, section, first-seen time, running
   state) built from the engine's unrestricted reads plus the pinned-sections table.
