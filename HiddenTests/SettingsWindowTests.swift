@@ -238,6 +238,26 @@ final class SettingsWindowTests: XCTestCase {
         }
     }
 
+    // Given the new window's strings
+    // When looking in every Localizable.strings the app ships
+    // Then each locale carries them (English text for now), so none shows a raw key
+    func test_everyLocale_carriesTheSettingsKeys() {
+        let keys = ["Hidden Bar is working", "Hide icons again", "Never", "After %d seconds", "Your menu bar",
+                    "This App Store version can't hide icons on macOS 27", "Check for Updates…", "What's new"]
+        let localizations = Bundle.main.localizations.filter { $0 != "Base" }
+        XCTAssertGreaterThan(localizations.count, 5)
+        for locale in localizations {
+            guard let path = Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: locale),
+                  let table = NSDictionary(contentsOfFile: path) as? [String: String] else {
+                XCTFail("no Localizable.strings for \(locale)")
+                continue
+            }
+            for key in keys {
+                XCTAssertNotNil(table[key], "\(locale) is missing \"\(key)\"")
+            }
+        }
+    }
+
     // Given the direct build on macOS 27, then the separator engine
     // When General draws the preview
     // Then the arrow is the edge on 27 and the "|" separator otherwise
