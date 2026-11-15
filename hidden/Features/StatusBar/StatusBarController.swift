@@ -395,9 +395,10 @@ class StatusBarController: MenuBarItemProvider {
         autoCollapseIfNeeded()
         
         if activatingApp && wantsFullBar {
-            NSApp.setActivationPolicy(.regular)
-            NSApp.activate(ignoringOtherApps: true)
-            
+            FullBarActivation.switchToRegularAndActivate(stillWanted: { [weak self] in
+                guard let self else { return false }
+                return !self.isCollapsed && self.wantsFullBar
+            })
         }
     }
     

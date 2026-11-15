@@ -42,3 +42,45 @@ enum ExpandCollapseActionResolver {
         }
     }
 }
+
+// Switching to .regular and activating in the same runloop turn does not make the
+// app active on macOS 14+, where activation is a cooperative request and
+// activate(ignoringOtherApps:) is deprecated and ignored. The full menu bar needs
+// Hidden Bar frontmost, so the request goes out on the next turn, after the policy
+// change has registered, and is dropped if the bar collapsed in the meantime.
+enum FullBarActivation {
+    enum Request: Equatable {
+        case cooperative
+        case legacy
+    }
+
+    static func request(isMacOS14OrLater: Bool) -> Request {
+        return isMacOS14OrLater ? .cooperative : .legacy
+    }
+
+    static func switchToRegularAndActivate(
+        isMacOS14OrLater: Bool = ProcessInfo.processInfo.isOperatingSystemAtLeast(OperatingSystemVersion(majorVersion: 14, minorVersion: 0, patchVersion: 0)),
+        setPolicy: (NSApplication.ActivationPolicy) -> Void = { _ = NSApp.setActivationPolicy($0) },
+        deferToNextTurn: (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) },
+        stillWanted: @escaping () -> Bool,
+        activate: @escaping (Request) -> Void = FullBarActivation.perform
+    ) {
+        setPolicy(.regular)
+        let request = request(isMacOS14OrLater: isMacOS14OrLater)
+        deferToNextTurn {
+            guard stillWanted() else { return }
+            activate(request)
+        }
+    }
+
+    static func perform(_ request: Request) {
+        switch request {
+        case .cooperative:
+            if #available(macOS 14.0, *) {
+                NSApp.activate()
+            }
+        case .legacy:
+            NSApp.activate(ignoringOtherApps: true)
+        }
+    }
+}
