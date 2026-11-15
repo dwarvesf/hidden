@@ -1,16 +1,40 @@
 # Changelog
 
-## Unreleased
+## v1.11.2 (2026-11-15)
+
+Mostly macOS 27 fixes for the direct download build, plus auto-update. Thanks to everyone whose pull requests went into this release: @lllyt8, @bhaveshnigam, @Shigo-45, @kwvg, @renovys, @goosefraba, @DanishjeetSingh, @khallmark, @richarddemann, @antib0t, @Metekilic, @voltangle and @gmcinalli.
+
+### macOS 27 (direct build)
+- Clicking the clock while the bar is collapsed opens Notification Center again: the bar expands, the panel opens, and the bar collapses once the panel closes. A bar you expanded yourself is left as it is (#410, #421, #435, #454; #467 by @lllyt8, building on #453 by @bhaveshnigam).
+- A clock click within about a second of collapsing no longer leaves the bar stuck until you quit.
+- Icons you keep right of the arrow stay visible: third-party items that macOS 27 could not keep visible (Raycast, iStat Menus, apps without a bundle identifier) and slow-to-answer apps are no longer hidden (#443, #429, #465, #446).
+- macOS's own extras that macOS 27 hides anyway (Focus, Now Playing, Siri, Stage Manager) are listed in Preferences, with an opt-in "pause hiding" that keeps them visible while they sit right of the arrow (#444, #436, #442, #440, #413, #412, #411, #414).
+- The microphone and camera indicators no longer stay hidden: while any app uses the microphone or a camera, the whole bar shows, then hides again when that stops (#432, #437; based on #438 by @khallmark).
+- The always-hidden section works: Option-click shows it, and its separator hides with its section (#458, #464; #445 by @Shigo-45).
+- The Time Machine extra and other SystemUIServer items follow the arrow like any other icon (#424; #425 by @renovys).
+- An app that starts while the bar is collapsed returns to its last known section; an app never seen before shows.
+- Preferences explains a missing Accessibility permission with an "Open Settings" button, and an arrow click that cannot hide opens Preferences (#433 by @richarddemann).
+- Faster start: menu-bar apps are scanned concurrently, with one retry for slow apps (#450 by @goosefraba).
+- The always-hidden tutorial says to drag the translucent bar left of the arrow, since macOS 27 has no "|" separator. This text is English in every language for now.
 
 ### Added
 - Direct build only: Sparkle auto-update. Context menu "Check for Updates...", plus an "Automatically check for updates" checkbox in Preferences (#220, #197). Updates are EdDSA-signed and served from the GitHub release's `appcast.xml`. The App Store build is unchanged and contains no Sparkle.
-
+- Arrow style picker in Preferences: arrow, chevron, dot or line (#310).
+- Optional near-invisible collapsed arrow, off by default (#173).
 - Preferences checkbox for hover-to-expand (it was `defaults write` only). It takes effect at once, without relaunching.
+- Turkish, Ukrainian and Italian translations (#101; #320 by @Metekilic, #226 by @voltangle, #196 by @gmcinalli).
+- App Store build on macOS 27: a one-time notice that the sandboxed build cannot hide icons there, with a link to the direct download (#448, #430, #393).
+- README lists the official download sources (#462).
 
 ### Fixed
-- macOS 27 (direct build): the always-hidden tutorial now says to drag the translucent bar to the left of the arrow, since the arrow is the boundary there and there is no "|" separator. The text is English in every language for now.
-- macOS 27 (direct build): clicking the clock while the bar is collapsed expands it (as the arrow does), opens Notification Center, and collapses the bar again once the panel closes. A bar you expanded or toggled yourself is left as it is (#410).
-- macOS 27 (direct build): the microphone and camera indicators no longer stay hidden while icons are hidden (#432). Native hiding also hides the capsule naming the recording app, so while any app uses the microphone or a camera, Hidden Bar shows the whole bar, then hides again when that stops (#437, based on #438 by Kevin Hallmark).
+- Multi-display: sections are measured on the same display's menu bar as the arrow, so icons no longer vanish when the arrow sits on another display, and items macOS drops from a narrow, overflowing menu bar keep their last section (#390).
+- macOS 26 and earlier: the launch collapse waits for macOS to place new items, so the arrow can no longer hide itself (#336, #381 by @antib0t).
+- No Dock icon when "use full menu bar on expanding" is off (#423, #463; #460 by @kwvg).
+- Auto-collapse waits while a menu-bar popup is open, then collapses after it closes (#319).
+- Upgrading from the App Store build: the legacy login-item cleanup retries on the next launch if it fails, instead of being marked done (#456).
+- Lower memory use: auto-hide checks no longer create the Preferences window (#447 by @DanishjeetSingh).
+- Preferences: no stray "Custom View" label, and the tab switcher is centered (#460 by @kwvg).
+- MANUAL explains why the date can be missing from the clock while the bar is collapsed on macOS 26 and earlier (#207).
 
 ## v1.11.1 (2026-09-18)
 
