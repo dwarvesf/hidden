@@ -3303,5 +3303,60 @@ final class PresentationModeEngineTests: XCTestCase {
         engine.startPresentation()
         XCTAssertEqual(visibility.requests.last?.bundles, strict, "a sensitive app is dropped when presenting starts")
     }
+
+    // MARK: A user change ends the palette's lift
+
+    // Given the always-hidden section hidden and an app the palette allowed
+    // When the user expands and collapses during the session
+    // Then the collapsed list no longer carries the palette's app
+    func testUserToggleDuringAPaletteSessionDropsItsAppFromTheCollapse() {
+        let engine = makeEngine()
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        collapsed(engine)
+        engine.allowTemporarily("com.hidden") { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+        engine.userChangedBar(); engine.expand()
+        visibility.succeed(visibility.requests.count - 1)
+        engine.userChangedBar(); engine.collapse { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.visible"])
+        XCTAssertEqual(engine.currentHold?.bundles, ["com.visible"])
+    }
+
+    // Same, while presenting: the strict list must not keep the palette's app.
+    func testUserToggleDuringAPaletteSessionDropsItsAppFromTheStrictList() {
+        let engine = makeEngine()
+        collapsed(engine)
+        engine.startPresentation()
+        visibility.succeed(visibility.requests.count - 1)
+        engine.allowTemporarily("com.hidden") { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(engine.currentHold?.bundles, ["com.hidden"])
+        engine.userChangedBar(); engine.expand()
+        visibility.succeed(visibility.requests.count - 1)
+        engine.userChangedBar(); engine.collapse { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(visibility.requests.last?.bundles, strict)
+        XCTAssertEqual(engine.currentHold?.bundles, [])
+    }
+
+    // Given the expanded bar kept by the always-hidden section and an allowed app
+    // When the user collapses (not only expands) during the session, and the session then ends
+    // Then the app is gone from the list, and ending the session changes nothing more
+    func testUserCollapseDuringAPaletteSessionEndsItsAllow() {
+        let engine = makeEngine()
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        visibility.succeed(visibility.requests.count - 1)
+        engine.allowTemporarily("com.always") { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertTrue(engine.currentHold?.bundles.contains("com.always") ?? false)
+
+        engine.userChangedBar(); engine.collapse { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertFalse(engine.currentHold?.bundles.contains("com.always") ?? true)
+        let requests = visibility.requests.count
+        engine.endTemporaryAllow()
+        XCTAssertEqual(visibility.requests.count, requests, "the user's change stands")
+    }
 }
 

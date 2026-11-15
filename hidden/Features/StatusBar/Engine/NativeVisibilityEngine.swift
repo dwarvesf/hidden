@@ -660,6 +660,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
     var onUserChangedBar: (() -> Void)?
 
     func userChangedBar() {
+        // The user's own expand or collapse ends the palette's lift: its app must
+        // not ride along in every list after this (the session, which stops
+        // restoring, never calls endTemporaryAllow).
+        temporaryAllow = nil
         notificationCenter.userChangedBar()
         onUserChangedBar?()
     }

@@ -41,6 +41,7 @@ enum PaletteSnapshot {
         var environment = PaletteSnapshot.ready
         var opening: String?
         var failure: String?
+        var sensitive: String?
     }
 
     /// Every state on the Light, Dark, Open and Edge boards, plus the whole list
@@ -58,6 +59,7 @@ enum PaletteSnapshot {
             Scene(name: "macositem", query: "focus", candidates: hidden + [zoom]),
             Scene(name: "appquit", query: "drop", candidates: hidden + [app("Dropbox", "com.getdropbox.dropbox", .alwaysHidden, running: false)]),
             Scene(name: "cannotopen", query: "dro", candidates: hidden + [dropbox], failure: "Dropbox"),
+            Scene(name: "sensitive", query: "pa", candidates: hidden + [zoom], sensitive: "Paste"),
             Scene(name: "enginedown", query: "", candidates: hidden,
                   environment: PaletteEnvironment(accessibilityTrusted: true, engineAvailable: false)),
         ]
@@ -67,6 +69,7 @@ enum PaletteSnapshot {
         var model = PaletteModel(candidates: scene.candidates, environment: scene.environment)
         model.setQuery(scene.query)
         if let failure = scene.failure { model.showCannotOpen(appName: failure) }
+        if let sensitive = scene.sensitive { model.showSensitive(appName: sensitive) }
         if let opening = scene.opening { model.select(bundle: opening) }
         return PaletteViewState(query: model.query, content: model.content, selectedIndex: model.selectedIndex, openingBundle: scene.opening)
     }
