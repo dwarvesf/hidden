@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Redesigned Settings window: tabs for General, Appearance, Advanced and About, grouped rows with plain labels, and a status card that says whether Hidden Bar is working and what to do if not. Every setting keeps its stored value.
+- The menu bar preview draws the arrow as the edge on macOS 27 (direct build) and the "|" separator elsewhere; the overlapping guide arrow is gone.
+- "Automatically hide icon after" and its delay are one "Hide icons again" popup with a Never choice.
+- About shows which build you run, links the changelog, and (direct build) has Check for Updates. X replaces Twitter.
+
 ## v1.11.2 (2026-11-15)
 
 Mostly macOS 27 fixes for the direct download build, plus auto-update. Thanks to everyone whose pull requests went into this release: @lllyt8, @bhaveshnigam, @Shigo-45, @kwvg, @renovys, @goosefraba, @DanishjeetSingh, @khallmark, @richarddemann, @antib0t, @Metekilic, @voltangle and @gmcinalli.

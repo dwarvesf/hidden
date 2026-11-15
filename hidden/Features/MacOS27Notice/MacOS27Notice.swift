@@ -100,6 +100,11 @@ final class MacOS27Notice: NSObject {
         present(recordingShown: false)
     }
 
+    /// The status card's "Learn More…" in Settings: the same notice.
+    func showFromSettings() {
+        present(recordingShown: false)
+    }
+
     private func present(recordingShown: Bool) {
         guard !isPresenting else { return }
         isPresenting = true

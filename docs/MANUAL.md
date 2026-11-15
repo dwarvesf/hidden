@@ -40,16 +40,29 @@ section is enabled.
 - Native hiding blocks Notification Center, so clicking the clock while the bar is collapsed expands it, opens Notification Center, and collapses it again when the panel closes, unless you expand or collapse it yourself meanwhile.
 - Native hiding also hides the menu-bar capsule that names the app using the microphone or camera (the orange or green indicator); the dot in the screen corner still shows. So while any app uses the microphone or a camera, Hidden Bar stops hiding and shows the whole bar, and hides again when that stops. The arrow keeps its collapsed look meanwhile. Screen recording is not covered: macOS offers no public way to detect it.
 
-## Preferences window
+## Settings window
 
-| Setting | What it does |
-|---|---|
-| Start Hidden Bar when I log in | Login item via System Settings (macOS 13+ `SMAppService`); revocable in System Settings > General > Login Items |
-| Show preferences on launch | Open this window at app start |
-| Auto collapse | Re-hide automatically after the chosen delay |
-| Global shortcut | System-wide expand/collapse hotkey (F-keys display as F18, not Fn18) |
-| Enable always hidden section | A second zone whose icons stay hidden even when expanded; revealed by option-clicking the arrow |
-| Use full menu bar on expanding | App becomes briefly "regular" while expanded (helps on tight menubars) |
+Tabs in a centered control at the top (Cmd+1 to Cmd+5). A status card at the top of General says whether Hidden Bar is working, and if not, what to do (grant Accessibility, move to Applications, or that the App Store build cannot hide on macOS 27). The "Your menu bar" preview draws the edge the running engine uses: the arrow on the macOS 27 direct build, the "|" separator otherwise.
+
+| Pane | Setting | Stored as |
+|---|---|---|
+| General | Open Hidden Bar at login: login item via System Settings (macOS 13+ `SMAppService`) | `isAutoStart` |
+| General | Hide icons again: Never, or after 5 s to 1 min | `isAutoHide`, `numberOfSecondForAutoHide` |
+| General | Always-hidden section: a second zone revealed by Option-clicking the arrow | `alwaysHiddenSectionEnabled` |
+| General | Keyboard shortcut: system-wide expand/collapse (F-keys display as F18, not Fn18) | `globalKey` |
+| General | Show icons when the pointer rests on the menu bar | `hoverToExpand` |
+| General (macOS 27, direct) | Show all icons when the microphone or camera turns on | `showWholeBarWhenCaptureStarts` |
+| Appearance | Arrow style tiles | `arrowStyle` |
+| Appearance | Fade the arrow when icons are hidden | `stealthExpandIconEnabled` |
+| Advanced | Show this window when Hidden Bar opens | `isShowPreferences` |
+| Advanced | Make room for icons while they are shown: the app turns "regular" while expanded, so the frontmost app's menus give way | `useFullStatusBarOnExpandEnabled` |
+| Advanced (notch Macs) | Reach icons behind the camera notch | `notchOverflowEnabled` |
+| Advanced (macOS 27, direct) | Show all icons while macOS hides one right of the arrow | `pauseHidingForUnkeepableItems` |
+| About (direct) | Check for updates automatically, Check for Updates… | Sparkle's `SUEnableAutomaticChecks` |
+
+A Menu Bar Apps tab joins the others on the macOS 27 direct build once the pinned sections beta registers it (`MenuBarAppsPane`).
+
+Debug builds can draw every pane and status state, light and dark, to PNGs without showing a window: run the built binary with `-settingsSnapshotDir <dir>`; it quits when done and writes no preference.
 
 > **Always-hidden section, current behavior:** items in the always-hidden zone
 > are reliably pushed off-screen only when "hide separators" is also on
@@ -71,7 +84,7 @@ section is enabled.
 
 ## Hover to expand
 
-Preferences > Settings > "Expand the bar when the pointer rests on the menu bar"
+Settings > General > "Show icons when the pointer rests on the menu bar"
 expands the collapsed bar after the pointer rests in the menu bar for about half a
 second. Off by default; it takes effect at once, no relaunch.
 

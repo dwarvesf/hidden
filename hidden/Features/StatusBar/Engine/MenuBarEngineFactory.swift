@@ -38,8 +38,8 @@ enum MenuBarEngineFactory {
     }
 
     // Debug builds run from build folders, so the check is off there unless a
-    // test hook turns it on.
-    private static func runsFromApplicationsFolder() -> Bool {
+    // test hook turns it on. Settings reads it too, for its status card.
+    static func runsFromApplicationsFolder() -> Bool {
         #if DEBUG
         if !NativeVisibilityEngine.debugChecksInstallLocation { return true }
         #endif

@@ -27,6 +27,9 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        #if DEBUG
+        if SettingsSnapshot.runIfRequested() { return }
+        #endif
         guard ensureSingleInstance() else { return }
         setupAutoStartApp()
         registerDefaultValues()

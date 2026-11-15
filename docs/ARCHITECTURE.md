@@ -68,8 +68,11 @@ flowchart TD
 - **`Preferences`** (facade enum): typed accessors over `UserDefaults`; setters
   post `NotificationCenter` notifications that the controller and prefs window
   observe. There is no other state store.
-- **`PreferencesViewController` / `PreferencesWindowController`**: the only
-  window (storyboard-based), shown on demand from the context menu.
+- **`PreferencesWindowController`**: the only window, built in code with
+  a centered tab control and panes (`PreferencesViewController` is General; Appearance, Advanced
+  and About sit in `Features/Settings` and `Features/About`), shown on demand
+  from the context menu. `SettingsContext` carries the build, OS and status the
+  panes branch on; `SettingsModel.swift` holds the AppKit-free decisions.
 
 ## Behavior layers on the core trick
 
