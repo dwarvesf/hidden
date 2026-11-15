@@ -127,6 +127,13 @@
 			remoteGlobalIDString = 929113F021F9D04100173149;
 			remoteInfo = "Hidden Bar";
 		};
+		3F027C78AA2B0472702A0256 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 929113E921F9D04100173149 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 51B913D72A4A207DE767D168;
+			remoteInfo = "Hidden Bar Direct";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -559,6 +566,7 @@
 			);
 			dependencies = (
 				C3B52A428D5EEE19E486F2CE /* PBXTargetDependency */,
+				A5C21AC085ADACCF4D53F8D8 /* PBXTargetDependency */,
 			);
 			name = HiddenTests;
 			productName = HiddenTests;
@@ -783,6 +791,12 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		A5C21AC085ADACCF4D53F8D8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Hidden Bar Direct";
+			target = 51B913D72A4A207DE767D168 /* Hidden Bar Direct */;
+			targetProxy = 3F027C78AA2B0472702A0256 /* PBXContainerItemProxy */;
+		};
 		C3B52A428D5EEE19E486F2CE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Hidden Bar";
