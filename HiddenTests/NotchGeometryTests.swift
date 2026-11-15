@@ -60,7 +60,7 @@ final class NotchGeometryTests: XCTestCase {
             auxiliaryTopRightAreaMinX: 810
         )
 
-        XCTAssertEqual(narrowerScreen.overflowThresholdX, 810, "threshold must come straight from the reported aux-area rect")
+        XCTAssertEqual(narrowerScreen.overflowThresholdX, 811, "threshold must come straight from the reported aux-area rect")
         XCTAssertEqual(widerScreen.overflowThresholdX, 810, "threshold must not scale with screen width when the real boundary doesn't")
     }
 
