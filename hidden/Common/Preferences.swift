@@ -167,4 +167,17 @@ enum Preferences {
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
+
+    // macOS 27, direct build: expand the bar once when a microphone or camera
+    // turns on, so the capsule naming the app shows. On by default.
+    static var showWholeBarWhenCaptureStarts: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.showWholeBarWhenCaptureStarts)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.showWholeBarWhenCaptureStarts)
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
 }

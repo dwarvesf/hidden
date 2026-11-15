@@ -27,12 +27,23 @@ enum MenuBarEngineFactory {
         if usesNativeEngine() {
             return NativeVisibilityEngine(items: items,
                                           captureActivity: CaptureActivityMonitor(),
+                                          runsFromApplicationsFolder: runsFromApplicationsFolder,
                                           pausesHidingForUnkeepableItems: { Preferences.pauseHidingForUnkeepableItems },
+                                          expandsWhenCaptureStarts: { Preferences.showWholeBarWhenCaptureStarts },
                                           sectionMemory: UserDefaultsSectionMemory(),
                                           workspaceNotifications: NSWorkspace.shared.notificationCenter)
         }
         #endif
         return LegacyLengthEngine(items: items)
+    }
+
+    // Debug builds run from build folders, so the check is off there unless a
+    // test hook turns it on.
+    private static func runsFromApplicationsFolder() -> Bool {
+        #if DEBUG
+        if !NativeVisibilityEngine.debugChecksInstallLocation { return true }
+        #endif
+        return NativeVisibilityEngine.isInApplicationsFolder(Bundle.main.bundleURL)
     }
 
     // Native hiding has no separator and needs the Accessibility permission.

@@ -28,6 +28,7 @@
 "Hidden Bar needs Accessibility access to hide icons." = "Hidden Bar needs Accessibility access to hide icons.";
 "Open Settings…" = "Open Settings…";
 "Expand the bar when the pointer rests on the menu bar" = "Expand the bar when the pointer rests on the menu bar";
+"Show the whole bar when the microphone or camera turns on" = "Show the whole bar when the microphone or camera turns on";
 "Tutorial text (arrow boundary)" = "
 Use the always hidden feature to keep your icons tidy. Here's how to set it
 Steps to enable:

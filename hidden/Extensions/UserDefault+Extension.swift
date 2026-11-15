@@ -23,5 +23,6 @@ extension UserDefaults {
         static let hoverToExpand = "hoverToExpand"
         static let notchOverflowEnabled = "notchOverflowEnabled"
         static let pauseHidingForUnkeepableItems = "pauseHidingForUnkeepableItems"
+        static let showWholeBarWhenCaptureStarts = "showWholeBarWhenCaptureStarts"
     }
 }

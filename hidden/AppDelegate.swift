@@ -104,7 +104,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         UserDefaults.Key.alwaysHiddenSectionEnabled: false,
         UserDefaults.Key.notchOverflowEnabled: true,
         UserDefaults.Key.stealthExpandIconEnabled: false,
-        UserDefaults.Key.arrowStyle: ArrowStyle.default.rawValue
+        UserDefaults.Key.arrowStyle: ArrowStyle.default.rawValue,
+        UserDefaults.Key.showWholeBarWhenCaptureStarts: true
     ]
 
     func registerDefaultValues() {
