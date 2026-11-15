@@ -28,6 +28,9 @@ final class ShortcutRecorderRow: NSStackView {
     private let defaults: UserDefaults
     private let registry: HotKeyRegistry
     private var monitor: Any?
+    // The name of the shortcut that used the combination the user just tried; it
+    // was not saved, and the warning stays until the next recording or clear.
+    private var refusedClash: String?
     private var resignObserver: NSObjectProtocol?
     private(set) var isListening = false {
         didSet { listeningChanged() }
@@ -85,7 +88,7 @@ final class ShortcutRecorderRow: NSStackView {
         let stored = shortcut
         button.title = stored?.description ?? "Set Shortcut".localized
         clearButton.isHidden = stored == nil
-        let clash = clashingTitle
+        let clash = clashingTitle ?? refusedClash
         clashIcon.isHidden = clash == nil
         let message = clash.map { String(format: "Also used by %@".localized, $0) }
         clashIcon.toolTip = message
@@ -96,6 +99,7 @@ final class ShortcutRecorderRow: NSStackView {
     // MARK: Recording
 
     @objc private func beginRecording() {
+        refusedClash = nil
         isListening = true
         window?.makeFirstResponder(nil)
     }
@@ -107,6 +111,7 @@ final class ShortcutRecorderRow: NSStackView {
     /// Removes the stored shortcut.
     func clear() {
         isListening = false
+        refusedClash = nil
         defaults.removeObject(forKey: key)
         NotificationCenter.default.post(name: .prefsChanged, object: nil)
         refresh()
@@ -153,6 +158,12 @@ final class ShortcutRecorderRow: NSStackView {
             keyCode: UInt32(event.keyCode))
         // A bare letter would fire while typing; keep the old shortcut.
         guard keybind.isAcceptable, let data = try? JSONEncoder().encode(keybind) else { return cancelRecording() }
+        // Two shortcuts on one combination cannot both work: macOS keeps the first
+        // and refuses the second without a word. Keep the old shortcut and say why.
+        if let clash = registry.clashingTitle(for: keybind, excluding: key) {
+            refusedClash = clash
+            return cancelRecording()
+        }
         isListening = false
         defaults.set(data, forKey: key)
         NotificationCenter.default.post(name: .prefsChanged, object: nil)

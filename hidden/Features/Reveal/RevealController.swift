@@ -55,6 +55,9 @@ struct RevealHost {
 final class RevealController {
     private let host: RevealHost
     private let isEnabled: (RevealTrigger) -> Bool
+    /// True while presentation mode is on: a gesture must not pull the hidden
+    /// icons out in front of the room, so every gesture does nothing.
+    private let isSuspended: () -> Bool
     private let screens: () -> [ScreenBand]
     private let monitoring: RevealEventMonitoring
     private let canHitTest: () -> Bool
@@ -76,12 +79,14 @@ final class RevealController {
 
     init(host: RevealHost,
          isEnabled: @escaping (RevealTrigger) -> Bool,
+         isSuspended: @escaping () -> Bool = { false },
          screens: @escaping () -> [ScreenBand],
          monitoring: RevealEventMonitoring = SystemRevealEventMonitoring(),
          canHitTest: @escaping () -> Bool = RevealHitTester.isAvailable,
          hitTest: @escaping (CGPoint, @escaping (HitTarget) -> Void) -> Void = RevealHitTester.resolve) {
         self.host = host
         self.isEnabled = isEnabled
+        self.isSuspended = isSuspended
         self.screens = screens
         self.monitoring = monitoring
         self.canHitTest = canHitTest
@@ -128,7 +133,7 @@ final class RevealController {
     // MARK: events
 
     func ingestScroll(deltaY: CGFloat, time: TimeInterval, isMomentum: Bool, at point: CGPoint) {
-        guard isEnabled(.scroll) else { return }
+        guard isEnabled(.scroll), !isSuspended() else { return }
         guard MenuBarBand.contains(point, in: screens()) else {
             scrollDetector.reset()
             return
@@ -148,7 +153,7 @@ final class RevealController {
     }
 
     func ingestMouseMoved(at point: CGPoint, time: TimeInterval) {
-        guard isEnabled(.shake) else { return }
+        guard isEnabled(.shake), !isSuspended() else { return }
         let inBand = MenuBarBand.contains(point, in: screens())
         guard shakeDetector.feed(x: point.x, at: time, inBand: inBand) else { return }
         revealIfAllowed(.shake, target: .unknown)
@@ -157,7 +162,7 @@ final class RevealController {
     func ingestMouseDown(at point: CGPoint) {
         let inBand = MenuBarBand.contains(point, in: screens())
         if inBand {
-            guard isEnabled(.click), !MenuBarBand.isInNotch(point, in: screens()) else { return }
+            guard isEnabled(.click), !isSuspended(), !MenuBarBand.isInNotch(point, in: screens()) else { return }
             resolveTarget(at: point) { [weak self] target in
                 self?.revealIfAllowed(.click, target: target)
             }

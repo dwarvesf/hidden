@@ -58,8 +58,16 @@ final class HotKeyRegistry {
         entries[key] = nil
     }
 
-    /// Re-reads every registered preference and rebinds the ones that changed.
+    /// Re-reads every registered preference. When any shortcut changed, every
+    /// binding is dropped and made again: macOS refuses a second registration of a
+    /// combination silently, so a shortcut that lost a clash stays dead after the
+    /// other one is cleared unless it registers again. Unchanged, nothing is touched.
     func reload() {
+        guard entries.keys.contains(where: { changed($0) }) else { return }
+        for key in entries.keys {
+            entries[key]?.binding = nil
+            entries[key]?.combo = nil
+        }
         for key in entries.keys {
             rebind(key)
         }
@@ -86,10 +94,16 @@ final class HotKeyRegistry {
         return nil
     }
 
+    private func changed(_ key: String) -> Bool {
+        guard let entry = entries[key] else { return false }
+        let stored = shortcut(for: key)
+        return stored != entry.combo || (stored == nil) != (entry.binding == nil)
+    }
+
     private func rebind(_ key: String) {
         guard let entry = entries[key] else { return }
         let stored = shortcut(for: key)
-        if stored == entry.combo, (stored == nil) == (entry.binding == nil) { return }
+        if !changed(key) { return }
         // Unbind first: two live bindings for one combo would clash.
         entries[key]?.binding = nil
         entries[key]?.combo = stored

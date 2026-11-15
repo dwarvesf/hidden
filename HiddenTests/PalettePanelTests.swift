@@ -128,6 +128,51 @@ final class PalettePanelTests: XCTestCase {
         for hint in ["Open its menu", "Keep shown", "Always hide", "Close"] { XCTAssertTrue(texts.contains(hint), hint) }
     }
 
+    // Given the pinned-sections beta is off (a move would write a table nothing reads)
+    // When the list shows, and Command-Return or Option-Return is pressed
+    // Then only the open and close hints show, and neither key moves anything
+    func test_pinnedSectionsOff_hidesTheMoveHintsAndKeys() {
+        fake.environment.pinsSections = false
+        palette.show()
+        palette.setQuery("pa")
+        XCTAssertTrue(texts.contains("Open its menu") && texts.contains("Close"))
+        XCTAssertFalse(texts.contains("Keep shown"))
+        XCTAssertFalse(texts.contains("Always hide"))
+
+        palette.perform(.keepShown)
+        palette.perform(.alwaysHide)
+        XCTAssertEqual(fake.moves, [])
+        XCTAssertTrue(palette.isVisible, "a refused key leaves the palette open")
+    }
+
+    // Given presentation mode is on with Paste and Amphetamine sensitive
+    // When the palette opens, and a query names a sensitive app
+    // Then they are not listed, and no hint names them
+    func test_sensitiveAppsAreLeftOutOfTheListWhilePresenting() {
+        fake.environment.hiddenWhilePresenting = ["com.paste", "com.amphetamine"]
+        palette.show()
+        XCTAssertTrue(texts.contains("1Password"))
+        XCTAssertFalse(texts.contains("Paste"))
+        XCTAssertFalse(texts.contains("Amphetamine"))
+        palette.setQuery("paste")
+        let rows = palette.debugState["rows"] as? [String] ?? []
+        XCTAssertFalse(rows.contains("com.paste") || rows.contains("com.amphetamine"))
+        XCTAssertFalse(texts.contains { $0.contains("Paste") })
+    }
+
+    // Given a list that still shows an app presentation mode then keeps hidden
+    // When Return reaches the engine and it refuses as sensitive
+    // Then the app drops out of the list and nothing names it
+    func test_aSensitiveRefusalDropsTheAppWithoutNamingIt() {
+        palette.show()
+        palette.setQuery("pa")
+        palette.perform(.open)
+        fake.environment.hiddenWhilePresenting = ["com.paste"]
+        fake.finish?(.sensitive)
+        XCTAssertFalse(texts.contains { $0.contains("Paste") })
+        XCTAssertFalse(texts.contains { $0.contains("stays hidden") })
+    }
+
     // MARK: Return, Command-Return, Option-Return
 
     // Given "pa" typed
@@ -287,6 +332,32 @@ final class PalettePanelTests: XCTestCase {
         XCTAssertTrue(texts.contains("1Password"))
     }
 
+    // MARK: live wiring
+
+    // Given the app's own status bar controller, a sensitive set in the preferences
+    // When the palette environment is read with presentation mode on, then off
+    // Then the live wiring hands the sensitive list over only while presenting, and the pinned-sections switch follows the preference
+    func test_liveEnvironmentCarriesTheSensitiveListOnlyWhilePresenting() throws {
+        let bar = try XCTUnwrap((NSApp.delegate as? AppDelegate)?.statusBarController, "the test host owns the status bar controller")
+        let keys = [UserDefaults.Key.presentationSensitiveApps, UserDefaults.Key.pinnedSectionsEnabled]
+        let saved = keys.map { UserDefaults.standard.object(forKey: $0) }
+        defer {
+            for (key, value) in zip(keys, saved) {
+                if let value { UserDefaults.standard.set(value, forKey: key) } else { UserDefaults.standard.removeObject(forKey: key) }
+            }
+            bar.presentingOverride = nil
+        }
+        Preferences.presentationSensitiveApps = ["com.paste", "com.1password"]
+        Preferences.pinnedSectionsEnabled = false
+
+        bar.presentingOverride = true
+        XCTAssertEqual(bar.paletteEnvironment().hiddenWhilePresenting, ["com.paste", "com.1password"])
+        XCTAssertFalse(bar.paletteEnvironment().pinsSections)
+
+        bar.presentingOverride = false
+        XCTAssertEqual(bar.paletteEnvironment().hiddenWhilePresenting, [])
+    }
+
     // MARK: placement
 
     // Given an arrow on the display with the pointer
@@ -318,7 +389,7 @@ final class PalettePanelTests: XCTestCase {
             XCTAssertTrue(written.contains("direct-palette-settings-\(mode).png"))
         }
         XCTAssertEqual(Set(PaletteSnapshot.scenes.map(\.name)),
-                       ["results", "all", "opening", "nomatch", "nothinghidden", "accessibilityoff", "macositem", "appquit", "cannotopen", "sensitive", "enginedown"])
+                       ["results", "all", "opening", "nomatch", "nothinghidden", "accessibilityoff", "macositem", "appquit", "cannotopen", "presenting", "nopins", "enginedown"])
     }
 }
 #endif

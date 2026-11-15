@@ -52,9 +52,12 @@ import AppKit
 //   restriction: every app hidden, or the hidden section shown minus the
 //   sensitive apps. Every change to what is held goes through `hold(whenBar:)`
 //   and `reconcileHold()`, so no event (an app launch, a clock click, a capture
-//   change) can swap the strict list back to the normal one. It lifts while a
-//   microphone or camera is on, since the restriction hides the capsule naming
-//   the app that records, and it lifts when the app quits (PresentationState).
+//   change) can swap the strict list back to the normal one. The restriction
+//   hides the capsule naming the app that records, so presentation follows the
+//   main bar's rule: it lifts once when a microphone or camera turns on, if
+//   that switch is on, and the user may hide again at once. A capture already
+//   running when the mode starts does not lift it, as it would not expand a
+//   collapsed main bar. It lifts when the app quits (PresentationState).
 // - macOS matches the allow-list only to apps it knows by bundle id, which
 //   (measured on 27.2) it does for an app in an Applications folder but not for
 //   one run from elsewhere (Downloads, a build folder): it hides that app's
@@ -235,12 +238,12 @@ final class NativeVisibilityEngine: MenuBarEngine {
         case .expanded, .unavailable:
             break
         }
-        // A collapse during the camera or microphone pause (the user's, or the
-        // auto-hide timer's) stays lifted: holding the normal list now would only
-        // be undone, and would flash the capsule away. Resuming collapses again.
+        // A collapse during the camera or microphone pause is the user choosing to
+        // hide again (as on the main bar, where a collapse during capture hides as
+        // usual): presentation mode resumes and the collapse holds the strict list.
         if presentation.isOn, currentPhase() == .paused {
-            NSLog("NativeVisibility: a collapse while presentation mode is paused; staying shown")
-            return completion(.unavailable)
+            NSLog("NativeVisibility: a collapse while presentation mode is paused; hiding again")
+            resumePresentationHiding(collapsing: false)
         }
         if !hidesAlwaysHiddenSection {
             setSeparatorsVisible(true)
@@ -905,6 +908,22 @@ final class NativeVisibilityEngine: MenuBarEngine {
         presentationInputsChanged()
     }
 
+    // "Hide again" on the paused capsule: the camera or microphone is still on and
+    // the user wants the list held anyway. A later capture start pauses again.
+    func resumePresentationHiding() {
+        guard presentation.isOn, currentPhase() == .paused else { return }
+        resumePresentationHiding(collapsing: true)
+    }
+
+    private func resumePresentationHiding(collapsing: Bool) {
+        presentation.resumeHiding()
+        if collapsing {
+            presentationInputsChanged()
+        } else {
+            notePhaseChange()
+        }
+    }
+
     func presentationMirrorChanged(_ mirror: PresentationMirror?) {
         guard mirror != presentation.mirror else { return }
         presentation.mirrorChanged(mirror)
@@ -922,7 +941,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // The phase, with the capture level read at this moment.
     func currentPhase() -> PresentationPhase {
         // Off is the common case: read the monitor only while a mode is on.
-        return presentation.resolve(captureActive: presentation.isOn && captureActivity.isActive, now: clockNow())
+        // The pause follows the same switch as the main bar (1.12): "show the whole
+        // bar when a camera or microphone turns on". Off, it never pauses.
+        return presentation.resolve(captureActive: presentation.isOn && captureActivity.isActive,
+                                    pausesForCapture: expandsWhenCaptureStarts(), now: clockNow())
     }
 
     // Presenting and still trying to hide (also after a refusal, so the next
@@ -970,8 +992,8 @@ final class NativeVisibilityEngine: MenuBarEngine {
         }
     }
 
-    // A microphone or camera is on: the restriction hides the capsule naming the
-    // app that uses it, so it is lifted whatever the Preferences option says.
+    // A microphone or camera turned on: the restriction hides the capsule naming
+    // the app that uses it, so it is lifted once.
     private func liftForCapture() {
         NSLog("NativeVisibility: presentation mode paused: a microphone or camera is on; showing the whole menu bar")
         if state == .collapsed {

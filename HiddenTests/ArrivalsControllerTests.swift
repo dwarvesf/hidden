@@ -134,6 +134,28 @@ final class ArrivalsControllerTests: XCTestCase {
         XCTAssertEqual(changes, 1)
     }
 
+    // Given a waiting question and presentation mode on
+    // When the presenter is asked to open from the arrow
+    // Then no popover opens (the room sees the screen); the question is still waiting, and opens once the mode ends
+    func test_arrivalsPrompt_waitsWhilePresenting() {
+        let controller = seededController()
+        read(["com.test.old", "com.test.new"])
+        var presenting = true
+        var shown = 0
+        let presenter = ArrivalsPresenter(controller: controller, isSuppressed: { presenting },
+                                          showPopover: { _, _ in shown += 1 }, openSettings: {})
+        let button = NSStatusBarButton(frame: NSRect(x: 0, y: 0, width: 20, height: 20))
+
+        presenter.present(from: button)
+        XCTAssertEqual(shown, 0)
+        XCTAssertEqual(controller.pending, ["com.test.new"], "the question waits")
+
+        presenting = false
+        presenter.present(from: button)
+        XCTAssertEqual(shown, 1)
+        presenter.close()
+    }
+
     // Given a waiting app, when the answer is Hide
     // Then the table says hidden, the entry is cleared in memory and on disk, and the arrow is told
     func test_answer_writesTheSectionAndClearsTheEntry() {

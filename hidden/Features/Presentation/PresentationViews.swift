@@ -25,10 +25,10 @@ struct PresentationPanelModel {
 
     var kind: Kind
     var cause: PresentationCause?
-    var hidden: [PresentationAppChip] = []
-    var staysHidden: [PresentationAppChip] = []
-
-    static let maxChips = 6
+    // Counts only: the panel is on the shared screen, so it never names an app.
+    // Sensitive apps are named only in Settings.
+    var hiddenCount = 0
+    var sensitiveCount = 0
 }
 
 // MARK: - Capsule
@@ -209,7 +209,8 @@ final class PresentationPanelView: NSView {
     private static let inset: CGFloat = 12
 
     var onStop: (() -> Void)?
-    var onDismiss: (() -> Void)?
+    /// "Hide again" on the paused panel: hide now, with the camera or microphone still on.
+    var onHideAgain: (() -> Void)?
     let model: PresentationPanelModel
 
     init(model: PresentationPanelModel) {
@@ -261,11 +262,6 @@ final class PresentationPanelView: NSView {
         return view
     }
 
-    private func chips(_ chips: [PresentationAppChip]) -> NSView {
-        let shown = Array(chips.prefix(PresentationPanelModel.maxChips))
-        return PresentationChipFlow(chips: shown, overflow: chips.count - shown.count, width: contentWidth)
-    }
-
     private func footer(note: String, button: NSButton) -> NSView {
         let label = NSTextField(labelWithString: note)
         label.font = .systemFont(ofSize: 11)
@@ -284,34 +280,32 @@ final class PresentationPanelView: NSView {
         stack.addArrangedSubview(heading("Presentation mode is on".localized))
         stack.addArrangedSubview(body(Self.causeText(model.cause)))
         stack.setCustomSpacing(10, after: stack.arrangedSubviews.last!)
-        let count = model.hidden.count
+        let count = model.hiddenCount
         let hiddenTitle = count == 1 ? "Hidden now: 1 app".localized : String(format: "Hidden now: %d apps".localized, count)
         stack.addArrangedSubview(body(hiddenTitle))
-        stack.setCustomSpacing(4, after: stack.arrangedSubviews.last!)
-        stack.addArrangedSubview(chips(model.hidden))
-        if !model.staysHidden.isEmpty {
-            stack.setCustomSpacing(12, after: stack.arrangedSubviews.last!)
+        if model.sensitiveCount > 0 {
+            stack.setCustomSpacing(6, after: stack.arrangedSubviews.last!)
             let lock = NSImageView(image: NSImage(systemSymbolName: "lock", accessibilityDescription: nil) ?? NSImage())
             lock.contentTintColor = .secondaryLabelColor
             lock.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 10, weight: .regular)
-            let label = body("Stay hidden even if you click the arrow".localized)
-            let title = NSStackView(views: [lock, label])
+            let text = model.sensitiveCount == 1
+                ? "1 sensitive app stays hidden even if you click the arrow".localized
+                : String(format: "%d sensitive apps stay hidden even if you click the arrow".localized, model.sensitiveCount)
+            let title = NSStackView(views: [lock, body(text)])
             title.spacing = 4
             stack.addArrangedSubview(title)
-            stack.setCustomSpacing(4, after: title)
-            stack.addArrangedSubview(chips(model.staysHidden))
         }
         stack.setCustomSpacing(10, after: stack.arrangedSubviews.last!)
         stack.addArrangedSubview(line())
         stack.setCustomSpacing(8, after: stack.arrangedSubviews.last!)
         let stop = PresentationButton(title: "Stop Presenting".localized, style: .prominent, target: self, action: #selector(stopPressed))
         stop.identifier = NSUserInterfaceItemIdentifier("presentationStop")
-        stack.addArrangedSubview(footer(note: "Clock and battery stay.".localized, button: stop))
+        stack.addArrangedSubview(footer(note: "macOS's own items stay.".localized, button: stop))
     }
 
     private func buildPaused(in stack: NSStackView) {
         stack.addArrangedSubview(heading("Hiding paused: camera or microphone in use".localized))
-        stack.addArrangedSubview(body("macOS 27 hides the capsule that names the app using your camera or microphone along with other icons, and that capsule must stay visible. So Hidden Bar shows every icon until the camera and microphone are off, then hides again.".localized))
+        stack.addArrangedSubview(body("Nothing is hidden right now, sensitive apps included. macOS 27 hides the capsule that names the app using your camera or microphone along with other icons, so Hidden Bar shows every icon when one turns on.".localized))
         stack.setCustomSpacing(10, after: stack.arrangedSubviews.last!)
         stack.addArrangedSubview(body("To keep apps out of a shared screen during a call:".localized))
         stack.setCustomSpacing(6, after: stack.arrangedSubviews.last!)
@@ -322,9 +316,9 @@ final class PresentationPanelView: NSView {
         stack.setCustomSpacing(10, after: stack.arrangedSubviews.last!)
         stack.addArrangedSubview(line())
         stack.setCustomSpacing(8, after: stack.arrangedSubviews.last!)
-        let ok = PresentationButton(title: "OK".localized, style: .plain, target: self, action: #selector(dismissPressed))
-        ok.identifier = NSUserInterfaceItemIdentifier("presentationOK")
-        stack.addArrangedSubview(footer(note: "Resumes on its own.".localized, button: ok))
+        let again = PresentationButton(title: "Hide again".localized, style: .prominent, target: self, action: #selector(hideAgainPressed))
+        again.identifier = NSUserInterfaceItemIdentifier("presentationHideAgain")
+        stack.addArrangedSubview(footer(note: "Resumes on its own.".localized, button: again))
     }
 
     private func buildCouldNotHide(in stack: NSStackView) {
@@ -379,7 +373,7 @@ final class PresentationPanelView: NSView {
     }
 
     @objc private func stopPressed() { onStop?() }
-    @objc private func dismissPressed() { onDismiss?() }
+    @objc private func hideAgainPressed() { onHideAgain?() }
 }
 
 private final class TipTile: NSView {
@@ -391,15 +385,15 @@ private final class TipTile: NSView {
 
 // MARK: - Note on the arrow click
 
-// "Slack, 1Password, Tailscale stay hidden": shown for a moment under the arrow
-// when it is clicked while presenting.
+// "2 apps stay hidden": shown for a moment under the arrow when it is clicked
+// while presenting. It gives a count and no names, since the room sees it.
 final class PresentationNoteView: NSView {
-    init(names: [String]) {
+    init(count: Int) {
         super.init(frame: .zero)
         let lock = NSImageView(image: NSImage(systemSymbolName: "lock", accessibilityDescription: nil) ?? NSImage())
         lock.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 11, weight: .regular)
         lock.contentTintColor = .labelColor
-        let label = NSTextField(labelWithString: Self.text(names))
+        let label = NSTextField(labelWithString: Self.text(count: count))
         label.font = .systemFont(ofSize: 12, weight: .medium)
         let row = NSStackView(views: [lock, label])
         row.spacing = 6
@@ -416,11 +410,7 @@ final class PresentationNoteView: NSView {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
 
-    // At most three names, then "+N".
-    static func text(_ names: [String]) -> String {
-        var shown = Array(names.prefix(3)).joined(separator: ", ")
-        if names.count > 3 { shown += " +\(names.count - 3)" }
-        return names.count == 1 ? String(format: "%@ stays hidden".localized, shown)
-                                : String(format: "%@ stay hidden".localized, shown)
+    static func text(count: Int) -> String {
+        return count == 1 ? "1 app stays hidden".localized : String(format: "%d apps stay hidden".localized, count)
     }
 }

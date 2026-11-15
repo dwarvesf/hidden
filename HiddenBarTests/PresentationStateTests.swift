@@ -8,10 +8,13 @@
 import XCTest
 
 // The pure state machine behind presentation mode: what turned it on, and
-// whether the camera or microphone has paused it. No clock, no engine.
+// whether the camera or microphone has paused it, by the rule the main bar has
+// followed since 1.12 (a start pauses once; the user may hide again). No clock,
+// no engine.
 final class PresentationStateTests: XCTestCase {
-    private func resolved(_ state: inout PresentationState, capture: Bool = false, at now: TimeInterval = 100) -> PresentationPhase {
-        return state.resolve(captureActive: capture, now: now)
+    private func resolved(_ state: inout PresentationState, capture: Bool = false, pauses: Bool = true,
+                          at now: TimeInterval = 100) -> PresentationPhase {
+        return state.resolve(captureActive: capture, pausesForCapture: pauses, now: now)
     }
 
     // Given a fresh state
@@ -88,13 +91,16 @@ final class PresentationStateTests: XCTestCase {
         XCTAssertEqual(resolved(&state, capture: true, at: 11), .paused)
     }
 
-    // Given the mode on and capture already running
+    // Given capture already running when the mode starts (a call under way)
     // When it starts
-    // Then it never presents: it begins paused
-    func testStartsPausedWhenCaptureIsAlreadyActive() {
+    // Then it presents hidden, stays so while that capture runs, and only a fresh start pauses
+    func testStartsHiddenWhenCaptureIsAlreadyActive() {
         var state = PresentationState()
         state.startManually()
-        XCTAssertEqual(resolved(&state, capture: true, at: 5), .paused)
+        XCTAssertEqual(resolved(&state, capture: true, at: 5), .presenting)
+        XCTAssertEqual(resolved(&state, capture: true, at: 500), .presenting)
+        XCTAssertEqual(resolved(&state, capture: false, at: 600), .presenting)
+        XCTAssertEqual(resolved(&state, capture: true, at: 700), .paused, "a fresh start while presenting lifts once")
     }
 
     // Given a pause
@@ -103,6 +109,7 @@ final class PresentationStateTests: XCTestCase {
     func testResumesAfterTheQuietPeriod() {
         var state = PresentationState()
         state.startManually()
+        _ = resolved(&state, at: 1)
         XCTAssertEqual(resolved(&state, capture: true, at: 10), .paused)
         // A long call: no event between its start and its end.
         XCTAssertEqual(resolved(&state, capture: false, at: 700), .paused, "the quiet period starts when capture ends")
@@ -118,6 +125,7 @@ final class PresentationStateTests: XCTestCase {
     func testAFlappingMicrophoneDoesNotFlapTheBar() {
         var state = PresentationState()
         state.startManually()
+        _ = resolved(&state, at: 1)
         _ = resolved(&state, capture: true, at: 10)
         XCTAssertEqual(resolved(&state, capture: false, at: 11), .paused)
         XCTAssertEqual(resolved(&state, capture: true, at: 12), .paused)
@@ -161,6 +169,46 @@ final class PresentationStateTests: XCTestCase {
         var state = PresentationState()
         state.startManually()
         state.hideDidFail()
+        XCTAssertEqual(resolved(&state, at: 49), .couldNotHide)
         XCTAssertEqual(resolved(&state, capture: true, at: 50), .paused)
+    }
+
+    // Given the switch "show the whole bar when a camera or microphone turns on" is off
+    // When capture starts, or is already running when the mode starts
+    // Then the mode never pauses, like the main bar
+    func testSwitchOffNeverPauses() {
+        var state = PresentationState()
+        state.startManually()
+        XCTAssertEqual(resolved(&state, capture: true, pauses: false, at: 5), .presenting, "already active at start")
+        XCTAssertEqual(resolved(&state, capture: false, pauses: false, at: 6), .presenting)
+        XCTAssertEqual(resolved(&state, capture: true, pauses: false, at: 7), .presenting, "a start while presenting")
+        XCTAssertNil(state.resumeWait(now: 7))
+    }
+
+    // Given a pause for a camera that is still on
+    // When the user hides again
+    // Then the mode presents while capture continues, and only a new start pauses again
+    func testUserResumeDuringCaptureHoldsUntilTheNextStart() {
+        var state = PresentationState()
+        state.startManually()
+        _ = resolved(&state, at: 1)
+        XCTAssertEqual(resolved(&state, capture: true, at: 10), .paused)
+        state.resumeHiding()
+        XCTAssertEqual(resolved(&state, capture: true, at: 11), .presenting)
+        XCTAssertEqual(resolved(&state, capture: true, at: 600), .presenting, "capture running all day does not pause again")
+        XCTAssertEqual(resolved(&state, capture: false, at: 700), .presenting, "no quiet period after a user resume")
+        XCTAssertNil(state.resumeWait(now: 700))
+        XCTAssertEqual(resolved(&state, capture: true, at: 800), .paused, "a new start pauses again")
+    }
+
+    // Given a pause
+    // When the switch is turned off
+    // Then the mode presents
+    func testTurningTheSwitchOffEndsAPause() {
+        var state = PresentationState()
+        state.startManually()
+        _ = resolved(&state, at: 1)
+        XCTAssertEqual(resolved(&state, capture: true, at: 5), .paused)
+        XCTAssertEqual(resolved(&state, capture: true, pauses: false, at: 6), .presenting)
     }
 }

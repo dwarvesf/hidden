@@ -283,6 +283,26 @@ final class AppStoreMigrationTests: XCTestCase {
         XCTAssertEqual(OtherRunningCopy.decide(others: [appStore, relaunch], runningBundle: downloadsApp,
                                                countsOtherPaths: false, countsAppStoreCopies: true), .quitInFavorOf(43))
     }
+
+    // Given an import from the App Store build
+    // When its settings are applied
+    // Then the pinned-sections notice goes out too, as the engine and the catalog listen to it, not to prefsChanged
+    func test_importTellsTheAppAboutPinnedSections() {
+        XCTAssertTrue(AppDelegate.importedPreferenceNotifications.contains(.pinnedSectionsChanged))
+        XCTAssertTrue(AppDelegate.importedPreferenceNotifications.contains(.prefsChanged))
+    }
+
+    // Given a build that does not use the native engine
+    // When the app registers its shortcuts
+    // Then the palette and presentation shortcuts are not registered; with the native engine they are
+    func test_paletteAndPresentationShortcutsExistOnlyWithTheNativeEngine() {
+        let registry = HotKeyRegistry(defaults: defaults, center: NotificationCenter()) { _, _ in nil }
+        AppDelegate.registerNativeEngineHotKeys(in: registry, usesNativeEngine: false, togglePalette: {}, togglePresentation: {})
+        XCTAssertEqual(registry.registeredKeys, [])
+
+        AppDelegate.registerNativeEngineHotKeys(in: registry, usesNativeEngine: true, togglePalette: {}, togglePresentation: {})
+        XCTAssertEqual(registry.registeredKeys, [UserDefaults.Key.findHiddenIconShortcut, UserDefaults.Key.presentationShortcut].sorted())
+    }
 }
 
 #endif

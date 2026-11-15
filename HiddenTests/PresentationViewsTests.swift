@@ -68,10 +68,13 @@ final class PresentationViewsTests: XCTestCase {
         XCTAssertNotNil(control(UserDefaults.Key.presentationAutoMirrorEnabled, in: all))
         XCTAssertNotNil(control(UserDefaults.Key.presentationSensitiveApps, in: all), "the Edit button carries the key")
         XCTAssertNotNil(control(UserDefaults.Key.presentationShortcut, in: all), "the recorder button carries the key")
-        let footnote = texts(all).first { $0.hasPrefix("Hiding pauses while the camera or microphone is on") }
+        let footnote = texts(all).first { $0.hasPrefix("Sensitive apps stay hidden while presenting, except when \"Show all icons when the microphone or camera turns on\" pauses hiding") }
         XCTAssertNotNil(footnote)
+        XCTAssertTrue(footnote?.contains("nothing is hidden") ?? false, "a pause lifts everything, sensitive apps too")
         XCTAssertFalse(footnote?.localizedCaseInsensitiveContains("light") ?? true,
                        "macOS hides the capsule that names the app, not the dot in the corner")
+        XCTAssertTrue(texts(all).contains("Stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone."),
+                      "the Sensitive apps caption carries the same exception")
     }
 
     // Given a build or macOS without native hiding
@@ -128,9 +131,7 @@ final class PresentationViewsTests: XCTestCase {
 
     private func panel(_ kind: PresentationPanelModel.Kind, cause: PresentationCause? = .manual,
                        hidden: Int = 3, stays: Int = 1) -> PresentationPanelView {
-        let chip = { (n: Int) in PresentationAppChip(name: "App \(n)", icon: nil) }
-        let model = PresentationPanelModel(kind: kind, cause: cause, hidden: (0..<hidden).map(chip), staysHidden: (0..<stays).map(chip))
-        return PresentationPanelView(model: model)
+        return PresentationPanelView(model: PresentationPanelModel(kind: kind, cause: cause, hiddenCount: hidden, sensitiveCount: stays))
     }
 
     // Given the presenting panel
@@ -143,7 +144,7 @@ final class PresentationViewsTests: XCTestCase {
         let stop = try XCTUnwrap(Self.subviews(of: view).compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "presentationStop" })
         stop.performClick(nil)
         XCTAssertEqual(stopped, 1)
-        XCTAssertTrue(texts(Self.subviews(of: view)).contains("Clock and battery stay.".localized))
+        XCTAssertTrue(texts(Self.subviews(of: view)).contains("macOS's own items stay.".localized))
     }
 
     // Given each way presentation mode starts
@@ -158,40 +159,54 @@ final class PresentationViewsTests: XCTestCase {
 
     // Given the pause panel
     // When read
-    // Then it names the capsule macOS hides, never claims the corner dot is hidden, and OK dismisses
+    // Then it says nothing is hidden (sensitive apps included), names the capsule macOS hides,
+    // never claims the corner dot is hidden, and "Hide again" resumes hiding
     func test_pausedPanel_isHonestAboutTheCapsule() throws {
         let view = panel(.paused)
         let all = texts(Self.subviews(of: view))
-        let body = try XCTUnwrap(all.first { $0.hasPrefix("macOS 27 hides the capsule") })
+        let body = try XCTUnwrap(all.first { $0.hasPrefix("Nothing is hidden right now") })
+        XCTAssertTrue(body.contains("sensitive apps included"))
         XCTAssertTrue(body.contains("capsule that names the app"))
         XCTAssertFalse(all.contains { $0.localizedCaseInsensitiveContains("privacy light") || $0.localizedCaseInsensitiveContains("camera light") })
         XCTAssertTrue(all.contains("Share one window, not the whole screen".localized))
         XCTAssertTrue(all.contains("Resumes on its own.".localized))
-        var dismissed = 0
-        view.onDismiss = { dismissed += 1 }
-        let ok = try XCTUnwrap(Self.subviews(of: view).compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "presentationOK" })
-        ok.performClick(nil)
-        XCTAssertEqual(dismissed, 1)
+        var hideAgain = 0
+        view.onHideAgain = { hideAgain += 1 }
+        let button = try XCTUnwrap(Self.subviews(of: view).compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "presentationHideAgain" })
+        XCTAssertEqual(button.title, "Hide again")
+        button.performClick(nil)
+        XCTAssertEqual(hideAgain, 1)
     }
 
-    // Given more hidden apps than fit
-    // When the presenting panel draws
-    // Then the count is exact and the chips end with "+N more"
-    func test_panel_countsHiddenAppsAndFoldsTheRest() {
-        let all = texts(Self.subviews(of: panel(.presenting, hidden: 11, stays: 0)))
-        XCTAssertTrue(all.contains("Hidden now: 11 apps".localized.replacingOccurrences(of: "%d", with: "11")) || all.contains("Hidden now: 11 apps"))
-        XCTAssertEqual(PresentationPanelModel.maxChips, 6)
-        let single = texts(Self.subviews(of: panel(.presenting, hidden: 1, stays: 0)))
-        XCTAssertTrue(single.contains("Hidden now: 1 app"))
-        XCTAssertFalse(single.contains { $0.contains("Stay hidden even if you click the arrow") }, "no lock row without sensitive apps")
+    // Given hidden and sensitive apps
+    // When the presenting panel draws on the shared screen
+    // Then it gives exact counts and names no app: no chips, no list
+    func test_panel_countsAppsAndNamesNone() {
+        let view = panel(.presenting, hidden: 11, stays: 3)
+        let all = texts(Self.subviews(of: view))
+        XCTAssertTrue(all.contains("Hidden now: 11 apps"))
+        XCTAssertTrue(all.contains("3 sensitive apps stay hidden even if you click the arrow"))
+        XCTAssertFalse(Self.subviews(of: view).contains { $0 is PresentationChipFlow }, "no app chips on the shared screen")
+        XCTAssertFalse(all.contains { $0.contains("App ") || $0.contains("more") }, "no names, no +N more")
+
+        let one = texts(Self.subviews(of: panel(.presenting, hidden: 1, stays: 1)))
+        XCTAssertTrue(one.contains("Hidden now: 1 app"))
+        XCTAssertTrue(one.contains("1 sensitive app stays hidden even if you click the arrow"))
+        let none = texts(Self.subviews(of: panel(.presenting, hidden: 1, stays: 0)))
+        XCTAssertFalse(none.contains { $0.contains("sensitive") }, "no lock row without sensitive apps")
     }
 
     // MARK: Note, capsule, menu
 
-    func test_note_namesAtMostThreeApps() {
-        XCTAssertEqual(PresentationNoteView.text(["Slack", "1Password", "Tailscale"]), "Slack, 1Password, Tailscale stay hidden")
-        XCTAssertEqual(PresentationNoteView.text(["Slack"]), "Slack stays hidden")
-        XCTAssertEqual(PresentationNoteView.text(["A", "B", "C", "D", "E"]), "A, B, C +2 stay hidden")
+    // Given sensitive apps while presenting
+    // When the arrow note draws on the shared screen
+    // Then it gives a count and never a name
+    func test_note_countsAppsAndNamesNone() {
+        XCTAssertEqual(PresentationNoteView.text(count: 1), "1 app stays hidden")
+        XCTAssertEqual(PresentationNoteView.text(count: 2), "2 apps stay hidden")
+        XCTAssertEqual(PresentationNoteView.text(count: 12), "12 apps stay hidden")
+        let view = PresentationNoteView(count: 3)
+        XCTAssertEqual(texts(Self.subviews(of: view)), ["3 apps stay hidden"])
     }
 
     func test_capsule_readsEachPhase() {

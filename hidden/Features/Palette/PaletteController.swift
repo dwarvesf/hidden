@@ -202,8 +202,10 @@ final class PaletteController {
         case .open:
             open()
         case .keepShown:
+            guard host.environment().pinsSections else { return }
             move(to: .visible)
         case .alwaysHide:
+            guard host.environment().pinsSections else { return }
             move(to: .alwaysHidden)
         }
     }
@@ -232,7 +234,9 @@ final class PaletteController {
             model.showCannotOpen(appName: app.name)
             render()
         case .sensitive:
-            model.showSensitive(appName: app.name)
+            // Presentation mode started (or the sensitive set changed) while the
+            // list was open: drop the app from it without naming it.
+            model.update(candidates: model.candidates, environment: host.environment())
             render()
         case .unavailable:
             var environment = host.environment()
@@ -246,7 +250,7 @@ final class PaletteController {
 
     private var viewState: PaletteViewState {
         return PaletteViewState(query: model.query, content: model.content, selectedIndex: model.selectedIndex,
-                                openingBundle: openingBundle)
+                                openingBundle: openingBundle, pinsSections: model.environment.pinsSections)
     }
 
     private func render() {

@@ -99,7 +99,7 @@ final class PresentationSensitiveAppsEditor: NSViewController {
 
     override func loadView() {
         let title = SettingsForm.sectionTitle("Sensitive apps".localized)
-        let note = SettingsForm.caption("Choose the apps that stay hidden while presenting, even when you click the arrow.".localized)
+        let note = SettingsForm.caption("Choose the apps that stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone.".localized)
         note.preferredMaxLayoutWidth = 300
         let list = NSStackView()
         list.orientation = .vertical
