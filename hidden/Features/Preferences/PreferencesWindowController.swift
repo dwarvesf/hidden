@@ -8,6 +8,20 @@
 
 import Cocoa
 
+/// Whether the notch overflow feature (menu of icons behind the notch) applies.
+/// macOS 27 never puts an icon behind the notch, it moves them into its own «
+/// button, so there is never anything to list there.
+enum NotchOverflowSupport {
+    static func isAvailable(osMajorVersion: Int, hasNotch: Bool) -> Bool {
+        hasNotch && osMajorVersion < 27
+    }
+
+    static var isAvailableNow: Bool {
+        isAvailable(osMajorVersion: ProcessInfo.processInfo.operatingSystemVersion.majorVersion,
+                    hasNotch: NotchOverflowController.hasNotch)
+    }
+}
+
 /// What the Settings window needs to know about the running app. The live
 /// value comes from the build flags and the real checks; a snapshot or a test
 /// can fix any part of it.
@@ -21,6 +35,8 @@ struct SettingsContext {
     var menuBarAppsAvailable: Bool = MenuBarAppsPane.makeViewController != nil
 
     static var live: SettingsContext { SettingsContext() }
+
+    var showsNotchOverflow: Bool { NotchOverflowSupport.isAvailable(osMajorVersion: osMajorVersion, hasNotch: hasNotch) }
 
     var usesNativeEngine: Bool { build.usesNativeEngine(osMajorVersion: osMajorVersion) }
 

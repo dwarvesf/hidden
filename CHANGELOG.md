@@ -20,6 +20,7 @@ A redesigned Settings window, pinned sections (beta) on macOS 27, and the fixes 
 - "Automatically hide icon after" and its delay are one "Hide icons again" popup with a Never choice.
 - About shows which build you run, links the changelog, and (direct build) has Check for Updates. X replaces Twitter.
 - The app icon follows the macOS icon margin and shadow, so it no longer looks oversized in the Dock ([#198](https://github.com/dwarvesf/hidden/issues/198); [#485](https://github.com/dwarvesf/hidden/pull/485)).
+- On macOS 27, the notch settings row and the "Show Notch Items" menu item are gone: macOS 27 never puts icons behind the notch, it moves them into its own « button.
 
 ### macOS 27 (direct build)
 - On a full menu bar, macOS 27 can move the Hidden Bar arrow into its own « button. After you collapse, Hidden Bar now checks for this and, once, says how to reach the arrow: click «, or use the hotkey.
