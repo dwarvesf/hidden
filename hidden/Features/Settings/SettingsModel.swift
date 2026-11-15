@@ -42,7 +42,7 @@ enum SettingsTab: String, CaseIterable {
     var titleKey: String {
         switch self {
         case .general: return "General"
-        case .menuBarApps: return "Menu Bar Apps"
+        case .menuBarApps: return "Icons"
         case .appearance: return "Appearance"
         case .advanced: return "Advanced"
         case .about: return "About"
@@ -50,7 +50,7 @@ enum SettingsTab: String, CaseIterable {
     }
 
 
-    /// Menu Bar Apps lists the pinned sections, which only the native engine
+    /// Icons lists the pinned sections, which only the native engine
     /// has; the pane appears once that feature registers its content.
     static func visibleTabs(build: SettingsBuild, osMajorVersion: Int, menuBarAppsAvailable: Bool) -> [SettingsTab] {
         let showsApps = menuBarAppsAvailable && build.usesNativeEngine(osMajorVersion: osMajorVersion)

@@ -24,10 +24,11 @@ A redesigned Settings window, pinned sections (beta) on macOS 27, and the fixes 
 
 ### macOS 27 (direct build)
 - On a full menu bar, macOS 27 can move the Hidden Bar arrow into its own « button. After you collapse, Hidden Bar now checks for this and, once, says how to reach the arrow: click «, or use the hotkey.
-- Pinned sections (beta, on by default): each app keeps the section you gave it when it restarts, instead of falling into the hidden section where macOS puts a relaunched icon. Apps seen for the first time start visible. Settings › Menu Bar Apps lists your menu-bar apps with a section choice per app and "Reset all to visible" (#366, #334, #107; [#473](https://github.com/dwarvesf/hidden/pull/473)).
+- Pinned sections (beta, on by default): each app keeps the section you gave it when it restarts, instead of falling into the hidden section where macOS puts a relaunched icon. Apps seen for the first time start visible. Settings › Icons lists your menu-bar apps with a section choice per app and "Reset all to visible" (#366, #334, #107; [#473](https://github.com/dwarvesf/hidden/pull/473)).
 - Apps set to always hidden stay hidden when the bar expands (#224).
 - Menu-bar apps without a Dock icon are now noticed when they start, so they get their section back too.
-- Menu Bar Apps has a per-app "Ignore drags" option for apps that recreate their icon without restarting (SwiftBar, BitBar), so their section stays put ([#487](https://github.com/dwarvesf/hidden/pull/487)).
+- Icons has a per-app "Ignore drags" option for apps that recreate their icon without restarting (SwiftBar, BitBar), so their section stays put ([#487](https://github.com/dwarvesf/hidden/pull/487)).
+- The Icons pane opens fast, shows real names and icons for system services and app helpers, and tells same-named apps apart.
 
 ### macOS 26 and earlier
 - The always-hidden section stays hidden when the bar expands; Option-click shows it until the next collapse (#224).

@@ -36,7 +36,7 @@ final class SettingsWindowTests: XCTestCase {
         UserDefaults.Key.isAutoHide, UserDefaults.Key.numberOfSecondForAutoHide, // checkbox + delay popup
         UserDefaults.Key.arrowStyle,                                              // arrow style popup
         UserDefaults.Key.globalKey,                                               // global shortcut
-        UserDefaultsPinnedSections.key,                                           // Menu Bar Apps section popups (beta)
+        UserDefaultsPinnedSections.key,                                           // Icons section popups (beta)
     ]
 
     private var saved: [String: Any] = [:]
@@ -231,7 +231,7 @@ final class SettingsWindowTests: XCTestCase {
 
     // MARK: tabs
 
-    // Given the Menu Bar Apps slot empty, then filled
+    // Given the Icons slot empty, then filled
     // When the window builds its toolbar
     // Then the tab appears only once the slot is filled, in second place
     func test_menuBarAppsTab_appearsWhenRegistered() {
@@ -276,7 +276,7 @@ final class SettingsWindowTests: XCTestCase {
     }
 
     // Given the beta off
-    // When opening Menu Bar Apps
+    // When opening Icons
     // Then it says so and lists no app
     func test_menuBarApps_offShowsNoList() {
         UserDefaults.standard.set(false, forKey: UserDefaults.Key.pinnedSectionsEnabled)

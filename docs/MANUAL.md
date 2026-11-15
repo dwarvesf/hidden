@@ -38,7 +38,7 @@ section is enabled.
   and no longer reads it from where macOS put the icon after the app started.
   An app seen for the first time starts visible. A ⌘-drag still moves an app
   between sections, except in the moment right after it relaunched.
-  Settings › Menu Bar Apps lists every app with a Visible / Hidden /
+  Settings › Icons lists every app with a Visible / Hidden /
   Always hidden choice, which applies at once, and "Reset all to visible". An
   app set to always hidden stays hidden when the bar expands; Option-click the
   arrow to show it until the next collapse. Turn the beta off in Settings › Advanced to
@@ -72,7 +72,7 @@ Tabs in a centered control at the top (Cmd+1 to Cmd+5). A status card at the top
 | Advanced (macOS 27, direct) | Show all icons while macOS hides one right of the arrow | `pauseHidingForUnkeepableItems` |
 | About (direct) | Check for updates automatically, Check for Updates… | Sparkle's `SUEnableAutomaticChecks` |
 
-A Menu Bar Apps tab joins the others on the macOS 27 direct build once the pinned sections beta registers it (`MenuBarAppsPane`).
+An Icons tab joins the others on the macOS 27 direct build once the pinned sections beta registers it (`MenuBarAppsPane`).
 
 Debug builds can draw every pane and status state, light and dark, to PNGs without showing a window: run the built binary with `-settingsSnapshotDir <dir>`; it quits when done and writes no preference.
 
@@ -122,7 +122,7 @@ To undo any of them: `defaults delete com.dwarvesv.minimalbar <key>`.
 | App language stuck | See the `AppleLanguages` command above, or System Settings > General > Language & Region > Applications |
 | Nothing hides on a macOS 27 beta | Known (issue #360); the menu bar re-architecture broke the hiding mechanism, fix under investigation |
 | A new or just-updated app's icon shows up already hidden | macOS 26 and earlier, or the App Store build: expected, see "Why new icons start hidden" below; ⌘-drag it to the right of the separator once. macOS 27 direct build: new and relaunched apps start visible (Pinned sections, beta) |
-| An app jumps into the hidden section by itself (BitBar, SwiftBar) | macOS 27 direct build: in Settings > Menu Bar Apps, tick "Ignore drags" on that app; it then keeps the section you picked |
+| An app jumps into the hidden section by itself (BitBar, SwiftBar) | macOS 27 direct build: in Settings > Icons, tick "Ignore drags" on that app; it then keeps the section you picked |
 | Date disappears from the clock when collapsed (macOS 26 and earlier) | The collapsed bar takes the space macOS measures; set System Settings > Control Center > Clock > Show date to Always. macOS 27 with the direct build is not affected |
 
 ### Why new icons start hidden
@@ -136,7 +136,7 @@ one app to reposition another app's menu-bar icon. The one-time fix is to ⌘-dr
 the icon to the right of the separator; macOS remembers that placement per app.
 
 On macOS 27 with the direct build, Hidden Bar keeps a section per app instead
-(Pinned sections, beta, on by default; Settings > Menu Bar Apps). A new or
+(Pinned sections, beta, on by default; Settings > Icons). A new or
 relaunched app starts visible and stays in the section you pick, also after it
 restarts. A ⌘-drag across the arrow still moves it. An app that recreates its
 icon without relaunching (BitBar, SwiftBar) can look like a drag; tick "Ignore

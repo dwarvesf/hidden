@@ -41,7 +41,7 @@ Every worker on this mega-goal follows this file. It is pinned at Wave 0 and cha
 
 ## 4. Settings UI (match the 1.12 redesign)
 
-- Rows go on existing tabs only; no new tab. Placement is fixed by the design boards: F1, F3, F4 on General; F2 on Menu Bar Apps.
+- Rows go on existing tabs only; no new tab. Placement is fixed by the design boards: F1, F3, F4 on General; F2 on Icons.
 - Toggle row: `SettingsForm.row(title, caption:, control: boundSwitch(key, read:, write:))`. Group: `addSection(title, rows:)`. Footnote: `addFootnote(_:)`. Refresh: `onRefresh { }`.
 - Gate direct-only rows on `context.usesNativeEngine` (F1, F2, F4). F3 rows show in both builds.
 - Shortcut recorder: use the shared `ShortcutRecorderRow` that SG-01 extracts. Never copy the inline recorder from `PreferencesViewController.swift`.
