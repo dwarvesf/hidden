@@ -184,57 +184,46 @@ final class AppStoreMigrationTests: XCTestCase {
     // MARK: move into /Applications
 
     func testApplicationsFolderDetection() {
-        let home = URL(fileURLWithPath: "/Users/x")
-        XCTAssertTrue(MoveToApplications.isInApplicationsFolder(URL(fileURLWithPath: "/Applications/Hidden Bar.app"), home: home))
-        XCTAssertTrue(MoveToApplications.isInApplicationsFolder(URL(fileURLWithPath: "/Applications/Utilities/Hidden Bar.app"), home: home))
-        XCTAssertTrue(MoveToApplications.isInApplicationsFolder(URL(fileURLWithPath: "/Users/x/Applications/Hidden Bar.app"), home: home))
-        XCTAssertFalse(MoveToApplications.isInApplicationsFolder(URL(fileURLWithPath: "/Users/x/Downloads/Hidden Bar.app"), home: home))
-        XCTAssertFalse(MoveToApplications.isInApplicationsFolder(URL(fileURLWithPath: "/ApplicationsOld/Hidden Bar.app"), home: home))
+        XCTAssertTrue(MoveToApplications.isInApplicationsFolder(URL(fileURLWithPath: "/Applications/Hidden Bar.app")))
+        XCTAssertTrue(MoveToApplications.isInApplicationsFolder(URL(fileURLWithPath: "/Applications/Utilities/Hidden Bar.app")))
+        XCTAssertFalse(MoveToApplications.isInApplicationsFolder(URL(fileURLWithPath: "/Users/x/Applications/Hidden Bar.app")),
+                       "macOS 27 hides the arrow of a copy in ~/Applications")
+        XCTAssertFalse(MoveToApplications.isInApplicationsFolder(URL(fileURLWithPath: "/Users/x/Downloads/Hidden Bar.app")))
+        XCTAssertFalse(MoveToApplications.isInApplicationsFolder(URL(fileURLWithPath: "/ApplicationsOld/Hidden Bar.app")))
         XCTAssertTrue(MoveToApplications.isTranslocated(URL(fileURLWithPath: "/private/var/folders/ab/T/AppTranslocation/1234/d/Hidden Bar.app")))
         XCTAssertEqual(MoveToApplications.destination(for: URL(fileURLWithPath: "/Users/x/Downloads/Hidden Bar.app")).path,
                        "/Applications/Hidden Bar.app")
     }
 
-    // Fake answers: the plan reads no disk, so writability and App Store copies are parameters.
+    // Fake answers: the plan reads no disk, so writability and the App Store copy are parameters.
     private func plan(_ running: String = "/Users/x/Downloads/Hidden Bar.app", answered: Bool = false,
-                      writable: Bool = true, masInApplications: Bool = false,
-                      userUsable: Bool = true, masInUserApplications: Bool = false) -> MoveToApplications.Plan {
-        MoveToApplications.plan(runningBundle: URL(fileURLWithPath: running), home: URL(fileURLWithPath: "/Users/x"),
-                                alreadyAnswered: answered, applicationsWritable: writable,
-                                applicationsHoldsAppStoreCopy: masInApplications,
-                                userApplicationsUsable: userUsable, userApplicationsHoldsAppStoreCopy: masInUserApplications)
+                      writable: Bool = true, masInApplications: Bool = false) -> MoveToApplications.Plan {
+        MoveToApplications.plan(runningBundle: URL(fileURLWithPath: running), alreadyAnswered: answered,
+                                applicationsWritable: writable, applicationsHoldsAppStoreCopy: masInApplications)
     }
 
     func testMoveGoesToApplicationsWhenItCan() {
         XCTAssertEqual(plan(), .moveToApplications(URL(fileURLWithPath: "/Applications/Hidden Bar.app")))
+        XCTAssertEqual(plan("/Users/x/Applications/Hidden Bar.app"), .moveToApplications(URL(fileURLWithPath: "/Applications/Hidden Bar.app")))
         XCTAssertEqual(plan("/Applications/Hidden Bar.app"), MoveToApplications.Plan.none)
-        XCTAssertEqual(plan("/Users/x/Applications/Hidden Bar.app"), MoveToApplications.Plan.none)
         XCTAssertEqual(plan(answered: true), MoveToApplications.Plan.none, "offered once")
     }
 
     /// Dead end: "Not now" to the Trash left the App Store copy in /Applications
-    /// and the move offer never showed.
-    func testKeptAppStoreCopyInApplicationsSendsTheMoveToUserApplications() {
-        XCTAssertEqual(plan(masInApplications: true),
-                       .moveToUserApplicationsAppStoreCopyKept(URL(fileURLWithPath: "/Users/x/Applications/Hidden Bar.app")))
+    /// and the move offer never showed, nor anything else.
+    func testKeptAppStoreCopyInApplicationsExplainsWhatToDo() {
+        XCTAssertEqual(plan(masInApplications: true), .explainAppStoreCopyKept)
+        XCTAssertEqual(plan(answered: true, masInApplications: true), MoveToApplications.Plan.none)
     }
 
     /// Dead end: a standard account cannot write /Applications.
-    func testUnwritableApplicationsSendsTheMoveToUserApplications() {
-        XCTAssertEqual(plan(writable: false),
-                       .moveToUserApplicationsNotWritable(URL(fileURLWithPath: "/Users/x/Applications/Hidden Bar.app")))
-        XCTAssertEqual(plan(writable: false, masInApplications: true),
-                       .moveToUserApplicationsNotWritable(URL(fileURLWithPath: "/Users/x/Applications/Hidden Bar.app")))
+    func testUnwritableApplicationsExplainsWhatToDo() {
+        XCTAssertEqual(plan(writable: false), .explainNotWritable)
+        XCTAssertEqual(plan(writable: false, masInApplications: true), .explainNotWritable)
     }
 
-    func testNoUsableFolderExplainsInsteadOfStayingSilent() {
-        XCTAssertEqual(plan(writable: false, userUsable: false), .explain)
-        XCTAssertEqual(plan(masInApplications: true, masInUserApplications: true), .explain)
-        XCTAssertEqual(plan(answered: true, writable: false, userUsable: false), MoveToApplications.Plan.none)
-    }
-
-    /// The move check reads the real folders: a fake home and a fake /Applications.
-    func testMovePlanReadsFoldersAndKeptAppStoreCopy() throws {
+    /// The move check reads the real folder: a fake /Applications on disk.
+    func testMovePlanReadsTheFolderAndTheKeptAppStoreCopy() throws {
         let downloads = try makeBundle("Downloads/Hidden Bar.app", bundleID: bundleID, appStore: false)
         let system = root.appendingPathComponent("SystemApplications")
         try FileManager.default.createDirectory(at: system, withIntermediateDirectories: true)
@@ -246,14 +235,11 @@ final class AppStoreMigrationTests: XCTestCase {
         XCTAssertEqual(migration().movePlan, .moveToApplications(system.appendingPathComponent("Hidden Bar.app")))
 
         _ = try makeBundle("SystemApplications/Hidden Bar.app", bundleID: bundleID, appStore: true)
-        XCTAssertEqual(migration().movePlan,
-                       .moveToUserApplicationsAppStoreCopyKept(root.appendingPathComponent("Applications/Hidden Bar.app")),
-                       "~/Applications is missing but creatable")
+        XCTAssertEqual(migration().movePlan, .explainAppStoreCopyKept)
 
         // The Trash answer does not matter.
         MigrationOfferLedger(defaults: defaults).recordAnswer(MigrationOfferLedger.trashKey)
-        XCTAssertEqual(migration().movePlan,
-                       .moveToUserApplicationsAppStoreCopyKept(root.appendingPathComponent("Applications/Hidden Bar.app")))
+        XCTAssertEqual(migration().movePlan, .explainAppStoreCopyKept)
     }
 
     // MARK: another copy already running

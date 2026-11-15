@@ -12,7 +12,7 @@ import AppKit
 // reads ~/Library/Preferences. On launch the direct build offers, once each:
 //   1. import the App Store build's settings (known keys only),
 //   2. move a leftover App Store copy to the Trash,
-//   3. move itself into /Applications, or ~/Applications when /Applications is
+//   3. move itself into /Applications, or say what to do when /Applications is
 //      not writable or holds the App Store copy the user kept.
 // Before those, an App Store copy that is already running is offered a quit
 // instead of this build quitting silently.
@@ -194,24 +194,21 @@ enum OtherRunningCopy {
     }
 }
 
-/// Where to move the running copy so macOS 27 knows it by bundle id.
+/// Where to move the running copy so macOS 27 knows it by bundle id. Only
+/// /Applications counts: run from ~/Applications, macOS 27 still hides the
+/// arrow on collapse, like any folder outside /Applications.
 enum MoveToApplications {
     enum Plan: Equatable {
         case none
-        /// Move into /Applications.
         case moveToApplications(URL)
-        /// /Applications is not writable for this account: use ~/Applications.
-        case moveToUserApplicationsNotWritable(URL)
         /// The App Store copy the user kept holds /Applications/Hidden Bar.app.
-        case moveToUserApplicationsAppStoreCopyKept(URL)
-        /// Neither folder can take it: say plainly what to do.
-        case explain
+        case explainAppStoreCopyKept
+        /// This account cannot write to /Applications.
+        case explainNotWritable
     }
 
-    static func isInApplicationsFolder(_ bundleURL: URL, home: URL) -> Bool {
-        let path = bundleURL.resolvingSymlinksInPath().standardizedFileURL.path
-        let roots = ["/Applications/", home.appendingPathComponent("Applications").standardizedFileURL.path + "/"]
-        return roots.contains { path.hasPrefix($0) }
+    static func isInApplicationsFolder(_ bundleURL: URL) -> Bool {
+        bundleURL.resolvingSymlinksInPath().standardizedFileURL.path.hasPrefix("/Applications/")
     }
 
     /// Gatekeeper runs a quarantined app from a read-only random path.
@@ -223,26 +220,15 @@ enum MoveToApplications {
         folder.appendingPathComponent(bundleURL.lastPathComponent)
     }
 
-    static func userApplications(home: URL) -> URL {
-        home.appendingPathComponent("Applications")
-    }
-
-    /// Independent of the Trash answer: an App Store copy left in
-    /// /Applications sends the move to ~/Applications instead of skipping it.
-    static func plan(runningBundle: URL, home: URL, alreadyAnswered: Bool,
+    /// Independent of the Trash answer: when /Applications cannot take this
+    /// copy, say what to do instead of skipping the offer in silence.
+    static func plan(runningBundle: URL, alreadyAnswered: Bool,
                      applicationsWritable: Bool, applicationsHoldsAppStoreCopy: Bool,
-                     userApplicationsUsable: Bool, userApplicationsHoldsAppStoreCopy: Bool,
                      systemApplications: URL = URL(fileURLWithPath: "/Applications")) -> Plan {
-        guard !alreadyAnswered, !isInApplicationsFolder(runningBundle, home: home) else { return .none }
-        if applicationsWritable && !applicationsHoldsAppStoreCopy {
-            return .moveToApplications(destination(for: runningBundle, in: systemApplications))
-        }
-        if userApplicationsUsable && !userApplicationsHoldsAppStoreCopy {
-            let target = destination(for: runningBundle, in: userApplications(home: home))
-            return applicationsWritable ? .moveToUserApplicationsAppStoreCopyKept(target)
-                                        : .moveToUserApplicationsNotWritable(target)
-        }
-        return .explain
+        guard !alreadyAnswered, !isInApplicationsFolder(runningBundle) else { return .none }
+        guard applicationsWritable else { return .explainNotWritable }
+        guard !applicationsHoldsAppStoreCopy else { return .explainAppStoreCopyKept }
+        return .moveToApplications(destination(for: runningBundle, in: systemApplications))
     }
 }
 
@@ -302,9 +288,14 @@ final class AppStoreMigration {
             $0.bundleIdentifier == environment.bundleIdentifier && $0.processIdentifier != current
         }
         let others = apps.map { app in
-            OtherRunningCopy.Instance(
-                pid: app.processIdentifier, bundleURL: app.bundleURL,
-                isAppStoreBuild: app.bundleURL.map {
+            // Two bundles with one id can confuse Launch Services, so bundleURL
+            // may name the other copy; the executable path is the process's own.
+            let bundle = app.executableURL.map {
+                $0.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            } ?? app.bundleURL
+            return OtherRunningCopy.Instance(
+                pid: app.processIdentifier, bundleURL: bundle,
+                isAppStoreBuild: bundle.map {
                     AppStoreCopyFinder.isAppStoreBuild($0, fileManager: environment.fileManager)
                         || AppStoreCopyFinder.hasAppStoreSignature($0)
                 } ?? false)
@@ -331,7 +322,7 @@ final class AppStoreMigration {
             alert.informativeText = "Only one Hidden Bar can run at a time. The App Store version stays installed until you choose otherwise.".localized
             alert.addButton(withTitle: "Quit and Switch".localized)
             alert.addButton(withTitle: "Cancel".localized)
-            guard run(alert) == .alertFirstButtonReturn, let appStoreCopy else {
+            guard run(alert, id: "switch") == .alertFirstButtonReturn, let appStoreCopy else {
                 quit(inFavorOf: appStoreCopy)
                 return false
             }
@@ -394,7 +385,7 @@ final class AppStoreMigration {
         alert.addButton(withTitle: "Import".localized)
         alert.addButton(withTitle: "Not now".localized)
 
-        switch run(alert) {
+        switch run(alert, id: "import") {
         case .alertFirstButtonReturn:
             ledger.recordAnswer(MigrationOfferLedger.importKey)
             AppStoreSettingsImport.apply(container, to: environment.defaults)
@@ -433,7 +424,7 @@ final class AppStoreMigration {
         alert.addButton(withTitle: "Move to Trash".localized)
         alert.addButton(withTitle: "Not now".localized)
 
-        switch run(alert) {
+        switch run(alert, id: "trash") {
         case .alertFirstButtonReturn:
             ledger.recordAnswer(MigrationOfferLedger.trashKey)
             NSWorkspace.shared.recycle(copies) { _, error in
@@ -453,20 +444,12 @@ final class AppStoreMigration {
     var movePlan: MoveToApplications.Plan {
         let fm = environment.fileManager
         let running = environment.bundleURL
-        let userFolder = MoveToApplications.userApplications(home: environment.home)
-        var isFolder: ObjCBool = false
-        let userFolderExists = fm.fileExists(atPath: userFolder.path, isDirectory: &isFolder)
         return MoveToApplications.plan(
             runningBundle: running,
-            home: environment.home,
             alreadyAnswered: ledger.isAnswered(MigrationOfferLedger.moveKey),
             applicationsWritable: fm.isWritableFile(atPath: environment.systemApplications.path),
             applicationsHoldsAppStoreCopy: AppStoreCopyFinder.isAppStoreBuild(
                 MoveToApplications.destination(for: running, in: environment.systemApplications), fileManager: fm),
-            userApplicationsUsable: userFolderExists ? isFolder.boolValue && fm.isWritableFile(atPath: userFolder.path)
-                                                     : fm.isWritableFile(atPath: environment.home.path),
-            userApplicationsHoldsAppStoreCopy: AppStoreCopyFinder.isAppStoreBuild(
-                MoveToApplications.destination(for: running, in: userFolder), fileManager: fm),
             systemApplications: environment.systemApplications)
     }
 
@@ -477,26 +460,17 @@ final class AppStoreMigration {
         switch movePlan {
         case .none:
             return
-        case .explain:
-            let alert = NSAlert()
-            alert.alertStyle = .warning
-            alert.messageText = "Hidden Bar can't hide icons from this folder".localized
-            alert.informativeText = "macOS only lets Hidden Bar hide icons when it runs from an Applications folder, and neither /Applications nor the Applications folder in your home folder can take it. Quit Hidden Bar, drag it into /Applications (an administrator may need to do this), then open it from there.".localized
-            alert.addButton(withTitle: "OK".localized)
-            run(alert)
-            ledger.recordAnswer(MigrationOfferLedger.moveKey)
+        case .explainAppStoreCopyKept:
+            explainMove("The App Store copy is in /Applications. Quit Hidden Bar, move /Applications/Hidden Bar.app to the Trash, drag this copy into Applications, then open it from there.".localized)
+            return
+        case .explainNotWritable:
+            explainMove("This account can't add apps to /Applications. Ask an administrator to drag Hidden Bar into /Applications, then open it from there.".localized)
             return
         case .moveToApplications(let url):
             destination = url
             info = fm.fileExists(atPath: url.path)
                 ? "Hidden Bar is running from outside Applications. The copy already in Applications goes to the Trash, then Hidden Bar relaunches from there.".localized
                 : "Hidden Bar is running from outside Applications. Move it there so it keeps working after you empty Downloads, then relaunch.".localized
-        case .moveToUserApplicationsNotWritable(let url):
-            destination = url
-            info = "Hidden Bar is running from outside Applications, and this account can't write to /Applications. It moves to the Applications folder in your home folder instead, then relaunches from there.".localized
-        case .moveToUserApplicationsAppStoreCopyKept(let url):
-            destination = url
-            info = "Hidden Bar is running from outside Applications, and the App Store copy stays in /Applications. This version moves to the Applications folder in your home folder instead, then relaunches from there.".localized
         }
 
         let alert = NSAlert()
@@ -506,7 +480,7 @@ final class AppStoreMigration {
         alert.addButton(withTitle: "Move to Applications".localized)
         alert.addButton(withTitle: "Not now".localized)
 
-        switch run(alert) {
+        switch run(alert, id: "move") {
         case .alertFirstButtonReturn:
             ledger.recordAnswer(MigrationOfferLedger.moveKey)
             moveAndRelaunch(from: environment.bundleURL, to: destination)
@@ -517,17 +491,27 @@ final class AppStoreMigration {
         }
     }
 
+    /// Shown once: macOS 27 hides nothing for a copy outside /Applications.
+    private func explainMove(_ steps: String) {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = "Hidden Bar can hide icons only from /Applications".localized
+        alert.informativeText = steps
+        alert.addButton(withTitle: "OK".localized)
+        run(alert, id: "explain")
+        ledger.recordAnswer(MigrationOfferLedger.moveKey)
+    }
+
     private func moveAndRelaunch(from source: URL, to destination: URL) {
         let fm = environment.fileManager
         do {
-            try fm.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
             if fm.fileExists(atPath: destination.path) {
                 try fm.trashItem(at: destination, resultingItemURL: nil)
             }
             try fm.copyItem(at: source, to: destination)
         } catch {
             let failure = NSAlert(error: error)
-            run(failure)
+            run(failure, id: "error")
             return
         }
         // A translocated copy is a read-only view of the original; leave the
@@ -554,26 +538,31 @@ final class AppStoreMigration {
     }
 
     @discardableResult
-    private func run(_ alert: NSAlert) -> NSApplication.ModalResponse {
+    private func run(_ alert: NSAlert, id: String) -> NSApplication.ModalResponse {
         NSApp.activate(ignoringOtherApps: true)
         #if DEBUG
-        Self.scheduleDebugAnswer()
+        Self.scheduleDebugAnswer(for: id)
         #endif
         return alert.runModal()
     }
 
     #if DEBUG
-    /// Test hook: launch with `-debugAnswerAlerts "first,second,abort"` and each
-    /// alert gets the next answer after 3 seconds (time for a screenshot); once
-    /// the list runs out, alerts are aborted, which records nothing.
-    private static var debugAnswers: [String]? = UserDefaults.standard.string(forKey: "debugAnswerAlerts")?
-        .split(separator: ",").map(String.init)
+    /// Test hook: launch with `-debugAnswerAlerts "switch=first,move=second"`.
+    /// Each named alert (switch, import, trash, move, explain, error) gets that
+    /// answer after 3 seconds, time for a screenshot; any alert not named is
+    /// aborted, which records nothing and moves nothing.
+    private static let debugAnswers: [String: String]? = UserDefaults.standard.string(forKey: "debugAnswerAlerts").map {
+        Dictionary($0.split(separator: ",").compactMap { pair -> (String, String)? in
+            let parts = pair.split(separator: "=", maxSplits: 1).map(String.init)
+            return parts.count == 2 ? (parts[0], parts[1]) : nil
+        }, uniquingKeysWith: { _, last in last })
+    }
 
-    private static func scheduleDebugAnswer() {
-        guard debugAnswers != nil else { return }
-        let answer = debugAnswers?.isEmpty == false ? debugAnswers!.removeFirst() : "abort"
+    private static func scheduleDebugAnswer(for id: String) {
+        guard let debugAnswers else { return }
+        let answer = debugAnswers[id] ?? "abort"
         let timer = Timer(timeInterval: 3, repeats: false) { _ in
-            NSLog("AppStoreMigration: debug answer \(answer)")
+            NSLog("AppStoreMigration: debug answer \(id)=\(answer)")
             switch answer {
             case "first": NSApp.stopModal(withCode: .alertFirstButtonReturn)
             case "second": NSApp.stopModal(withCode: .alertSecondButtonReturn)
