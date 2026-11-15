@@ -38,8 +38,25 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         #endif
         #if !HIDDENBAR_NATIVE_VISIBILITY
         MacOS27Notice.shared.showAtLaunchIfNeeded()
+        #else
+        AppStoreMigration.shared.runAtLaunchIfNeeded { [weak self] in
+            self?.applyImportedPreferences()
+        }
         #endif
     }
+
+    #if HIDDENBAR_NATIVE_VISIBILITY
+    /// Settings imported from the App Store build were written straight to
+    /// UserDefaults; apply the ones with side effects and tell the UI.
+    private func applyImportedPreferences() {
+        Util.setUpAutoStart(isAutoStart: Preferences.isAutoStart)
+        setupHotKey()
+        for name: Notification.Name in [.prefsChanged, .alwayHideToggle, .useFullStatusBarToggle,
+                                        .stealthExpandIconToggle, .arrowStyleChanged] {
+            NotificationCenter.default.post(name: name, object: nil)
+        }
+    }
+    #endif
 
     /// Hidden Bar is a menu bar utility with no visible window, so launching it a
     /// second time looks like a no-op while silently spawning a duplicate instance.

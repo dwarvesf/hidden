@@ -6,6 +6,7 @@
 //
 
 import XCTest
+import AppKit
 
 #if !HIDDENBAR_NATIVE_VISIBILITY
 
@@ -61,6 +62,23 @@ final class MacOS27NoticeTests: XCTestCase {
         let current = policy()
         current.suppressForever()
         XCTAssertTrue(current.appliesToThisOS, "the menu item gates on the OS only")
+    }
+
+    // App Review 2.4.5(iv)/(vii): the button opens a web page, not a download.
+    func testNoticeLinksToAPageNotADownload() {
+        XCTAssertEqual(MacOS27Notice.pageURL.scheme, "https")
+        XCTAssertNotEqual(MacOS27Notice.pageURL.pathExtension.lowercased(), "zip")
+        XCTAssertFalse(MacOS27Notice.pageURL.path.contains("/releases/"))
+    }
+
+    func testNoticeShowsTheBrewCommandAsSelectableText() throws {
+        XCTAssertEqual(MacOS27Notice.brewCommand, "brew install --cask hiddenbar")
+        let stack = try XCTUnwrap(MacOS27Notice.makeBrewCommandView() as? NSStackView)
+        let fields = stack.arrangedSubviews.compactMap { $0 as? NSTextField }
+        let command = try XCTUnwrap(fields.first { $0.stringValue == MacOS27Notice.brewCommand })
+        XCTAssertTrue(command.isSelectable)
+        XCTAssertFalse(command.isEditable)
+        XCTAssertGreaterThan(stack.frame.height, 0)
     }
 }
 

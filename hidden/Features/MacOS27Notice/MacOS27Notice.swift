@@ -13,7 +13,10 @@ import AppKit
 // and compiles none of this.
 //
 // App Review 2.4.5(iv): a Mac App Store app must not fetch or install other
-// apps. This only opens a web page in the default browser.
+// apps, and 2.4.5(vii): updates come only through the Mac App Store. So this
+// opens a web page, never a direct .zip link (a button that downloads the newer
+// build reads as an update channel), and shows the Homebrew command as text the
+// user can copy and run themselves.
 #if !HIDDENBAR_NATIVE_VISIBILITY
 
 /// The "when to show" decision, kept free of AppKit so it can be unit tested
@@ -51,6 +54,7 @@ struct MacOS27NoticePolicy {
 final class MacOS27Notice: NSObject {
     static let shared = MacOS27Notice()
     static let pageURL = URL(string: "https://dwarves.foundation/opensource")!
+    static let brewCommand = "brew install --cask hiddenbar"
 
     #if DEBUG
     /// Launch with `-forceMacOS27Notice YES` to take the macOS 27 path on any
@@ -111,6 +115,7 @@ final class MacOS27Notice: NSObject {
         alert.addButton(withTitle: "Close".localized)
         alert.addButton(withTitle: "Don't show again".localized)
         alert.window.title = "Hidden Bar on macOS 27".localized
+        alert.accessoryView = Self.makeBrewCommandView()
 
         NSApp.activate(ignoringOtherApps: true)
         switch alert.runModal() {
@@ -121,6 +126,21 @@ final class MacOS27Notice: NSObject {
         default:
             break
         }
+    }
+
+    /// "Or with Homebrew:" plus the command in a selectable monospaced field.
+    static func makeBrewCommandView() -> NSView {
+        let label = NSTextField(labelWithString: "Or install it with Homebrew:".localized)
+        label.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        let command = NSTextField(labelWithString: brewCommand)
+        command.font = .monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        command.isSelectable = true
+        let stack = NSStackView(views: [label, command])
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.spacing = 4
+        stack.frame = NSRect(x: 0, y: 0, width: 300, height: stack.fittingSize.height)
+        return stack
     }
 }
 
