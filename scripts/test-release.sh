@@ -232,6 +232,10 @@ adhoc_sandboxed() {
   row_has 'Signature: identity, timestamp, runtime' 'FAIL' && row_has Unsandboxed 'FAIL: app-sandbox entitlement present'
 }
 t check-app-adhoc-sandboxed-fails adhoc_sandboxed
+adhoc_not_credited() {
+  rows_of check_app "$APP_EMPTY" 1.12.0 19; [ $? = 1 ] && row_has Unsandboxed 'FAIL: .*not credited: identity failed'
+}
+t check-app-adhoc-empty-dict-not-credited adhoc_not_credited
 wrong_pubkey() { rows_of check_app "$APP_KEY" 1.12.0 19; [ $? = 1 ] && row_has 'EdDSA public key' 'FAIL: SUPublicEDKey differs'; }
 t check-app-wrong-pubkey-fails wrong_pubkey
 devid_sandboxed() {
