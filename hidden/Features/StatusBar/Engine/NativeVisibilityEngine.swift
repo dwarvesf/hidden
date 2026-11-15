@@ -630,8 +630,18 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // restriction at once. A collapse or expand in flight applies them when it
     // lands. Apps no read listed yet keep the section they were given.
     func pinnedSectionsDidChange() {
-        guard pinsSections(), var layout = layout else { return }
+        guard pinsSections() else { return }
         let table = pinnedSections.sections
+        // An app removed from the table must not come back through an earlier
+        // read: an overflowing read borrows from the last complete one, and the
+        // resolver would add the app to the table again. A launched app stays.
+        let listed = { [launchedSinceRead] (bundle: String) in table[bundle] != nil || launchedSinceRead.contains(bundle) }
+        if var complete = lastCompleteLayout {
+            complete.sections = complete.sections.filter { listed($0.key) }
+            lastCompleteLayout = complete
+        }
+        guard var layout = layout else { return }
+        layout.sections = layout.sections.filter { listed($0.key) }
         for bundle in layout.sections.keys {
             if let pinned = table[bundle] { layout.sections[bundle] = pinned }
         }

@@ -29,6 +29,7 @@ A redesigned Settings window, pinned sections (beta) on macOS 27, and the fixes 
 - Menu-bar apps without a Dock icon are now noticed when they start, so they get their section back too.
 - Icons has a per-app "Ignore drags" option for apps that recreate their icon without restarting (SwiftBar, BitBar), so their section stays put ([#487](https://github.com/dwarvesf/hidden/pull/487)).
 - The Icons pane opens fast, shows real names and icons for system services and app helpers, and tells same-named apps apart.
+- Icons marks apps that are not running with "Not running" and lets you remove them from the list. An app you remove comes back as a new app the next time it runs.
 
 ### macOS 26 and earlier
 - The always-hidden section stays hidden when the bar expands; Option-click shows it until the next collapse (#224).

@@ -132,6 +132,24 @@ final class MenuBarAppIdentityTests: XCTestCase {
         XCTAssertEqual(captions["com.apple.sharingd"], "macOS")
     }
 
+    // Given rows that are not running, some with a caption or a same-named twin
+    // When asking for captions
+    // Then "Not running" comes last, after "macOS" and the bundle id, and running rows are unchanged
+    func test_notRunningRows_endTheirCaptionWithNotRunning() {
+        let captions = MenuBarAppIdentity.captions(for: [
+            ("com.dwarves.sharebar.shots", "Share Bar", nil),
+            ("foundation.d.share.bar", "Share Bar", nil),
+            ("com.apple.sharingd", "AirDrop and Sharing", "macOS"),
+            ("com.apple.Safari", "Safari", nil),
+            ("com.apple.Notes", "Notes", nil),
+        ], notRunning: ["com.dwarves.sharebar.shots", "com.apple.sharingd", "com.apple.Notes"])
+        XCTAssertEqual(captions["com.dwarves.sharebar.shots"], "com.dwarves.sharebar.shots, Not running")
+        XCTAssertEqual(captions["foundation.d.share.bar"], "foundation.d.share.bar")
+        XCTAssertEqual(captions["com.apple.sharingd"], "macOS, Not running")
+        XCTAssertEqual(captions["com.apple.Notes"], "Not running")
+        XCTAssertNil(captions["com.apple.Safari"])
+    }
+
     // Given the cache with counting lookups
     // When asking twice for the same installed app's name and icon
     // Then the URL is resolved and the icon loaded once; an app that is not installed is looked up again
@@ -180,9 +198,11 @@ final class MenuBarAppsPaneTimingTests: XCTestCase {
             MenuBarAppIdentity.Resolved(name: "App " + bundle.suffix(2), icon: .generic, caption: nil)
         }
         func icon(for bundle: String) -> NSImage { iconLoads += 1; return NSImage() }
+        func runningBundles() -> Set<String> { Set(table.keys) }
         func set(_ section: MenuBarSection, for bundle: String) { table[bundle] = section }
         func setIgnoresDrags(_ ignores: Bool, for bundle: String) {}
         func resetAllToVisible() {}
+        func remove(_ bundle: String) {}
         func enable() {}
     }
 

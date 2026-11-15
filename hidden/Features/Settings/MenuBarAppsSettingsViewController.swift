@@ -15,9 +15,12 @@ protocol MenuBarAppsStore {
     func entries() -> [PinnedSectionsList.Entry]
     func identity(for bundle: String) -> MenuBarAppIdentity.Resolved
     func icon(for bundle: String) -> NSImage
+    /// Bundle ids with a running process, read once per rebuild of the pane.
+    func runningBundles() -> Set<String>
     func set(_ section: MenuBarSection, for bundle: String)
     func setIgnoresDrags(_ ignores: Bool, for bundle: String)
     func resetAllToVisible()
+    func remove(_ bundle: String)
     func enable()
 }
 
@@ -37,6 +40,10 @@ struct LiveMenuBarAppsStore: MenuBarAppsStore {
     // The app's own icon, from its bundle: no screen capture.
     func icon(for bundle: String) -> NSImage { identities.icon(for: bundle) }
 
+    func runningBundles() -> Set<String> {
+        Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
+    }
+
     func set(_ section: MenuBarSection, for bundle: String) {
         PinnedSectionEdits.set(section, for: bundle, in: UserDefaultsPinnedSections())
     }
@@ -50,6 +57,10 @@ struct LiveMenuBarAppsStore: MenuBarAppsStore {
         PinnedSectionEdits.resetAllToVisible(in: UserDefaultsPinnedSections())
     }
 
+    func remove(_ bundle: String) {
+        PinnedSectionEdits.remove(bundle, in: UserDefaultsPinnedSections())
+    }
+
     func enable() {
         Preferences.pinnedSectionsEnabled = true
     }
@@ -57,6 +68,7 @@ struct LiveMenuBarAppsStore: MenuBarAppsStore {
 
 /// Icons: one row per app the pinned sections know, with its icon, its
 /// name and a section popup that applies at once, then "Reset all to visible".
+/// An app that is not running can also be removed from the list.
 final class MenuBarAppsSettingsViewController: SettingsPaneController {
     static let sectionTitles: [(MenuBarSection, String)] = [
         (.visible, "Visible"), (.hidden, "Hidden"), (.alwaysHidden, "Always hidden"),
@@ -69,12 +81,20 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
     static func lockIdentifier(for bundle: String) -> String {
         "\(UserDefaultsDragLocks.key).\(bundle)"
     }
+    /// Identifier of the "Remove" button of an app that is not running.
+    static func removeIdentifier(for bundle: String) -> String {
+        "pinnedSectionsRemove.\(bundle)"
+    }
+    /// The rows that show "Not running" and Remove. Never the macOS extras row: it is no app.
+    static func notRunning(_ bundles: [String], running: Set<String>) -> Set<String> {
+        Set(bundles.filter { $0 != MenuBarLayoutResolver.systemExtrasBundle && !running.contains($0) })
+    }
     static let maxListHeight: CGFloat = 360
 
     private let store: MenuBarAppsStore
     private let content = NSStackView()
     /// What the rows were last built from: switching back to the tab changes nothing unless this does.
-    private var built: (isEnabled: Bool, entries: [PinnedSectionsList.Entry])?
+    private var built: (isEnabled: Bool, entries: [PinnedSectionsList.Entry], notRunning: Set<String>)?
 
     init(context: SettingsContext, store: MenuBarAppsStore = LiveMenuBarAppsStore()) {
         self.store = store
@@ -102,8 +122,9 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
     private func rebuild() {
         let isEnabled = store.isEnabled
         let entries = isEnabled ? store.entries() : []
-        if let built, built.isEnabled == isEnabled, built.entries == entries { return }
-        built = (isEnabled, entries)
+        let notRunning = Self.notRunning(entries.map(\.bundle), running: entries.isEmpty ? [] : store.runningBundles())
+        if let built, built.isEnabled == isEnabled, built.entries == entries, built.notRunning == notRunning { return }
+        built = (isEnabled, entries, notRunning)
         content.arrangedSubviews.forEach { $0.removeFromSuperview() }
         guard isEnabled else {
             let turnOn = NSButton(title: "Turn On".localized, target: self, action: #selector(turnOn))
@@ -121,7 +142,7 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
                 caption: "Apps with a menu bar icon appear here after the bar collapses once.".localized,
                 control: nil)]))
         } else {
-            add(list(entries))
+            add(list(entries, notRunning: notRunning))
         }
         let reset = NSButton(title: "Reset".localized, target: self, action: #selector(resetAll))
         reset.controlSize = .small
@@ -138,9 +159,10 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
     }
 
     // The group scrolls once it is taller than the window should grow.
-    private func list(_ entries: [PinnedSectionsList.Entry]) -> NSView {
-        let captions = MenuBarAppIdentity.captions(for: entries.map { ($0.bundle, $0.name, store.identity(for: $0.bundle).caption) })
-        let group = SettingsGroupView(rows: entries.map { row($0, caption: captions[$0.bundle]) })
+    private func list(_ entries: [PinnedSectionsList.Entry], notRunning: Set<String>) -> NSView {
+        let captions = MenuBarAppIdentity.captions(for: entries.map { ($0.bundle, $0.name, store.identity(for: $0.bundle).caption) },
+                                                   notRunning: notRunning)
+        let group = SettingsGroupView(rows: entries.map { row($0, caption: captions[$0.bundle], canRemove: notRunning.contains($0.bundle)) })
         let fittingHeight = group.fittingSize.height
         let height = min(fittingHeight, Self.maxListHeight)
         guard fittingHeight > Self.maxListHeight else { return group }
@@ -164,7 +186,7 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         return scroll
     }
 
-    private func row(_ entry: PinnedSectionsList.Entry, caption: String?) -> NSView {
+    private func row(_ entry: PinnedSectionsList.Entry, caption: String?, canRemove: Bool) -> NSView {
         let popup = NSPopUpButton(frame: .zero, pullsDown: false)
         popup.controlSize = .small
         for (section, title) in Self.sectionTitles {
@@ -183,6 +205,12 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         lock.toolTip = "Keep this app in its section even when its icon moves on its own, as BitBar and SwiftBar do. Dragging no longer changes it; the popup still does.".localized
         let controls = NSStackView(views: [lock, popup])
         controls.spacing = 10
+        if canRemove {
+            let remove = NSButton(title: "Remove".localized, target: self, action: #selector(removeTapped(_:)))
+            remove.controlSize = .small
+            remove.identifier = NSUserInterfaceItemIdentifier(Self.removeIdentifier(for: entry.bundle))
+            controls.addArrangedSubview(remove)
+        }
 
         let row = SettingsForm.row(entry.name, caption: caption, control: controls)
         row.toolTip = entry.bundle
@@ -217,6 +245,11 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         store.setIgnoresDrags(sender.state == .on, for: String(raw.dropFirst(UserDefaultsDragLocks.key.count + 1)))
     }
 
+    @objc private func removeTapped(_ sender: NSButton) {
+        guard let raw = sender.identifier?.rawValue else { return }
+        store.remove(String(raw.dropFirst(Self.removeIdentifier(for: "").count)))
+    }
+
     @objc private func resetAll() {
         store.resetAllToVisible()
     }
@@ -236,6 +269,7 @@ private final class FlippedView: NSView {
 struct SnapshotMenuBarAppsStore: MenuBarAppsStore {
     var isEnabled: Bool
     var table: [String: MenuBarSection]
+    var notRunning: Set<String> = []
     let live = LiveMenuBarAppsStore()
 
     static let states: [(String, SnapshotMenuBarAppsStore)] = [
@@ -245,7 +279,7 @@ struct SnapshotMenuBarAppsStore: MenuBarAppsStore {
             "com.example.uninstalled": .hidden, "com.apple.chronod": .hidden, "com.apple.sharingd": .hidden,
             "com.apple.screensharing.agent": .hidden, "com.apple.SSMenuAgent": .visible,
             "com.hnc.Discord.helper.Renderer": .hidden,
-        ])),
+        ], notRunning: ["com.example.uninstalled", "com.apple.chronod"])),
         ("off", SnapshotMenuBarAppsStore(isEnabled: false, table: [:])),
         ("empty", SnapshotMenuBarAppsStore(isEnabled: true, table: [:])),
     ]
@@ -256,9 +290,11 @@ struct SnapshotMenuBarAppsStore: MenuBarAppsStore {
 
     func identity(for bundle: String) -> MenuBarAppIdentity.Resolved { live.identity(for: bundle) }
     func icon(for bundle: String) -> NSImage { live.icon(for: bundle) }
+    func runningBundles() -> Set<String> { Set(table.keys).subtracting(notRunning) }
     func set(_ section: MenuBarSection, for bundle: String) {}
     func setIgnoresDrags(_ ignores: Bool, for bundle: String) {}
     func resetAllToVisible() {}
+    func remove(_ bundle: String) {}
     func enable() {}
 }
 #endif

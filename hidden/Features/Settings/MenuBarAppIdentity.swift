@@ -65,17 +65,18 @@ enum MenuBarAppIdentity {
         return URL(fileURLWithPath: NSString.path(withComponents: Array(parts[0...index])))
     }
 
-    /// Rows whose name another row shares get the bundle id as caption, after any caption they have.
-    static func captions(for rows: [(bundle: String, name: String, caption: String?)]) -> [String: String] {
+    /// Rows whose name another row shares get the bundle id as caption, after any caption they have;
+    /// rows in `notRunning` end with "Not running".
+    static func captions(for rows: [(bundle: String, name: String, caption: String?)],
+                         notRunning: Set<String> = []) -> [String: String] {
         var counts: [String: Int] = [:]
         rows.forEach { counts[$0.name.lowercased(), default: 0] += 1 }
         var result: [String: String] = [:]
         for row in rows {
-            if counts[row.name.lowercased(), default: 0] > 1 {
-                result[row.bundle] = [row.caption, row.bundle].compactMap { $0 }.joined(separator: ", ")
-            } else if let caption = row.caption {
-                result[row.bundle] = caption
-            }
+            var parts = [row.caption].compactMap { $0 }
+            if counts[row.name.lowercased(), default: 0] > 1 { parts.append(row.bundle) }
+            if notRunning.contains(row.bundle) { parts.append("Not running".localized) }
+            if !parts.isEmpty { result[row.bundle] = parts.joined(separator: ", ") }
         }
         return result
     }
