@@ -1020,6 +1020,183 @@ final class NativeVisibilityEngineTests: XCTestCase {
     }
 }
 
+// MARK: - Apps that start while something is hidden (K8)
+
+final class AppsLaunchedWhileHidingTests: XCTestCase {
+    private let own = "com.dwarvesv.minimalbar"
+    private var items: FakeItems!
+    private var inventory: FakeInventory!
+    private var visibility: FakeVisibility!
+    private var memory: InMemorySectionMemory!
+
+    override func setUp() {
+        super.setUp()
+        items = FakeItems()
+        inventory = FakeInventory()
+        inventory.items = [item("com.always", x: 900), item("com.hidden", x: 1100), item("com.visible", x: 1400)]
+        visibility = FakeVisibility()
+        memory = InMemorySectionMemory()
+    }
+
+    private func makeEngine() -> NativeVisibilityEngine {
+        let items = self.items!
+        return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility, clock: FakeClock(),
+                                      ownBundleIdentifier: own,
+                                      itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                      displays: { [mainDisplay] },
+                                      isLTR: { true },
+                                      sectionMemory: memory)
+    }
+
+    private func collapsed(_ engine: NativeVisibilityEngine) -> FakeAssertion {
+        engine.collapse { _ in }
+        return visibility.succeed(visibility.requests.count - 1)
+    }
+
+    func testAnAppNeverReadIsShownUntilTheNextReadPlacesIt() {
+        let engine = makeEngine()
+        let first = collapsed(engine)
+
+        engine.applicationLaunched("com.new")
+        XCTAssertEqual(visibility.requests.count, 2)
+        guard visibility.requests.count == 2 else { return }
+        XCTAssertEqual(visibility.requests[1].bundles, [own, "com.new", "com.visible"])
+        XCTAssertFalse(first.isInvalidated, "the old restriction stays until the new one is active")
+        visibility.succeed(1)
+        XCTAssertTrue(first.isInvalidated)
+        XCTAssertEqual(engine.state, .collapsed)
+
+        // macOS put the new icon on the hidden side: the next read decides.
+        engine.expand()
+        inventory.items.append(item("com.new", x: 1150))
+        _ = collapsed(engine)
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.visible"])
+    }
+
+    func testAnAppQuitAtTheReadReturnsToTheSectionItWasLastReadIn() {
+        let engine = makeEngine()
+        _ = collapsed(engine)
+        engine.expand()
+
+        inventory.items = [item("com.always", x: 900)]
+        _ = collapsed(engine)
+        XCTAssertEqual(visibility.requests.last?.bundles, [own])
+
+        engine.applicationLaunched("com.hidden")
+        engine.applicationLaunched("com.always")
+        XCTAssertEqual(visibility.requests.count, 2, "hidden apps stay hidden")
+
+        engine.applicationLaunched("com.visible")
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.visible"])
+    }
+
+    func testRememberedSectionsOutliveTheEngine() {
+        _ = collapsed(makeEngine())
+
+        // Hidden Bar starts again (a login) before the other apps do.
+        visibility = FakeVisibility()
+        inventory.items = []
+        let engine = makeEngine()
+        _ = collapsed(engine)
+        engine.applicationLaunched("com.hidden")
+        XCTAssertEqual(visibility.requests.count, 1)
+        engine.applicationLaunched("com.visible")
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.visible"])
+    }
+
+    func testAReadWinsOverTheRememberedSection() {
+        memory.sections = ["com.visible": .hidden, "com.hidden": .visible]
+        let engine = makeEngine()
+        _ = collapsed(engine)
+        XCTAssertEqual(visibility.requests[0].bundles, [own, "com.visible"])
+        XCTAssertEqual(memory.sections["com.hidden"], .hidden)
+    }
+
+    func testAnAppRelaunchedSinceTheReadKeepsItsReadSection() {
+        let engine = makeEngine()
+        _ = collapsed(engine)
+        engine.applicationLaunched("com.hidden")
+        engine.applicationLaunched("com.visible")
+        XCTAssertEqual(visibility.requests.count, 1)
+    }
+
+    func testALaunchDuringACollapseIsAllowedOnceItLands() {
+        let engine = makeEngine()
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+        engine.applicationLaunched("com.new")
+        XCTAssertEqual(visibility.requests.count, 1, "nothing is swapped while an activation is in flight")
+
+        visibility.succeed(0)
+        XCTAssertEqual(results, [.collapsed])
+        XCTAssertEqual(visibility.requests.count, 2)
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.new", "com.visible"])
+    }
+
+    func testALaunchBeforeTheReadIsShownIfItsIconIsNotListedYet() {
+        let engine = makeEngine()
+        engine.applicationLaunched("com.slow")
+        XCTAssertTrue(visibility.requests.isEmpty, "nothing is hidden yet")
+        _ = collapsed(engine)
+        XCTAssertEqual(visibility.requests[0].bundles, [own, "com.slow", "com.visible"])
+        XCTAssertNil(memory.sections["com.slow"], "only reads are remembered")
+
+        engine.applicationTerminated("com.slow")
+        engine.expand()
+        _ = collapsed(engine)
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.visible"])
+    }
+
+    func testExpandedWithTheAlwaysHiddenSectionHiddenShowsTheHiddenSectionToo() {
+        memory.sections = ["com.always2": .alwaysHidden]
+        let engine = makeEngine()
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        visibility.succeed(visibility.requests.count - 1)
+
+        engine.applicationLaunched("com.always2")
+        XCTAssertEqual(visibility.requests.count, 1)
+        engine.applicationLaunched("com.new")
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.hidden", "com.new", "com.visible"])
+    }
+
+    func testNothingIsSwappedWhileNothingIsHidden() {
+        let engine = makeEngine()
+        engine.applicationLaunched("com.new")
+        _ = collapsed(engine)
+        engine.expand()
+        engine.applicationLaunched("com.other")
+        XCTAssertEqual(visibility.requests.count, 1)
+    }
+
+    func testHiddenBarAndMacOSItemOwnersAreLeftAlone() {
+        let engine = makeEngine()
+        _ = collapsed(engine)
+        engine.applicationLaunched(own)
+        engine.applicationLaunched("com.apple.MenuBarAgent")
+        engine.applicationLaunched("com.apple.controlcenter")
+        XCTAssertEqual(visibility.requests.count, 1)
+    }
+
+    func testAFailedSwapFailsOpen() {
+        let engine = makeEngine()
+        _ = collapsed(engine)
+        engine.applicationLaunched("com.new")
+        XCTAssertEqual(visibility.requests.count, 2)
+        guard visibility.requests.count == 2 else { return }
+        visibility.fail(1)
+        XCTAssertEqual(engine.state, .expanded)
+    }
+
+    func testUserDefaultsMemoryRoundTrips() throws {
+        let suite = "HiddenBarTests.sectionMemory.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        UserDefaultsSectionMemory(defaults: defaults).sections = ["com.a": .hidden, "com.b": .visible, "com.c": .alwaysHidden]
+        XCTAssertEqual(UserDefaultsSectionMemory(defaults: defaults).sections,
+                       ["com.a": .hidden, "com.b": .visible, "com.c": .alwaysHidden])
+    }
+}
+
 // MARK: - Legacy engine
 
 final class LegacyLengthEngineTests: XCTestCase {

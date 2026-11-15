@@ -82,6 +82,36 @@ protocol MenuBarInventoryProviding: AnyObject {
     func snapshot(completion: @escaping ([MenuBarInventoryItem]) -> Void)
 }
 
+// The section each app was last read in, per bundle.
+protocol MenuBarSectionMemory: AnyObject {
+    var sections: [String: MenuBarSection] { get set }
+}
+
+final class InMemorySectionMemory: MenuBarSectionMemory {
+    var sections: [String: MenuBarSection] = [:]
+}
+
+// Kept across launches of Hidden Bar, so login items that start after it
+// return to the section they were in.
+final class UserDefaultsSectionMemory: MenuBarSectionMemory {
+    static let key = "nativeVisibilityLastSections"
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    var sections: [String: MenuBarSection] {
+        get {
+            let stored = defaults.dictionary(forKey: Self.key) as? [String: Int] ?? [:]
+            return stored.compactMapValues(MenuBarSection.init(rawValue:))
+        }
+        set {
+            defaults.set(newValue.mapValues(\.rawValue), forKey: Self.key)
+        }
+    }
+}
+
 struct MenuBarLayout: Equatable {
     // One section per owning bundle, because hiding is per bundle.
     var sections: [String: MenuBarSection]

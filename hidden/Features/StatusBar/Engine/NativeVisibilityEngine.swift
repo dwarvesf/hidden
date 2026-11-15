@@ -33,8 +33,10 @@ import AppKit
 //   per bundle instead.
 // - Sections are read only while nothing is hidden, because hidden items report
 //   stale positions. They are re-read on the next collapse from an unrestricted
-//   bar, so an app launched while collapsed stays hidden until then, the same
-//   as a new icon landing in the hidden section under the old mechanism.
+//   bar. An app that starts while something is hidden is not in the read, so it
+//   gets the section it was last read in (remembered across launches), or the
+//   visible one if it was never read, until that next read places it by where
+//   macOS put its icon.
 // - The restriction is assessment mode, which makes macOS ignore the clock, so
 //   Notification Center cannot open from it (#410). A click on the clock lifts
 //   the restriction for a moment and presses it (MenuBarClock); hidden icons
@@ -75,6 +77,13 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private var alwaysHiddenEnabled = false
     private var alwaysHiddenSeparatorHidden = false
 
+    // Where each app was last read, for apps that start while nothing can be read.
+    private let sectionMemory: MenuBarSectionMemory
+    // Apps that started since a read last listed them.
+    private var launchedSinceRead: Set<String> = []
+    private let workspaceNotifications: NotificationCenter?
+    private var workspaceObservers: [NSObjectProtocol] = []
+
     // Items right of the arrow that the allow-list cannot keep visible: an item
     // whose owner has no bundle id, or a system extra no system item id covers
     // (Focus, Now Playing, User...) that macOS hid although Control Center's
@@ -96,7 +105,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
          itemFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
          displays: @escaping () -> [MenuBarDisplay] = MenuBarDisplay.current,
          isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage },
-         pausesHidingForUnkeepableItems: @escaping () -> Bool = { false }) {
+         pausesHidingForUnkeepableItems: @escaping () -> Bool = { false },
+         sectionMemory: MenuBarSectionMemory = InMemorySectionMemory(),
+         workspaceNotifications: NotificationCenter? = nil) {
         self.items = items
         self.pausesHidingForUnkeepableItems = pausesHidingForUnkeepableItems
         self.inventory = inventory
@@ -106,7 +117,14 @@ final class NativeVisibilityEngine: MenuBarEngine {
         self.itemFrame = itemFrame
         self.displays = displays
         self.isLTR = isLTR
+        self.sectionMemory = sectionMemory
+        self.workspaceNotifications = workspaceNotifications
         items.separatorItem.isVisible = false
+        observeLaunches()
+    }
+
+    deinit {
+        workspaceObservers.forEach { workspaceNotifications?.removeObserver($0) }
     }
 
     func collapse(completion: @escaping (CollapseResult) -> Void) {
@@ -163,6 +181,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
                         self.setSeparatorsVisible(false)
                     }
                     completion(shown ? .collapsed : .unavailable)
+                    if shown {
+                        self.allowLaunchedAppsIfIdle()
+                    }
                 }
             }
         }
@@ -216,6 +237,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
             }
             self.activate(allowing: layout.bundles(in: [.visible, .hidden])) { [weak self] succeeded in
                 self?.setSeparatorsVisible(!succeeded)
+                if succeeded {
+                    self?.allowLaunchedAppsIfIdle()
+                }
             }
         }
     }
@@ -274,6 +298,12 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 NSLog("NativeVisibility: the active menu bar overflows; apps it does not list keep their last known section")
             } else {
                 self.lastCompleteLayout = layout
+            }
+            self.sectionMemory.sections.merge(layout.sections) { _, read in read }
+            self.launchedSinceRead.subtract(layout.sections.keys)
+            for bundle in self.launchedSinceRead {
+                // Started, but its icon was not listed yet.
+                layout.sections[bundle] = self.sectionMemory.sections[bundle] ?? .visible
             }
             NSLog("NativeVisibility: arrow at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
             if !layout.unnameableVisibleItems.isEmpty || !layout.unprovenVisibleSystemItems.isEmpty {
@@ -367,6 +397,57 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 self.state = .expanded
                 self.setSeparatorsVisible(true)
             }
+        }
+    }
+
+    private func observeLaunches() {
+        guard let center = workspaceNotifications else { return }
+        func bundle(_ note: Notification) -> String? {
+            return (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
+        }
+        workspaceObservers = [
+            center.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] note in
+                bundle(note).map { self?.applicationLaunched($0) }
+            },
+            center.addObserver(forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main) { [weak self] note in
+                bundle(note).map { self?.applicationTerminated($0) }
+            }
+        ]
+    }
+
+    // A held restriction allows only the apps it was given, so an app that
+    // starts meanwhile would be hidden wherever macOS puts its icon (new icons,
+    // login items that start after Hidden Bar, an app quit at the last read).
+    // It gets the section it was last read in, or visible if it never was.
+    // An app the last read listed keeps that section.
+    func applicationLaunched(_ bundle: String) {
+        guard bundle != ownBundleIdentifier,
+              !MenuBarLayoutResolver.systemItemOwners.contains(bundle) else { return }
+        launchedSinceRead.insert(bundle)
+        guard var layout = layout, layout.sections[bundle] == nil else { return }
+        layout.sections[bundle] = sectionMemory.sections[bundle] ?? .visible
+        self.layout = layout
+        allowLaunchedAppsIfIdle()
+    }
+
+    func applicationTerminated(_ bundle: String) {
+        launchedSinceRead.remove(bundle)
+    }
+
+    // Swaps the held restriction for one that also allows apps placed since it
+    // was activated. Not while anything is in flight; the collapse or expand
+    // that lands calls this again.
+    private func allowLaunchedAppsIfIdle() {
+        guard assertion != nil, generation == assertionGeneration, state != .calibrating,
+              let layout = layout else { return }
+        let shownSections: Set<MenuBarSection> = state == .collapsed ? [.visible] : [.visible, .hidden]
+        let wanted = layout.bundles(in: shownSections)
+        guard wanted != assertionBundles else { return }
+        NSLog("NativeVisibility: allowing apps that started while hiding: \(Set(wanted).subtracting(assertionBundles).sorted())")
+        activate(allowing: wanted) { [weak self] succeeded in
+            guard let self = self, !succeeded else { return }
+            self.state = .expanded
+            self.setSeparatorsVisible(true)
         }
     }
 

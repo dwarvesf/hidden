@@ -24,6 +24,16 @@ section is enabled.
   Accessibility) to see where your icons are. Without it the bar stays
   expanded.
 - Hiding is per app: an app with several icons hides or shows them together.
+  If any of its icons is right of the arrow, all of them stay visible; to hide
+  the app, ⌘-drag every one of its icons left of the arrow.
+- An app that starts while the bar is collapsed (a login item that starts
+  after Hidden Bar, an app you relaunch) shows in the section it was in last
+  time, or stays visible if Hidden Bar has never seen it. The next collapse
+  places it by where macOS put its icon, so a brand-new icon that macOS puts
+  on the far left is hidden from then on; ⌘-drag it right of the arrow once.
+- An icon whose app has no bundle identifier (a script run by an interpreter,
+  some helpers) cannot be kept visible on macOS 27. Preferences offers to show
+  all icons while one of them sits right of the arrow.
 - macOS's own items (clock, Wi-Fi, Sound, Control Center) always stay visible.
 - Run Hidden Bar from `/Applications`; macOS only recognizes that copy as
   Hidden Bar, and a copy elsewhere hides its own arrow.
