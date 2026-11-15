@@ -1,10 +1,23 @@
 name: CI
 
+# Docs-only changes skip the build. CHANGELOG.md is skipped too: nothing in the
+# project reads it at build or test time. Caveat: if this check ever becomes a
+# required status check, a skipped workflow leaves it pending; drop paths-ignore then.
 on:
   pull_request:
     branches: [develop]
+    paths-ignore:
+      - "docs/**"
+      - "img/**"
+      - "**/*.md"
+      - "LICENSE"
   push:
     branches: [develop]
+    paths-ignore:
+      - "docs/**"
+      - "img/**"
+      - "**/*.md"
+      - "LICENSE"
   workflow_dispatch:
 
 concurrency:
@@ -16,13 +29,21 @@ permissions:
 
 jobs:
   test:
-    name: Build and test both schemes
+    name: Build and test (${{ matrix.scheme }})
     # Explicit image, never *-latest. xcode-27 is the hosted macOS image with
     # Xcode 27.x (preview label). Fallback if it queues badly: macos-26.
     runs-on: xcode-27
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { scheme: "Hidden Bar", key: direct }
+          - { scheme: "Hidden Bar App Store", key: appstore }
     env:
       HIDDEN_TEST_DD: ${{ github.workspace }}/.ci-dd
+      # Nothing reads the index store or dSYMs in CI; skipping both shortens the build.
+      HIDDEN_TEST_EXTRA_SETTINGS: COMPILER_INDEX_STORE_ENABLE=NO DEBUG_INFORMATION_FORMAT=dwarf
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -32,25 +53,39 @@ jobs:
           echo "Selecting $newest"
           sudo xcode-select -s "$newest/Contents/Developer"
           xcodebuild -version
-          echo "XCODE_VERSION=$(xcodebuild -version | awk '/Build version/ {print $3}')" >> "$GITHUB_ENV"
 
-      - name: Cache derived data
+      # Only the resolved Sparkle checkout. The DerivedData cache was dropped: its
+      # restore plus save (about 30 s) cost more than the build it saved.
+      - name: Cache SwiftPM packages
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: |
-            .ci-dd/direct
-            .ci-dd/appstore
-          key: dd-${{ env.XCODE_VERSION }}-${{ hashFiles('Hidden Bar.xcodeproj/project.pbxproj', '**/Package.resolved') }}
-          restore-keys: |
-            dd-${{ env.XCODE_VERSION }}-
+          path: .ci-dd/${{ matrix.key }}/SourcePackages
+          key: spm-${{ matrix.key }}-${{ hashFiles('**/Package.resolved') }}
 
-      - name: Build and test both schemes
-        run: scripts/test.sh
+      - name: Build and test
+        run: scripts/test.sh --scheme ${{ matrix.key }}
 
       - name: Upload result bundles
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: xcresult-${{ github.run_id }}
+          name: xcresult-${{ matrix.key }}-${{ github.run_id }}
           path: .ci-dd/results
           retention-days: 7
+
+  # Stable check name: keeps any branch-protection rule or badge that names the
+  # old single job ("Build and test both schemes") valid.
+  aggregate:
+    name: Build and test both schemes
+    needs: test
+    if: always()
+    # Public repo, so a hosted Linux runner is free; it only inspects needs.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every scheme green
+        env:
+          RESULT: ${{ needs.test.result }}
+        run: |
+          echo "scheme jobs: $RESULT"
+          [ "$RESULT" = success ]

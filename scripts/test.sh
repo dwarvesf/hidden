@@ -7,6 +7,11 @@
 #   scripts/test.sh --no-parallel-testing   turn off -parallel-testing-enabled
 #   scripts/test.sh --serial             run the two schemes one after the other
 #   scripts/test.sh --dd DIR             derived-data root (default $HIDDEN_TEST_DD or ~/.cache/hidden-bar/dd)
+#   scripts/test.sh --scheme KEY         run one scheme only: direct ("Hidden Bar", Debug-Direct)
+#                                        or appstore ("Hidden Bar App Store", Debug); default both
+#
+# Env: HIDDEN_TEST_EXTRA_SETTINGS  extra xcodebuild build settings, space separated
+#                                  (CI sets COMPILER_INDEX_STORE_ENABLE=NO DEBUG_INFORMATION_FORMAT=dwarf).
 #
 # How it is fast:
 #   - build-for-testing once per scheme, then test-without-building, into a
@@ -29,14 +34,18 @@ CHANGED=0
 BASE_REF="origin/develop"
 PARALLEL_TESTING=YES
 SERIAL=0
+ONLY_SCHEME=""
+read -r -a EXTRA_SETTINGS <<< "${HIDDEN_TEST_EXTRA_SETTINGS:-}"
 while [ $# -gt 0 ]; do
   case "$1" in
     --changed) CHANGED=1; case "${2:-}" in ""|--*) ;; *) BASE_REF="$2"; shift ;; esac ;;
     --no-parallel-testing) PARALLEL_TESTING=NO ;;
     --serial) SERIAL=1 ;;
     --dd) shift; DD_ROOT="${1:?--dd needs a directory}" ;;
-    -h|--help) sed -n 2,22p "$0"; exit 0 ;;
-    *) echo "usage: scripts/test.sh [--changed [BASE]] [--no-parallel-testing] [--serial] [--dd DIR]" >&2; exit 2 ;;
+    --scheme) shift; ONLY_SCHEME="${1:?--scheme needs direct or appstore}"
+              case "$ONLY_SCHEME" in direct|appstore) ;; *) echo "--scheme: expected direct or appstore" >&2; exit 2 ;; esac ;;
+    -h|--help) sed -n 2,28p "$0"; exit 0 ;;
+    *) echo "usage: scripts/test.sh [--changed [BASE]] [--no-parallel-testing] [--serial] [--dd DIR] [--scheme direct|appstore]" >&2; exit 2 ;;
   esac
   shift
 done
@@ -127,11 +136,11 @@ run_scheme() { # run_scheme KEY SCHEME CONFIG
   mkdir -p "$dd"
   t0=$(now)
   xcodebuild build-for-testing -project "Hidden Bar.xcodeproj" -scheme "$scheme" -configuration "$config" \
-    -derivedDataPath "$dd" CODE_SIGNING_ALLOWED=NO > "$RUN/$key-build.log" 2>&1 || rc_b=$?
+    -derivedDataPath "$dd" CODE_SIGNING_ALLOWED=NO ${EXTRA_SETTINGS[@]+"${EXTRA_SETTINGS[@]}"} > "$RUN/$key-build.log" 2>&1 || rc_b=$?
   t1=$(now)
   if [ "$rc_b" = 0 ]; then
     xcodebuild test-without-building -project "Hidden Bar.xcodeproj" -scheme "$scheme" -configuration "$config" \
-      -derivedDataPath "$dd" CODE_SIGNING_ALLOWED=NO \
+      -derivedDataPath "$dd" CODE_SIGNING_ALLOWED=NO ${EXTRA_SETTINGS[@]+"${EXTRA_SETTINGS[@]}"} \
       -parallel-testing-enabled "$PARALLEL_TESTING" \
       -resultBundlePath "$RUN/$key.xcresult" ${ONLY_ARGS[@]+"${ONLY_ARGS[@]}"} > "$RUN/$key-test.log" 2>&1 || rc_t=$?
   fi
@@ -145,23 +154,26 @@ d=json.load(sys.stdin); print(d.get("passedTests",0), d.get("failedTests",0))' 2
 }
 
 W0=$(now)
-if [ "$SERIAL" = 1 ]; then
-  run_scheme direct "Hidden Bar" Debug-Direct
-  run_scheme appstore "Hidden Bar App Store" Debug
-else
-  run_scheme direct "Hidden Bar" Debug-Direct &
-  run_scheme appstore "Hidden Bar App Store" Debug &
-  wait
-fi
+KEYS=""
+if [ "$ONLY_SCHEME" != appstore ]; then KEYS="direct"; fi
+if [ "$ONLY_SCHEME" != direct ]; then KEYS="$KEYS appstore"; fi
+for key in $KEYS; do
+  case "$key" in
+    direct)   args=(direct "Hidden Bar" Debug-Direct) ;;
+    appstore) args=(appstore "Hidden Bar App Store" Debug) ;;
+  esac
+  if [ "$SERIAL" = 1 ]; then run_scheme "${args[@]}"; else run_scheme "${args[@]}" & fi
+done
+wait
 W1=$(now)
 
 # ---- timing table -----------------------------------------------------------
 
 status=0
 echo
-echo "selection: $CHANGED_NOTE   (parallel testing: $PARALLEL_TESTING, schemes: $([ "$SERIAL" = 1 ] && echo serial || echo parallel))"
+echo "selection: $CHANGED_NOTE   (parallel testing: $PARALLEL_TESTING, schemes: ${ONLY_SCHEME:-both}, $([ "$SERIAL" = 1 ] && echo serial || echo parallel))"
 printf '%-24s %8s %8s %8s %7s %7s  %s\n' scheme build_s test_s total_s passed failed result
-for key in direct appstore; do
+for key in $KEYS; do
   IFS=$'\t' read -r scheme tb tt passed failed rcb rct < "$RUN/$key.row" || { echo "no result row for $key"; status=1; continue; }
   result=ok
   if [ "$rcb" != 0 ]; then result="BUILD FAILED ($key-build.log)"; status=1
