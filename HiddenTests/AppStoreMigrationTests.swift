@@ -97,6 +97,7 @@ final class AppStoreMigrationTests: XCTestCase {
             UserDefaults.Key.pinnedSectionsEnabled, UserDefaultsPinnedSections.key,
             UserDefaults.Key.revealOnScrollEnabled, UserDefaults.Key.revealOnEmptyClickEnabled,
             UserDefaults.Key.revealOnShakeEnabled, UserDefaults.Key.newAppDefaultSection,
+            UserDefaults.Key.findHiddenIconShortcut,
         ]
         XCTAssertEqual(Set(AppStoreSettingsImport.importableKeys.keys), appKeys)
     }

@@ -55,6 +55,14 @@ protocol MenuBarEngine: AnyObject {
     // Whether the arrow's menu offers "Show everything" (expand and show the
     // always-hidden section), the recovery for icons lost there.
     var offersShowEverything: Bool { get }
+
+    // The palette opens a hidden app's own menu: this lets that one app's icon
+    // show until `endTemporaryAllow`. `.alreadyShown` when nothing is hiding it,
+    // `.unavailable` when the engine cannot lift one app (nothing changed then).
+    func allowTemporarily(_ bundle: String, completion: @escaping (PaletteLift) -> Void)
+
+    // Puts back what `allowTemporarily` lifted. Does nothing when the bar changed since.
+    func endTemporaryAllow()
 }
 
 extension MenuBarEngine {
@@ -64,6 +72,8 @@ extension MenuBarEngine {
     func userChangedBar() {}
     func separatorsHiddenForCollapse(current: Bool) -> Bool { return current }
     var offersShowEverything: Bool { return false }
+    func allowTemporarily(_ bundle: String, completion: @escaping (PaletteLift) -> Void) { completion(.unavailable) }
+    func endTemporaryAllow() {}
 }
 
 enum MenuBarEngineState {

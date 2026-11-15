@@ -11,6 +11,7 @@ import Foundation
 extension UserDefaults {
     enum Key {
         static let globalKey = "globalKey"
+        static let findHiddenIconShortcut = "findHiddenIconShortcut"
         static let numberOfSecondForAutoHide = "numberOfSecondForAutoHide"
         static let isAutoStart = "isAutoStart"
         static let isAutoHide = "isAutoHide"

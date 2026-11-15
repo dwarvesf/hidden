@@ -84,6 +84,9 @@ class StatusBarController: MenuBarItemProvider {
         PreferencesWindowController.shared.select(.menuBarApps)
     })
     private var arrivalsObserver: NSObjectProtocol?
+    // The type-to-find palette (direct build, native engine). Built on first use.
+    private var paletteSession: PaletteRevealSession?
+    private lazy var palette: PaletteController = makePalette()
     #endif
 
     private var hoverMonitor: Any?
@@ -214,6 +217,11 @@ class StatusBarController: MenuBarItemProvider {
             native.expandBarForCapture = { [weak self] in self?.expandMenubar(activatingApp: false) }
             pinnedSectionsObserver = NotificationCenter.default.addObserver(forName: .pinnedSectionsChanged, object: nil, queue: .main) { [weak native] _ in
                 native?.pinnedSectionsDidChange()
+            }
+            native.onUserChangedBar = { [weak self] in
+                #if HIDDENBAR_NATIVE_VISIBILITY
+                self?.paletteSession?.userChangedBar()
+                #endif
             }
         }
     }
@@ -478,7 +486,16 @@ class StatusBarController: MenuBarItemProvider {
     // A popup hanging from the menu bar (#319) defers for up to 10 minutes; the
     // window list is read last, only when nothing else defers.
     private var defersCollapseApartFromPointer: Bool {
-        return isPreferencesWindowVisible || arrivalsPromptIsShown || menuBarEngine.defersAutoCollapse || popupGuard.defersCollapse()
+        return isPreferencesWindowVisible || arrivalsPromptIsShown || menuBarEngine.defersAutoCollapse || isRevealingForPalette || popupGuard.defersCollapse()
+    }
+
+    // The palette has an app's menu open that it allowed for a moment.
+    private var isRevealingForPalette: Bool {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        return paletteSession?.isActive ?? false
+        #else
+        return false
+        #endif
     }
 
     private func startTimerToAutoHide() {
@@ -513,6 +530,12 @@ class StatusBarController: MenuBarItemProvider {
             menu.addItem(overflowItem)
             menu.addItem(NSMenuItem.separator())
         }
+
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        if let findItem = makeFindHiddenIconMenuItem() {
+            menu.addItem(findItem)
+        }
+        #endif
 
         let prefItem = NSMenuItem(title: "Preferences...".localized, action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: "P")
         prefItem.target = self
@@ -572,6 +595,68 @@ class StatusBarController: MenuBarItemProvider {
     }
 }
 
+
+#if HIDDENBAR_NATIVE_VISIBILITY
+//MARK: - Type-to-find palette
+extension StatusBarController {
+    // The shortcut and the arrow's menu item both land here.
+    func togglePalette() {
+        guard MenuBarEngineFactory.usesNativeEngine() else { return }
+        palette.toggle()
+    }
+
+    @objc private func findHiddenIcon() {
+        palette.show()
+    }
+
+    // The arrow menu's way in, shown only while the shortcut is set: unset, the
+    // feature is off.
+    fileprivate func makeFindHiddenIconMenuItem() -> NSMenuItem? {
+        guard MenuBarEngineFactory.usesNativeEngine(), let shortcut = Preferences.findHiddenIconShortcut else { return nil }
+        let item = NSMenuItem(title: "Find a Hidden Icon...".localized, action: #selector(findHiddenIcon), keyEquivalent: "")
+        item.target = self
+        if let key = shortcut.characters?.lowercased(), key.count == 1 {
+            item.keyEquivalent = key
+            var mask: NSEvent.ModifierFlags = []
+            if shortcut.command { mask.insert(.command) }
+            if shortcut.option { mask.insert(.option) }
+            if shortcut.control { mask.insert(.control) }
+            if shortcut.shift { mask.insert(.shift) }
+            item.keyEquivalentModifierMask = mask
+        }
+        return item
+    }
+
+    fileprivate func makePalette() -> PaletteController {
+        let session = PaletteRevealSession(
+            now: { ProcessInfo.processInfo.systemUptime },
+            after: { delay, step in DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: step) },
+            allow: { [weak self] bundle, done in
+                guard let self = self else { return done(.unavailable) }
+                self.menuBarEngine.allowTemporarily(bundle, completion: done)
+            },
+            press: { bundle, done in PaletteItemPresser.press(bundle: bundle, completion: done) },
+            menuIsOpen: { PaletteItemPresser.isMenuOpen(bundle: $0) },
+            appIsActive: { PaletteItemPresser.isActive(bundle: $0) },
+            restore: { [weak self] in self?.menuBarEngine.endTemporaryAllow() })
+        paletteSession = session
+        let host = PaletteHost(
+            environment: { [weak self] in
+                PaletteEnvironment(accessibilityTrusted: !AccessibilityPermission.shared.isMissing,
+                                   engineAvailable: self?.menuBarEngine.state != .unavailable)
+            },
+            arrowFrame: { [weak self] in self?.btnExpandCollapse.button?.window?.frame },
+            open: { bundle, done in session.open(bundle: bundle, completion: done) },
+            move: { section, bundle in PinnedSectionEdits.set(section, for: bundle, in: UserDefaultsPinnedSections()) },
+            openAccessibilitySettings: { AccessibilityPermission.openSystemSettings() },
+            openMenuBarApps: {
+                Util.showPrefWindow()
+                PreferencesWindowController.shared.select(.menuBarApps)
+            })
+        return PaletteController(host: host)
+    }
+}
+#endif
 
 //MARK: - Alway hide feature
 extension StatusBarController {
@@ -708,6 +793,8 @@ extension StatusBarController {
             showArrivalsIfWaiting()
         case "dump-state":
             break
+        case "palette-open", "palette-query", "palette-select", "palette-activate", "palette-close":
+            debugPalette(command, argument: argument)
         case "dump-inventory":
             // The menu-bar app catalog as JSON in `out`, instead of the state dump.
             debugWriteInventory(to: note.userInfo?["out"] as? String)
@@ -795,6 +882,26 @@ extension StatusBarController {
         return nil
     }
 
+    // The palette hooks (direct build): "palette-open" shows it on the display with
+    // the pointer without activating the app, "palette-query <text>" types for you,
+    // "palette-select <bundle id>" moves the selection, "palette-activate
+    // open|keep|hide" is Return, Command-Return or Option-Return, "palette-close".
+    private func debugPalette(_ command: String, argument: String?) {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        switch command {
+        case "palette-open": palette.show(query: argument ?? "")
+        case "palette-query": palette.setQuery(argument ?? "")
+        case "palette-select": palette.select(bundle: argument ?? "")
+        case "palette-activate":
+            let actions: [String: PaletteKeyAction] = ["open": .open, "keep": .keepShown, "hide": .alwaysHide]
+            palette.perform(actions[argument ?? "open"] ?? .open)
+        default: palette.close()
+        }
+        #else
+        NSLog("DebugHooks: the palette is a direct-build feature")
+        #endif
+    }
+
     private func debugWriteInventory(to path: String?) {
         guard let path else { return NSLog("DebugHooks: dump-inventory needs --out") }
         #if HIDDENBAR_NATIVE_VISIBILITY
@@ -831,6 +938,10 @@ extension StatusBarController {
         }
         state.merge(revealController.debugState) { $1 }
         state.merge(debugArrivalsState) { $1 }
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        state["palette"] = palette.debugState
+        state["paletteSession"] = paletteSession?.debugState ?? ["active": false]
+        #endif
         do {
             let data = try JSONSerialization.data(withJSONObject: state, options: [.prettyPrinted, .sortedKeys])
             try data.write(to: URL(fileURLWithPath: path))

@@ -2617,3 +2617,157 @@ final class UnrestrictedReadHookTests: XCTestCase {
         XCTAssertEqual(reads.count, 1)
     }
 }
+
+// MARK: - The palette lets one app show (type-to-find)
+
+final class PaletteAllowTests: XCTestCase {
+    private let own = "com.dwarvesv.minimalbar"
+    private var items: FakeItems!
+    private var inventory: FakeInventory!
+    private var visibility: FakeVisibility!
+
+    override func setUp() {
+        super.setUp()
+        items = FakeItems()
+        inventory = FakeInventory()
+        inventory.items = [item("com.always", x: 900), item("com.hidden", x: 1100), item("com.visible", x: 1400)]
+        visibility = FakeVisibility()
+    }
+
+    private func makeEngine() -> NativeVisibilityEngine {
+        let items = self.items!
+        return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility, clock: FakeClock(),
+                                      ownBundleIdentifier: own,
+                                      itemFrame: { $0 === items.toggleItem ? separator : alwaysHiddenSeparator },
+                                      displays: { [mainDisplay] },
+                                      isLTR: { true })
+    }
+
+    private func collapsed(_ engine: NativeVisibilityEngine) -> FakeAssertion {
+        engine.collapse { _ in }
+        return visibility.succeed(visibility.requests.count - 1)
+    }
+
+    private func allow(_ engine: NativeVisibilityEngine, _ bundle: String) -> PaletteLift? {
+        var lift: PaletteLift?
+        engine.allowTemporarily(bundle) { lift = $0 }
+        return lift
+    }
+
+    // Given a collapsed bar
+    // When the palette allows a hidden app, then ends
+    // Then that one app joins the allow list, and the next activation drops it again
+    func testAllowsOneAppThenPutsTheRestrictionBack() {
+        let engine = makeEngine()
+        let first = collapsed(engine)
+
+        var lift: PaletteLift?
+        engine.allowTemporarily("com.hidden") { lift = $0 }
+        XCTAssertEqual(visibility.requests.count, 2)
+        XCTAssertEqual(visibility.requests[1].bundles, [own, "com.visible", "com.hidden"])
+        XCTAssertNil(lift, "answers once the activation landed")
+        let lifted = visibility.succeed(1)
+        XCTAssertEqual(lift, .lifted)
+        XCTAssertTrue(first.isInvalidated, "the new restriction replaces the old, with no flash of the whole bar")
+        XCTAssertEqual(engine.state, .collapsed, "the bar is still collapsed for everyone else")
+
+        engine.endTemporaryAllow()
+        XCTAssertEqual(visibility.requests.count, 3)
+        XCTAssertEqual(visibility.requests[2].bundles, [own, "com.visible"])
+        visibility.succeed(2)
+        XCTAssertTrue(lifted.isInvalidated)
+    }
+
+    // Given an app the restriction already allows
+    // When the palette allows it
+    // Then nothing changes, and ending changes nothing
+    func testAnAppAlreadyShownNeedsNoActivation() {
+        let engine = makeEngine()
+        _ = collapsed(engine)
+        XCTAssertEqual(allow(engine, "com.visible"), .alreadyShown)
+        engine.endTemporaryAllow()
+        XCTAssertEqual(visibility.requests.count, 1)
+    }
+
+    // Given a bar with nothing hidden
+    // When the palette allows an app
+    // Then it is shown already
+    func testNoRestrictionMeansEverythingIsShown() {
+        let engine = makeEngine()
+        XCTAssertEqual(allow(engine, "com.hidden"), .alreadyShown)
+        XCTAssertEqual(visibility.requests.count, 0)
+    }
+
+    // Given a bar whose collapse is still in flight, or an API that is missing
+    // When the palette allows an app
+    // Then the engine says it cannot, and changes nothing
+    func testCannotLiftWhileCalibratingOrWithoutTheAPI() {
+        let engine = makeEngine()
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.count, 1)
+        XCTAssertEqual(allow(engine, "com.hidden"), .unavailable, "the collapse has not landed; another activation would cancel it")
+        visibility.succeed(0)
+
+        visibility.isAvailable = false
+        XCTAssertEqual(allow(engine, "com.hidden"), .unavailable)
+        XCTAssertEqual(visibility.requests.count, 1)
+    }
+
+    // Given an allowed app and the user collapsing or expanding the bar meanwhile
+    // When the palette session ends
+    // Then the engine's own newer restriction stands
+    func testAnExpandInBetweenIsNotUndone() {
+        let engine = makeEngine()
+        _ = collapsed(engine)
+        engine.allowTemporarily("com.hidden") { _ in }
+        visibility.succeed(1)
+
+        engine.expand()
+        let requests = visibility.requests.count
+        engine.endTemporaryAllow()
+        XCTAssertEqual(visibility.requests.count, requests, "an expand replaced the restriction; nothing to put back")
+    }
+
+    // Given an allowed app and a section edit that activates a new restriction
+    // When the palette session ends
+    // Then the edit's allow list stands, even if it names the same app
+    func testASectionEditInBetweenIsNotUndone() {
+        let engine = makeEngine()
+        _ = collapsed(engine)
+        engine.allowTemporarily("com.hidden") { _ in }
+        visibility.succeed(1)
+
+        engine.applicationLaunched("com.new")
+        XCTAssertEqual(visibility.requests.count, 3)
+        visibility.succeed(2)
+        engine.endTemporaryAllow()
+        XCTAssertEqual(visibility.requests.count, 3)
+    }
+
+    // Given an activation that fails
+    // When the palette allows an app
+    // Then the engine fails open (nothing hidden), says unavailable, and a later collapse hides again
+    func testAFailedLiftFailsOpen() {
+        let engine = makeEngine()
+        _ = collapsed(engine)
+        var lift: PaletteLift?
+        engine.allowTemporarily("com.hidden") { lift = $0 }
+        visibility.fail(1)
+        XCTAssertEqual(lift, .unavailable)
+        XCTAssertEqual(engine.state, .expanded, "nothing is hidden after a failed activation")
+
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.count, 3, "collapse runs again instead of believing it is collapsed")
+    }
+
+    // Given a user-changed bar
+    // When the engine is told
+    // Then the controller's hook hears it
+    func testUserChangedBarReachesThePaletteHook() {
+        let engine = makeEngine()
+        var heard = 0
+        engine.onUserChangedBar = { heard += 1 }
+        engine.userChangedBar()
+        XCTAssertEqual(heard, 1)
+    }
+}

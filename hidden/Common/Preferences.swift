@@ -24,6 +24,24 @@ enum Preferences {
         }
     }
     
+    /// The global shortcut that opens the type-to-find palette. Unset means the
+    /// feature is off; the registry binds it, so setting it needs no other call.
+    static var findHiddenIconShortcut: GlobalKeybindPreferences? {
+        get {
+            guard let data = UserDefaults.standard.data(forKey: UserDefaults.Key.findHiddenIconShortcut) else { return nil }
+            return try? JSONDecoder().decode(GlobalKeybindPreferences.self, from: data)
+        }
+
+        set {
+            if let newValue, let data = try? JSONEncoder().encode(newValue) {
+                UserDefaults.standard.set(data, forKey: UserDefaults.Key.findHiddenIconShortcut)
+            } else {
+                UserDefaults.standard.removeObject(forKey: UserDefaults.Key.findHiddenIconShortcut)
+            }
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
+
     static var isAutoStart: Bool {
         get {
             return UserDefaults.standard.bool(forKey: UserDefaults.Key.isAutoStart)
