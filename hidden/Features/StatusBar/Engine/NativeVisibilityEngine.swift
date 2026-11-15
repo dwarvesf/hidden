@@ -505,8 +505,12 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 self.assertionBundles = hold.bundles
                 self.assertionSystemItems = hold.systemItems
                 self.assertionGeneration = generation
-                // Any activation but the palette's own replaces what it allowed.
-                self.temporaryAllow = nil
+                // Any activation that does not carry it replaces what the palette
+                // allowed; a re-activation that keeps the app (a launch, a
+                // presentation starting) leaves its session open.
+                if let allowed = self.temporaryAllow, !hold.bundles.contains(allowed.bundle) {
+                    self.temporaryAllow = nil
+                }
                 old?.invalidate()
                 self.watchClock()
                 completion(true)
@@ -607,9 +611,11 @@ final class NativeVisibilityEngine: MenuBarEngine {
         // Nothing held means nothing is hidden.
         guard assertion != nil else { return completion(.alreadyShown) }
         guard generation == assertionGeneration, visibility.isAvailable else { return completion(.unavailable) }
+        // Presentation mode keeps its sensitive apps hidden, whatever asks.
+        guard !isSensitiveWhilePresenting(bundle) else { return completion(.sensitive) }
         guard !assertionBundles.contains(bundle) else { return completion(.alreadyShown) }
         let before = assertionBundles
-        activate(allowing: before + [bundle]) { [weak self] succeeded in
+        activate(NativeHold(systemItems: assertionSystemItems, bundles: before + [bundle])) { [weak self] succeeded in
             guard let self = self else { return }
             if succeeded {
                 self.temporaryAllow = (bundle, before)
@@ -627,7 +633,15 @@ final class NativeVisibilityEngine: MenuBarEngine {
         // An expand, a collapse or a section edit since replaced the restriction;
         // what it set stands.
         guard assertion != nil, generation == assertionGeneration, assertionBundles.contains(allowed.bundle) else { return }
-        activate(allowing: allowed.before) { _ in }
+        // What is wanted now, which also follows a presentation that started
+        // while the app was allowed; the list held before is the fallback.
+        let wanted = hold(whenBar: state, layout: layout)
+            ?? NativeHold(systemItems: assertionSystemItems, bundles: allowed.before)
+        activate(wanted) { _ in }
+    }
+
+    private func isSensitiveWhilePresenting(_ bundle: String) -> Bool {
+        return holdsPresentationList && sensitiveApps().contains(bundle)
     }
 
     // Auto-collapse waits while Notification Center, opened from the clock, is open.
@@ -835,7 +849,18 @@ final class NativeVisibilityEngine: MenuBarEngine {
 
     // The one place that says what a restriction allows, besides Hidden Bar
     // itself. nil: nothing to hold (no layout read yet, or nothing settled).
+    //
+    // The app the palette lets show for its open session stays in the list through
+    // every re-activation (a launch, a presentation starting), unless it is a
+    // sensitive app while presenting.
     private func hold(whenBar bar: MenuBarEngineState, layout: MenuBarLayout?) -> NativeHold? {
+        guard let base = baseHold(whenBar: bar, layout: layout) else { return nil }
+        guard let allowed = temporaryAllow, !isSensitiveWhilePresenting(allowed.bundle),
+              !base.bundles.contains(allowed.bundle) else { return base }
+        return NativeHold(systemItems: base.systemItems, bundles: base.bundles + [allowed.bundle])
+    }
+
+    private func baseHold(whenBar bar: MenuBarEngineState, layout: MenuBarLayout?) -> NativeHold? {
         let presenting = holdsPresentationList
         switch bar {
         case .collapsed:

@@ -2728,10 +2728,10 @@ final class PaletteAllowTests: XCTestCase {
         XCTAssertEqual(visibility.requests.count, requests, "an expand replaced the restriction; nothing to put back")
     }
 
-    // Given an allowed app and a section edit that activates a new restriction
+    // Given an allowed app and a launch that re-activates the restriction
     // When the palette session ends
-    // Then the edit's allow list stands, even if it names the same app
-    func testASectionEditInBetweenIsNotUndone() {
+    // Then the app that launched stays allowed and only the palette's app is put back
+    func testALaunchInBetweenKeepsItsAppAndTheSessionEndsCleanly() {
         let engine = makeEngine()
         _ = collapsed(engine)
         engine.allowTemporarily("com.hidden") { _ in }
@@ -2739,9 +2739,11 @@ final class PaletteAllowTests: XCTestCase {
 
         engine.applicationLaunched("com.new")
         XCTAssertEqual(visibility.requests.count, 3)
+        XCTAssertTrue(visibility.requests[2].bundles.contains("com.hidden"), "its open menu stays through the re-activation")
         visibility.succeed(2)
         engine.endTemporaryAllow()
-        XCTAssertEqual(visibility.requests.count, 3)
+        XCTAssertEqual(visibility.requests.count, 4)
+        XCTAssertEqual(visibility.requests[3].bundles, ["com.dwarvesv.minimalbar", "com.new", "com.visible"])
     }
 
     // Given an activation that fails
@@ -3224,6 +3226,82 @@ final class PresentationModeEngineTests: XCTestCase {
         capture.set(false)
         time.advance(to: 2.7)
         XCTAssertEqual(visibility.requests.last?.bundles, strict, "resuming hides again")
+    }
+
+    // Given a presentation and a palette asking to open apps
+    // When the app is sensitive, then when it is not
+    // Then the sensitive one is refused with nothing activated; another hidden app may open
+    func testPaletteRefusesSensitiveAppsWhilePresenting() {
+        sensitive = ["com.hidden"]
+        let engine = makeEngine()
+        collapsed(engine)
+        engine.startPresentation()
+        visibility.succeed(visibility.requests.count - 1)
+        let requests = visibility.requests.count
+
+        var lifts: [PaletteLift] = []
+        engine.allowTemporarily("com.hidden") { lifts.append($0) }
+        XCTAssertEqual(lifts, [.sensitive])
+        XCTAssertEqual(visibility.requests.count, requests, "nothing is activated for a sensitive app")
+
+        engine.allowTemporarily("com.always") { lifts.append($0) }
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.always"])
+        XCTAssertEqual(visibility.requests.last?.systemItems, NativeVisibilityEngine.presentationSystemItems)
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(lifts, [.sensitive, .lifted])
+    }
+
+    // Outside a presentation the same app opens as before.
+    func testPaletteOpensSensitiveAppsWhenNotPresenting() {
+        sensitive = ["com.hidden"]
+        let engine = makeEngine()
+        collapsed(engine)
+        var lifts: [PaletteLift] = []
+        engine.allowTemporarily("com.hidden") { lifts.append($0) }
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.visible", "com.hidden"])
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(lifts, [.lifted])
+    }
+
+    // Given an app the palette allowed for its open menu
+    // When another app launches (a re-activation)
+    // Then the held list still carries the allowed app, and ending the session puts the rest back
+    func testReactivationKeepsThePalettesAllowedApp() {
+        let engine = makeEngine()
+        collapsed(engine)
+        engine.allowTemporarily("com.hidden") { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+
+        engine.applicationLaunched("com.new")
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.new", "com.visible", "com.hidden"])
+        XCTAssertTrue(visibility.requests.last?.bundles.contains("com.hidden") ?? false, "the open menu must not disappear")
+        visibility.succeed(visibility.requests.count - 1)
+
+        engine.endTemporaryAllow()
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.new", "com.visible"])
+    }
+
+    // Given the palette's allowed app and a presentation that starts
+    // When the app is not sensitive, then when it is
+    // Then it stays in the strict list, or is dropped from it
+    func testPresentationStartingKeepsOrDropsThePalettesApp() {
+        let engine = makeEngine()
+        collapsed(engine)
+        engine.allowTemporarily("com.hidden") { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+        engine.startPresentation()
+        XCTAssertEqual(visibility.requests.last?.bundles, [own, "com.hidden"], "its open menu stays")
+        visibility.succeed(visibility.requests.count - 1)
+        engine.stopPresentation()
+        visibility.succeed(visibility.requests.count - 1)
+        engine.endTemporaryAllow()
+        visibility.succeed(visibility.requests.count - 1)
+
+        sensitive = ["com.always"]
+        engine.allowTemporarily("com.always") { _ in }
+        visibility.succeed(visibility.requests.count - 1)
+        engine.startPresentation()
+        XCTAssertEqual(visibility.requests.last?.bundles, strict, "a sensitive app is dropped when presenting starts")
     }
 }
 

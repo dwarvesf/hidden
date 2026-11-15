@@ -281,3 +281,5 @@ Steps to view always hidden icons:
 "None" = "None";
 "Choose the apps that stay hidden while presenting, even when you click the arrow." = "Choose the apps that stay hidden while presenting, even when you click the arrow.";
 "Apps with a menu bar icon appear here once Hidden Bar has seen them." = "Apps with a menu bar icon appear here once Hidden Bar has seen them.";
+"%@ stays hidden while presenting" = "%@ stays hidden while presenting";
+"Presentation mode keeps it out of view. Stop presenting to open it." = "Presentation mode keeps it out of view. Stop presenting to open it.";

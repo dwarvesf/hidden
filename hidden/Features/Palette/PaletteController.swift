@@ -231,6 +231,9 @@ final class PaletteController {
         case .noItem, .noPress:
             model.showCannotOpen(appName: app.name)
             render()
+        case .sensitive:
+            model.showSensitive(appName: app.name)
+            render()
         case .unavailable:
             var environment = host.environment()
             environment.engineAvailable = false

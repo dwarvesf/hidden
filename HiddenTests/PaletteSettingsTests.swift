@@ -90,15 +90,20 @@ final class PaletteSettingsTests: XCTestCase {
         func all(_ view: NSView) -> [NSView] { view.subviews + view.subviews.flatMap(all) }
         XCTAssertNotNil(recorder(in: all(pane)), "the recorder's button carries the preference key")
         // Top of each label on screen, from the pane's own coordinates.
-        func top(_ text: String, last: Bool = false) -> CGFloat? {
+        func tops(_ text: String) -> [CGFloat] {
             let labels = all(pane).compactMap { $0 as? NSTextField }.filter { $0.stringValue == text }
-            guard let label = last ? labels.last : labels.first else { return nil }
-            let frame = pane.convert(label.bounds, from: label)
-            return pane.isFlipped ? frame.minY : -frame.maxY
+            return labels.map { label in
+                let frame = pane.convert(label.bounds, from: label)
+                return pane.isFlipped ? frame.minY : -frame.maxY
+            }
         }
+        func top(_ text: String) -> CGFloat? { tops(text).first }
         let caption = "Opens a search under the arrow. Type a few letters, then press Return to open that app's menu."
-        // The status card also says "Keyboard shortcut"; the row is the last of them.
-        let order: [(String, CGFloat?)] = [("Keyboard shortcut", top("Keyboard shortcut", last: true)), ("Find a hidden icon", top("Find a hidden icon")),
+        // "Keyboard shortcut" is also the status card's and the Presentation mode group's:
+        // the row is the one just above "Find a hidden icon".
+        let findTop = top("Find a hidden icon")
+        let shortcutTop = findTop.flatMap { find in tops("Keyboard shortcut").filter { $0 < find }.max() }
+        let order: [(String, CGFloat?)] = [("Keyboard shortcut", shortcutTop), ("Find a hidden icon", findTop),
                                            (caption, top(caption)), ("Also show hidden icons when you", top("Also show hidden icons when you"))]
         XCTAssertFalse(order.contains { $0.1 == nil }, "missing: \(order.filter { $0.1 == nil }.map { $0.0 })")
         let tops = order.compactMap { $0.1 }

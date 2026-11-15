@@ -17,6 +17,8 @@ enum PaletteOpenResult: Equatable {
     case noPress
     /// The engine cannot lift the restriction for one app.
     case unavailable
+    /// Presentation mode keeps this app hidden on purpose.
+    case sensitive
 }
 
 /// What the engine did when asked to allow one app.
@@ -26,6 +28,8 @@ enum PaletteLift: Equatable {
     /// The app is shown already (the bar is expanded, or nothing is hidden).
     case alreadyShown
     case unavailable
+    /// The app is on the presentation mode's sensitive list while it is on.
+    case sensitive
 }
 
 enum PalettePressOutcome: Equatable {
@@ -137,6 +141,8 @@ final class PaletteRevealSession {
             switch lift {
             case .unavailable:
                 self.end(.unavailable, "unavailable")
+            case .sensitive:
+                self.end(.sensitive, "sensitive")
             case .lifted:
                 self.liftedRestriction = true
                 self.phase = .pressing

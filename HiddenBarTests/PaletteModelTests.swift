@@ -107,6 +107,17 @@ final class PaletteModelTests: XCTestCase {
         XCTAssertEqual(state.rows.map(\.candidate.name), ["Dropbox"])
     }
 
+    // Given Return found an app that presentation mode keeps hidden
+    // When the palette shows it
+    // Then the sensitive state names the app, until the query changes
+    func test_sensitiveWhilePresenting_clearsOnTheNextKeystroke() {
+        var state = model([app("Slack")], query: "sla")
+        state.showSensitive(appName: "Slack")
+        XCTAssertEqual(state.content, .sensitiveWhilePresenting(appName: "Slack"))
+        state.setQuery("slac")
+        XCTAssertEqual(state.rows.map(\.candidate.name), ["Slack"])
+    }
+
     // MARK: results and selection
 
     // Given hidden, always hidden, visible and quit apps

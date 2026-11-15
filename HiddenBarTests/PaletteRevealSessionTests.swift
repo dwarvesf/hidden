@@ -267,6 +267,18 @@ final class PaletteRevealSessionTests: XCTestCase {
         XCTAssertFalse(session.isActive)
     }
 
+    // Given an engine that keeps the app hidden for presentation mode
+    // When Return opens it
+    // Then the session ends as sensitive, presses nothing and restores nothing
+    func test_sensitiveApp_endsWithoutPressing() {
+        lift = .sensitive
+        let session = makeSession()
+        open(session)
+        XCTAssertEqual(results, [.sensitive])
+        XCTAssertEqual(log, ["allow com.paste"])
+        XCTAssertFalse(session.isActive)
+    }
+
     // Given an engine that never answers the allow
     // When the lift cap passes
     // Then the session gives up, so auto-collapse is not held back for ever
