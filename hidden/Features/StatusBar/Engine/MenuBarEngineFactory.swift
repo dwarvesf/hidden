@@ -28,6 +28,7 @@ enum MenuBarEngineFactory {
             return NativeVisibilityEngine(items: items,
                                           captureActivity: CaptureActivityMonitor(),
                                           pausesHidingForUnkeepableItems: { Preferences.pauseHidingForUnkeepableItems },
+                                          expandsWhenCaptureStarts: { Preferences.showWholeBarWhenCaptureStarts },
                                           sectionMemory: UserDefaultsSectionMemory(),
                                           workspaceNotifications: NSWorkspace.shared.notificationCenter)
         }

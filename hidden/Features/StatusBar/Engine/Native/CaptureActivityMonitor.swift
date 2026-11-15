@@ -12,7 +12,7 @@ import Foundation
 // Whether any app is recording from a microphone or using a camera. macOS 27
 // runs every native visibility restriction in assessment mode, which also hides
 // the menu-bar capsule naming the app that records (#437), so
-// NativeVisibilityEngine holds no restriction while this is active.
+// NativeVisibilityEngine expands the bar once when this turns active.
 protocol CaptureActivityMonitoring: AnyObject {
     var isActive: Bool { get }
 
