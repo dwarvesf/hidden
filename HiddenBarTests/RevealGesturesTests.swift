@@ -183,12 +183,22 @@ final class RevealGesturesTests: XCTestCase {
     // MARK: classification and policy
 
     func test_classifier() {
-        XCTAssertEqual(HitClassifier.target(for: HitProbe(role: "AXMenuBar", ownerPID: 5, frontmostPID: 5)), .emptySpace)
-        XCTAssertEqual(HitClassifier.target(for: HitProbe(role: "AXMenuBarItem", ownerPID: 5, frontmostPID: 5)), .menuTitle)
-        XCTAssertEqual(HitClassifier.target(for: HitProbe(role: "AXMenuBarItem", ownerPID: 9, frontmostPID: 5)), .statusItem)
-        XCTAssertEqual(HitClassifier.target(for: HitProbe(role: "AXMenuExtra", ownerPID: nil, frontmostPID: 5)), .statusItem)
+        XCTAssertEqual(HitClassifier.target(for: HitProbe(role: "AXMenuBar", ownerPID: 5, frontmostPID: 5, menuBarOwnerPID: 5)), .emptySpace)
+        XCTAssertEqual(HitClassifier.target(for: HitProbe(role: "AXMenuBarItem", ownerPID: 5, frontmostPID: 5, menuBarOwnerPID: 5)), .menuTitle)
+        XCTAssertEqual(HitClassifier.target(for: HitProbe(role: "AXMenuBarItem", ownerPID: 9, frontmostPID: 5, menuBarOwnerPID: 5)), .statusItem)
+        XCTAssertEqual(HitClassifier.target(for: HitProbe(role: "AXMenuExtra", ownerPID: nil, frontmostPID: 5, menuBarOwnerPID: 5)), .statusItem)
         XCTAssertEqual(HitClassifier.target(for: HitProbe(role: "AXGroup", ownerPID: 5, frontmostPID: 5)), .unknown)
         XCTAssertEqual(HitClassifier.target(for: HitProbe(role: nil, ownerPID: nil, frontmostPID: nil)), .unknown)
+    }
+
+    // Given a frontmost app with no menus (A) while another app (B) owns the menu bar
+    // When the hit is a menu bar item owned by B, or by A
+    // Then B's item is a menu title and A's is an icon
+    func test_menuTitleBelongsToTheMenuBarOwner_notTheFrontmostApp() {
+        let titleOfB = HitProbe(role: "AXMenuBarItem", ownerPID: 7, frontmostPID: 5, menuBarOwnerPID: 7)
+        XCTAssertEqual(HitClassifier.target(for: titleOfB), .menuTitle)
+        let itemOfA = HitProbe(role: "AXMenuBarItem", ownerPID: 5, frontmostPID: 5, menuBarOwnerPID: 7)
+        XCTAssertEqual(HitClassifier.target(for: itemOfA), .statusItem)
     }
 
     // Given each gesture and each thing under the pointer

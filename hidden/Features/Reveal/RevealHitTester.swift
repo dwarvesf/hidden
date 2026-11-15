@@ -23,28 +23,29 @@ enum RevealHitTester {
 
     static func resolve(at point: CGPoint, completion: @escaping (HitTarget) -> Void) {
         let frontmost = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        let menuBarOwner = NSWorkspace.shared.menuBarOwningApplication?.processIdentifier
         let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
         let axPoint = MenuBarBand.accessibilityPoint(fromAppKit: point, primaryScreenHeight: primaryHeight)
         DispatchQueue.global(qos: .userInteractive).async {
-            let probe = probe(at: axPoint, frontmost: frontmost)
+            let probe = probe(at: axPoint, frontmost: frontmost, menuBarOwner: menuBarOwner)
             let target = HitClassifier.target(for: probe)
             DispatchQueue.main.async { completion(target) }
         }
     }
 
-    private static func probe(at axPoint: CGPoint, frontmost: pid_t?) -> HitProbe {
+    private static func probe(at axPoint: CGPoint, frontmost: pid_t?, menuBarOwner: pid_t?) -> HitProbe {
         let systemWide = AXUIElementCreateSystemWide()
         AXUIElementSetMessagingTimeout(systemWide, messagingTimeout)
         var found: AXUIElement?
         guard AXUIElementCopyElementAtPosition(systemWide, Float(axPoint.x), Float(axPoint.y), &found) == .success,
               let element = found else {
-            return HitProbe(role: nil, ownerPID: nil, frontmostPID: frontmost)
+            return HitProbe(role: nil, ownerPID: nil, frontmostPID: frontmost, menuBarOwnerPID: menuBarOwner)
         }
         var roleValue: CFTypeRef?
         let role = AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &roleValue) == .success
             ? roleValue as? String : nil
         var pid: pid_t = 0
         let owner: Int32? = AXUIElementGetPid(element, &pid) == .success ? pid : nil
-        return HitProbe(role: role, ownerPID: owner, frontmostPID: frontmost)
+        return HitProbe(role: role, ownerPID: owner, frontmostPID: frontmost, menuBarOwnerPID: menuBarOwner)
     }
 }

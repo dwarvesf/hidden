@@ -23,7 +23,7 @@ enum RevealTrigger: String, CaseIterable {
 enum HitTarget: Equatable {
     /// Bare menu bar: no icon and no menu title.
     case emptySpace
-    /// A title of the front app's menus (File, Edit, ...).
+    /// A title of the menu bar owner's menus (File, Edit, ...).
     case menuTitle
     /// Another app's or the system's menu bar icon.
     case statusItem
@@ -205,7 +205,7 @@ struct HitProbe: Equatable {
 
 enum HitClassifier {
     /// The menu bar itself under the pointer means nothing else is there. A menu
-    /// bar item owned by the front app is one of its menu titles; any other
+    /// bar item owned by the app that owns the menu bar is one of its menu titles; any other
     /// owner is an icon. Everything else is unknown, which never counts as empty.
     static func target(for probe: HitProbe) -> HitTarget {
         guard let role = probe.role else { return .unknown }
