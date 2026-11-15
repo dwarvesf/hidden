@@ -100,6 +100,13 @@ private final class FakeClock: MenuBarClockProviding {
         presses.append((location, mode, restore, finished))
     }
 
+    var panelOpen = false
+    private(set) var panelChecks = 0
+    var isNotificationCenterOpen: Bool {
+        panelChecks += 1
+        return panelOpen
+    }
+
     func click(at location: CGPoint = CGPoint(x: 1900, y: 12)) {
         onClick?(location)
     }
@@ -721,6 +728,9 @@ final class NativeVisibilityEngineTests: XCTestCase {
     private var visibility: FakeVisibility!
     private var clock: FakeClock!
     private var capture: FakeCaptureActivity!
+    private var time: ManualTime!
+    private var expands = 0
+    private var collapses = 0
 
     override func setUp() {
         super.setUp()
@@ -730,6 +740,9 @@ final class NativeVisibilityEngineTests: XCTestCase {
         visibility = FakeVisibility()
         clock = FakeClock()
         capture = FakeCaptureActivity()
+        time = ManualTime()
+        expands = 0
+        collapses = 0
     }
 
     private func makeEngine() -> NativeVisibilityEngine {
@@ -946,19 +959,6 @@ final class NativeVisibilityEngineTests: XCTestCase {
         }
     }
 
-    func testFailedClockRestoreLeavesTheEngineExpanded() {
-        let engine = makeEngine()
-        engine.collapse { _ in }
-        visibility.succeed(0)
-        clock.click()
-        clock.presses[0].completion()
-        visibility.fail(1)
-        XCTAssertEqual(engine.state, .expanded)
-        XCTAssertNil(clock.onClick)
-        engine.collapse { _ in }
-        XCTAssertEqual(visibility.requests.count, 3, "a later collapse must retry hiding")
-    }
-
     func testClockIsWatchedOnlyWhileARestrictionIsHeld() {
         let engine = makeEngine()
         XCTAssertNil(clock.onClick)
@@ -972,101 +972,194 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertNil(clock.onClick, "an unrestricted clock opens Notification Center by itself")
     }
 
-    func testClockClickLiftsTheRestrictionAroundAPress() {
+    // A clock engine: session steps and the lift watchdog run on the test's clock.
+    private func makeClockEngine() -> NativeVisibilityEngine {
         let engine = makeEngine()
-        engine.collapse { _ in }
-        let collapsed = visibility.succeed(0)
+        engine.clockNow = { [unowned self] in time.now }
+        engine.scheduleClockStep = { [unowned self] in time.after($0, $1) }
+        engine.scheduleRestoreWatchdog = { _, _ in }
+        engine.expandBar = { [unowned self, unowned engine] in expands += 1; engine.expand() }
+        engine.collapseBar = { [unowned self, unowned engine] in collapses += 1; engine.collapse { _ in } }
+        return engine
+    }
 
+    private func collapsedClockEngine() -> (NativeVisibilityEngine, FakeAssertion) {
+        let engine = makeClockEngine()
+        engine.collapse { _ in }
+        return (engine, visibility.succeed(0))
+    }
+
+    func testClockClickWhileCollapsedExpandsTheBarAndPressesWithoutLifting() {
+        let (engine, collapsed) = collapsedClockEngine()
         let location = CGPoint(x: 1950, y: 12)
         clock.click(at: location)
-        XCTAssertTrue(collapsed.isInvalidated, "macOS ignores the clock while restricted")
+
+        XCTAssertEqual(expands, 1, "expanded the way a click on the arrow does")
+        XCTAssertEqual(engine.state, .expanded)
+        XCTAssertTrue(collapsed.isInvalidated)
+        XCTAssertNil(clock.onClick, "an unrestricted clock closes the panel by itself")
         XCTAssertEqual(clock.presses.count, 1)
         XCTAssertEqual(clock.presses.first?.location, location)
-        XCTAssertEqual(visibility.requests.count, 1, "the restriction comes back only after the press")
-
         clock.presses[0].completion()
+        XCTAssertEqual(visibility.requests.count, 1, "no restriction comes back while Notification Center is open")
+        XCTAssertTrue(engine.defersAutoCollapse)
+    }
+
+    func testBarCollapsesOnceThePanelClosesAndStopsChecking() {
+        let (engine, _) = collapsedClockEngine()
+        clock.click()
+        clock.panelOpen = true
+        clock.presses[0].finished(.panelShown)
+        time.advance(to: 5)
+        XCTAssertEqual(collapses, 0)
+        XCTAssertTrue(engine.defersAutoCollapse, "auto-collapse waits while the panel is open")
+        let checks = clock.panelChecks
+        XCTAssertEqual(checks, 51, accuracy: 1, "about one check every 0.1 s")
+
+        clock.panelOpen = false
+        time.advance(to: 5.1)
+        XCTAssertEqual(collapses, 1)
         XCTAssertEqual(visibility.requests.count, 2)
-        XCTAssertEqual(visibility.requests[1].bundles, visibility.requests[0].bundles, "the same apps stay visible")
+        XCTAssertEqual(visibility.requests[1].bundles, visibility.requests[0].bundles)
         visibility.succeed(1)
         XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertFalse(engine.defersAutoCollapse)
+        let checksAtCollapse = clock.panelChecks
+        time.advance(to: 100)
+        XCTAssertEqual(clock.panelChecks, checksAtCollapse, "nothing is checked after the collapse")
         XCTAssertNotNil(clock.onClick, "the next click is handled the same way")
     }
 
-    func testClockClickWhileExpandedKeepsTheAlwaysHiddenSectionHidden() {
-        let engine = makeEngine()
+    func testClockClickOnABarTheUserExpandedNeverCollapsesIt() {
+        let engine = makeClockEngine()
         engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
         let expanded = visibility.succeed(visibility.requests.count - 1)
 
         clock.click()
-        XCTAssertTrue(expanded.isInvalidated)
+        XCTAssertEqual(expands, 0)
+        XCTAssertTrue(expanded.isInvalidated, "the always-hidden section's restriction still blocks the clock")
+        clock.presses[0].completion()
+        XCTAssertEqual(visibility.requests.last?.bundles, ["com.dwarvesv.minimalbar", "com.hidden", "com.visible"])
+        visibility.succeed(visibility.requests.count - 1)
+        clock.panelOpen = true
+        clock.presses[0].finished(.panelShown)
+        time.advance(to: 3)
+        clock.panelOpen = false
+        time.advance(to: 4)
+        XCTAssertEqual(collapses, 0)
+        XCTAssertEqual(engine.state, .expanded)
+        XCTAssertFalse(engine.defersAutoCollapse)
+    }
+
+    func testManualToggleWhileThePanelIsOpenKeepsTheBarAsTheUserLeftIt() {
+        let (engine, _) = collapsedClockEngine()
+        clock.click()
+        clock.panelOpen = true
+        clock.presses[0].finished(.panelShown)
+        time.advance(to: 2)
+        engine.userChangedBar()
+        time.advance(to: 4)
+        XCTAssertTrue(engine.defersAutoCollapse, "still open")
+        clock.panelOpen = false
+        time.advance(to: 5)
+        XCTAssertEqual(collapses, 0)
+        XCTAssertFalse(engine.defersAutoCollapse)
+    }
+
+    func testClockPressThatOpenedNothingIsRetriedOnceThenTheBarCollapses() {
+        let (engine, _) = collapsedClockEngine()
+        clock.click()
+        XCTAssertEqual(clock.presses[0].mode, .restoreAfterPress)
+        clock.presses[0].finished(.noPanel)
+        XCTAssertEqual(clock.presses.count, 2, "a press that opened nothing is retried")
+        XCTAssertEqual(clock.presses[1].mode, .restoreWhenPanelShows)
+        clock.presses[1].finished(.noPanel)
+        XCTAssertEqual(clock.presses.count, 2, "only once")
+        XCTAssertEqual(collapses, 1, "nothing opened, so the bar goes back")
+        visibility.succeed(1)
+        XCTAssertEqual(engine.state, .collapsed)
+    }
+
+    func testClockPressThatOpensThePanelIsNotRetried() {
+        let (engine, _) = collapsedClockEngine()
+        clock.click()
+        clock.panelOpen = true
+        clock.presses[0].finished(.panelShown)
+        time.advance(to: 1)
+        XCTAssertEqual(clock.presses.count, 1)
+        XCTAssertTrue(engine.defersAutoCollapse)
+    }
+
+    // With the always-hidden section hidden, expanding swaps one restriction for
+    // another. The press waits for that swap, then lifts the new one.
+    func testPressWaitsForTheExpandToLandWhenTheAlwaysHiddenSectionStaysHidden() {
+        let engine = makeClockEngine()
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        visibility.succeed(visibility.requests.count - 1)
+        engine.collapse { _ in }
+        let collapsed = visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(engine.state, .collapsed)
+
+        clock.click()
+        XCTAssertEqual(expands, 1)
+        XCTAssertTrue(clock.presses.isEmpty, "lifting now would cancel the expand in flight")
+        XCTAssertFalse(collapsed.isInvalidated)
+        let expanded = visibility.succeed(visibility.requests.count - 1)
+        time.advance(to: 0.1)
+        XCTAssertEqual(clock.presses.count, 1)
+        XCTAssertTrue(expanded.isInvalidated, "lifted for the press")
         clock.presses[0].completion()
         XCTAssertEqual(visibility.requests.last?.bundles, ["com.dwarvesv.minimalbar", "com.hidden", "com.visible"])
     }
 
-    func testExpandDuringAClockPressIsNotUndone() {
-        let engine = makeEngine()
-        engine.collapse { _ in }
-        visibility.succeed(0)
-
+    func testFailedClockRestoreLeavesTheEngineExpanded() {
+        let engine = makeClockEngine()
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        visibility.succeed(visibility.requests.count - 1)
         clock.click()
-        engine.expand()
         clock.presses[0].completion()
-
-        XCTAssertEqual(visibility.requests.count, 1, "no restriction comes back after the user expanded")
+        visibility.fail(visibility.requests.count - 1)
         XCTAssertEqual(engine.state, .expanded)
         XCTAssertNil(clock.onClick)
     }
 
-    func testClockPressThatOpensNothingIsRetriedOnceHoldingTheLift() {
-        let engine = makeEngine()
-        engine.scheduleRestoreWatchdog = { _, _ in }
-        engine.collapse { _ in }
-        visibility.succeed(0)
-
+    func testCollapseDuringALiftKeepsTheRestrictionTheUserAskedFor() {
+        let engine = makeClockEngine()
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        visibility.succeed(visibility.requests.count - 1)
         clock.click()
-        XCTAssertEqual(clock.presses[0].mode, .restoreAfterPress)
-        clock.presses[0].completion()
-        let restored = visibility.succeed(1)
-        clock.presses[0].finished(.noPanel)
-        XCTAssertEqual(clock.presses.count, 2, "a press that opened nothing is retried")
-        XCTAssertEqual(clock.presses[1].mode, .restoreWhenPanelShows)
-        XCTAssertTrue(restored.isInvalidated, "the retry lifts again")
-
-        clock.presses[1].completion()
-        visibility.succeed(2)
-        clock.presses[1].finished(.noPanel)
-        XCTAssertEqual(clock.presses.count, 2, "only once")
-        XCTAssertEqual(engine.state, .collapsed)
-        XCTAssertNotNil(clock.onClick)
-    }
-
-    func testClockPressThatOpensThePanelIsNotRetried() {
-        let engine = makeEngine()
-        engine.scheduleRestoreWatchdog = { _, _ in }
+        let before = visibility.requests.count
         engine.collapse { _ in }
-        visibility.succeed(0)
-        clock.click()
         clock.presses[0].completion()
-        visibility.succeed(1)
-        clock.presses[0].finished(.panelShown)
-        XCTAssertEqual(clock.presses.count, 1)
+        XCTAssertEqual(visibility.requests.count, before + 1, "only the collapse activates; the lift's restore stands down")
     }
 
     func testWatchdogRestoresTheRestrictionWhenThePressNeverReports() {
-        let engine = makeEngine()
+        let engine = makeClockEngine()
         var watchdog: (delay: TimeInterval, fire: () -> Void)?
         engine.scheduleRestoreWatchdog = { watchdog = ($0, $1) }
-        engine.collapse { _ in }
-        visibility.succeed(0)
+        engine.updateAlwaysHiddenSection(enabled: true, separatorHidden: true)
+        visibility.succeed(visibility.requests.count - 1)
+        let before = visibility.requests.count
 
         clock.click()
-        XCTAssertEqual(visibility.requests.count, 1)
+        XCTAssertEqual(visibility.requests.count, before)
         XCTAssertEqual(try XCTUnwrap(watchdog).delay, NativeVisibilityEngine.clockLiftHardCap)
-        XCTAssertLessThanOrEqual(NativeVisibilityEngine.clockLiftHardCap, 0.6)
         watchdog?.fire()
-        XCTAssertEqual(visibility.requests.count, 2, "the restriction comes back without the press")
+        XCTAssertEqual(visibility.requests.count, before + 1, "the restriction comes back without the press")
         clock.presses[0].completion()
-        XCTAssertEqual(visibility.requests.count, 2, "and only once")
+        XCTAssertEqual(visibility.requests.count, before + 1, "and only once")
+    }
+
+    func testNoWatchdogWhenNothingIsLifted() {
+        let engine = makeClockEngine()
+        var watchdogs = 0
+        engine.scheduleRestoreWatchdog = { _, _ in watchdogs += 1 }
+        engine.collapse { _ in }
+        visibility.succeed(0)
+        clock.click()
+        XCTAssertEqual(clock.presses.count, 1)
+        XCTAssertEqual(watchdogs, 0)
     }
 
     func testClockClickDuringAnActivationLeavesItAlone() {
@@ -1594,5 +1687,188 @@ final class ClockReplayTests: XCTestCase {
         XCTAssertEqual(restoredAt ?? 2, 0.3, accuracy: 0.0051)
         XCTAssertLessThan(0.3 + 0.03 + 0.15, NativeVisibilityEngine.clockLiftHardCap,
                           "the fallback fits inside the watchdog's cap")
+    }
+}
+
+// The clock-click state machine on its own, with a manual clock and a fake panel.
+final class NotificationCenterSessionTests: XCTestCase {
+    private var time: ManualTime!
+    private var panelOpen = false
+    private var panelChecks = 0
+    private var busy = false
+    private var presses: [(mode: ClockPressMode, finished: (ClockPressOutcome) -> Void)] = []
+    // What the bar saw, in order: "expand", "press", "collapse".
+    private var log: [String] = []
+
+    override func setUp() {
+        super.setUp()
+        time = ManualTime()
+        panelOpen = false
+        panelChecks = 0
+        busy = false
+        presses = []
+        log = []
+    }
+
+    private func makeSession() -> NotificationCenterSession {
+        return NotificationCenterSession(
+            now: { [unowned self] in time.now },
+            after: { [unowned self] in time.after($0, $1) },
+            panelIsOpen: { [unowned self] in panelChecks += 1; return panelOpen },
+            press: { [unowned self] _, mode, finished in
+                guard !busy else { return false }
+                log.append("press")
+                presses.append((mode, finished))
+                return true
+            },
+            expand: { [unowned self] in log.append("expand") },
+            collapse: { [unowned self] in log.append("collapse") })
+    }
+
+    private func openPanel(_ session: NotificationCenterSession, collapsed: Bool = true) {
+        session.clockClicked(at: CGPoint(x: 1900, y: 12), barCollapsed: collapsed)
+        panelOpen = true
+        presses.last?.finished(.panelShown)
+    }
+
+    func testClickWhileCollapsedExpandsBeforeThePress() {
+        let session = makeSession()
+        session.clockClicked(at: CGPoint(x: 1900, y: 12), barCollapsed: true)
+        XCTAssertEqual(log, ["expand", "press"])
+        XCTAssertEqual(presses.first?.mode, .restoreAfterPress)
+        XCTAssertTrue(session.isActive)
+        XCTAssertTrue(session.expandedBar)
+    }
+
+    func testCollapsesWithinOneCheckOfThePanelClosing() {
+        let session = makeSession()
+        openPanel(session)
+        time.advance(to: 7.05)
+        XCTAssertEqual(log, ["expand", "press"])
+        panelOpen = false
+        time.advance(to: 7.2)
+        XCTAssertEqual(log, ["expand", "press", "collapse"])
+        XCTAssertFalse(session.isActive)
+        let checks = panelChecks
+        time.advance(to: 60)
+        XCTAssertEqual(panelChecks, checks, "checking stops with the collapse")
+    }
+
+    func testChecksAtARelaxedRateOnlyWhileWaiting() {
+        let session = makeSession()
+        session.clockClicked(at: .zero, barCollapsed: true)
+        time.advance(to: 1)
+        XCTAssertEqual(panelChecks, 0, "nothing is checked before the panel showed")
+        panelOpen = true
+        presses[0].finished(.panelShown)
+        time.advance(to: 11)
+        XCTAssertEqual(panelChecks, 101, accuracy: 1, "one check every 0.1 s")
+    }
+
+    func testNeverCollapsesABarTheUserHadExpanded() {
+        let session = makeSession()
+        openPanel(session, collapsed: false)
+        XCTAssertEqual(log, ["press"], "already expanded")
+        panelOpen = false
+        time.advance(to: 1)
+        XCTAssertEqual(log, ["press"])
+        XCTAssertFalse(session.isActive)
+    }
+
+    func testManualToggleWhileOpenClearsTheClaim() {
+        let session = makeSession()
+        openPanel(session)
+        time.advance(to: 3)
+        session.userChangedBar()
+        XCTAssertFalse(session.expandedBar)
+        XCTAssertTrue(session.isActive, "auto-collapse still waits for the panel")
+        panelOpen = false
+        time.advance(to: 4)
+        XCTAssertEqual(log, ["expand", "press"])
+        XCTAssertFalse(session.isActive)
+    }
+
+    func testCapStopsWaitingAndLeavesTheBarAsItIs() {
+        let session = makeSession()
+        openPanel(session)
+        time.advance(to: 599.9)
+        XCTAssertTrue(session.isActive)
+        time.advance(to: 600.1)
+        XCTAssertFalse(session.isActive)
+        XCTAssertEqual(log, ["expand", "press"], "never collapsed unexpectedly")
+        let checks = panelChecks
+        time.advance(to: 2000)
+        XCTAssertEqual(panelChecks, checks)
+        panelOpen = false
+        time.advance(to: 2001)
+        XCTAssertEqual(log, ["expand", "press"])
+    }
+
+    func testPressThatOpenedNothingIsRetriedOnceThenTheBarGoesBack() {
+        let session = makeSession()
+        session.clockClicked(at: .zero, barCollapsed: true)
+        presses[0].finished(.noPanel)
+        XCTAssertEqual(presses.count, 2)
+        XCTAssertEqual(presses[1].mode, .restoreWhenPanelShows)
+        presses[1].finished(.noPanel)
+        XCTAssertEqual(log, ["expand", "press", "press", "collapse"])
+        XCTAssertFalse(session.isActive)
+    }
+
+    func testRetryThatOpensThePanelWaitsForItToClose() {
+        let session = makeSession()
+        session.clockClicked(at: .zero, barCollapsed: true)
+        presses[0].finished(.noPanel)
+        panelOpen = true
+        presses[1].finished(.panelShown)
+        time.advance(to: 2)
+        XCTAssertEqual(log, ["expand", "press", "press"])
+        panelOpen = false
+        time.advance(to: 3)
+        XCTAssertEqual(log.last, "collapse")
+    }
+
+    func testBusyPressIsTriedAgainThenGivenUp() {
+        let session = makeSession()
+        busy = true
+        session.clockClicked(at: .zero, barCollapsed: true)
+        XCTAssertTrue(presses.isEmpty)
+        time.advance(to: 0.25)
+        busy = false
+        time.advance(to: 0.35)
+        XCTAssertEqual(presses.count, 1, "pressed once the activation landed")
+
+        let stuck = makeSession()
+        log = []
+        busy = true
+        stuck.clockClicked(at: .zero, barCollapsed: true)
+        time.advance(to: 5)
+        XCTAssertEqual(log, ["expand", "collapse"], "gave up after the busy timeout")
+        XCTAssertFalse(stuck.isActive)
+    }
+
+    // A click on the clock closes an open panel by itself; the check sees it go.
+    func testClickThatClosesThePanelCountsAsTheClose() {
+        let session = makeSession()
+        openPanel(session)
+        time.advance(to: 1)
+        panelOpen = false // the user's click on the clock closed it
+        time.advance(to: 1.1)
+        XCTAssertEqual(log.last, "collapse")
+    }
+
+    func testClickBeforeTheCloseWasNoticedKeepsTheClaim() {
+        let session = makeSession()
+        openPanel(session)
+        // Closed and clicked again within one check: the bar is expanded now,
+        // but it was Hidden Bar that expanded it.
+        session.clockClicked(at: .zero, barCollapsed: false)
+        XCTAssertTrue(session.expandedBar)
+        panelOpen = true
+        presses.last?.finished(.panelShown)
+        panelOpen = false
+        time.advance(to: 1)
+        XCTAssertEqual(log.last, "collapse")
+        XCTAssertEqual(log.filter { $0 == "collapse" }.count, 1)
     }
 }

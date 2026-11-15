@@ -118,6 +118,7 @@ class StatusBarController: MenuBarItemProvider {
                 guard let self = self else { return }
                 self.hoverDwellTimer = nil
                 if self.isCollapsed && self.isMouseInMenuBar {
+                    self.menuBarEngine.userChangedBar()
                     self.expandMenubar()
                 }
             }
@@ -143,6 +144,11 @@ class StatusBarController: MenuBarItemProvider {
         // Create the engine now so one that does not use the separator (macOS 27
         // native hiding) takes it back out before it is ever drawn.
         _ = menuBarEngine
+        // A click on the macOS 27 clock expands and collapses the bar as the arrow does.
+        if let native = menuBarEngine as? NativeVisibilityEngine {
+            native.expandBar = { [weak self] in self?.expandMenubar() }
+            native.collapseBar = { [weak self] in self?.collapseMenuBar() }
+        }
     }
 
     private func setupUI() {
@@ -220,7 +226,10 @@ class StatusBarController: MenuBarItemProvider {
     func showHideSeparatorsAndAlwayHideArea() {
         Preferences.areSeparatorsHidden ? self.showSeparators() : self.hideSeparators()
         
-        if self.isCollapsed {self.expandMenubar()}
+        if self.isCollapsed {
+            menuBarEngine.userChangedBar()
+            self.expandMenubar()
+        }
     }
     
     private func showSeparators() {
@@ -247,6 +256,7 @@ class StatusBarController: MenuBarItemProvider {
         //prevented rapid click cause icon show many in Dock
         if isToggle {return}
         isToggle = true
+        menuBarEngine.userChangedBar()
         self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             self?.isToggle = false
@@ -347,8 +357,9 @@ class StatusBarController: MenuBarItemProvider {
             // Don't yank the bar shut mid-interaction: while the pointer is in the
             // menubar (hovering, clicking, dragging icons), defer and re-arm.
             // Intentionally unbounded; each re-arm invalidates the previous timer,
-            // so deferral never accumulates timers.
-            if self.isMouseInMenuBar || self.isPreferencesWindowVisible {
+            // so deferral never accumulates timers. Notification Center opened
+            // from the clock collapses the bar itself once it closes.
+            if self.isMouseInMenuBar || self.isPreferencesWindowVisible || self.menuBarEngine.defersAutoCollapse {
                 self.startTimerToAutoHide()
             } else {
                 self.collapseMenuBar()
@@ -479,8 +490,10 @@ extension StatusBarController {
         NSLog("DebugHooks: \(command) \(argument ?? "")")
         switch command {
         case "collapse":
+            menuBarEngine.userChangedBar()
             collapseMenuBar()
         case "expand":
+            menuBarEngine.userChangedBar()
             expandMenubar()
         case "toggle":
             expandCollapseIfNeeded()

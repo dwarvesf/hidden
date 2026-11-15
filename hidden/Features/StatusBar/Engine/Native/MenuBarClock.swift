@@ -18,12 +18,145 @@ protocol MenuBarClockProviding: AnyObject {
     // while Notification Center was closed. Nothing is watched while nil.
     var onClick: ((CGPoint) -> Void)? { get set }
 
-    // Presses the clock at that location with the restriction lifted. `restore`
-    // runs once on the main queue when the restriction may come back: right after
-    // the press for `.restoreAfterPress`, once the panel shows for
-    // `.restoreWhenPanelShows`. `finished` runs once on the main queue after it.
+    // Presses the clock at that location. `restore` runs once on the main queue
+    // when a lifted restriction may come back: right after the press for
+    // `.restoreAfterPress`, once the panel shows for `.restoreWhenPanelShows`.
+    // `finished` runs once on the main queue after it.
     func press(at location: CGPoint, mode: ClockPressMode,
                restore: @escaping () -> Void, finished: @escaping (ClockPressOutcome) -> Void)
+
+    // Whether the Notification Center panel is on screen (one window-list read).
+    var isNotificationCenterOpen: Bool { get }
+}
+
+// A click on the clock while the bar is collapsed: expand the bar as a click on
+// the arrow does, replay the click so Notification Center opens, and collapse
+// again once the panel closes. Only a bar this expanded is collapsed, and only
+// while the user has not expanded or collapsed it since. Main queue; `now`,
+// `after` and `panelIsOpen` are injectable for tests.
+final class NotificationCenterSession {
+    struct Timing: Equatable {
+        // How often an open panel is checked; each check is one window-list read.
+        var pollInterval: TimeInterval = 0.1
+        // Stop watching after this long and leave the bar as it is.
+        var cap: TimeInterval = 600
+        // How long a replay may wait for an activation in flight to land.
+        var busyTimeout: TimeInterval = 1
+    }
+
+    private enum Phase {
+        case idle, pressing, open
+    }
+
+    private let timing: Timing
+    private let now: () -> TimeInterval
+    private let after: (TimeInterval, @escaping () -> Void) -> Void
+    private let panelIsOpen: () -> Bool
+    // Replays the click; false when it cannot start yet.
+    private let press: (CGPoint, ClockPressMode, @escaping (ClockPressOutcome) -> Void) -> Bool
+    private let expand: () -> Void
+    private let collapse: () -> Void
+
+    private var phase = Phase.idle
+    private var session = 0
+    private var startedAt: TimeInterval = 0
+    // Hidden Bar expanded the bar for this click, and the user has not toggled it since.
+    private(set) var expandedBar = false
+
+    init(timing: Timing = Timing(),
+         now: @escaping () -> TimeInterval,
+         after: @escaping (TimeInterval, @escaping () -> Void) -> Void,
+         panelIsOpen: @escaping () -> Bool,
+         press: @escaping (CGPoint, ClockPressMode, @escaping (ClockPressOutcome) -> Void) -> Bool,
+         expand: @escaping () -> Void,
+         collapse: @escaping () -> Void) {
+        self.timing = timing
+        self.now = now
+        self.after = after
+        self.panelIsOpen = panelIsOpen
+        self.press = press
+        self.expand = expand
+        self.collapse = collapse
+    }
+
+    // From the click until the panel closed or the cap passed. Auto-collapse waits meanwhile.
+    var isActive: Bool {
+        return phase != .idle
+    }
+
+    func clockClicked(at location: CGPoint, barCollapsed: Bool) {
+        // A click just after the panel closed, before the check noticed, keeps the claim.
+        expandedBar = barCollapsed || (isActive && expandedBar)
+        session += 1
+        phase = .pressing
+        startedAt = now()
+        #if DEBUG
+        ClockFlashTimeline.reset()
+        ClockFlashTimeline.mark(barCollapsed ? "clockClickedCollapsed" : "clockClickedExpanded")
+        #endif
+        if barCollapsed {
+            expand()
+        }
+        replay(at: location, mode: .restoreAfterPress, session: session)
+    }
+
+    // The user expanded or collapsed the bar: it stays as they left it.
+    func userChangedBar() {
+        expandedBar = false
+    }
+
+    private func replay(at location: CGPoint, mode: ClockPressMode, session: Int) {
+        guard session == self.session, phase == .pressing else { return }
+        let started = press(location, mode) { [weak self] outcome in
+            self?.pressed(outcome, at: location, mode: mode, session: session)
+        }
+        guard !started else { return }
+        guard now() - startedAt < timing.busyTimeout else { return end(collapsing: true, "busy") }
+        after(timing.pollInterval) { [weak self] in
+            self?.replay(at: location, mode: mode, session: session)
+        }
+    }
+
+    private func pressed(_ outcome: ClockPressOutcome, at location: CGPoint, mode: ClockPressMode, session: Int) {
+        guard session == self.session, phase == .pressing else { return }
+        switch outcome {
+        case .panelShown:
+            phase = .open
+            poll(session)
+        case .noPanel where mode == .restoreAfterPress:
+            NSLog("NativeVisibility: the clock press opened nothing; pressing once more")
+            replay(at: location, mode: .restoreWhenPanelShows, session: session)
+        case .noPanel, .noClock:
+            // Nothing opened: put back what the click changed.
+            end(collapsing: true, "noPanel")
+        }
+    }
+
+    private func poll(_ session: Int) {
+        guard session == self.session, phase == .open else { return }
+        if !panelIsOpen() {
+            return end(collapsing: true, "panelClosed")
+        }
+        if now() - startedAt >= timing.cap {
+            return end(collapsing: false, "cap")
+        }
+        after(timing.pollInterval) { [weak self] in
+            self?.poll(session)
+        }
+    }
+
+    private func end(collapsing: Bool, _ reason: String) {
+        let collapses = collapsing && expandedBar
+        phase = .idle
+        expandedBar = false
+        #if DEBUG
+        ClockFlashTimeline.mark(collapses ? "\(reason)Collapsing" : "\(reason)LeftAsIs")
+        NSLog("NativeVisibility: clock timeline \(ClockFlashTimeline.summary)")
+        #endif
+        if collapses {
+            collapse()
+        }
+    }
 }
 
 enum ClockPressMode: Equatable {
@@ -296,6 +429,10 @@ final class SystemMenuBarClock: MenuBarClockProviding {
             }
         }
         return clocks
+    }
+
+    var isNotificationCenterOpen: Bool {
+        return Self.isNotificationCenterOpen
     }
 
     // The panel is a window as tall as the screen; banners are a few rows tall and

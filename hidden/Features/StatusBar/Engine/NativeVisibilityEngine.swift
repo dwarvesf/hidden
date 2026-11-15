@@ -38,9 +38,9 @@ import AppKit
 //   visible one if it was never read, until that next read places it by where
 //   macOS put its icon.
 // - The restriction is assessment mode, which makes macOS ignore the clock, so
-//   Notification Center cannot open from it (#410). A click on the clock lifts
-//   the restriction for a moment and presses it (MenuBarClock); hidden icons
-//   can flash while it is lifted.
+//   Notification Center cannot open from it (#410). A click on the clock while
+//   collapsed expands the bar, presses the clock, and collapses again once the
+//   panel closes (NotificationCenterSession in MenuBarClock).
 // - Assessment mode also hides the capsule naming the app that uses the
 //   microphone or camera (#432, #437; the dot in the screen corner stays). No
 //   other restriction origin filters icons (measured on 27.0), so no
@@ -448,8 +448,50 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // hidden, stops the clock from opening Notification Center.
     private func watchClock() {
         clock.onClick = assertion == nil ? nil : { [weak self] location in
-            self?.openNotificationCenter(from: location)
+            self?.clockClicked(at: location)
         }
+    }
+
+    // Set by the controller to its own expand and collapse, so a clock click
+    // changes the bar exactly as a click on the arrow does (state, arrow,
+    // auto-collapse, activation policy). Without them the engine's own are used.
+    var expandBar: (() -> Void)?
+    var collapseBar: (() -> Void)?
+    var clockNow: () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }
+    var scheduleClockStep: (TimeInterval, @escaping () -> Void) -> Void = {
+        DispatchQueue.main.asyncAfter(deadline: .now() + $0, execute: $1)
+    }
+
+    private lazy var notificationCenter = NotificationCenterSession(
+        now: { [weak self] in self?.clockNow() ?? 0 },
+        after: { [weak self] in self?.scheduleClockStep($0, $1) },
+        panelIsOpen: { [weak self] in self?.clock.isNotificationCenterOpen ?? false },
+        press: { [weak self] in self?.pressClock(at: $0, mode: $1, finished: $2) ?? true },
+        expand: { [weak self] in
+            guard let self = self else { return }
+            if let expandBar = self.expandBar { expandBar() } else { self.expand() }
+        },
+        collapse: { [weak self] in
+            guard let self = self else { return }
+            if let collapseBar = self.collapseBar { collapseBar() } else { self.collapse { _ in } }
+        })
+
+    // Auto-collapse waits while Notification Center, opened from the clock, is open.
+    var defersAutoCollapse: Bool {
+        return notificationCenter.isActive
+    }
+
+    func userChangedBar() {
+        notificationCenter.userChangedBar()
+    }
+
+    private func clockClicked(at location: CGPoint) {
+        // Not while an activation, a section read or a collapse's visibility
+        // check is in flight: expanding or lifting now would cancel it, and a
+        // cancelled collapse never reports back, leaving the bar stuck calibrating.
+        guard assertion != nil, generation == assertionGeneration, state != .calibrating else { return }
+        NSLog("NativeVisibility: a click on the clock while \(state == .collapsed ? "collapsed; expanding" : "expanded")")
+        notificationCenter.clockClicked(at: location, barCollapsed: state == .collapsed)
     }
 
     // The longest the restriction may stay lifted for one press, whatever the
@@ -459,19 +501,21 @@ final class NativeVisibilityEngine: MenuBarEngine {
         DispatchQueue.main.asyncAfter(deadline: .now() + $0, execute: $1)
     }
 
-    // macOS ignores the clock while a restriction is held, so lift it just long
-    // enough for a press to land, then put the same one back. The panel stays
-    // open under the restriction; hidden icons show for that moment. If the
-    // press opened nothing, the clock is pressed once more, holding the lift
-    // until the panel shows.
-    private func openNotificationCenter(from location: CGPoint, mode: ClockPressMode = .restoreAfterPress) {
-        // Not while an activation, a section read or a collapse's visibility
-        // check is in flight: lifting now would cancel it, and a cancelled
-        // collapse never reports back, leaving the bar stuck calibrating.
-        guard assertion != nil, generation == assertionGeneration, state != .calibrating else { return }
+    // Replays one click on the clock. Unrestricted (the bar was expanded), the
+    // clock works and is simply pressed. A restriction still held, which only
+    // the expanded bar with the always-hidden section hidden keeps, is lifted
+    // just long enough for the press to land and then put back; the
+    // always-hidden icons can show for that moment. False while an activation
+    // is in flight (the one an expand starts, say): lifting would cancel it.
+    private func pressClock(at location: CGPoint, mode: ClockPressMode,
+                            finished: @escaping (ClockPressOutcome) -> Void) -> Bool {
+        guard assertion != nil else {
+            clock.press(at: location, mode: mode, restore: {}, finished: finished)
+            return true
+        }
+        guard generation == assertionGeneration, state != .calibrating else { return false }
         NSLog("NativeVisibility: lifting the restriction for a click on the clock")
         #if DEBUG
-        if mode == .restoreAfterPress { ClockFlashTimeline.reset() }
         ClockFlashTimeline.mark(mode == .restoreAfterPress ? "liftRequested" : "retryLiftRequested")
         #endif
         let bundles = assertionBundles
@@ -489,7 +533,6 @@ final class NativeVisibilityEngine: MenuBarEngine {
             self.activate(allowing: bundles) { [weak self] succeeded in
                 #if DEBUG
                 ClockFlashTimeline.mark("reapplyEffective")
-                NSLog("NativeVisibility: clock timeline \(ClockFlashTimeline.summary)")
                 #endif
                 guard let self = self, !succeeded else { return }
                 self.state = .expanded
@@ -503,12 +546,8 @@ final class NativeVisibilityEngine: MenuBarEngine {
             #endif
             restore()
         }
-        clock.press(at: location, mode: mode, restore: restore) { [weak self] outcome in
-            guard outcome == .noPanel, mode == .restoreAfterPress, let self = self else { return }
-            NSLog("NativeVisibility: the clock press opened nothing; pressing once more")
-            // Runs only once the restriction is back (the guard checks it).
-            self.openNotificationCenter(from: location, mode: .restoreWhenPanelShows)
-        }
+        clock.press(at: location, mode: mode, restore: restore, finished: finished)
+        return true
     }
 
     private func observeLaunches() {
@@ -654,7 +693,9 @@ extension NativeVisibilityEngine {
             "displays": displays().map { NSStringFromRect($0.appKitFrame) },
             "debugBoundaryX": Self.debugBoundaryX.map { Double($0) } ?? NSNull(),
             "debugAlwaysHiddenX": Self.debugAlwaysHiddenX.map { Double($0) } ?? NSNull(),
-            "clockTimeline": ClockFlashTimeline.snapshot
+            "clockTimeline": ClockFlashTimeline.snapshot,
+            "notificationCenterSession": ["active": notificationCenter.isActive,
+                                          "expandedBar": notificationCenter.expandedBar]
         ]
     }
 

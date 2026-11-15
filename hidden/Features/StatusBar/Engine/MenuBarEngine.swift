@@ -30,6 +30,19 @@ protocol MenuBarEngine: AnyObject {
     // Display geometry changed. Re-applies each hidden section to the live items,
     // so a hot-plug does not leave a stale length behind (PR #354).
     func invalidateLayout()
+
+    // macOS 27: a clock click expanded the bar for Notification Center, which is
+    // still open; auto-collapse waits.
+    var defersAutoCollapse: Bool { get }
+
+    // The user expanded or collapsed the bar, so a clock click no longer
+    // collapses it when Notification Center closes.
+    func userChangedBar()
+}
+
+extension MenuBarEngine {
+    var defersAutoCollapse: Bool { return false }
+    func userChangedBar() {}
 }
 
 enum MenuBarEngineState {
