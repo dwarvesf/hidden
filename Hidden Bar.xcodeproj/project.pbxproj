@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A57E0DE0000000000000C001 /* AppStoreMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57E0DE0000000000000C002 /* AppStoreMigration.swift */; };
+		A57E0DE0000000000000C005 /* AppStoreMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57E0DE0000000000000C002 /* AppStoreMigration.swift */; };
+		A57E0DE0000000000000C003 /* AppStoreMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57E0DE0000000000000C004 /* AppStoreMigrationTests.swift */; };
 		00117C4426600671005E517C /* Assets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00117C4326600671005E517C /* Assets.swift */; };
 		00137CDF24A63DB1004AC855 /* Notification.Name+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00137CDE24A63DB1004AC855 /* Notification.Name+Extension.swift */; };
 		0115A98B3AE708A1A8615B1C /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEFBDF50E5A67397D95D1946 /* UpdateController.swift */; };
@@ -147,6 +150,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A57E0DE0000000000000C002 /* AppStoreMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreMigration.swift; sourceTree = "<group>"; };
+		A57E0DE0000000000000C004 /* AppStoreMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreMigrationTests.swift; sourceTree = "<group>"; };
 		00117C4326600671005E517C /* Assets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assets.swift; sourceTree = "<group>"; };
 		00137CDE24A63DB1004AC855 /* Notification.Name+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification.Name+Extension.swift"; sourceTree = "<group>"; };
 		0070AA937997995EA799D01A /* NativeVisibilityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeVisibilityBridge.swift; sourceTree = "<group>"; };
@@ -281,6 +286,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A57E0DE0000000000000C007 /* AppStoreMigration */ = {
+			isa = PBXGroup;
+			children = (
+				A57E0DE0000000000000C002 /* AppStoreMigration.swift */,
+			);
+			path = AppStoreMigration;
+			sourceTree = "<group>";
+		};
 		0842CDF923A9FDB900D14BD4 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -295,6 +308,7 @@
 			children = (
 				08C20FDC23AABC440035D978 /* About */,
 				A27C0DE00000000000000007 /* MacOS27Notice */,
+				A57E0DE0000000000000C007 /* AppStoreMigration */,
 				905962CD99D24D0C893AFFA7 /* NotchOverflow */,
 				0842CDFE23A9FF7C00D14BD4 /* Preferences */,
 				0842CDFD23A9FF7500D14BD4 /* StatusBar */,
@@ -383,6 +397,7 @@
 				9EE499C5269FD00BE62A0AC2 /* StealthExpandIconTests.swift */,
 				A31C0DE0000000000000A002 /* ArrowStyleTests.swift */,
 				B6B0DE00000000000000B002 /* PreferencesSmallFixesTests.swift */,
+				A57E0DE0000000000000C004 /* AppStoreMigrationTests.swift */,
 			);
 			name = HiddenTests;
 			path = HiddenTests;
@@ -726,6 +741,7 @@
 				F0AFFFE5E6ED81F017BFE547 /* UserDefault+Extension.swift in Sources */,
 				9CD9B70D63B58C9A7A31481A /* NotchOverflowController.swift in Sources */,
 				BA4A80251E14F6E17741797F /* MacOS27Notice.swift in Sources */,
+				A57E0DE0000000000000C001 /* AppStoreMigration.swift in Sources */,
 				0115A98B3AE708A1A8615B1C /* UpdateController.swift in Sources */,
 				9F3C757469DFAA7965B8380E /* CaptureActivityMonitor.swift in Sources */,
 				C0761DAA4E7728B3D52E047C /* AccessibilityPermission.swift in Sources */,
@@ -744,6 +760,7 @@
 				86075364F9653E69AD4329D6 /* StealthExpandIconTests.swift in Sources */,
 				A31C0DE0000000000000A001 /* ArrowStyleTests.swift in Sources */,
 				B6B0DE00000000000000B001 /* PreferencesSmallFixesTests.swift in Sources */,
+				A57E0DE0000000000000C003 /* AppStoreMigrationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -786,6 +803,7 @@
 				08A5F86423AA09F300981CA5 /* UserDefault+Extension.swift in Sources */,
 				4D8C4B09D62D4884B34E1A14 /* NotchOverflowController.swift in Sources */,
 				A27C0DE00000000000000002 /* MacOS27Notice.swift in Sources */,
+				A57E0DE0000000000000C005 /* AppStoreMigration.swift in Sources */,
 				5E2B8F63CA1E4071A9F3D1E8 /* CaptureActivityMonitor.swift in Sources */,
 				FEF7D4B02EACBB21DC3E194B /* AccessibilityPermission.swift in Sources */,
 			);
