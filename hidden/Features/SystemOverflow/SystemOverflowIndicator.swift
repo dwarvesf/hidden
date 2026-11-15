@@ -26,7 +26,6 @@ protocol SystemOverflowNode {
     /// Accessibility frame: top-left origin, global.
     var frame: CGRect? { get }
     var children: [SystemOverflowNode] { get }
-    func press() -> Bool
 }
 
 /// One « button, with its frame already in Cocoa (bottom-left origin) coordinates.
@@ -79,35 +78,11 @@ enum SystemOverflowMatcher {
                width: frame.width, height: frame.height)
     }
 
-    // The « of the display the window is on: the display it overlaps most, else the
-    // fallback (an item parked off screen has no display).
-    static func buttonIndex(forWindowFrame windowFrame: CGRect?,
-                            displays: [CGRect],
-                            fallbackDisplay: CGRect?,
-                            buttons: [SystemOverflowButton]) -> Int? {
-        var display = fallbackDisplay
-        if let windowFrame = windowFrame {
-            var bestArea: CGFloat = 0
-            for candidate in displays {
-                let overlap = candidate.intersection(windowFrame)
-                let area = overlap.isNull ? 0 : overlap.width * overlap.height
-                if area > bestArea {
-                    bestArea = area
-                    display = candidate
-                }
-            }
-        }
-        guard let display = display else { return nil }
-        return buttons.firstIndex { button in
-            guard let frame = button.frame else { return false }
-            return display.contains(CGPoint(x: frame.midX, y: frame.midY))
-        }
-    }
-
     // An item macOS moved into « is either parked off screen at (0, -30) with no
-    // screen, or stacked on a « with its window not visible. Occlusion alone is
-    // not enough (an auto-hidden menu bar also clears it), so a « must exist and
-    // the item must sit on one. Frames are all Cocoa.
+    // screen, or stacked under a « with its window not visible. Occlusion alone is
+    // not enough (an auto-hidden bar also clears it, and an arrow next to « would
+    // intersect it), so a « must exist and the item's centre must sit under one.
+    // Frames are all Cocoa.
     static func isItemInSystemOverflow(windowFrame: CGRect,
                                        hasScreen: Bool,
                                        occlusionVisible: Bool,
@@ -117,42 +92,40 @@ enum SystemOverflowMatcher {
         guard !occlusionVisible else { return false }
         return indicators.contains { button in
             guard let frame = button.frame else { return false }
-            return windowFrame.intersects(frame.insetBy(dx: -slack, dy: -slack))
+            return frame.insetBy(dx: -slack, dy: -slack).contains(CGPoint(x: windowFrame.midX, y: windowFrame.midY))
         }
     }
 }
 
 final class SystemOverflowIndicator {
     static let agentBundleIdentifier = "com.apple.MenuBarAgent"
+    // MenuBarAgent can stall while it relays out; every element, not just the
+    // app's, gets this short timeout instead of the multi-second default.
+    static let messagingTimeout: Float = 0.5
 
     private let root: () -> SystemOverflowNode?
     private let primaryScreenMaxY: () -> CGFloat?
-    private let displays: () -> [CGRect]
-    private let mainDisplay: () -> CGRect?
+    private let queue = DispatchQueue(label: "SystemOverflowIndicator")
 
     init(root: @escaping () -> SystemOverflowNode? = SystemOverflowIndicator.menuBarAgentRoot,
-         primaryScreenMaxY: @escaping () -> CGFloat? = { NSScreen.screens.first?.frame.maxY },
-         displays: @escaping () -> [CGRect] = { NSScreen.screens.map { $0.frame } },
-         mainDisplay: @escaping () -> CGRect? = { NSScreen.main?.frame }) {
+         primaryScreenMaxY: @escaping () -> CGFloat? = { NSScreen.screens.first?.frame.maxY }) {
         self.root = root
         self.primaryScreenMaxY = primaryScreenMaxY
-        self.displays = displays
-        self.mainDisplay = mainDisplay
     }
 
-    private func read() -> [(node: SystemOverflowNode, button: SystemOverflowButton)] {
+    private func read(primaryScreenMaxY maxY: CGFloat?) -> [SystemOverflowButton] {
         guard let root = root() else { return [] }
-        let maxY = primaryScreenMaxY()
         return SystemOverflowMatcher.findUnique(in: root).map { found in
             let frame = found.node.frame.flatMap { axFrame in
                 maxY.map { SystemOverflowMatcher.cocoaFrame(fromAccessibilityFrame: axFrame, primaryScreenMaxY: $0) }
             }
-            return (found.node, SystemOverflowButton(state: found.state, frame: frame))
+            return SystemOverflowButton(state: found.state, frame: frame)
         }
     }
 
     /// Every « on the bar, one per display that overflows. Empty when none.
-    var buttons: [SystemOverflowButton] { read().map { $0.button } }
+    /// Walks Accessibility synchronously; the app reads through `readButtons`.
+    var buttons: [SystemOverflowButton] { read(primaryScreenMaxY: primaryScreenMaxY()) }
 
     var state: SystemOverflowState {
         let states = buttons.map { $0.state }
@@ -160,22 +133,20 @@ final class SystemOverflowIndicator {
         return states.isEmpty ? .absent : .closed
     }
 
-    /// Opens the « on the display the window is on (the main display when the
-    /// window is parked), or closes it when open. False when that display has none.
-    @discardableResult
-    func press(onDisplayOf windowFrame: CGRect?) -> Bool {
-        let found = read()
-        guard let index = SystemOverflowMatcher.buttonIndex(forWindowFrame: windowFrame,
-                                                            displays: displays(),
-                                                            fallbackDisplay: mainDisplay(),
-                                                            buttons: found.map { $0.button }) else { return false }
-        return found[index].node.press()
+    /// The same read on a background queue, delivered on the main queue, so a busy
+    /// MenuBarAgent cannot stall the main thread.
+    func readButtons(completion: @escaping ([SystemOverflowButton]) -> Void) {
+        let maxY = primaryScreenMaxY()
+        queue.async {
+            let buttons = self.read(primaryScreenMaxY: maxY)
+            DispatchQueue.main.async { completion(buttons) }
+        }
     }
 
     static func menuBarAgentRoot() -> SystemOverflowNode? {
         guard let agent = NSRunningApplication.runningApplications(withBundleIdentifier: agentBundleIdentifier).first else { return nil }
         let element = AXUIElementCreateApplication(agent.processIdentifier)
-        AXUIElementSetMessagingTimeout(element, 0.5)
+        AXUIElementSetMessagingTimeout(element, messagingTimeout)
         return AccessibilityNode(element: element)
     }
 }
@@ -195,11 +166,10 @@ private struct AccessibilityNode: SystemOverflowNode {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, kAXChildrenAttribute as CFString, &value) == .success,
               let children = value as? [AXUIElement] else { return [] }
-        return children.map { AccessibilityNode(element: $0) }
-    }
-
-    func press() -> Bool {
-        AXUIElementPerformAction(element, kAXPressAction as CFString) == .success
+        return children.map { child in
+            AXUIElementSetMessagingTimeout(child, SystemOverflowIndicator.messagingTimeout)
+            return AccessibilityNode(element: child)
+        }
     }
 }
 

@@ -1,6 +1,8 @@
 import XCTest
 @testable import Hidden_Bar
 
+#if HIDDENBAR_NATIVE_VISIBILITY
+
 /// Contract: on macOS 27 the system « button (MenuBarAgent) swallows status items
 /// that do not fit, and there is one « per display. These tests pin how the
 /// buttons are found, converted to Cocoa coordinates, and when an item counts as
@@ -13,17 +15,11 @@ final class SystemOverflowTests: XCTestCase {
         let identifier: String?
         let frame: CGRect?
         let children: [SystemOverflowNode]
-        private(set) var pressCount = 0
 
         init(identifier: String? = nil, frame: CGRect? = nil, children: [SystemOverflowNode] = []) {
             self.identifier = identifier
             self.frame = frame
             self.children = children
-        }
-
-        func press() -> Bool {
-            pressCount += 1
-            return true
         }
     }
 
@@ -113,6 +109,21 @@ final class SystemOverflowTests: XCTestCase {
         XCTAssertEqual(indicator.state, .open)
     }
 
+    func test_readButtonsDeliversOnTheMainQueueFromABackgroundRead() {
+        let tree = FakeNode(children: [FakeNode(identifier: Self.closed, frame: portraitAXFrame)])
+        var readOnMain: Bool?
+        let indicator = SystemOverflowIndicator(root: { readOnMain = Thread.isMainThread; return tree },
+                                                primaryScreenMaxY: { 900 })
+        let done = expectation(description: "read")
+        indicator.readButtons { buttons in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertEqual(buttons, [self.portraitButton])
+            done.fulfill()
+        }
+        wait(for: [done], timeout: 2)
+        XCTAssertEqual(readOnMain, false)
+    }
+
     // MARK: is the item swallowed
 
     private func swallowed(_ frame: CGRect, hasScreen: Bool = true, visible: Bool,
@@ -156,48 +167,16 @@ final class SystemOverflowTests: XCTestCase {
         XCTAssertFalse(swallowed(onButton, visible: true, indicators: [mainButton]))
     }
 
+    func test_itemNextToButtonButNotUnderItIsNotOverflow() {
+        // A fullscreen Space with an auto-hidden bar clears occlusion; an arrow beside « is not under it.
+        let beside = CGRect(x: 660, y: 876, width: 24, height: 24)
+        XCTAssertTrue(beside.intersects(mainButton.frame!.insetBy(dx: -4, dy: -4)))
+        XCTAssertFalse(swallowed(beside, visible: false, indicators: [mainButton, portraitButton]))
+    }
+
     func test_buttonWithoutFrameNeverMatchesByPosition() {
         let unreadable = SystemOverflowButton(state: .closed, frame: nil)
         XCTAssertFalse(swallowed(CGRect(x: 625, y: 876, width: 43, height: 24), visible: false, indicators: [unreadable]))
-    }
-
-    // MARK: pressing the right display's «
-
-    private func pressed(window: CGRect?) -> (result: Bool, main: Int, portrait: Int) {
-        let mainNode = FakeNode(identifier: Self.closed, frame: mainAXFrame)
-        let portraitNode = FakeNode(identifier: Self.closed, frame: portraitAXFrame)
-        let indicator = SystemOverflowIndicator(root: { FakeNode(children: [portraitNode, mainNode]) },
-                                                primaryScreenMaxY: { 900 },
-                                                displays: { [self.main, self.portrait] },
-                                                mainDisplay: { self.main })
-        let result = indicator.press(onDisplayOf: window)
-        return (result, mainNode.pressCount, portraitNode.pressCount)
-    }
-
-    func test_pressOpensTheButtonOnTheArrowsOwnDisplay() {
-        let onMain = pressed(window: CGRect(x: 700, y: 876, width: 24, height: 24))
-        XCTAssertEqual([onMain.main, onMain.portrait], [1, 0])
-        XCTAssertTrue(onMain.result)
-        let onPortrait = pressed(window: CGRect(x: 2100, y: 1233, width: 24, height: 24))
-        XCTAssertEqual([onPortrait.main, onPortrait.portrait], [0, 1])
-    }
-
-    func test_pressFallsBackToMainDisplayWhenParked() {
-        let parked = pressed(window: CGRect(x: 0, y: -30, width: 24, height: 24))
-        XCTAssertEqual([parked.main, parked.portrait], [1, 0])
-        let unknown = pressed(window: nil)
-        XCTAssertEqual([unknown.main, unknown.portrait], [1, 0])
-    }
-
-    func test_pressIsFalseWhenThatDisplayHasNoButton() {
-        let portraitNode = FakeNode(identifier: Self.closed, frame: portraitAXFrame)
-        let indicator = SystemOverflowIndicator(root: { FakeNode(children: [portraitNode]) },
-                                                primaryScreenMaxY: { 900 },
-                                                displays: { [self.main, self.portrait] },
-                                                mainDisplay: { self.main })
-        XCTAssertFalse(indicator.press(onDisplayOf: CGRect(x: 700, y: 876, width: 24, height: 24)))
-        XCTAssertEqual(portraitNode.pressCount, 0)
-        XCTAssertFalse(SystemOverflowIndicator(root: { nil }).press(onDisplayOf: nil))
     }
 
     // MARK: one-time notice
@@ -213,3 +192,5 @@ final class SystemOverflowTests: XCTestCase {
         XCTAssertFalse(SystemOverflowNoticePolicy(defaults: defaults).shouldShow())
     }
 }
+
+#endif
