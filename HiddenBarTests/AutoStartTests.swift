@@ -103,6 +103,17 @@ final class LoginItemGateTests: XCTestCase {
         XCTAssertFalse(AutoStart.shouldTouchLoginItems())
     }
 
+    // Parallel test hosts share one bundle path; each must launch, not quit as
+    // a second copy before the test runner connects.
+    func testTestHostSkipsTheSingleInstanceCheck() {
+        XCTAssertFalse(AutoStart.shouldEnforceSingleInstance(underXCTest: true))
+        XCTAssertFalse(AutoStart.shouldEnforceSingleInstance())
+    }
+
+    func testRealLaunchStillEnforcesSingleInstance() {
+        XCTAssertTrue(AutoStart.shouldEnforceSingleInstance(underXCTest: false))
+    }
+
     func testApplyUnlessTestingSkipsServiceWhenGateIsClosed() {
         let service = FakeLoginItem(status: .notRegistered)
         XCTAssertTrue(AutoStart.applyUnlessTesting(enabled: true, service: service, touchLoginItems: false))

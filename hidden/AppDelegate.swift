@@ -65,6 +65,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     /// If another instance with the same bundle ID is already running, activate it
     /// and terminate this one instead.
     private func ensureSingleInstance() -> Bool {
+        guard AutoStart.shouldEnforceSingleInstance() else { return true }
         #if HIDDENBAR_NATIVE_VISIBILITY
         // The direct build asks before quitting an App Store copy that is running.
         return AppStoreMigration.shared.resolveOtherRunningCopy()
