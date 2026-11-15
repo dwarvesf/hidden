@@ -808,6 +808,7 @@ extension NativeVisibilityEngine {
             "pinsSections": pinsSections(),
             "pinnedSections": pinnedSections.sections.mapValues { String(describing: $0) },
             "observedSections": sectionMemory.sections.mapValues { String(describing: $0) },
+            "ignoredDrags": ignoredDrags().sorted(),
             "launchedSinceRead": launchedSinceRead.sorted()
         ]
     }
