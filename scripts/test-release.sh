@@ -372,16 +372,16 @@ wrong_path() {
   kill "$p" 2>/dev/null; wait "$p" 2>/dev/null; return $rc
 }
 t smoke-assert-wrong-path-fails wrong_path
-live_copy() {
-  local app="$WORK/live/Hidden Bar.app" p rc
-  make_bundle "$WORK/live" "$PINNED_PUBKEY" >/dev/null
-  cp /bin/sleep "$app/Contents/MacOS/Hidden Bar"
-  codesign --force -s - "$app/Contents/MacOS/Hidden Bar" 2>/dev/null   # a copied platform binary only runs re-signed
-  "$app/Contents/MacOS/Hidden Bar" 30 & p=$!
-  sleep 0.5; smoke_assert_process "$p" "$app" 19; rc=$?
+# Positive control without launching any app bundle: /bin/sleep stands in as the executable
+# (the 4th argument), the fixture bundle only supplies the build number. Tests never launch,
+# open or exec anything inside an .app bundle.
+live_process() {
+  local p rc
+  /bin/sleep 30 & p=$!
+  sleep 0.3; smoke_assert_process "$p" "$APP_EMPTY" 19 /bin/sleep; rc=$?
   kill "$p" 2>/dev/null; wait "$p" 2>/dev/null; return $rc
 }
-t smoke-assert-live-copy-passes live_copy
+t smoke-assert-live-process-passes live_process
 
 # ---- report -----------------------------------------------------------------------------
 

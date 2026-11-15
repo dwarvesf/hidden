@@ -531,11 +531,11 @@ pids_of() { # app : pids running that app's executable
   running_exes | while read -r pid rest; do [ "$rest" = "$1/Contents/MacOS/Hidden Bar" ] && echo "$pid"; done
 }
 
-smoke_assert_process() { # pid app build : the pid is alive, runs the app under test, and is that build
-  local comm b
+smoke_assert_process() { # pid app build [exe] : the pid is alive, runs the app under test, and is that build
+  local comm b exe="${4:-$2/Contents/MacOS/Hidden Bar}"
   kill -0 "$1" 2>/dev/null || { echo "pid $1 is not running"; return 1; }
   comm="$(ps -o comm= -p "$1" 2>/dev/null)"
-  [ "$comm" = "$2/Contents/MacOS/Hidden Bar" ] || { echo "pid $1 runs '$comm', not the copy under test"; return 1; }
+  [ "$comm" = "$exe" ] || { echo "pid $1 runs '$comm', not the copy under test"; return 1; }
   b="$(plist_get "$2" CFBundleVersion)"
   [ "$b" = "$3" ] || { echo "the copy under test is build '$b', expected $3"; return 1; }
   echo "pid $1 runs $2 build $b"
