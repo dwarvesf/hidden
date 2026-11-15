@@ -44,7 +44,7 @@ Steps to view always hidden icons:
 
 /* Settings window (1.12) */
 "General" = "General";
-"Menu Bar Apps" = "Menu Bar Apps";
+"Icons" = "图标";
 "Appearance" = "Appearance";
 "Advanced" = "Advanced";
 "About" = "About";
@@ -119,15 +119,28 @@ Steps to view always hidden icons:
 "Follow @dwarvesf on X" = "Follow @dwarvesf on X";
 "Made by Dwarves Foundation" = "Made by Dwarves Foundation";
 
-/* Pinned sections (beta), Menu Bar Apps; English until translated */
+/* Pinned sections (beta), Icons; English until translated */
 "Pinned sections (beta)" = "Pinned sections (beta)";
-"Keeps each app in the section you pick in Menu Bar Apps, also after it restarts. Applies at the next collapse." = "Keeps each app in the section you pick in Menu Bar Apps, also after it restarts. Applies at the next collapse.";
+"Keeps each app in the section you pick in Icons, also after it restarts. Applies at the next collapse." = "Keeps each app in the section you pick in Icons, also after it restarts. Applies at the next collapse.";
 "Turn On" = "Turn On";
 "Pinned sections is off" = "Pinned sections is off";
 "Icons follow where macOS puts them. Turn on Pinned sections (beta) in Advanced to choose a section for each app." = "Icons follow where macOS puts them. Turn on Pinned sections (beta) in Advanced to choose a section for each app.";
 "Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too." = "Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too.";
 "No apps yet" = "No apps yet";
 "Apps with a menu bar icon appear here after the bar collapses once." = "Apps with a menu bar icon appear here after the bar collapses once.";
+
+/* Icons pane: names of macOS services and the "macOS" caption; English until translated */
+"Widgets and Live Activities" = "Widgets and Live Activities";
+"Calendar" = "Calendar";
+"AirDrop and Sharing" = "AirDrop and Sharing";
+"Shortcuts" = "Shortcuts";
+"Photos" = "Photos";
+"Printing" = "Printing";
+"Screen Sharing" = "Screen Sharing";
+"iPhone and iPad Apps" = "iPhone and iPad Apps";
+"Background Items" = "Background Items";
+"Wi-Fi" = "Wi-Fi";
+"macOS" = "macOS";
 "Reset" = "Reset";
 "Reset all to visible" = "Reset all to visible";
 "Shows every app, including ones that are not running now." = "Shows every app, including ones that are not running now.";

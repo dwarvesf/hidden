@@ -49,6 +49,20 @@ When testing on a machine that runs Hidden Bar daily: export the prefs domain
 first (`defaults export com.dwarvesv.minimalbar backup.plist`), quit the
 installed app, test the dev build, then re-import and relaunch.
 
+## Install a notarized zip on this Mac or another
+
+`scripts/install-local.sh [--host ALIAS [--when-online]] [--check-only] ZIP` installs a
+`Hidden-Bar-vX.Y.Z-macos.zip` into `/Applications`; `--host` goes over `mini-run`, and
+`--when-online` waits (bounded, `--wait-max`) for a host that is offline. It refuses a zip that
+is not signed by team `W777S7V8TN` or that Gatekeeper does not call `Notarized Developer ID`,
+before touching `/Applications`. It then backs up the prefs domain and moves the replaced app
+into `~/Library/Application Support/HiddenBar-backup/<stamp>/` (nothing is deleted), installs with
+`ditto`, relaunches, and prints a before/after table: version, CDHash, Gatekeeper, and the System
+Events login items named "Hidden Bar", which must all point at `/Applications/Hidden Bar.app`
+(exit 4 flags a stray; remove it by hand). `--check-only` verifies the zip and shows what is
+installed now, changing nothing. Tests: `bash scripts/test-install-local.sh` (fixtures only, never
+the real `/Applications`). Never judge arrow or hiding behaviour on a copy outside `/Applications`.
+
 ## Release
 
 1. Verify the stack: every PR reviewed, builds green, behavioral checks above run.

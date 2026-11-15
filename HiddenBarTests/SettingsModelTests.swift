@@ -17,7 +17,7 @@ final class SettingsModelTests: XCTestCase {
     // MARK: tabs per build
 
     // Given this test bundle's build flags
-    // When listing the Settings tabs on macOS 27 with the Menu Bar Apps pane registered
+    // When listing the Settings tabs on macOS 27 with the Icons pane registered
     // Then the direct build shows it second and the App Store build never shows it
     func test_currentBuild_tabsMatchItsFlags() {
         let tabs = SettingsTab.visibleTabs(build: .current, osMajorVersion: 27, menuBarAppsAvailable: true)
@@ -32,7 +32,7 @@ final class SettingsModelTests: XCTestCase {
 
     // Given each build, OS and registration
     // When listing the tabs
-    // Then Menu Bar Apps needs all three: direct build, macOS 27, the pane registered
+    // Then Icons needs all three: direct build, macOS 27, the pane registered
     func test_menuBarAppsTab_onlyWithPinnedSections() {
         let base: [SettingsTab] = [.general, .appearance, .advanced, .about]
         XCTAssertEqual(SettingsTab.visibleTabs(build: .direct, osMajorVersion: 27, menuBarAppsAvailable: false), base)
