@@ -2591,6 +2591,20 @@ final class UnrestrictedReadHookTests: XCTestCase {
         XCTAssertEqual(reads.first?.1.compactMap(\.bundleIdentifier), ["com.hidden", "com.visible"])
     }
 
+    // Given an app that started (Safari has no menu-bar icon) and an icon the read lists
+    // When a collapse reads the bar
+    // Then the hook's layout names only the listed icon; the engine still gives the started app a section
+    func testAStartedAppWithNoIconIsNotReported() {
+        let engine = makeEngine()
+        engine.applicationLaunched("com.apple.Safari")
+        engine.collapse { _ in }
+        visibility.succeed(0)
+
+        XCTAssertEqual(reads.count, 1)
+        XCTAssertEqual(reads.first?.0.sections, ["com.hidden": .hidden, "com.visible": .visible])
+        XCTAssertEqual(engine.layout?.sections["com.apple.Safari"], .visible, "the engine still holds it for the restriction")
+    }
+
     // Given a held restriction, when the layout is needed again
     // Then the cached one stands in and nothing is reported: hidden items read stale
     func testAHeldRestrictionReportsNoRead() {

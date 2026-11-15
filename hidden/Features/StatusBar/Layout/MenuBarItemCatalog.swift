@@ -75,7 +75,7 @@ final class MenuBarItemCatalog {
     // userInfo key of `.menuBarCatalogChanged`.
     static let arrivalsKey = "arrivals"
     // UserDefaults key: bundle id to the time (seconds since 1970) it was first read.
-    static let firstSeenDefaultsKey = "menuBarCatalogFirstSeen"
+    static let firstSeenDefaultsKey = UserDefaults.Key.menuBarCatalogFirstSeen
 
     // Every cataloged app, by name.
     private(set) var entries: [MenuBarCatalogEntry] = []

@@ -30,18 +30,20 @@ final class HotKeyRegistry {
     private var entries: [String: Entry] = [:]
     private let defaults: UserDefaults
     private let bind: Binder
+    private let center: NotificationCenter
     private var observer: NSObjectProtocol?
 
     init(defaults: UserDefaults = .standard, center: NotificationCenter = .default, bind: @escaping Binder) {
         self.defaults = defaults
         self.bind = bind
+        self.center = center
         observer = center.addObserver(forName: .prefsChanged, object: nil, queue: nil) { [weak self] _ in
             self?.reload()
         }
     }
 
     deinit {
-        observer.map(NotificationCenter.default.removeObserver)
+        observer.map(center.removeObserver)
     }
 
     /// Listens for the shortcut stored under `key` (a `Data` preference holding

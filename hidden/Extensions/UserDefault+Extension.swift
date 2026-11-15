@@ -28,5 +28,7 @@ extension UserDefaults {
         static let pauseHidingForUnkeepableItems = "pauseHidingForUnkeepableItems"
         static let showWholeBarWhenCaptureStarts = "showWholeBarWhenCaptureStarts"
         static let pinnedSectionsEnabled = "pinnedSectionsEnabled"
+        // Internal: not user-facing, so not in the App Store import whitelist.
+        static let menuBarCatalogFirstSeen = "menuBarCatalogFirstSeen"
     }
 }
