@@ -60,7 +60,7 @@ final class SettingsWindow: NSWindow {
     #endif
 }
 
-/// The slot for the Menu Bar Apps pane. The pinned sections feature (beta)
+/// The slot for the Icons pane. The pinned sections feature (beta)
 /// sets this at launch; until then the tab does not exist.
 enum MenuBarAppsPane {
     static var makeViewController: (() -> NSViewController)?

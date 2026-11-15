@@ -41,7 +41,7 @@ enum SettingsSnapshot {
                 shoot(PreferencesWindowController(context: context), tab: .general, appearance: appearance,
                       to: dir.appendingPathComponent("\(build)-status-\(status)-\(mode).png"))
             }
-            // Menu Bar Apps with the pinned sections on, off and empty, from
+            // The Icons pane with the pinned sections on, off and empty, from
             // fixed data: the live table would put this Mac's apps in the shots.
             let registered = MenuBarAppsPane.makeViewController
             for (state, store) in SnapshotMenuBarAppsStore.states {

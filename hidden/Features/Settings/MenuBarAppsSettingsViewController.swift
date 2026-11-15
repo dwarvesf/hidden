@@ -8,12 +8,13 @@
 import AppKit
 import UniformTypeIdentifiers
 
-/// Where the Menu Bar Apps pane reads and writes the pinned sections (beta).
+/// Where the Icons pane reads and writes the pinned sections (beta).
 /// The live store is the app's preferences; snapshots pass fixed data.
 protocol MenuBarAppsStore {
     var isEnabled: Bool { get }
     func entries() -> [PinnedSectionsList.Entry]
-    func icon(for bundle: String) -> NSImage?
+    func identity(for bundle: String) -> MenuBarAppIdentity.Resolved
+    func icon(for bundle: String) -> NSImage
     func set(_ section: MenuBarSection, for bundle: String)
     func setIgnoresDrags(_ ignores: Bool, for bundle: String)
     func resetAllToVisible()
@@ -21,22 +22,20 @@ protocol MenuBarAppsStore {
 }
 
 struct LiveMenuBarAppsStore: MenuBarAppsStore {
+    /// A class, so copies of the store share what it resolved.
+    let identities = MenuBarAppIdentityCache()
+
     var isEnabled: Bool { Preferences.pinnedSectionsEnabled }
 
     func entries() -> [PinnedSectionsList.Entry] {
-        PinnedSectionsList.entries(table: UserDefaultsPinnedSections().sections, name: Self.appName,
+        PinnedSectionsList.entries(table: UserDefaultsPinnedSections().sections, name: { identities.identity(for: $0).name },
                                    ignoringDrags: UserDefaultsDragLocks().bundles)
     }
 
-    // "Safari", without ".app" even when Finder shows extensions.
-    static func appName(_ bundle: String) -> String? {
-        NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundle)?.deletingPathExtension().lastPathComponent
-    }
+    func identity(for bundle: String) -> MenuBarAppIdentity.Resolved { identities.identity(for: bundle) }
 
     // The app's own icon, from its bundle: no screen capture.
-    func icon(for bundle: String) -> NSImage? {
-        NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundle).map { NSWorkspace.shared.icon(forFile: $0.path) }
-    }
+    func icon(for bundle: String) -> NSImage { identities.icon(for: bundle) }
 
     func set(_ section: MenuBarSection, for bundle: String) {
         PinnedSectionEdits.set(section, for: bundle, in: UserDefaultsPinnedSections())
@@ -56,7 +55,7 @@ struct LiveMenuBarAppsStore: MenuBarAppsStore {
     }
 }
 
-/// Menu Bar Apps: one row per app the pinned sections know, with its icon, its
+/// Icons: one row per app the pinned sections know, with its icon, its
 /// name and a section popup that applies at once, then "Reset all to visible".
 final class MenuBarAppsSettingsViewController: SettingsPaneController {
     static let sectionTitles: [(MenuBarSection, String)] = [
@@ -74,6 +73,8 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
 
     private let store: MenuBarAppsStore
     private let content = NSStackView()
+    /// What the rows were last built from: switching back to the tab changes nothing unless this does.
+    private var built: (isEnabled: Bool, entries: [PinnedSectionsList.Entry])?
 
     init(context: SettingsContext, store: MenuBarAppsStore = LiveMenuBarAppsStore()) {
         self.store = store
@@ -99,8 +100,12 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
     }
 
     private func rebuild() {
+        let isEnabled = store.isEnabled
+        let entries = isEnabled ? store.entries() : []
+        if let built, built.isEnabled == isEnabled, built.entries == entries { return }
+        built = (isEnabled, entries)
         content.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        guard store.isEnabled else {
+        guard isEnabled else {
             let turnOn = NSButton(title: "Turn On".localized, target: self, action: #selector(turnOn))
             turnOn.controlSize = .small
             add(SettingsGroupView(rows: [SettingsForm.row(
@@ -109,7 +114,6 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
                 control: turnOn)]))
             return
         }
-        let entries = store.entries()
         add(SettingsForm.caption("Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too.".localized))
         if entries.isEmpty {
             add(SettingsGroupView(rows: [SettingsForm.row(
@@ -135,9 +139,11 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
 
     // The group scrolls once it is taller than the window should grow.
     private func list(_ entries: [PinnedSectionsList.Entry]) -> NSView {
-        let group = SettingsGroupView(rows: entries.map(row))
-        let height = min(group.fittingSize.height, Self.maxListHeight)
-        guard group.fittingSize.height > Self.maxListHeight else { return group }
+        let captions = MenuBarAppIdentity.captions(for: entries.map { ($0.bundle, $0.name, store.identity(for: $0.bundle).caption) })
+        let group = SettingsGroupView(rows: entries.map { row($0, caption: captions[$0.bundle]) })
+        let fittingHeight = group.fittingSize.height
+        let height = min(fittingHeight, Self.maxListHeight)
+        guard fittingHeight > Self.maxListHeight else { return group }
         let document = FlippedView()
         document.translatesAutoresizingMaskIntoConstraints = false
         document.addSubview(group)
@@ -158,7 +164,7 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         return scroll
     }
 
-    private func row(_ entry: PinnedSectionsList.Entry) -> NSView {
+    private func row(_ entry: PinnedSectionsList.Entry, caption: String?) -> NSView {
         let popup = NSPopUpButton(frame: .zero, pullsDown: false)
         popup.controlSize = .small
         for (section, title) in Self.sectionTitles {
@@ -178,10 +184,13 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         let controls = NSStackView(views: [lock, popup])
         controls.spacing = 10
 
-        let row = SettingsForm.row(entry.name, control: controls)
+        let row = SettingsForm.row(entry.name, caption: caption, control: controls)
         row.toolTip = entry.bundle
-        let icon = NSImageView(image: store.icon(for: entry.bundle) ?? NSWorkspace.shared.icon(for: .applicationBundle))
+        let image = store.icon(for: entry.bundle)
+        let icon = NSImageView(image: image)
         icon.translatesAutoresizingMaskIntoConstraints = false
+        // SF Symbols are templates: tint them like secondary text instead of black.
+        icon.contentTintColor = image.isTemplate ? .secondaryLabelColor : nil
         icon.imageScaling = .scaleProportionallyUpOrDown
         row.addSubview(icon)
         // Make room for the icon: move the title's leading edge right of it.
@@ -227,22 +236,26 @@ private final class FlippedView: NSView {
 struct SnapshotMenuBarAppsStore: MenuBarAppsStore {
     var isEnabled: Bool
     var table: [String: MenuBarSection]
+    let live = LiveMenuBarAppsStore()
 
     static let states: [(String, SnapshotMenuBarAppsStore)] = [
         ("on", SnapshotMenuBarAppsStore(isEnabled: true, table: [
             "com.apple.Safari": .visible, "com.apple.Notes": .hidden, "com.apple.Music": .alwaysHidden,
             "com.apple.controlcenter": .visible, "com.apple.ActivityMonitor": .hidden,
-            "com.example.uninstalled": .hidden,
+            "com.example.uninstalled": .hidden, "com.apple.chronod": .hidden, "com.apple.sharingd": .hidden,
+            "com.apple.screensharing.agent": .hidden, "com.apple.SSMenuAgent": .visible,
+            "com.hnc.Discord.helper.Renderer": .hidden,
         ])),
         ("off", SnapshotMenuBarAppsStore(isEnabled: false, table: [:])),
         ("empty", SnapshotMenuBarAppsStore(isEnabled: true, table: [:])),
     ]
 
     func entries() -> [PinnedSectionsList.Entry] {
-        PinnedSectionsList.entries(table: table, name: LiveMenuBarAppsStore.appName)
+        PinnedSectionsList.entries(table: table, name: { live.identity(for: $0).name })
     }
 
-    func icon(for bundle: String) -> NSImage? { LiveMenuBarAppsStore().icon(for: bundle) }
+    func identity(for bundle: String) -> MenuBarAppIdentity.Resolved { live.identity(for: bundle) }
+    func icon(for bundle: String) -> NSImage { live.icon(for: bundle) }
     func set(_ section: MenuBarSection, for bundle: String) {}
     func setIgnoresDrags(_ ignores: Bool, for bundle: String) {}
     func resetAllToVisible() {}
