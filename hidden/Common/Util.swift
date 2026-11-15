@@ -16,7 +16,7 @@ class Util {
     static func setUpAutoStart(isAutoStart: Bool) -> Bool {
         // SMAppService (macOS 13+) registers the main app itself as a login item;
         // no helper app, no distributed-notification kill dance.
-        return AutoStart.apply(enabled: isAutoStart)
+        return AutoStart.applyUnlessTesting(enabled: isAutoStart)
     }
     
     static func showPrefWindow() {

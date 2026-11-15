@@ -82,6 +82,47 @@ final class AutoStartTests: XCTestCase {
     }
 }
 
+final class LoginItemGateTests: XCTestCase {
+
+    func testSkipsUnderXCTestEvenInRelease() {
+        XCTAssertFalse(AutoStart.shouldTouchLoginItems(underXCTest: true, debugBuild: false))
+    }
+
+    func testSkipsInDebugBuild() {
+        XCTAssertFalse(AutoStart.shouldTouchLoginItems(underXCTest: false, debugBuild: true))
+    }
+
+    func testReleaseOutsideXCTestStillTouchesLoginItems() {
+        XCTAssertTrue(AutoStart.shouldTouchLoginItems(underXCTest: false, debugBuild: false))
+    }
+
+    // The test host itself must be recognised, or every test run registers the
+    // build-cache app as a second login item.
+    func testCurrentProcessIsDetectedAsXCTest() {
+        XCTAssertTrue(AutoStart.isRunningUnderXCTest)
+        XCTAssertFalse(AutoStart.shouldTouchLoginItems())
+    }
+
+    func testApplyUnlessTestingSkipsServiceWhenGateIsClosed() {
+        let service = FakeLoginItem(status: .notRegistered)
+        XCTAssertTrue(AutoStart.applyUnlessTesting(enabled: true, service: service, touchLoginItems: false))
+        XCTAssertEqual(service.registerCalls, 0)
+        XCTAssertEqual(service.unregisterCalls, 0)
+    }
+
+    func testApplyUnlessTestingSkipsUnregisterWhenGateIsClosed() {
+        let service = FakeLoginItem(status: .enabled)
+        XCTAssertTrue(AutoStart.applyUnlessTesting(enabled: false, service: service, touchLoginItems: false))
+        XCTAssertEqual(service.unregisterCalls, 0)
+    }
+
+    func testApplyUnlessTestingRegistersWhenGateIsOpen() {
+        let service = FakeLoginItem(status: .notRegistered)
+        _ = AutoStart.applyUnlessTesting(enabled: true, service: service, touchLoginItems: true)
+        XCTAssertEqual(service.registerCalls, 1)
+    }
+}
+
 final class LegacyLoginItemTests: XCTestCase {
 
     private func makeDefaults() -> UserDefaults {
