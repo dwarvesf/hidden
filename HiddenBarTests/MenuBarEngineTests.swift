@@ -3358,5 +3358,34 @@ final class PresentationModeEngineTests: XCTestCase {
         engine.endTemporaryAllow()
         XCTAssertEqual(visibility.requests.count, requests, "the user's change stands")
     }
+
+    // MARK: A late allow does not leak
+
+    // Given a palette session wired to the engine whose allow lands after the 5 s lift cap
+    // When an app launches afterwards (a non-user re-activation)
+    // Then the late allow was ended, and the app is not in the list
+    func testAnAllowLandingAfterTheSessionGaveUpDoesNotSurviveAReactivation() {
+        let engine = makeEngine()
+        collapsed(engine)
+        let session = PaletteRevealSession(
+            now: { [unowned self] in time.now },
+            after: { [unowned self] in time.after($0, $1) },
+            allow: { engine.allowTemporarily($0, completion: $1) },
+            press: { _, done in done(.pressed) },
+            menuIsOpen: { _ in false },
+            appIsActive: { _ in false },
+            restore: { engine.endTemporaryAllow() })
+        var results: [PaletteOpenResult] = []
+        session.open(bundle: "com.hidden") { results.append($0) }
+        let pending = visibility.requests.count - 1
+
+        time.advance(to: 6)
+        XCTAssertEqual(results, [.unavailable], "the session gave up")
+        visibility.succeed(pending)
+
+        engine.applicationLaunched("com.new")
+        XCTAssertFalse(engine.currentHold?.bundles.contains("com.hidden") ?? true, "the late allow must not ride along")
+        XCTAssertEqual(engine.currentHold?.bundles, ["com.new", "com.visible"])
+    }
 }
 

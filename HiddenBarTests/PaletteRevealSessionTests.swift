@@ -291,7 +291,7 @@ final class PaletteRevealSessionTests: XCTestCase {
         XCTAssertFalse(session.isActive)
         XCTAssertEqual(results, [.unavailable])
         allowCompletions.forEach { $0(.lifted) }
-        XCTAssertEqual(log, ["allow com.paste"], "a late answer does nothing")
+        XCTAssertEqual(log, ["allow com.paste", "restore"], "a late lift is put back, nothing is pressed")
     }
 
     // MARK: overlapping opens
