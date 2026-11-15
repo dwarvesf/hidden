@@ -68,17 +68,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
     
     func setupAutoStartApp() {
-        removeLegacyLauncherLoginItem()
+        LegacyLoginItem.remove()
         Util.setUpAutoStart(isAutoStart: Preferences.isAutoStart)
-    }
-
-    private func removeLegacyLauncherLoginItem() {
-        // Builds before the SMAppService migration registered a helper app in BTM;
-        // macOS never garbage-collects that record (TN3111), so deauthorize it once.
-        let migratedKey = "smAppServiceMigrated"
-        guard !UserDefaults.standard.bool(forKey: migratedKey) else { return }
-        SMLoginItemSetEnabled("com.dwarvesv.LauncherApplication" as CFString, false)
-        UserDefaults.standard.set(true, forKey: migratedKey)
     }
     
     // A plain value, separate from the side-effecting `register(defaults:)`
