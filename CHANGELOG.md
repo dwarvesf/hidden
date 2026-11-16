@@ -1,17 +1,11 @@
 # Changelog
 
-<<<<<<< HEAD
 ## Unreleased
 
 ### Changed
 - Settings › Advanced: the switch "Show all icons while macOS hides one right of the arrow" is now "Pause hiding while macOS shows Now Playing, Focus and similar items", with a note that Hidden Bar hides nothing while one of them shows. Same stored setting, same behavior ([#446](https://github.com/dwarvesf/hidden/issues/446)).
 
-## v1.13.0 (unreleased)
-||||||| parent of f5ffd09 (docs: record the #456 upgrade-path BTM check, date v1.13.0)
-## v1.13.0 (unreleased)
-=======
 ## v1.13.0 (2026-11-16)
->>>>>>> f5ffd09 (docs: record the #456 upgrade-path BTM check, date v1.13.0)
 
 Four ways to reach and control your icons, all opt-in: with every default left alone, 1.13.0 behaves exactly like 1.12.0. None needs a new permission: they use the Accessibility permission hiding already asks for, plus the pointer and scroll monitors hover-to-expand already uses. They never read your screen.
 
