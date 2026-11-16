@@ -36,9 +36,23 @@ extension NSAppearance {
     var isDark: Bool { bestMatch(from: [.aqua, .darkAqua]) == .darkAqua }
 }
 
-/// A rounded group of rows with hairlines between them.
+enum SettingsCardFrame {
+    static func draw(in bounds: NSRect) {
+        let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5),
+                                xRadius: SettingsMetrics.groupRadius, yRadius: SettingsMetrics.groupRadius)
+        SettingsColors.groupFill.setFill()
+        path.fill()
+        SettingsColors.groupStroke.setStroke()
+        path.lineWidth = 1
+        path.stroke()
+    }
+}
+
+/// A rounded group of rows with hairlines between them. A group inside a
+/// `SettingsScrollCard` draws no frame: the card draws it once, around the scroller.
 final class SettingsGroupView: NSView {
     private let stack = NSStackView()
+    var drawsFrame = true
 
     init(rows: [NSView]) {
         super.init(frame: .zero)
@@ -72,14 +86,57 @@ final class SettingsGroupView: NSView {
     }
 
     override func draw(_ dirtyRect: NSRect) {
-        let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5),
-                                xRadius: SettingsMetrics.groupRadius, yRadius: SettingsMetrics.groupRadius)
-        SettingsColors.groupFill.setFill()
-        path.fill()
-        SettingsColors.groupStroke.setStroke()
-        path.lineWidth = 1
-        path.stroke()
+        guard drawsFrame else { return }
+        SettingsCardFrame.draw(in: bounds)
     }
+}
+
+/// A group of rows taller than the card should grow: the rows scroll inside the
+/// card, and the scroller sits inside the card's frame, so the card keeps the
+/// same left and right edges as every other card whatever the scroller style.
+final class SettingsScrollCard: NSView {
+    let scroll = NSScrollView()
+
+    init(group: SettingsGroupView, height: CGFloat) {
+        super.init(frame: .zero)
+        translatesAutoresizingMaskIntoConstraints = false
+        group.drawsFrame = false
+        let document = SettingsFlippedView()
+        document.translatesAutoresizingMaskIntoConstraints = false
+        document.addSubview(group)
+        scroll.translatesAutoresizingMaskIntoConstraints = false
+        scroll.hasVerticalScroller = true
+        scroll.autohidesScrollers = true
+        scroll.scrollerStyle = .overlay
+        scroll.drawsBackground = false
+        scroll.borderType = .noBorder
+        scroll.documentView = document
+        addSubview(scroll)
+        // One point in from the frame, so the scroller never covers the stroke.
+        NSLayoutConstraint.activate([
+            scroll.topAnchor.constraint(equalTo: topAnchor, constant: 1),
+            scroll.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -1),
+            scroll.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 1),
+            scroll.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -1),
+            group.topAnchor.constraint(equalTo: document.topAnchor),
+            group.leadingAnchor.constraint(equalTo: document.leadingAnchor),
+            group.trailingAnchor.constraint(equalTo: document.trailingAnchor),
+            group.bottomAnchor.constraint(equalTo: document.bottomAnchor),
+            document.widthAnchor.constraint(equalTo: scroll.contentView.widthAnchor),
+            heightAnchor.constraint(equalToConstant: height),
+        ])
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    override func draw(_ dirtyRect: NSRect) {
+        SettingsCardFrame.draw(in: bounds)
+    }
+}
+
+/// A scroll view's document grows downward only when flipped.
+final class SettingsFlippedView: NSView {
+    override var isFlipped: Bool { true }
 }
 
 final class SettingsHairline: NSView {
@@ -253,8 +310,13 @@ class SettingsPaneController: NSViewController {
             form.leadingAnchor.constraint(equalTo: root.leadingAnchor),
             form.trailingAnchor.constraint(equalTo: root.trailingAnchor),
             form.bottomAnchor.constraint(equalTo: root.bottomAnchor),
-            root.widthAnchor.constraint(equalToConstant: SettingsMetrics.contentWidth + 2 * SettingsMetrics.sideInset),
         ])
+        // The window is this wide, but a scroll view with an always-visible
+        // scroller hands the pane less. The pane then yields (this is not
+        // required) and the cards follow the width they get.
+        let preferredWidth = root.widthAnchor.constraint(equalToConstant: SettingsMetrics.contentWidth + 2 * SettingsMetrics.sideInset)
+        preferredWidth.priority = .defaultHigh
+        preferredWidth.isActive = true
         view = root
         buildForm()
         for name: Notification.Name in [.prefsChanged, .alwayHideToggle, .useFullStatusBarToggle, .stealthExpandIconToggle,
@@ -286,13 +348,14 @@ class SettingsPaneController: NSViewController {
     func addFullWidth(_ view: NSView) {
         view.translatesAutoresizingMaskIntoConstraints = false
         form.addArrangedSubview(view)
-        view.widthAnchor.constraint(equalToConstant: SettingsMetrics.contentWidth).isActive = true
+        view.widthAnchor.constraint(equalTo: form.widthAnchor, constant: -2 * SettingsMetrics.sideInset).isActive = true
     }
 
     func addFootnote(_ text: String) {
         let label = SettingsForm.caption(text)
         if let last = form.arrangedSubviews.last { form.setCustomSpacing(8, after: last) }
         form.addArrangedSubview(label)
+        label.widthAnchor.constraint(equalTo: form.widthAnchor, constant: -2 * SettingsMetrics.sideInset).isActive = true
     }
 
     func boundSwitch(_ key: String, read: @escaping () -> Bool, write: @escaping (Bool) -> Void) -> PrefSwitch {
