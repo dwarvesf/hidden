@@ -15,6 +15,11 @@ Four ways to reach and control your icons, all opt-in: with every default left a
 - The shortcut recorder is one shared control for every shortcut. A bare letter is refused and the old shortcut stays; letting go of every modifier, or pressing Escape, cancels without clearing the stored shortcut; a shortcut that is also used by another Hidden Bar shortcut is refused, with a small orange triangle naming the other ([#497](https://github.com/dwarvesf/hidden/pull/497)).
 - The hover setting moved into the new "Also show hidden icons when you" group, with the same stored value ([#493](https://github.com/dwarvesf/hidden/pull/493)).
 
+### Fixed
+- Settings › Icons and General keep their cards on the same left and right edges when macOS shows scroll bars all the time: the list's scroller sits inside its card, and nothing is clipped at the right.
+- Settings › Icons: the row of an app that is not running (with Remove) is as tall as the other rows, and "Ignore drags" now says in its tooltip and in the note above the list what it does.
+- A right-click on the arrow shows only the context menu: a half click never toggles the bar, and a popover hanging from the arrow closes before the menu opens.
+
 ### Notes
 - Direct build only: palette, arrivals and presentation need macOS 27 and Accessibility. The App Store build keeps scroll and shake reveal; it has no empty-click row.
 - Not in this release: an automatic slideshow trigger for presentation mode (it needs a live Keynote or PowerPoint check first) and a Shortcuts action. See the backlog.
