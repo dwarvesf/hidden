@@ -13,7 +13,7 @@ import XCTest
 /// stay in sync.
 /// Behaviors covered (2): fresh-install default is `true`, and setting the
 /// preference persists the new value.
-/// Mock boundary: none — exercises the real `UserDefaults.standard`, saving/
+/// Mock boundary: none — exercises the real `AppDefaults.store`, saving/
 /// restoring prior state around each test since this preference is
 /// process-wide shared state, matching how the rest of this codebase's
 /// Preferences enum already works (no DI seam exists there to mock against).
@@ -23,11 +23,11 @@ final class NotchOverflowPreferencesTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        priorValue = UserDefaults.standard.bool(forKey: UserDefaults.Key.notchOverflowEnabled)
+        priorValue = AppDefaults.store.bool(forKey: UserDefaults.Key.notchOverflowEnabled)
     }
 
     override func tearDown() {
-        UserDefaults.standard.set(priorValue, forKey: UserDefaults.Key.notchOverflowEnabled)
+        AppDefaults.store.set(priorValue, forKey: UserDefaults.Key.notchOverflowEnabled)
         super.tearDown()
     }
 

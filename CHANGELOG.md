@@ -6,6 +6,7 @@
 - Settings › Advanced: the switch "Show all icons while macOS hides one right of the arrow" is now "Pause hiding while macOS shows Now Playing, Focus and similar items", with a note that Hidden Bar hides nothing while one of them shows. Same stored setting, same behavior ([#446](https://github.com/dwarvesf/hidden/issues/446)).
 
 ### Fixed
+- Test runs no longer read or write Hidden Bar's real preferences or act on the installed app. A test host uses its own preferences suite, and skips the "Move to Applications" offer, the App Store migration prompts, Sparkle and the saved arrow positions, so a test run cannot trash or move the installed copy.
 - Upgrading from a version before 1.11 (the GitHub builds up to 1.10 or the App Store build) no longer leaves the old "LauncherApplication" login item behind. System Settings › General › Login Items & Extensions lists it inside "Hidden Bar" under Allow in the Background, not as a row of its own, and the old cleanup failed on every launch. Now, with "Open Hidden Bar at login" on, Hidden Bar turns its login item off and on once, which removes the old one. With it off, nothing is touched until you turn it on. If the cleanup fails, the log says once where the row is and how to remove it ([#456](https://github.com/dwarvesf/hidden/issues/456)).
 
 ## v1.13.0 (2026-11-16)

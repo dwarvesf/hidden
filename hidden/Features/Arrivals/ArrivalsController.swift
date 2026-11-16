@@ -46,9 +46,9 @@ final class ArrivalsController {
     private let now: () -> Date
     private var observer: NSObjectProtocol?
 
-    init(defaults: UserDefaults = .standard,
+    init(defaults: UserDefaults = AppDefaults.store,
          center: NotificationCenter = .default,
-         table: MenuBarSectionMemory = UserDefaultsPinnedSections(defaults: .standard),
+         table: MenuBarSectionMemory = UserDefaultsPinnedSections(defaults: AppDefaults.store),
          choice: @escaping () -> NewAppDefault = { Preferences.newAppDefaultSection },
          pinsSections: @escaping () -> Bool = { Preferences.pinnedSectionsEnabled },
          lookup: @escaping (String) -> MenuBarCatalogEntry? = { MenuBarItemCatalog.shared.entry(for: $0) },

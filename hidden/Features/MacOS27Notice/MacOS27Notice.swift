@@ -60,7 +60,7 @@ final class MacOS27Notice: NSObject {
     /// Launch with `-forceMacOS27Notice YES` to take the macOS 27 path on any
     /// OS. The forced path ignores and never writes the "shown" state.
     private static var isForced: Bool {
-        UserDefaults.standard.bool(forKey: "forceMacOS27Notice")
+        AppDefaults.store.bool(forKey: "forceMacOS27Notice")
     }
     #else
     private static var isForced: Bool { false }
@@ -71,13 +71,14 @@ final class MacOS27Notice: NSObject {
             ? MacOS27NoticePolicy.firstAffectedMajorVersion
             : ProcessInfo.processInfo.operatingSystemVersion.majorVersion
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
-        return MacOS27NoticePolicy(osMajorVersion: osMajor, appVersion: version, defaults: .standard)
+        return MacOS27NoticePolicy(osMajorVersion: osMajor, appVersion: version, defaults: AppDefaults.store)
     }
 
     private var isPresenting = false
 
     /// Called once from `applicationDidFinishLaunching`.
     func showAtLaunchIfNeeded() {
+        guard AppDefaults.allowsHostSideEffects else { return }
         let policy = self.policy
         guard Self.isForced || policy.shouldShowAtLaunch() else { return }
         // Let launch finish before blocking on a modal alert.
@@ -106,7 +107,7 @@ final class MacOS27Notice: NSObject {
     }
 
     private func present(recordingShown: Bool) {
-        guard !isPresenting else { return }
+        guard AppDefaults.allowsHostSideEffects, !isPresenting else { return }
         isPresenting = true
         defer { isPresenting = false }
 

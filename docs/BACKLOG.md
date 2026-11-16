@@ -38,7 +38,7 @@ Source of the current state: develop after v1.13.0 (build 21, published 2026-11-
   was written without a live menu bar).
 - **Palette polish.** Bundle id second line, matched-letter weight, a primary "Open System
   Settings" button, panel width 379 vs 360 pt, footer wrap.
-- **Tests share the real prefs domain** with a running release app; give them their own suite.
+- **Tests share the real prefs domain: fixed.** The app reads and writes preferences through `AppDefaults.store`, a dedicated suite (`com.dwarvesv.minimalbar.tests`, wiped at first use) under XCTest. A test host also skips Sparkle, the move and migration offers, and status item autosave; login items and the second-copy quit were already skipped. `HiddenTests/PrefsIsolationTests.swift` checks the real domain is unchanged. A test opts back in with `AppDefaults.sideEffectsOptIn` or `HIDDEN_BAR_TEST_HOST_SIDE_EFFECTS=1`.
 - **macOS 27 menu extras belong to `com.apple.MenuBarAgent`.** The overflow spike probed the wrong
   process; re-measure against MenuBarAgent.
 

@@ -340,10 +340,10 @@ final class PalettePanelTests: XCTestCase {
     func test_liveEnvironmentCarriesTheSensitiveListOnlyWhilePresenting() throws {
         let bar = try XCTUnwrap((NSApp.delegate as? AppDelegate)?.statusBarController, "the test host owns the status bar controller")
         let keys = [UserDefaults.Key.presentationSensitiveApps, UserDefaults.Key.pinnedSectionsEnabled]
-        let saved = keys.map { UserDefaults.standard.object(forKey: $0) }
+        let saved = keys.map { AppDefaults.store.object(forKey: $0) }
         defer {
             for (key, value) in zip(keys, saved) {
-                if let value { UserDefaults.standard.set(value, forKey: key) } else { UserDefaults.standard.removeObject(forKey: key) }
+                if let value { AppDefaults.store.set(value, forKey: key) } else { AppDefaults.store.removeObject(forKey: key) }
             }
             bar.presentingOverride = nil
         }

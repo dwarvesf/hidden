@@ -57,7 +57,7 @@ enum LegacyLoginItem {
     // so a failure is reported once instead of on every launch.
     @discardableResult
     static func migrate(
-        defaults: UserDefaults = .standard,
+        defaults: UserDefaults = AppDefaults.store,
         autoStart: Bool,
         mayHaveLegacyRecord: Bool,
         service: LoginItemServing = SMAppService.mainApp,
@@ -94,10 +94,7 @@ enum AutoStart {
     // as a second "Hidden Bar" login item whenever the developer's real prefs
     // have start-at-login on, so tests and Debug builds never touch the system
     // registration. Release behaviour is unchanged.
-    static var isRunningUnderXCTest: Bool {
-        NSClassFromString("XCTestCase") != nil
-            || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-    }
+    static var isRunningUnderXCTest: Bool { AppDefaults.isRunningUnderXCTest }
 
     // Xcode parallel testing launches several clones of the host app from one
     // bundle path. The single-instance check would quit every clone after the

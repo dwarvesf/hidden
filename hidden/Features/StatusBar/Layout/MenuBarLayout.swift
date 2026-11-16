@@ -97,7 +97,7 @@ final class UserDefaultsSectionMemory: MenuBarSectionMemory {
     static let key = "nativeVisibilityLastSections"
     private let defaults: UserDefaults
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = AppDefaults.store) {
         self.defaults = defaults
     }
 
@@ -120,7 +120,7 @@ final class UserDefaultsPinnedSections: MenuBarSectionMemory {
     static let key = "pinnedSections"
     private let defaults: UserDefaults
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = AppDefaults.store) {
         self.defaults = defaults
     }
 
@@ -144,7 +144,7 @@ final class UserDefaultsDragLocks {
     static let key = "pinnedDragLocks"
     private let defaults: UserDefaults
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = AppDefaults.store) {
         self.defaults = defaults
     }
 

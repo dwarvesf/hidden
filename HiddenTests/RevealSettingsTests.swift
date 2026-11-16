@@ -12,7 +12,7 @@ import AppKit
 /// Contract: the three reveal gestures are opt-in prefs, and the General tab
 /// groups them with the hover row under the title the design board gives.
 /// Serves: Preferences, PreferencesViewController.
-/// Mock boundary: none. Real `UserDefaults.standard`; the keys are saved in
+/// Mock boundary: none. Real `AppDefaults.store`; the keys are saved in
 /// setUp and put back in tearDown.
 final class RevealSettingsTests: XCTestCase {
 
@@ -23,12 +23,12 @@ final class RevealSettingsTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        for key in Self.keys { saved[key] = UserDefaults.standard.object(forKey: key) }
+        for key in Self.keys { saved[key] = AppDefaults.store.object(forKey: key) }
     }
 
     override func tearDown() {
         for key in Self.keys {
-            if let value = saved[key] { UserDefaults.standard.set(value, forKey: key) } else { UserDefaults.standard.removeObject(forKey: key) }
+            if let value = saved[key] { AppDefaults.store.set(value, forKey: key) } else { AppDefaults.store.removeObject(forKey: key) }
         }
         windows.removeAll()
         super.tearDown()
@@ -49,7 +49,7 @@ final class RevealSettingsTests: XCTestCase {
     // When reading each reveal pref
     // Then it is off, so 1.13 behaves like 1.12 until the user opts in
     func test_everyRevealPref_isOffByDefault() {
-        for key in Self.keys { UserDefaults.standard.removeObject(forKey: key) }
+        for key in Self.keys { AppDefaults.store.removeObject(forKey: key) }
         XCTAssertFalse(Preferences.revealOnScrollEnabled)
         XCTAssertFalse(Preferences.revealOnEmptyClickEnabled)
         XCTAssertFalse(Preferences.revealOnShakeEnabled)
@@ -70,7 +70,7 @@ final class RevealSettingsTests: XCTestCase {
                 write(value)
                 wait(for: [posted], timeout: 1)
                 XCTAssertEqual(read(), value, key)
-                XCTAssertEqual(UserDefaults.standard.bool(forKey: key), value, key)
+                XCTAssertEqual(AppDefaults.store.bool(forKey: key), value, key)
             }
         }
         XCTAssertEqual(Self.keys, setters.map { $0.0 })

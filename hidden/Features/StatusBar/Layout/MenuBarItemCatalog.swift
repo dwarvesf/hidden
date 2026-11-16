@@ -91,7 +91,7 @@ final class MenuBarItemCatalog {
     private var icons: [String: NSImage] = [:]
     private var observers: [(NotificationCenter, NSObjectProtocol)] = []
 
-    init(defaults: UserDefaults = .standard,
+    init(defaults: UserDefaults = AppDefaults.store,
          center: NotificationCenter = .default,
          resolver: MenuBarAppResolving = WorkspaceAppResolver(),
          pinnedTable: @escaping () -> [String: MenuBarSection] = { UserDefaultsPinnedSections().sections },

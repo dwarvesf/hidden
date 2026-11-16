@@ -33,7 +33,7 @@ final class HotKeyRegistry {
     private let center: NotificationCenter
     private var observer: NSObjectProtocol?
 
-    init(defaults: UserDefaults = .standard, center: NotificationCenter = .default, bind: @escaping Binder) {
+    init(defaults: UserDefaults = AppDefaults.store, center: NotificationCenter = .default, bind: @escaping Binder) {
         self.defaults = defaults
         self.bind = bind
         self.center = center

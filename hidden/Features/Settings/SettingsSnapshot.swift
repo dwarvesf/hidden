@@ -15,7 +15,7 @@ import AppKit
 /// hotkeys or the hiding engine, and quits before the launch collapse.
 enum SettingsSnapshot {
     static func runIfRequested() -> Bool {
-        guard let path = UserDefaults.standard.string(forKey: "settingsSnapshotDir") else { return false }
+        guard let path = AppDefaults.store.string(forKey: "settingsSnapshotDir") else { return false }
         let dir = URL(fileURLWithPath: path)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         render(to: dir)

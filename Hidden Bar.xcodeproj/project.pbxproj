@@ -33,6 +33,7 @@
 		121C4AE8ED80A49E75101000 /* ExpandCollapseAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6171C0428FE84918BC3FBD91 /* ExpandCollapseAction.swift */; };
 		12BE45557D3AD658431941E6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 929113F821F9D04200173149 /* Assets.xcassets */; };
 		160B7980C8A44829A864BBA6 /* AutoStart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A329E615845473D946DA3C2 /* AutoStart.swift */; };
+		A9D0DE00000000000000D002 /* AppDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D0DE00000000000000D001 /* AppDefaults.swift */; };
 		1A6C9D316FF97AF473765572 /* NotchGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44EDBC1C09AEF89C472D74 /* NotchGeometryTests.swift */; };
 		1E55107E50681D0C905D60F6 /* SettingsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE90FC41D6BE7A8B6C61303 /* SettingsViews.swift */; };
 		214E22FC1C410B1BAFCEDBC0 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92C5058021FEC2590084719A /* Cocoa.framework */; };
@@ -65,6 +66,7 @@
 		7F4C9A74DB2F5182BA04E2F9 /* CaptureActivityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C1A7E52B9D04F6A8E21C0D7 /* CaptureActivityMonitor.swift */; };
 		800F5C1749A0BF5F18E5CB1E /* MenuBarEngineFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DFDDDEF0042F0DBA1F3307 /* MenuBarEngineFactory.swift */; };
 		83E0D6A1FA184019932AECA5 /* AutoStart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A329E615845473D946DA3C2 /* AutoStart.swift */; };
+		A9D0DE00000000000000D003 /* AppDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D0DE00000000000000D001 /* AppDefaults.swift */; };
 		8557996B406181A91CBF5917 /* MenuBarExtraClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B6D80CB37CBB7622AC8455D /* MenuBarExtraClassifierTests.swift */; };
 		86075364F9653E69AD4329D6 /* StealthExpandIconTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE499C5269FD00BE62A0AC2 /* StealthExpandIconTests.swift */; };
 		869644DE3B6CBE7AE976E88A /* NativeVisibilityEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F248811CF183BD0A4D71C4C6 /* NativeVisibilityEngine.swift */; };
@@ -115,12 +117,14 @@
 		B12AD86D3E924502860225CC /* ExpandCollapseActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764544B7EDBB41A18087ED6F /* ExpandCollapseActionTests.swift */; };
 		B5435023F0224141B232FCC9 /* ExpandCollapseAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6171C0428FE84918BC3FBD91 /* ExpandCollapseAction.swift */; };
 		B6B0DE00000000000000B001 /* PreferencesSmallFixesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B0DE00000000000000B002 /* PreferencesSmallFixesTests.swift */; };
+		A9D0DE00000000000000D011 /* PrefsIsolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D0DE00000000000000D010 /* PrefsIsolationTests.swift */; };
 		B8C8D4DFEF07794386598898 /* AccessibilityMenuBarInventory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */; };
 		BA4A80251E14F6E17741797F /* MacOS27Notice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A27C0DE00000000000000001 /* MacOS27Notice.swift */; };
 		BA961DFACC64252C13171EC9 /* NSWindow+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08B9F32B2411883300AA0551 /* NSWindow+Extension.swift */; };
 		BBA01366FE8989DC002AC9DF /* MenuBarLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 092D9DE26A006349D87B304D /* MenuBarLayout.swift */; };
 		C0761DAA4E7728B3D52E047C /* AccessibilityPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51314A736131BE28182E378 /* AccessibilityPermission.swift */; };
 		C2862CC4DEAD07AF78E5F033 /* AutoStart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A329E615845473D946DA3C2 /* AutoStart.swift */; };
+		A9D0DE00000000000000D004 /* AppDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D0DE00000000000000D001 /* AppDefaults.swift */; };
 		C3198E43B7962BE90533D487 /* String+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 967F4B2424169BC800F18D3C /* String+Extension.swift */; };
 		C54910547530FE2FA3D252A6 /* AccessibilityMenuBarInventory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */; };
 		C79DB9CF9FE3E1B3D2EB2F4A /* SettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A559ED44CB2BAC9DAE646EE7 /* SettingsModel.swift */; };
@@ -333,6 +337,7 @@
 		967F4B2C24169CB400F18D3C /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		9895DA1CEEF24C1995B23772 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/Main.strings; sourceTree = "<group>"; };
 		9A329E615845473D946DA3C2 /* AutoStart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoStart.swift; sourceTree = "<group>"; };
+		A9D0DE00000000000000D001 /* AppDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDefaults.swift; sourceTree = "<group>"; };
 		9B44EDBC1C09AEF89C472D74 /* NotchGeometryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotchGeometryTests.swift; path = NotchGeometryTests.swift; sourceTree = "<group>"; };
 		9C7BF2ECD52E3E5C0D8D7556 /* HiddenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HiddenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EE499C5269FD00BE62A0AC2 /* StealthExpandIconTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StealthExpandIconTests.swift; sourceTree = "<group>"; };
@@ -351,6 +356,7 @@
 		B1326445261D7E0200319D35 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B350A2CC23AAFB47003A04AC /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 		B6B0DE00000000000000B002 /* PreferencesSmallFixesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesSmallFixesTests.swift; sourceTree = "<group>"; };
+		A9D0DE00000000000000D010 /* PrefsIsolationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrefsIsolationTests.swift; sourceTree = "<group>"; };
 		B6BFE1451DECE8B6052608CE /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Main.strings; sourceTree = "<group>"; };
 		B8404C9A24041A4300E6DBF8 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
 		BE73DB4E0664488997EEB6DE /* NotchOverflowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchOverflowController.swift; sourceTree = "<group>"; };
@@ -585,6 +591,7 @@
 				9EE499C5269FD00BE62A0AC2 /* StealthExpandIconTests.swift */,
 				A31C0DE0000000000000A002 /* ArrowStyleTests.swift */,
 				B6B0DE00000000000000B002 /* PreferencesSmallFixesTests.swift */,
+				A9D0DE00000000000000D010 /* PrefsIsolationTests.swift */,
 				A57E0DE0000000000000C004 /* AppStoreMigrationTests.swift */,
 				1218DDCA0B5E85481E4F8F3B /* SettingsWindowTests.swift */,
 				A1D0E1D0000000000000F002 /* MenuBarAppIdentityTests.swift */,
@@ -651,6 +658,7 @@
 				92C97B8E220147FE0007559C /* Constant.swift */,
 				08A5F86023AA085B00981CA5 /* Preferences.swift */,
 				9A329E615845473D946DA3C2 /* AutoStart.swift */,
+				A9D0DE00000000000000D001 /* AppDefaults.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -1013,6 +1021,7 @@
 				D44900914DCA23195B7C7843 /* HyperlinkTextField.swift in Sources */,
 				4F3E15015A06CB957758DBBD /* Util.swift in Sources */,
 				C2862CC4DEAD07AF78E5F033 /* AutoStart.swift in Sources */,
+				A9D0DE00000000000000D004 /* AppDefaults.swift in Sources */,
 				C3198E43B7962BE90533D487 /* String+Extension.swift in Sources */,
 				9848509999ADCF3C646A04C7 /* Assets.swift in Sources */,
 				AA70E1CED8DB702BA56AEF46 /* PreferencesViewController.swift in Sources */,
@@ -1082,6 +1091,7 @@
 				86075364F9653E69AD4329D6 /* StealthExpandIconTests.swift in Sources */,
 				A31C0DE0000000000000A001 /* ArrowStyleTests.swift in Sources */,
 				B6B0DE00000000000000B001 /* PreferencesSmallFixesTests.swift in Sources */,
+				A9D0DE00000000000000D011 /* PrefsIsolationTests.swift in Sources */,
 				A57E0DE0000000000000C003 /* AppStoreMigrationTests.swift in Sources */,
 				F1B66A86232AE9B22A7B54FF /* SettingsWindowTests.swift in Sources */,
 				A1D0E1D0000000000000F013 /* MenuBarAppIdentityTests.swift in Sources */,
@@ -1122,6 +1132,7 @@
 				08C20FDE23AABDD10035D978 /* HyperlinkTextField.swift in Sources */,
 				92C97B88220032ED0007559C /* Util.swift in Sources */,
 				83E0D6A1FA184019932AECA5 /* AutoStart.swift in Sources */,
+				A9D0DE00000000000000D003 /* AppDefaults.swift in Sources */,
 				967F4B2524169BC800F18D3C /* String+Extension.swift in Sources */,
 				00117C4426600671005E517C /* Assets.swift in Sources */,
 				08A5F85A23AA007A00981CA5 /* PreferencesViewController.swift in Sources */,
@@ -1194,6 +1205,7 @@
 				B5435023F0224141B232FCC9 /* ExpandCollapseAction.swift in Sources */,
 				A0C0F1E5D3B2470A9C1E2013 /* AutoCollapsePopupGuard.swift in Sources */,
 				160B7980C8A44829A864BBA6 /* AutoStart.swift in Sources */,
+				A9D0DE00000000000000D002 /* AppDefaults.swift in Sources */,
 				2CEFC27766BCEA39CD11079F /* MenuBarEngineTests.swift in Sources */,
 				B12AD86D3E924502860225CC /* ExpandCollapseActionTests.swift in Sources */,
 				A0C0F1E5D3B2470A9C1E2014 /* AutoCollapsePopupGuardTests.swift in Sources */,
