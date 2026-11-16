@@ -32,7 +32,7 @@ Merge order inside a wave (later PRs rebase): Wave 1 SG-01, SG-03, SG-02. Wave 2
 - [x] SG-04 F1 type-to-find palette , gate , depends SG-01, #505, merged 47086cf
 - [x] SG-05 F2 arrivals inbox , gate , depends SG-01, #503, merged c195025
 - [x] SG-06 F4 presentation mode build , gate , depends SG-01 SG-03, #504, merged b507df0
-- [ ] SG-07 integration, CHANGELOG 1.13.0, notarized candidate , gate! , depends SG-02 SG-04 SG-05 SG-06
+- [x] SG-07 integration, CHANGELOG 1.13.0, notarized candidate , gate! , depends SG-02 SG-04 SG-05 SG-06, #508, merged d05470e
 
 A box flips only with its PR: `- [x] SG-NN ..., #PR, merged <sha>`.
 
