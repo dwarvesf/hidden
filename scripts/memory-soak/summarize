@@ -1,0 +1,51 @@
+#!/bin/bash
+# scripts/memory-soak/summarize : first, last, min, max footprint and malloc nodes per pid.
+#
+#   summarize [LOG]    default ~/Library/Logs/hiddenbar-memory-soak.log
+set -eu
+
+LOG="${1:-$HOME/Library/Logs/hiddenbar-memory-soak.log}"
+[ -r "$LOG" ] || { echo "no log: $LOG" >&2; exit 1; }
+
+awk '
+function field(name,   i) {
+    for (i = 2; i <= NF; i++) {
+        if (index($i, name "=") == 1) { return substr($i, length(name) + 2) }
+    }
+    return ""
+}
+function mb(b) { return sprintf("%.1f", b / 1048576) }
+function nodes(p) { return (p in nd0) ? sprintf("%d %d %d %d", nd0[p], ndl[p], ndmin[p], ndmax[p]) : "NA" }
+{
+    pid = field("pid")
+    if (pid == "" || pid == "-") { if (pid == "-") gaps++; next }
+    fp = field("footprint"); nd = field("nodes")
+    if (fp == "NA" || fp == "") next
+    fp += 0
+    if (!(pid in n)) {
+        order[++np] = pid; first_ts[pid] = $1
+        fp0[pid] = fp; fpmin[pid] = fp; fpmax[pid] = fp
+    }
+    n[pid]++
+    last_up[pid] = field("up")
+    fpl[pid] = fp
+    if (fp < fpmin[pid]) fpmin[pid] = fp
+    if (fp > fpmax[pid]) fpmax[pid] = fp
+    if (nd != "NA" && nd != "") {
+        nd += 0
+        if (!(pid in nd0)) { nd0[pid] = nd; ndmin[pid] = nd; ndmax[pid] = nd }
+        ndl[pid] = nd
+        if (nd < ndmin[pid]) ndmin[pid] = nd
+        if (nd > ndmax[pid]) ndmax[pid] = nd
+    }
+}
+END {
+    if (np == 0) { print "no samples with a running app yet"; exit }
+    printf "%-7s %-4s %-24s %-11s | footprint MB: first last min max | malloc nodes: first last min max\n", "pid", "n", "first sample", "last up"
+    for (i = 1; i <= np; i++) {
+        p = order[i]
+        printf "%-7s %-4d %-24s %-11s | %7s %7s %7s %7s | %s\n", p, n[p], first_ts[p], last_up[p], mb(fp0[p]), mb(fpl[p]), mb(fpmin[p]), mb(fpmax[p]), nodes(p)
+    }
+    if (gaps > 0) printf "%d sample(s) with the app not running\n", gaps
+}
+' "$LOG"
