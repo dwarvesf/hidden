@@ -260,7 +260,7 @@ final class AppStoreMigration {
         home: URL(fileURLWithPath: NSHomeDirectory()),
         bundleURL: Bundle.main.bundleURL,
         bundleIdentifier: Bundle.main.bundleIdentifier ?? "com.dwarvesv.minimalbar",
-        defaults: .standard,
+        defaults: AppDefaults.store,
         registeredDefaults: AppDelegate.defaultPreferenceValues))
 
     let environment: Environment
@@ -273,9 +273,9 @@ final class AppStoreMigration {
     #if DEBUG
     /// Debug builds run from DerivedData; launch with `-forceAppStoreMigration YES`
     /// to take the offers anyway.
-    private static var isEnabled: Bool { UserDefaults.standard.bool(forKey: "forceAppStoreMigration") }
+    private static var isEnabled: Bool { AppDefaults.allowsHostSideEffects && AppDefaults.store.bool(forKey: "forceAppStoreMigration") }
     #else
-    private static var isEnabled: Bool { true }
+    private static var isEnabled: Bool { AppDefaults.allowsHostSideEffects }
     #endif
 
     /// Called once from `applicationDidFinishLaunching`.
@@ -469,6 +469,7 @@ final class AppStoreMigration {
     /// The Settings status card's "Move to Applications": the same offer, also
     /// when the launch offer was answered "Not now" before.
     func offerMoveFromSettings() {
+        guard AppDefaults.allowsHostSideEffects else { return }
         offerMoveIfNeeded(ignoringAnswer: true)
     }
 
@@ -570,7 +571,7 @@ final class AppStoreMigration {
     /// Each named alert (switch, import, trash, move, explain, error) gets that
     /// answer after 3 seconds, time for a screenshot; any alert not named is
     /// aborted, which records nothing and moves nothing.
-    private static let debugAnswers: [String: String]? = UserDefaults.standard.string(forKey: "debugAnswerAlerts").map {
+    private static let debugAnswers: [String: String]? = AppDefaults.store.string(forKey: "debugAnswerAlerts").map {
         Dictionary($0.split(separator: ",").compactMap { pair -> (String, String)? in
             let parts = pair.split(separator: "=", maxSplits: 1).map(String.init)
             return parts.count == 2 ? (parts[0], parts[1]) : nil

@@ -40,7 +40,7 @@ final class ShortcutRecorderRow: NSStackView {
     private static weak var active: ShortcutRecorderRow?
     static var isRecording: Bool { active != nil }
 
-    init(key: String, registry: HotKeyRegistry = .shared, defaults: UserDefaults = .standard) {
+    init(key: String, registry: HotKeyRegistry = .shared, defaults: UserDefaults = AppDefaults.store) {
         self.key = key
         self.registry = registry
         self.defaults = defaults

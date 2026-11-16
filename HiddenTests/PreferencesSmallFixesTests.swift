@@ -13,7 +13,7 @@ import AppKit
 /// Preferences view shows the checkbox in the stored state, clicking it writes the
 /// preference both ways, the tutorial key per engine, the engine choice per OS and
 /// build, and both new string keys in every locale.
-/// Mock boundary: none; real `UserDefaults.standard` restored after each test, like
+/// Mock boundary: none; real `AppDefaults.store` restored after each test, like
 /// StealthExpandIconTests.
 final class PreferencesSmallFixesTests: XCTestCase {
 
@@ -21,14 +21,14 @@ final class PreferencesSmallFixesTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        priorHover = UserDefaults.standard.object(forKey: UserDefaults.Key.hoverToExpand)
+        priorHover = AppDefaults.store.object(forKey: UserDefaults.Key.hoverToExpand)
     }
 
     override func tearDown() {
         if let priorHover {
-            UserDefaults.standard.set(priorHover, forKey: UserDefaults.Key.hoverToExpand)
+            AppDefaults.store.set(priorHover, forKey: UserDefaults.Key.hoverToExpand)
         } else {
-            UserDefaults.standard.removeObject(forKey: UserDefaults.Key.hoverToExpand)
+            AppDefaults.store.removeObject(forKey: UserDefaults.Key.hoverToExpand)
         }
         super.tearDown()
     }
@@ -58,7 +58,7 @@ final class PreferencesSmallFixesTests: XCTestCase {
     // When reading the preference with nothing stored
     // Then hover-to-expand is off, so nothing changes for existing users
     func test_hoverToExpand_isOffByDefault() {
-        UserDefaults.standard.removeObject(forKey: UserDefaults.Key.hoverToExpand)
+        AppDefaults.store.removeObject(forKey: UserDefaults.Key.hoverToExpand)
 
         XCTAssertFalse(Preferences.hoverToExpand)
     }

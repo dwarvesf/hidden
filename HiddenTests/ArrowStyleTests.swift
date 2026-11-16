@@ -13,7 +13,7 @@ import AppKit
 /// the legacy arrow in both directions, stealth fades any style only while
 /// collapsed, every locale carries every new string key, and a PNG render of
 /// each style (light and dark menu bar, normal and stealth).
-/// Mock boundary: none; the preference tests use the real `UserDefaults.standard`
+/// Mock boundary: none; the preference tests use the real `AppDefaults.store`
 /// and restore the prior value, like StealthExpandIconTests.
 final class ArrowStyleTests: XCTestCase {
 
@@ -21,14 +21,14 @@ final class ArrowStyleTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        priorStyle = UserDefaults.standard.object(forKey: UserDefaults.Key.arrowStyle)
+        priorStyle = AppDefaults.store.object(forKey: UserDefaults.Key.arrowStyle)
     }
 
     override func tearDown() {
         if let priorStyle {
-            UserDefaults.standard.set(priorStyle, forKey: UserDefaults.Key.arrowStyle)
+            AppDefaults.store.set(priorStyle, forKey: UserDefaults.Key.arrowStyle)
         } else {
-            UserDefaults.standard.removeObject(forKey: UserDefaults.Key.arrowStyle)
+            AppDefaults.store.removeObject(forKey: UserDefaults.Key.arrowStyle)
         }
         super.tearDown()
     }
@@ -39,7 +39,7 @@ final class ArrowStyleTests: XCTestCase {
     // When reading the declared defaults and the preference with nothing stored
     // Then the style is the current arrow, so nothing changes for existing users
     func test_default_isTheCurrentArrow() {
-        UserDefaults.standard.removeObject(forKey: UserDefaults.Key.arrowStyle)
+        AppDefaults.store.removeObject(forKey: UserDefaults.Key.arrowStyle)
 
         XCTAssertEqual(ArrowStyle.default, .arrow)
         XCTAssertEqual(AppDelegate.defaultPreferenceValues[UserDefaults.Key.arrowStyle] as? String, "arrow")
@@ -76,7 +76,7 @@ final class ArrowStyleTests: XCTestCase {
         for style in ArrowStyle.allCases {
             Preferences.arrowStyle = style
             XCTAssertEqual(Preferences.arrowStyle, style)
-            XCTAssertEqual(UserDefaults.standard.string(forKey: UserDefaults.Key.arrowStyle), style.rawValue)
+            XCTAssertEqual(AppDefaults.store.string(forKey: UserDefaults.Key.arrowStyle), style.rawValue)
         }
     }
 
@@ -84,7 +84,7 @@ final class ArrowStyleTests: XCTestCase {
     // When reading the preference
     // Then it reads as the default arrow instead of crashing or showing nothing
     func test_garbageStoredValue_readsAsDefault() {
-        UserDefaults.standard.set("not-a-style", forKey: UserDefaults.Key.arrowStyle)
+        AppDefaults.store.set("not-a-style", forKey: UserDefaults.Key.arrowStyle)
 
         XCTAssertEqual(Preferences.arrowStyle, .arrow)
     }

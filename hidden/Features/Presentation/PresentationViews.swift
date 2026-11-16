@@ -422,12 +422,12 @@ final class PresentationNoteView: NSView {
 // preference, so a relaunch never shows it again.
 enum PresentationTip {
     static func shouldShow(previous: PresentationPhase, phase: PresentationPhase, panelShown: Bool,
-                           defaults: UserDefaults = .standard) -> Bool {
+                           defaults: UserDefaults = AppDefaults.store) -> Bool {
         guard previous == .off, phase == .presenting, !panelShown else { return false }
         return !defaults.bool(forKey: UserDefaults.Key.presentationTipShown)
     }
 
-    static func markShown(defaults: UserDefaults = .standard) {
+    static func markShown(defaults: UserDefaults = AppDefaults.store) {
         defaults.set(true, forKey: UserDefaults.Key.presentationTipShown)
     }
 

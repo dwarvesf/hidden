@@ -13,7 +13,7 @@ import AppKit
 /// preference the old storyboard window did, under the same keys, and shows the
 /// panes and status card each build should.
 /// Serves: PreferencesWindowController, the four panes, StatusCardView.
-/// Mock boundary: none. Real `UserDefaults.standard`; every key the window can
+/// Mock boundary: none. Real `AppDefaults.store`; every key the window can
 /// write is saved in setUp and put back in tearDown.
 final class SettingsWindowTests: XCTestCase {
 
@@ -52,7 +52,7 @@ final class SettingsWindowTests: XCTestCase {
     override func setUp() {
         super.setUp()
         for key in Self.legacyBoolKeys + Self.legacyOtherKeys {
-            saved[key] = UserDefaults.standard.object(forKey: key)
+            saved[key] = AppDefaults.store.object(forKey: key)
         }
         // The app registers the pane at launch; each test decides.
         MenuBarAppsPane.makeViewController = nil
@@ -61,9 +61,9 @@ final class SettingsWindowTests: XCTestCase {
     override func tearDown() {
         for key in Self.legacyBoolKeys + Self.legacyOtherKeys {
             if let value = saved[key] {
-                UserDefaults.standard.set(value, forKey: key)
+                AppDefaults.store.set(value, forKey: key)
             } else {
-                UserDefaults.standard.removeObject(forKey: key)
+                AppDefaults.store.removeObject(forKey: key)
             }
         }
         MenuBarAppsPane.makeViewController = nil
@@ -120,12 +120,12 @@ final class SettingsWindowTests: XCTestCase {
                 XCTFail("no control writes \(key) any more")
                 continue
             }
-            let before = UserDefaults.standard.bool(forKey: key)
+            let before = AppDefaults.store.bool(forKey: key)
             click(toggle)
-            XCTAssertEqual(UserDefaults.standard.bool(forKey: key), !before, "\(key) did not change")
+            XCTAssertEqual(AppDefaults.store.bool(forKey: key), !before, "\(key) did not change")
             XCTAssertEqual((toggle as? NSSwitch)?.state == .on, !before, "\(key) switch shows the wrong state")
             click(toggle)
-            XCTAssertEqual(UserDefaults.standard.bool(forKey: key), before, "\(key) did not change back")
+            XCTAssertEqual(AppDefaults.store.bool(forKey: key), before, "\(key) did not change back")
         }
     }
 
@@ -139,13 +139,13 @@ final class SettingsWindowTests: XCTestCase {
 
         popup.selectItem(at: AutoHideChoice.after(seconds: 30).index)
         popup.sendAction(popup.action, to: popup.target)
-        XCTAssertTrue(UserDefaults.standard.bool(forKey: UserDefaults.Key.isAutoHide))
-        XCTAssertEqual(UserDefaults.standard.double(forKey: UserDefaults.Key.numberOfSecondForAutoHide), 30)
+        XCTAssertTrue(AppDefaults.store.bool(forKey: UserDefaults.Key.isAutoHide))
+        XCTAssertEqual(AppDefaults.store.double(forKey: UserDefaults.Key.numberOfSecondForAutoHide), 30)
 
         popup.selectItem(at: AutoHideChoice.never.index)
         popup.sendAction(popup.action, to: popup.target)
-        XCTAssertFalse(UserDefaults.standard.bool(forKey: UserDefaults.Key.isAutoHide))
-        XCTAssertEqual(UserDefaults.standard.double(forKey: UserDefaults.Key.numberOfSecondForAutoHide), 30)
+        XCTAssertFalse(AppDefaults.store.bool(forKey: UserDefaults.Key.isAutoHide))
+        XCTAssertEqual(AppDefaults.store.double(forKey: UserDefaults.Key.numberOfSecondForAutoHide), 30)
 
         // The menu's toggle writes isAutoHide elsewhere; the popup follows.
         Preferences.isAutoHide = true
@@ -163,9 +163,9 @@ final class SettingsWindowTests: XCTestCase {
         let toggle = control(UserDefaults.Key.notchOverflowEnabled, in: old)
         XCTAssertNotNil(toggle, "macOS 26 keeps the notch switch")
         if let toggle {
-            let before = UserDefaults.standard.bool(forKey: UserDefaults.Key.notchOverflowEnabled)
+            let before = AppDefaults.store.bool(forKey: UserDefaults.Key.notchOverflowEnabled)
             click(toggle)
-            XCTAssertEqual(UserDefaults.standard.bool(forKey: UserDefaults.Key.notchOverflowEnabled), !before)
+            XCTAssertEqual(AppDefaults.store.bool(forKey: UserDefaults.Key.notchOverflowEnabled), !before)
         }
 
         context.osMajorVersion = 27
@@ -196,7 +196,7 @@ final class SettingsWindowTests: XCTestCase {
                 continue
             }
             click(tile)
-            XCTAssertEqual(UserDefaults.standard.string(forKey: UserDefaults.Key.arrowStyle), style.rawValue)
+            XCTAssertEqual(AppDefaults.store.string(forKey: UserDefaults.Key.arrowStyle), style.rawValue)
             XCTAssertTrue((tile as? ArrowStyleTile)?.isSelected ?? false)
         }
     }
@@ -215,7 +215,7 @@ final class SettingsWindowTests: XCTestCase {
 
         let general = try XCTUnwrap(controller.pane(.general) as? PreferencesViewController)
         general.shortcutRecorder.clear()
-        XCTAssertNil(UserDefaults.standard.object(forKey: UserDefaults.Key.globalKey).flatMap { $0 as? Data }
+        XCTAssertNil(AppDefaults.store.object(forKey: UserDefaults.Key.globalKey).flatMap { $0 as? Data }
             .flatMap { try? JSONDecoder().decode(GlobalKeybindPreferences.self, from: $0) })
     }
 
@@ -265,8 +265,8 @@ final class SettingsWindowTests: XCTestCase {
     // When picking a section in an app's popup, then clicking Reset
     // Then the table under the pinnedSections key follows, and nothing else is written
     func test_menuBarApps_popupsAndResetWriteThePinnedTable() throws {
-        UserDefaults.standard.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
-        UserDefaults.standard.set(["com.test.a": MenuBarSection.hidden.rawValue, "com.test.b": MenuBarSection.visible.rawValue],
+        AppDefaults.store.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        AppDefaults.store.set(["com.test.a": MenuBarSection.hidden.rawValue, "com.test.b": MenuBarSection.visible.rawValue],
                                   forKey: UserDefaultsPinnedSections.key)
         var context = fullContext()
         MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: context) }
@@ -279,13 +279,13 @@ final class SettingsWindowTests: XCTestCase {
         XCTAssertEqual(popup.selectedItem?.tag, MenuBarSection.hidden.rawValue)
         popup.selectItem(withTag: MenuBarSection.alwaysHidden.rawValue)
         popup.sendAction(popup.action, to: popup.target)
-        XCTAssertEqual(UserDefaults.standard.dictionary(forKey: UserDefaultsPinnedSections.key) as? [String: Int],
+        XCTAssertEqual(AppDefaults.store.dictionary(forKey: UserDefaultsPinnedSections.key) as? [String: Int],
                        ["com.test.a": MenuBarSection.alwaysHidden.rawValue, "com.test.b": MenuBarSection.visible.rawValue])
 
         let views2 = Self.subviews(of: controller.pane(.menuBarApps).view)
         let reset = try XCTUnwrap(views2.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "pinnedSectionsReset" })
         reset.performClick(nil)
-        XCTAssertEqual(UserDefaults.standard.dictionary(forKey: UserDefaultsPinnedSections.key) as? [String: Int],
+        XCTAssertEqual(AppDefaults.store.dictionary(forKey: UserDefaultsPinnedSections.key) as? [String: Int],
                        ["com.test.a": 0, "com.test.b": 0])
     }
 
@@ -339,8 +339,8 @@ final class SettingsWindowTests: XCTestCase {
     // When picking Ask Me, then Hide It, then Show It in "When an app adds a new icon"
     // Then newAppDefaultSection holds 0, 2, 1, and the popup starts on Show It when nothing is stored
     func test_menuBarApps_newAppPopupWritesItsKey() throws {
-        UserDefaults.standard.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
-        UserDefaults.standard.removeObject(forKey: UserDefaults.Key.newAppDefaultSection)
+        AppDefaults.store.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        AppDefaults.store.removeObject(forKey: UserDefaults.Key.newAppDefaultSection)
         var context = fullContext()
         MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: context) }
         context.menuBarAppsAvailable = true
@@ -354,7 +354,7 @@ final class SettingsWindowTests: XCTestCase {
         for choice in [NewAppDefault.ask, .hide, .show] {
             popup.selectItem(withTag: choice.rawValue)
             popup.sendAction(popup.action, to: popup.target)
-            XCTAssertEqual(UserDefaults.standard.integer(forKey: UserDefaults.Key.newAppDefaultSection), choice.rawValue)
+            XCTAssertEqual(AppDefaults.store.integer(forKey: UserDefaults.Key.newAppDefaultSection), choice.rawValue)
             XCTAssertEqual(Preferences.newAppDefaultSection, choice)
         }
     }
@@ -363,8 +363,8 @@ final class SettingsWindowTests: XCTestCase {
     // When picking each option in the new-app popup
     // Then the caption under the title describes that option
     func test_menuBarApps_newAppCaptionFollowsTheSelectedOption() throws {
-        UserDefaults.standard.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
-        UserDefaults.standard.removeObject(forKey: UserDefaults.Key.newAppDefaultSection)
+        AppDefaults.store.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        AppDefaults.store.removeObject(forKey: UserDefaults.Key.newAppDefaultSection)
         let pane = MenuBarAppsSettingsViewController(context: fullContext())
         let views = Self.subviews(of: pane.view)
         let popup = try XCTUnwrap(control(UserDefaults.Key.newAppDefaultSection, in: views) as? NSPopUpButton)
@@ -386,18 +386,18 @@ final class SettingsWindowTests: XCTestCase {
     // Given a stored value outside 0 to 2, or none
     // Then the preference reads as Show It, the 1.12 behavior
     func test_newAppDefaultReadsShowItUnlessSet() {
-        UserDefaults.standard.removeObject(forKey: UserDefaults.Key.newAppDefaultSection)
+        AppDefaults.store.removeObject(forKey: UserDefaults.Key.newAppDefaultSection)
         XCTAssertEqual(Preferences.newAppDefaultSection, .show)
-        UserDefaults.standard.set(9, forKey: UserDefaults.Key.newAppDefaultSection)
+        AppDefaults.store.set(9, forKey: UserDefaults.Key.newAppDefaultSection)
         XCTAssertEqual(Preferences.newAppDefaultSection, .show)
-        UserDefaults.standard.set(0, forKey: UserDefaults.Key.newAppDefaultSection)
+        AppDefaults.store.set(0, forKey: UserDefaults.Key.newAppDefaultSection)
         XCTAssertEqual(Preferences.newAppDefaultSection, .ask)
     }
 
     // Given the beta off
     // Then the new-app popup is there but cannot be changed (nothing places a new app)
     func test_menuBarApps_newAppPopupIsDisabledWithPinnedSectionsOff() throws {
-        UserDefaults.standard.set(false, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        AppDefaults.store.set(false, forKey: UserDefaults.Key.pinnedSectionsEnabled)
         var context = fullContext()
         MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: context) }
         context.menuBarAppsAvailable = true
@@ -414,13 +414,13 @@ final class SettingsWindowTests: XCTestCase {
     // Then the waiting ones come first, each with a NEW tag, and the settled ones have none
     func test_menuBarApps_undecidedAppsSitFirstWithANewTag() {
         let waitingKey = UserDefaultsArrivalsPending.key
-        let before = UserDefaults.standard.object(forKey: waitingKey)
+        let before = AppDefaults.store.object(forKey: waitingKey)
         addTeardownBlock {
-            if let before { UserDefaults.standard.set(before, forKey: waitingKey) } else { UserDefaults.standard.removeObject(forKey: waitingKey) }
+            if let before { AppDefaults.store.set(before, forKey: waitingKey) } else { AppDefaults.store.removeObject(forKey: waitingKey) }
         }
-        UserDefaults.standard.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
-        UserDefaults.standard.set(["com.test.a": 0, "com.test.b": 1, "com.test.z": 0, "com.test.y": 0], forKey: UserDefaultsPinnedSections.key)
-        UserDefaults.standard.set(["com.test.z", "com.test.y"], forKey: waitingKey)
+        AppDefaults.store.set(true, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        AppDefaults.store.set(["com.test.a": 0, "com.test.b": 1, "com.test.z": 0, "com.test.y": 0], forKey: UserDefaultsPinnedSections.key)
+        AppDefaults.store.set(["com.test.z", "com.test.y"], forKey: waitingKey)
         let pane = MenuBarAppsSettingsViewController(context: fullContext())
         let views = Self.subviews(of: pane.view)
 
@@ -437,8 +437,8 @@ final class SettingsWindowTests: XCTestCase {
     // When opening Icons
     // Then it says so and lists no app
     func test_menuBarApps_offShowsNoList() {
-        UserDefaults.standard.set(false, forKey: UserDefaults.Key.pinnedSectionsEnabled)
-        UserDefaults.standard.set(["com.test.a": MenuBarSection.hidden.rawValue], forKey: UserDefaultsPinnedSections.key)
+        AppDefaults.store.set(false, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+        AppDefaults.store.set(["com.test.a": MenuBarSection.hidden.rawValue], forKey: UserDefaultsPinnedSections.key)
         var context = fullContext()
         MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: context) }
         context.menuBarAppsAvailable = true

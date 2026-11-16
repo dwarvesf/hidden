@@ -12,13 +12,13 @@ enum Preferences {
     
     static var globalKey: GlobalKeybindPreferences? {
         get {
-            guard let data = UserDefaults.standard.value(forKey: UserDefaults.Key.globalKey) as? Data else { return nil }
+            guard let data = AppDefaults.store.value(forKey: UserDefaults.Key.globalKey) as? Data else { return nil }
             return try? JSONDecoder().decode(GlobalKeybindPreferences.self, from: data)
         }
         
         set {
             guard let data = try? JSONEncoder().encode(newValue) else { return }
-            UserDefaults.standard.set(data, forKey: UserDefaults.Key.globalKey)
+            AppDefaults.store.set(data, forKey: UserDefaults.Key.globalKey)
             
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
@@ -28,15 +28,15 @@ enum Preferences {
     /// feature is off; the registry binds it, so setting it needs no other call.
     static var findHiddenIconShortcut: GlobalKeybindPreferences? {
         get {
-            guard let data = UserDefaults.standard.data(forKey: UserDefaults.Key.findHiddenIconShortcut) else { return nil }
+            guard let data = AppDefaults.store.data(forKey: UserDefaults.Key.findHiddenIconShortcut) else { return nil }
             return try? JSONDecoder().decode(GlobalKeybindPreferences.self, from: data)
         }
 
         set {
             if let newValue, let data = try? JSONEncoder().encode(newValue) {
-                UserDefaults.standard.set(data, forKey: UserDefaults.Key.findHiddenIconShortcut)
+                AppDefaults.store.set(data, forKey: UserDefaults.Key.findHiddenIconShortcut)
             } else {
-                UserDefaults.standard.removeObject(forKey: UserDefaults.Key.findHiddenIconShortcut)
+                AppDefaults.store.removeObject(forKey: UserDefaults.Key.findHiddenIconShortcut)
             }
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
@@ -44,7 +44,7 @@ enum Preferences {
 
     static var isAutoStart: Bool {
         get {
-            return UserDefaults.standard.bool(forKey: UserDefaults.Key.isAutoStart)
+            return AppDefaults.store.bool(forKey: UserDefaults.Key.isAutoStart)
         }
         
         set {
@@ -52,7 +52,7 @@ enum Preferences {
             // stays at the previous state so the prefs checkbox shows reality
             // instead of the intent.
             let applied = Util.setUpAutoStart(isAutoStart: newValue)
-            UserDefaults.standard.set(applied ? newValue : isAutoStart, forKey: UserDefaults.Key.isAutoStart)
+            AppDefaults.store.set(applied ? newValue : isAutoStart, forKey: UserDefaults.Key.isAutoStart)
 
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
@@ -60,11 +60,11 @@ enum Preferences {
     
     static var numberOfSecondForAutoHide: Double {
         get {
-            UserDefaults.standard.double(forKey: UserDefaults.Key.numberOfSecondForAutoHide)
+            AppDefaults.store.double(forKey: UserDefaults.Key.numberOfSecondForAutoHide)
         }
         
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.numberOfSecondForAutoHide)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.numberOfSecondForAutoHide)
             
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
@@ -72,11 +72,11 @@ enum Preferences {
     
     static var isAutoHide: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.isAutoHide)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.isAutoHide)
         }
         
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isAutoHide)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.isAutoHide)
             
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
@@ -84,11 +84,11 @@ enum Preferences {
     
     static var isShowPreference: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.isShowPreference)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.isShowPreference)
         }
         
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.isShowPreference)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.isShowPreference)
             
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
@@ -96,32 +96,32 @@ enum Preferences {
     
     static var areSeparatorsHidden: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.areSeparatorsHidden)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.areSeparatorsHidden)
         }
         
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.areSeparatorsHidden)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.areSeparatorsHidden)
         }
     }
     
     static var alwaysHiddenSectionEnabled: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.alwaysHiddenSectionEnabled)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.alwaysHiddenSectionEnabled)
         }
         
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.alwaysHiddenSectionEnabled)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.alwaysHiddenSectionEnabled)
             NotificationCenter.default.post(Notification(name: .alwayHideToggle))
         }
     }
     
     static var hoverToExpand: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.hoverToExpand)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.hoverToExpand)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.hoverToExpand)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.hoverToExpand)
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
@@ -130,11 +130,11 @@ enum Preferences {
     // Scroll down on the menu bar shows the hidden icons, scroll up hides them.
     static var revealOnScrollEnabled: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.revealOnScrollEnabled)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.revealOnScrollEnabled)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.revealOnScrollEnabled)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.revealOnScrollEnabled)
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
@@ -143,11 +143,11 @@ enum Preferences {
     // empty space from an icon, so the direct build only.
     static var revealOnEmptyClickEnabled: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.revealOnEmptyClickEnabled)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.revealOnEmptyClickEnabled)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.revealOnEmptyClickEnabled)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.revealOnEmptyClickEnabled)
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
@@ -155,11 +155,11 @@ enum Preferences {
     // Three quick side-to-side moves of the pointer inside the menu bar show them.
     static var revealOnShakeEnabled: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.revealOnShakeEnabled)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.revealOnShakeEnabled)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.revealOnShakeEnabled)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.revealOnShakeEnabled)
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
@@ -167,11 +167,11 @@ enum Preferences {
     // Presentation mode turns itself on while a display is mirrored. Off by default.
     static var presentationAutoMirrorEnabled: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.presentationAutoMirrorEnabled)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.presentationAutoMirrorEnabled)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.presentationAutoMirrorEnabled)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.presentationAutoMirrorEnabled)
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
@@ -180,13 +180,13 @@ enum Preferences {
     // is clicked. Stored as a dictionary [bundle id: true].
     static var presentationSensitiveApps: Set<String> {
         get {
-            let stored = UserDefaults.standard.dictionary(forKey: UserDefaults.Key.presentationSensitiveApps) ?? [:]
+            let stored = AppDefaults.store.dictionary(forKey: UserDefaults.Key.presentationSensitiveApps) ?? [:]
             return Set(stored.filter { ($0.value as? Bool) == true }.keys)
         }
 
         set {
             let stored = Dictionary(uniqueKeysWithValues: newValue.map { ($0, true) })
-            UserDefaults.standard.set(stored, forKey: UserDefaults.Key.presentationSensitiveApps)
+            AppDefaults.store.set(stored, forKey: UserDefaults.Key.presentationSensitiveApps)
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
@@ -196,11 +196,11 @@ enum Preferences {
     // survive a relaunch, so a crash never re-hides the bar on its own.
     static var presentationModeActive: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.presentationModeActive)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.presentationModeActive)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.presentationModeActive)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.presentationModeActive)
         }
     }
 
@@ -208,21 +208,21 @@ enum Preferences {
     // Not a Settings row and not imported from the App Store build.
     static var presentationTipShown: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.presentationTipShown)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.presentationTipShown)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.presentationTipShown)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.presentationTipShown)
         }
     }
 
     static var useFullStatusBarOnExpandEnabled: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
             NotificationCenter.default.post(Notification(name: .useFullStatusBarToggle))
         }
     }
@@ -231,11 +231,11 @@ enum Preferences {
     // is hard to spot in the menu bar (issue #173). Off by default.
     static var stealthExpandIconEnabled: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.stealthExpandIconEnabled)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.stealthExpandIconEnabled)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.stealthExpandIconEnabled)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.stealthExpandIconEnabled)
             NotificationCenter.default.post(Notification(name: .stealthExpandIconToggle))
         }
     }
@@ -244,22 +244,22 @@ enum Preferences {
     // the style's name; anything unreadable reads as the default arrow.
     static var arrowStyle: ArrowStyle {
         get {
-            ArrowStyle(storedValue: UserDefaults.standard.string(forKey: UserDefaults.Key.arrowStyle))
+            ArrowStyle(storedValue: AppDefaults.store.string(forKey: UserDefaults.Key.arrowStyle))
         }
 
         set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: UserDefaults.Key.arrowStyle)
+            AppDefaults.store.set(newValue.rawValue, forKey: UserDefaults.Key.arrowStyle)
             NotificationCenter.default.post(Notification(name: .arrowStyleChanged))
         }
     }
 
     static var notchOverflowEnabled: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.notchOverflowEnabled)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.notchOverflowEnabled)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.notchOverflowEnabled)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.notchOverflowEnabled)
         }
     }
 
@@ -267,11 +267,11 @@ enum Preferences {
     // cannot be kept visible by the allow-list. Off by default.
     static var pauseHidingForUnkeepableItems: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.pauseHidingForUnkeepableItems)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.pauseHidingForUnkeepableItems)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.pauseHidingForUnkeepableItems)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.pauseHidingForUnkeepableItems)
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
@@ -280,11 +280,11 @@ enum Preferences {
     // turns on, so the capsule naming the app shows. On by default.
     static var showWholeBarWhenCaptureStarts: Bool {
         get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.showWholeBarWhenCaptureStarts)
+            AppDefaults.store.bool(forKey: UserDefaults.Key.showWholeBarWhenCaptureStarts)
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.showWholeBarWhenCaptureStarts)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.showWholeBarWhenCaptureStarts)
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
@@ -293,11 +293,11 @@ enum Preferences {
     // (beta). On by default; off is v1.11.2's position-based sections.
     static var pinnedSectionsEnabled: Bool {
         get {
-            UserDefaults.standard.object(forKey: UserDefaults.Key.pinnedSectionsEnabled) as? Bool ?? true
+            AppDefaults.store.object(forKey: UserDefaults.Key.pinnedSectionsEnabled) as? Bool ?? true
         }
 
         set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.pinnedSectionsEnabled)
+            AppDefaults.store.set(newValue, forKey: UserDefaults.Key.pinnedSectionsEnabled)
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }
@@ -306,11 +306,11 @@ enum Preferences {
     // Show It (the 1.12 behavior) unless the user picks otherwise.
     static var newAppDefaultSection: NewAppDefault {
         get {
-            NewAppDefault(rawValue: UserDefaults.standard.object(forKey: UserDefaults.Key.newAppDefaultSection) as? Int ?? NewAppDefault.show.rawValue) ?? .show
+            NewAppDefault(rawValue: AppDefaults.store.object(forKey: UserDefaults.Key.newAppDefaultSection) as? Int ?? NewAppDefault.show.rawValue) ?? .show
         }
 
         set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: UserDefaults.Key.newAppDefaultSection)
+            AppDefaults.store.set(newValue.rawValue, forKey: UserDefaults.Key.newAppDefaultSection)
             NotificationCenter.default.post(Notification(name: .prefsChanged))
         }
     }

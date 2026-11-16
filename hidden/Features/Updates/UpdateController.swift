@@ -18,21 +18,35 @@ final class UpdateController: NSObject, SPUStandardUserDriverDelegate {
 
     override init() {
         super.init()
-        standardController = SPUStandardUpdaterController(startingUpdater: true,
+        // A test host never starts the updater: no scheduled check, no feed fetch.
+        standardController = SPUStandardUpdaterController(startingUpdater: AppDefaults.allowsHostSideEffects,
                                                           updaterDelegate: nil,
                                                           userDriverDelegate: self)
     }
 
     /// Persisted by Sparkle itself (SUEnableAutomaticChecks in user defaults).
     var automaticallyChecksForUpdates: Bool {
-        get { standardController.updater.automaticallyChecksForUpdates }
-        set { standardController.updater.automaticallyChecksForUpdates = newValue }
+        get { AppDefaults.allowsHostSideEffects ? standardController.updater.automaticallyChecksForUpdates : AppDefaults.store.bool(forKey: Self.checksKey) }
+        set {
+            // Sparkle stores this in the app's real preferences domain; a test
+            // host keeps the same key in the test suite instead.
+            if AppDefaults.allowsHostSideEffects {
+                standardController.updater.automaticallyChecksForUpdates = newValue
+            } else {
+                AppDefaults.store.set(newValue, forKey: Self.checksKey)
+            }
+        }
     }
 
-    var lastUpdateCheckDate: Date? { standardController.updater.lastUpdateCheckDate }
+    private static let checksKey = "SUEnableAutomaticChecks"
+
+    var lastUpdateCheckDate: Date? {
+        AppDefaults.allowsHostSideEffects ? standardController.updater.lastUpdateCheckDate : nil
+    }
 
     /// The About pane's button: the same user-initiated check as the menu item.
     func checkForUpdates() {
+        guard AppDefaults.allowsHostSideEffects else { return }
         standardController.checkForUpdates(nil)
     }
 

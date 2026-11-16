@@ -13,7 +13,7 @@ import AppKit
 /// feature is off), recorded by a row under "Keyboard shortcut" on the General
 /// tab of the direct build on macOS 27 only, and every locale carries its text.
 /// Serves: Preferences, PreferencesViewController.
-/// Mock boundary: none. Real `UserDefaults.standard` for the one key, saved in
+/// Mock boundary: none. Real `AppDefaults.store` for the one key, saved in
 /// setUp and put back in tearDown; the registry is the real one.
 final class PaletteSettingsTests: XCTestCase {
 
@@ -23,12 +23,12 @@ final class PaletteSettingsTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        saved = UserDefaults.standard.object(forKey: key)
-        UserDefaults.standard.removeObject(forKey: key)
+        saved = AppDefaults.store.object(forKey: key)
+        AppDefaults.store.removeObject(forKey: key)
     }
 
     override func tearDown() {
-        if let saved { UserDefaults.standard.set(saved, forKey: key) } else { UserDefaults.standard.removeObject(forKey: key) }
+        if let saved { AppDefaults.store.set(saved, forKey: key) } else { AppDefaults.store.removeObject(forKey: key) }
         windows.removeAll()
         super.tearDown()
     }
@@ -63,7 +63,7 @@ final class PaletteSettingsTests: XCTestCase {
     // Then it is nil, so the palette is off until the user records a shortcut
     func test_unsetByDefault() {
         XCTAssertNil(Preferences.findHiddenIconShortcut)
-        XCTAssertNil(UserDefaults.standard.object(forKey: key))
+        XCTAssertNil(AppDefaults.store.object(forKey: key))
     }
 
     // Given a shortcut
@@ -73,12 +73,12 @@ final class PaletteSettingsTests: XCTestCase {
         let posted = expectation(forNotification: .prefsChanged, object: nil)
         posted.expectedFulfillmentCount = 2
         Preferences.findHiddenIconShortcut = option()
-        let data = try XCTUnwrap(UserDefaults.standard.data(forKey: "findHiddenIconShortcut"))
+        let data = try XCTUnwrap(AppDefaults.store.data(forKey: "findHiddenIconShortcut"))
         XCTAssertEqual(try JSONDecoder().decode(GlobalKeybindPreferences.self, from: data), option())
         XCTAssertEqual(Preferences.findHiddenIconShortcut, option())
 
         Preferences.findHiddenIconShortcut = nil
-        XCTAssertNil(UserDefaults.standard.object(forKey: key))
+        XCTAssertNil(AppDefaults.store.object(forKey: key))
         wait(for: [posted], timeout: 1)
     }
 
@@ -135,7 +135,7 @@ final class PaletteSettingsTests: XCTestCase {
         let row = try XCTUnwrap(general.findShortcutRecorder)
         XCTAssertEqual(row.button.title, option().description)
         row.clear()
-        XCTAssertNil(UserDefaults.standard.object(forKey: key))
+        XCTAssertNil(AppDefaults.store.object(forKey: key))
         XCTAssertEqual(row.button.title, "Set Shortcut".localized)
     }
 
@@ -156,7 +156,7 @@ final class PaletteSettingsTests: XCTestCase {
         windows.append(controller)
         let general = try XCTUnwrap(controller.pane(.general) as? PreferencesViewController)
         XCTAssertEqual(general.findShortcutRecorder?.button.title, option().description)
-        XCTAssertNil(UserDefaults.standard.object(forKey: key))
+        XCTAssertNil(AppDefaults.store.object(forKey: key))
     }
 
     // Given every locale file

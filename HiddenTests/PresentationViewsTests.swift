@@ -14,7 +14,7 @@ import AppKit
 /// user chose.
 /// Serves: PreferencesViewController (Presentation mode group), PresentationSensitiveApps,
 /// PresentationViews.
-/// Mock boundary: real `UserDefaults.standard` for the preference accessors (the
+/// Mock boundary: real `AppDefaults.store` for the preference accessors (the
 /// keys are saved in setUp and put back); the picker takes injected read and write.
 final class PresentationViewsTests: XCTestCase {
     private let keys = [UserDefaults.Key.presentationAutoMirrorEnabled, UserDefaults.Key.presentationSensitiveApps,
@@ -25,12 +25,12 @@ final class PresentationViewsTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        for key in keys { saved[key] = UserDefaults.standard.object(forKey: key) }
+        for key in keys { saved[key] = AppDefaults.store.object(forKey: key) }
     }
 
     override func tearDown() {
         for key in keys {
-            if let value = saved[key] { UserDefaults.standard.set(value, forKey: key) } else { UserDefaults.standard.removeObject(forKey: key) }
+            if let value = saved[key] { AppDefaults.store.set(value, forKey: key) } else { AppDefaults.store.removeObject(forKey: key) }
         }
         windows.removeAll()
         super.tearDown()
@@ -117,10 +117,10 @@ final class PresentationViewsTests: XCTestCase {
     // Then it is stored as a dictionary [bundle id: true] under the contract key
     func test_sensitiveApps_areStoredAsADictionary() {
         Preferences.presentationSensitiveApps = ["com.a", "com.b"]
-        let stored = UserDefaults.standard.dictionary(forKey: UserDefaults.Key.presentationSensitiveApps)
+        let stored = AppDefaults.store.dictionary(forKey: UserDefaults.Key.presentationSensitiveApps)
         XCTAssertEqual(stored as? [String: Bool], ["com.a": true, "com.b": true])
         XCTAssertEqual(Preferences.presentationSensitiveApps, ["com.a", "com.b"])
-        UserDefaults.standard.set(["com.a": true, "com.c": false], forKey: UserDefaults.Key.presentationSensitiveApps)
+        AppDefaults.store.set(["com.a": true, "com.c": false], forKey: UserDefaults.Key.presentationSensitiveApps)
         XCTAssertEqual(Preferences.presentationSensitiveApps, ["com.a"], "a false entry is not sensitive")
     }
 
@@ -284,7 +284,7 @@ final class PresentationViewsTests: XCTestCase {
     // When the flag is written and read back
     // Then it is the internal key: false until the tip is shown, and not imported from the App Store build
     func test_tip_flagIsAnInternalPreference() {
-        UserDefaults.standard.removeObject(forKey: UserDefaults.Key.presentationTipShown)
+        AppDefaults.store.removeObject(forKey: UserDefaults.Key.presentationTipShown)
         XCTAssertFalse(Preferences.presentationTipShown)
         PresentationTip.markShown()
         XCTAssertTrue(Preferences.presentationTipShown)

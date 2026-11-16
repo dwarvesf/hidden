@@ -35,6 +35,9 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         setupHotKey()
         openPreferencesIfNeeded()
         detectLTRLang()
+        // A test host never starts Sparkle or takes the move and migration
+        // offers: they act on the machine's real install.
+        guard AppDefaults.allowsHostSideEffects else { return }
         #if HIDDENBAR_SPARKLE
         _ = UpdateController.shared // starts the updater and its scheduled checks
         #endif
@@ -124,7 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     ]
 
     func registerDefaultValues() {
-        UserDefaults.standard.register(defaults: AppDelegate.defaultPreferenceValues)
+        AppDefaults.store.register(defaults: AppDelegate.defaultPreferenceValues)
     }
     
     func setupHotKey() {

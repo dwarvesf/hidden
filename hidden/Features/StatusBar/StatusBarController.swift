@@ -296,8 +296,12 @@ class StatusBarController: MenuBarItemProvider {
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
         
-        btnExpandCollapse.autosaveName = "hiddenbar_expandcollapse";
-        btnSeparate.autosaveName = "hiddenbar_separate";
+        // macOS persists an autosaved item's position and visibility in the app's
+        // preferences domain, so a test host leaves its items unnamed.
+        if AppDefaults.allowsHostSideEffects {
+            btnExpandCollapse.autosaveName = "hiddenbar_expandcollapse";
+            btnSeparate.autosaveName = "hiddenbar_separate";
+        }
     }
     
     @objc func btnExpandCollapsePressed(sender: NSStatusBarButton) {
@@ -747,7 +751,9 @@ extension StatusBarController {
                 button.image = self.imgIconLine
                 button.appearsDisabled = true
             }
-            self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate"
+            if AppDefaults.allowsHostSideEffects {
+                self.btnAlwaysHidden?.autosaveName = "hiddenbar_terminate"
+            }
             self.btnAlwaysHidden?.isVisible = true
             // Last, so the engine decides whether the new item stays in the bar.
             menuBarEngine.updateAlwaysHiddenSection(enabled: true, separatorHidden: false)

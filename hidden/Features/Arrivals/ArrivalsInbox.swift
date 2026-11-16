@@ -137,7 +137,7 @@ struct UserDefaultsArrivalsPending {
     static let key = "arrivalsPending"
     private let defaults: UserDefaults
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = AppDefaults.store) {
         self.defaults = defaults
     }
 

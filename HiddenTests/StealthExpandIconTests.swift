@@ -8,7 +8,7 @@ import AppKit
 /// Behaviors covered (6): default off, setter round-trip, setter posts the
 /// toggle notification, alpha rule for all four states, faded image keeps
 /// template-ness, an opaque request returns the original image.
-/// Mock boundary: none; the preference tests use the real `UserDefaults.standard`
+/// Mock boundary: none; the preference tests use the real `AppDefaults.store`
 /// and restore the prior value, like NotchOverflowPreferencesTests.
 final class StealthExpandIconTests: XCTestCase {
 
@@ -16,14 +16,14 @@ final class StealthExpandIconTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        priorValue = UserDefaults.standard.object(forKey: UserDefaults.Key.stealthExpandIconEnabled)
+        priorValue = AppDefaults.store.object(forKey: UserDefaults.Key.stealthExpandIconEnabled)
     }
 
     override func tearDown() {
         if let priorValue {
-            UserDefaults.standard.set(priorValue, forKey: UserDefaults.Key.stealthExpandIconEnabled)
+            AppDefaults.store.set(priorValue, forKey: UserDefaults.Key.stealthExpandIconEnabled)
         } else {
-            UserDefaults.standard.removeObject(forKey: UserDefaults.Key.stealthExpandIconEnabled)
+            AppDefaults.store.removeObject(forKey: UserDefaults.Key.stealthExpandIconEnabled)
         }
         super.tearDown()
     }

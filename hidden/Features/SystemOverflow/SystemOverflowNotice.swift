@@ -35,7 +35,7 @@ final class SystemOverflowNotice {
     private static let retryDelay: TimeInterval = 1
 
     private let indicator = SystemOverflowIndicator()
-    private let policy = SystemOverflowNoticePolicy(defaults: .standard)
+    private let policy = SystemOverflowNoticePolicy(defaults: AppDefaults.store)
     private var isChecking = false
 
     /// Call after a collapse the user asked for (click or hotkey). `isCollapsed`

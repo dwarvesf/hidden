@@ -243,9 +243,9 @@ final class LegacyLoginItemTests: XCTestCase {
     func testGateClosedTouchesNothing() {
         // Under XCTest the real entry point must return before any system call
         // or prefs write; the shared prefs domain must keep no migrated flag from it.
-        let before = UserDefaults.standard.object(forKey: LegacyLoginItem.migratedKey)
+        let before = AppDefaults.store.object(forKey: LegacyLoginItem.migratedKey)
         LegacyLoginItem.migrateUnlessTesting(autoStart: true, touchLoginItems: false)
-        XCTAssertEqual(UserDefaults.standard.object(forKey: LegacyLoginItem.migratedKey) as? Bool, before as? Bool)
+        XCTAssertEqual(AppDefaults.store.object(forKey: LegacyLoginItem.migratedKey) as? Bool, before as? Bool)
     }
 }
 
