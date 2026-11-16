@@ -585,16 +585,19 @@ final class SettingsWindowTests: XCTestCase {
         pane.view.frame = host.bounds
         forceAlwaysVisibleScrollers(in: pane.view)
         host.layoutSubtreeIfNeeded()
-        let frames = cards(of: pane).map { $0.convert($0.bounds, to: host) }
+        // Every frame the pane draws: a group that draws its own, or a scrolling card.
+        let drawn = Self.subviews(of: pane.view).filter { ($0 as? SettingsGroupView)?.drawsFrame == true || $0 is SettingsScrollCard }
+        let frames = drawn.map { $0.convert($0.bounds, to: host) }
         XCTAssertEqual(frames.count, 3, "the new-icon card, the list card and the reset card")
         for frame in frames {
             XCTAssertEqual(frame.minX, SettingsMetrics.sideInset, accuracy: 0.5)
-            XCTAssertEqual(frame.width, SettingsMetrics.contentWidth, accuracy: 0.5)
+            XCTAssertEqual(frame.width, SettingsMetrics.contentWidth, accuracy: 0.5, "every card is as wide as the others")
         }
         let scroll = try XCTUnwrap(Self.subviews(of: pane.view).compactMap { $0 as? NSScrollView }.first)
         let scrollFrame = scroll.convert(scroll.bounds, to: host)
-        XCTAssertGreaterThanOrEqual(scrollFrame.minX, frames[1].minX)
-        XCTAssertLessThanOrEqual(scrollFrame.maxX, frames[1].maxX, "the list's scroller is inside the card")
+        let list = try XCTUnwrap(frames.first { $0.contains(CGPoint(x: scrollFrame.midX, y: scrollFrame.midY)) })
+        XCTAssertGreaterThanOrEqual(scrollFrame.minX, list.minX)
+        XCTAssertLessThanOrEqual(scrollFrame.maxX, list.maxX, "the list's scroller is inside the card")
     }
 
     // Given running apps with and without a caption, and one that is not running
