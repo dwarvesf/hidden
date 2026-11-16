@@ -1,0 +1,61 @@
+#!/bin/bash
+# scripts/memory-soak/sample : append ONE memory sample of the installed Hidden Bar to the soak log.
+# Read-only on the app: footprint and heap only inspect it. (heap pauses the process for a few
+# milliseconds while it walks the malloc zones; it sends no signal and changes nothing.)
+#
+#   sample [END_EPOCH]    END_EPOCH: unix seconds. Past it, boot the LaunchAgent out and exit.
+#
+# Env: HB_SOAK_LOG (default ~/Library/Logs/hiddenbar-memory-soak.log), HB_SOAK_APP, HB_SOAK_LABEL.
+# Line: TS pid=N up=ETIME footprint=B peak=B nodes=N heap_bytes=B version=SHORT+BUILD
+set -u
+
+LOG="${HB_SOAK_LOG:-$HOME/Library/Logs/hiddenbar-memory-soak.log}"
+APP="${HB_SOAK_APP:-/Applications/Hidden Bar.app}"
+LABEL="${HB_SOAK_LABEL:-mini.hiddenbar-memory-soak}"
+END_EPOCH="${1:-}"
+
+mkdir -p "$(dirname "$LOG")"
+ts() { date +%Y-%m-%dT%H:%M:%S%z; }
+log() { printf '%s %s\n' "$(ts)" "$*" >> "$LOG"; }
+
+if [ -n "$END_EPOCH" ] && [ "$(date +%s)" -ge "$END_EPOCH" ]; then
+    log "state=soak-ended (end date reached, booting out $LABEL)"
+    launchctl bootout "gui/$(id -u)/$LABEL"
+    exit 0
+fi
+
+PLIST="$APP/Contents/Info.plist"
+short=NA
+build=NA
+if [ -f "$PLIST" ]; then
+    short="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$PLIST" 2>/dev/null)" || short=NA
+    build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$PLIST" 2>/dev/null)" || build=NA
+fi
+version="$short+$build"
+
+pid="$(pgrep -f "$APP/Contents/MacOS/Hidden Bar" | head -n 1)"
+if [ -z "$pid" ]; then
+    log "pid=- state=not-running version=$version"
+    exit 0
+fi
+
+up="$(ps -o etime= -p "$pid" 2>/dev/null | tr -d ' ')"
+[ -n "$up" ] || up=NA
+
+fp_out="$(footprint -f bytes --noCategories -p "$pid" 2>&1)"
+footprint="$(printf '%s\n' "$fp_out" | awk '$1 == "phys_footprint:" { print $2; exit }')"
+peak="$(printf '%s\n' "$fp_out" | awk '$1 == "phys_footprint_peak:" { print $2; exit }')"
+[ -n "$footprint" ] || footprint=NA
+[ -n "$peak" ] || peak=NA
+
+heap_out="$(heap "$pid" 2>&1)"
+nodes="$(printf '%s\n' "$heap_out" | sed -n 's/^All zones: \([0-9]*\) nodes (\([0-9]*\) bytes).*/\1/p' | head -n 1)"
+heap_bytes="$(printf '%s\n' "$heap_out" | sed -n 's/^All zones: \([0-9]*\) nodes (\([0-9]*\) bytes).*/\2/p' | head -n 1)"
+note=""
+if [ -z "$nodes" ]; then
+    nodes=NA
+    heap_bytes=NA
+    note=" heap=failed"
+fi
+
+log "pid=$pid up=$up footprint=$footprint peak=$peak nodes=$nodes heap_bytes=$heap_bytes version=$version$note"

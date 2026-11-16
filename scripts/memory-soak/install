@@ -1,0 +1,65 @@
+#!/bin/bash
+# scripts/memory-soak/install : start the 14-day hourly Hidden Bar memory soak as a LaunchAgent.
+#
+#   install              write ~/Library/LaunchAgents/mini.hiddenbar-memory-soak.plist and bootstrap it
+#   install --uninstall  boot it out and move the plist to the Trash (never rm)
+#
+# The plist points at `sample` in the MAIN checkout (not a worktree), so run this from there after
+# the branch is merged and pulled. Env: HB_SOAK_DAYS (default 14).
+set -eu
+
+LABEL="mini.hiddenbar-memory-soak"
+PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
+DOMAIN="gui/$(id -u)"
+DAYS="${HB_SOAK_DAYS:-14}"
+
+if [ "${1:-}" = "--uninstall" ]; then
+    launchctl bootout "$DOMAIN/$LABEL" 2>/dev/null || echo "not loaded: $LABEL"
+    if [ -e "$PLIST" ]; then
+        trash "${PLIST:?}" 2>/dev/null || mv "$PLIST" "$HOME/.Trash/$LABEL.$(date +%Y%m%d%H%M%S).plist"
+        echo "plist moved to the Trash: $PLIST"
+    fi
+    exit 0
+fi
+
+# The main checkout is the parent of the shared git dir, also when this runs from a worktree.
+common="$(cd "$(dirname "$0")" && git rev-parse --path-format=absolute --git-common-dir)"
+SAMPLE="$(dirname "$common")/scripts/memory-soak/sample"
+if [ ! -x "$SAMPLE" ]; then
+    echo "missing or not executable: $SAMPLE (merge and pull the main checkout first)" >&2
+    exit 1
+fi
+
+end_epoch="$(date -v+"$DAYS"d +%s)"
+end_human="$(date -r "$end_epoch" +%Y-%m-%dT%H:%M:%S%z)"
+
+mkdir -p "$(dirname "$PLIST")" "$HOME/Library/Logs"
+cat > "$PLIST" <<PLISTEOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>$LABEL</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$SAMPLE</string>
+        <string>$end_epoch</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>3600</integer>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardErrorPath</key>
+    <string>$HOME/Library/Logs/hiddenbar-memory-soak.err</string>
+    <key>StandardOutPath</key>
+    <string>$HOME/Library/Logs/hiddenbar-memory-soak.err</string>
+</dict>
+</plist>
+PLISTEOF
+plutil -lint "$PLIST" >/dev/null
+
+launchctl bootout "$DOMAIN/$LABEL" 2>/dev/null || true
+launchctl bootstrap "$DOMAIN" "$PLIST"
+echo "installed $LABEL: sample $SAMPLE, hourly, ends $end_human"
+echo "log: $HOME/Library/Logs/hiddenbar-memory-soak.log"
