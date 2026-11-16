@@ -1620,6 +1620,19 @@ final class PinnedSectionsTests: XCTestCase {
         XCTAssertEqual(collapse(engine), [own, "com.visible"])
     }
 
+    // Given an app whose icons Accessibility cannot place (Little Snitch, #502)
+    // When it is new, it shows on collapse; once Settings › Icons pins it hidden, it hides
+    // Then its unknown position never overrides the pinned choice
+    func testAnUnplaceableAppShowsUntilPinnedHidden() {
+        inventory.items.append(MenuBarInventoryItem(bundleIdentifier: "at.obdev.littlesnitch.agent", frame: .zero, isUnreadable: true))
+        let engine = makeEngine()
+        XCTAssertEqual(collapse(engine), [own, "at.obdev.littlesnitch.agent", "com.visible"])
+        engine.expand()
+        table.sections["at.obdev.littlesnitch.agent"] = .hidden
+        XCTAssertEqual(collapse(engine), [own, "com.visible"])
+        XCTAssertEqual(table.sections["at.obdev.littlesnitch.agent"], .hidden)
+    }
+
     // Given an app that recreates its status item without relaunching (BitBar, SwiftBar)
     // When "Ignore drags" is on for it and its icon lands on the hidden side
     // Then it stays in its pinned section; an app without the flag still follows the move
@@ -2265,6 +2278,36 @@ final class AccessibilityInventoryRetryTests: XCTestCase {
         XCTAssertEqual(items.map(\.bundleIdentifier), ["app0", "app1", "app2"],
                        "an app that never answers is kept, in running-app order")
         XCTAssertEqual(items.map(\.isUnreadable), [false, true, false])
+    }
+
+    // #502: Little Snitch answers Accessibility with a frame and nothing else, so
+    // none of its items is listed. It must be kept visible, not dropped and hidden.
+    func testAnAppThatRefusesAccessibilityIsKeptVisibleWithoutAReread() {
+        let lock = NSLock()
+        var calls = 0
+        var unanswered: [Int] = []
+        let items = AccessibilityMenuBarInventory.collect(count: 3, read: { index, _ in
+            if index != 1 { return .items([self.item("app\(index)", x: CGFloat(index) * 30)]) }
+            lock.lock(); calls += 1; lock.unlock()
+            return .refused
+        }, unanswered: { index in
+            unanswered.append(index)
+            return [MenuBarInventoryItem(bundleIdentifier: "at.obdev.littlesnitch.agent", frame: .zero, isUnreadable: true)]
+        })
+        XCTAssertEqual(calls, 1, "a refusal is an answer: no re-read")
+        XCTAssertEqual(unanswered, [1])
+        XCTAssertEqual(items.map(\.bundleIdentifier), ["app0", "at.obdev.littlesnitch.agent", "app2"])
+        XCTAssertEqual(items.map(\.isUnreadable), [false, true, false])
+    }
+
+    func testOnlyAnAppElementWithoutARoleRefusesAccessibility() {
+        // Little Snitch and its agent on 27.2.
+        XCTAssertTrue(AccessibilityMenuBarInventory.refusesAccessibility(attributeNames: ["AXFrame", "AXSize", "AXPosition"]))
+        XCTAssertTrue(AccessibilityMenuBarInventory.refusesAccessibility(attributeNames: []))
+        // Finder, which has no menu-bar item and answers AXExtrasMenuBar with no value.
+        XCTAssertFalse(AccessibilityMenuBarInventory.refusesAccessibility(attributeNames: ["AXRole", "AXRoleDescription", "AXTitle", "AXChildren"]))
+        // The attribute names could not be read: nothing is known, nothing is added.
+        XCTAssertFalse(AccessibilityMenuBarInventory.refusesAccessibility(attributeNames: nil))
     }
 
     func testNoRereadWhenEveryAppAnswers() {

@@ -65,6 +65,17 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
         case items([MenuBarInventoryItem])
         // The app did not answer within the messaging timeout.
         case timedOut
+        // The app answers but exposes no Accessibility tree, so its items and
+        // their positions cannot be read. Not read again.
+        case refused
+    }
+
+    // An app element that lists attributes but not even a role has turned its
+    // Accessibility off (Little Snitch on 27.2 lists only a frame); any AppKit or
+    // SwiftUI app lists its role, whether or not it has menu-bar items.
+    static func refusesAccessibility(attributeNames: [String]?) -> Bool {
+        guard let names = attributeNames else { return false }
+        return !names.contains(kAXRoleAttribute as String)
     }
 
     // Each app is an independent IPC round-trip, so they run concurrently; serial
@@ -74,8 +85,12 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
         return collect(count: apps.count,
                        read: { index, timeout in read(apps[index], timeout: timeout) },
                        unanswered: { index in
-                           // Unknown items stay visible. Without a bundle id nothing
-                           // could be allowed anyway, and such processes are mostly daemons.
+                           // Unknown items stay visible, wherever they sit: an app that
+                           // never answered, or one that answers but shows Accessibility
+                           // nothing (Little Snitch, #502), which otherwise is left out of
+                           // the allow list and hidden on every collapse. Without a bundle
+                           // id nothing could be allowed anyway, and such processes are
+                           // mostly daemons.
                            let app = apps[index]
                            guard app.bundleIdentifier != nil else { return [] }
                            return [MenuBarInventoryItem(bundleIdentifier: app.bundleIdentifier, frame: .zero,
@@ -86,8 +101,8 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
     // Reads every app concurrently with the short timeout, then reads the apps
     // that timed out once more with the longer one. Under concurrent load a slow
     // app can miss the short timeout; dropping it would hide it on collapse even
-    // when it sits in the visible section. An app that times out twice gets the
-    // items `unanswered` returns for it.
+    // when it sits in the visible section. An app that times out twice, or that
+    // refuses Accessibility, gets the items `unanswered` returns for it.
     static func collect(count: Int, read: (Int, Float) -> AppRead,
                         unanswered: (Int) -> [MenuBarInventoryItem]) -> [MenuBarInventoryItem] {
         var results = [AppRead](repeating: .items([]), count: count)
@@ -124,7 +139,11 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
         var barValue: CFTypeRef?
         let barError = AXUIElementCopyAttributeValue(element, "AXExtrasMenuBar" as CFString, &barValue)
         if barError == .cannotComplete { return .timedOut }
-        guard barError == .success, let bar = barValue else { return .items([]) }
+        guard barError == .success, let bar = barValue else {
+            var names: CFArray?
+            let namesError = AXUIElementCopyAttributeNames(element, &names)
+            return refusesAccessibility(attributeNames: namesError == .success ? names as? [String] : nil) ? .refused : .items([])
+        }
         var childrenValue: CFTypeRef?
         let childrenError = AXUIElementCopyAttributeValue(bar as! AXUIElement, kAXChildrenAttribute as CFString, &childrenValue)
         if childrenError == .cannotComplete { return .timedOut }
