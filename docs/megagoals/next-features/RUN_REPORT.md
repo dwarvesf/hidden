@@ -74,4 +74,4 @@ See `docs/BACKLOG.md` "Open after 1.13.0". The ones that need Han or a live Mac:
 - A live check of the candidate from /Applications (palette Return opening a hidden app's menu, the Presenting capsule, reveal hit test on a real bar).
 - Measure the clock and battery system-item ids so presentation can keep only those two.
 - A 1.12.0 build must come from ed5eddb (v1.12.0, #483); develop now carries 1.13.0.
-- The design boards artifact: published after the daily Artifact cap reset (link in NOTES.md when done).
+- Design boards (23, light and dark): https://claude.ai/code/artifact/d6f7d69e-feed-4e87-9f25-c652da440cc6

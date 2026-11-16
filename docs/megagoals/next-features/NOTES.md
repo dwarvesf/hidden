@@ -10,3 +10,4 @@ Event log, one line per round.
 - CI fix #507: the settings test bundle runs in one process and test.sh no longer forces parallel testing; merged to develop after #506, not user-facing.
 - Convergence: advisor P5 (7 findings) and P6 (8 proposals) plus a seam review; fixes in #509 (presentation follows the 1.12 capture rule, guards while presenting, shortcut clash refused, counts instead of names on the shared screen); verifier PASS; merged 78ac3f5.
 - Wave 3 close: #508 rebased on #509, candidate rebuilt and notarized (b656befd, Accepted); final verifier PASS; merged d05470e. Run ends at the SG-07 gate.
+- Design boards published as one Claude Design canvas (23 boards, light and dark): https://claude.ai/code/artifact/d6f7d69e-feed-4e87-9f25-c652da440cc6
