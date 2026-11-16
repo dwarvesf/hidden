@@ -11,7 +11,7 @@ Source of the current state: develop after v1.13.0 (build 21, published 2026-11-
 ## Merged, not yet a GitHub release
 
 - **Pause switch wording** in Settings › Advanced (#515).
-- **Legacy login item fix, #456:** one SMAppService off/on reset removes the launcher-era `LauncherApplication` record; the hint names the "Hidden Bar" row under Allow in the Background (PR_PLACEHOLDER).
+- **Legacy login item fix, #456:** one SMAppService off/on reset removes the launcher-era `LauncherApplication` record; the hint names the "Hidden Bar" row under Allow in the Background (#517).
 
 ## Shipped
 
@@ -24,7 +24,7 @@ Source of the current state: develop after v1.13.0 (build 21, published 2026-11-
 ## Open after 1.13.0
 
 - **Direct build bundle id.** 1.13.0 shipped Release-Direct as `com.dwarvesv.minimalbar`, the same as the App Store build (shared prefs, the two cannot coexist). Confirm that stays, or move the direct build to `com.dwarvesv.minimalbar.direct`.
-- **Upgrade-path BTM check, #456: FAIL on 1.13.0, PASS with the fix (2026-11-16, mac-ui VM, macOS 27.2.1 26B131).** 1.13.0: after v1.9 with Start at login on, an upgrade and a login, `sfltool dumpbtm` still lists `4.com.dwarvesv.LauncherApplication` and every launch logs error 22 from `SMLoginItemSetEnabled`. The fix (PR_PLACEHOLDER) resets the main app item once instead; on the same ghosted 1.13.0 state its first launch logs `Unregister error: 0`, `Register error: 0`, status 1, and the legacy record is gone, still gone after a fresh login, one Hidden Bar under Open at Login. A fresh install (no old container) is marked done without touching login items. System Settings has no row of its own for the legacy record: it sits inside the "Hidden Bar" Allow in the Background row, which an SMAppService app has anyway. Release step 7 still owes one run on real hardware before the next release. Evidence: `docs/implementation-notes/upgrade-btm-check-proof/` (`btm-dumps.txt` first run, `retest.txt` the fix).
+- **Upgrade-path BTM check, #456: FAIL on 1.13.0, PASS with the fix (2026-11-16, mac-ui VM, macOS 27.2.1 26B131).** 1.13.0: after v1.9 with Start at login on, an upgrade and a login, `sfltool dumpbtm` still lists `4.com.dwarvesv.LauncherApplication` and every launch logs error 22 from `SMLoginItemSetEnabled`. The fix (#517) resets the main app item once instead; on the same ghosted 1.13.0 state its first launch logs `Unregister error: 0`, `Register error: 0`, status 1, and the legacy record is gone, still gone after a fresh login, one Hidden Bar under Open at Login. A fresh install (no old container) is marked done without touching login items. System Settings has no row of its own for the legacy record: it sits inside the "Hidden Bar" Allow in the Background row, which an SMAppService app has anyway. Release step 7 still owes one run on real hardware before the next release. Evidence: `docs/implementation-notes/upgrade-btm-check-proof/` (`btm-dumps.txt` first run, `retest.txt` the fix).
 - **Presentation keeps all system items.** Measure the clock and battery system item ids live,
   then narrow `NativeVisibilityEngine.presentationSystemItems` from all (0..<64) to those two.
 - **Slideshow automatic trigger.** Dropped for 1.13.0; needs a live Keynote or PowerPoint check
