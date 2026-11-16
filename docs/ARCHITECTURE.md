@@ -130,10 +130,7 @@ flowchart TD
 ## Autostart
 
 macOS 13+ `SMAppService.mainApp`: the app registers itself; the login item is
-visible and revocable in System Settings > General > Login Items. On first
-launch after upgrade, a one-shot migration deauthorizes the legacy
-`com.dwarvesv.LauncherApplication` helper registration (the BTM database never
-garbage-collects those; see Apple TN3111). The helper app itself is gone.
+visible and revocable in System Settings > General > Login Items. Builds up to v1.10 registered a `com.dwarvesv.LauncherApplication` helper instead, and the BTM database never garbage-collects that record (Apple TN3111). `SMLoginItemSetEnabled` cannot reach it once the helper is gone from the bundle (error 22), so `LegacyLoginItem` uses the one call that does: unregistering `SMAppService.mainApp` drops every record under the app. When the old sandbox container exists (or the build is sandboxed) and launch at login is on, it unregisters and re-registers the main app once, then sets `smAppServiceMigrated`; with launch at login off it waits. The helper app itself is gone.
 
 ## Security posture
 

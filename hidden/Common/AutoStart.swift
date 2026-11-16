@@ -18,28 +18,74 @@ protocol LoginItemServing {
 
 extension SMAppService: LoginItemServing {}
 
-// Builds before the SMAppService migration registered a helper app in BTM;
-// macOS never garbage-collects that record (TN3111), so deauthorize it once.
+// Builds before the SMAppService migration (v1.10 and older, all sandboxed)
+// registered a LauncherApplication helper in BTM. macOS never garbage-collects
+// that record (TN3111), and SMLoginItemSetEnabled cannot reach it once the bundle
+// no longer ships the helper: it fails with 22 on every call. What does
+// remove it is unregistering the main app's own SMAppService item, which drops
+// every record under the app, so the migration turns launch at login off and on
+// once.
 enum LegacyLoginItem {
     static let migratedKey = "smAppServiceMigrated"
-    static let helperBundleID = "com.dwarvesv.LauncherApplication"
-    static let failureHint = "Hidden Bar could not remove its old login item; remove \"LauncherApplication\" in System Settings > General > Login Items."
+    static let failureHint = "Hidden Bar could not remove the login item an old version left. In System Settings > General > Login Items & Extensions it shows as \"Hidden Bar\" under Allow in the Background. To remove it, turn \"Open Hidden Bar at login\" off and on again in Hidden Bar's Settings."
 
-    // The migrated flag is set only when the system confirms the removal, so a
-    // failed attempt is retried on the next launch instead of being forgotten.
-    @discardableResult
-    static func remove(
-        defaults: UserDefaults = .standard,
-        disable: (String) -> Bool = { SMLoginItemSetEnabled($0 as CFString, false) },
-        report: (String) -> Void = { NSLog("%@", $0) }
+    enum Step: Equatable {
+        case none       // already migrated
+        case markDone   // no launcher-era install here, nothing to remove
+        case wait       // a legacy record may exist, launch at login is off: touch nothing yet
+        case reset      // unregister and re-register the main app once
+    }
+
+    static func step(migrated: Bool, mayHaveLegacyRecord: Bool, autoStart: Bool) -> Step {
+        if migrated { return .none }
+        if !mayHaveLegacyRecord { return .markDone }
+        return autoStart ? .reset : .wait
+    }
+
+    // A launcher-era build was sandboxed, so it left a container behind. The
+    // sandboxed App Store build runs inside that container itself.
+    static func mayHaveLegacyRecord(
+        home: URL = URL(fileURLWithPath: NSHomeDirectory()),
+        bundleIdentifier: String = Bundle.main.bundleIdentifier ?? "com.dwarvesv.minimalbar",
+        sandboxed: Bool = ProcessInfo.processInfo.environment["APP_SANDBOX_CONTAINER_ID"] != nil,
+        fileExists: (String) -> Bool = { FileManager.default.fileExists(atPath: $0) }
     ) -> Bool {
-        guard !defaults.bool(forKey: migratedKey) else { return true }
-        guard disable(helperBundleID) else {
-            report(failureHint)
-            return false
+        sandboxed || fileExists(home.appendingPathComponent("Library/Containers/\(bundleIdentifier)").path)
+    }
+
+    // One bounded attempt: the flag is set after the reset whatever its result,
+    // so a failure is reported once instead of on every launch.
+    @discardableResult
+    static func migrate(
+        defaults: UserDefaults = .standard,
+        autoStart: Bool,
+        mayHaveLegacyRecord: Bool,
+        service: LoginItemServing = SMAppService.mainApp,
+        report: (String) -> Void = { NSLog("%@", $0) }
+    ) -> Step {
+        let next = step(migrated: defaults.bool(forKey: migratedKey),
+                        mayHaveLegacyRecord: mayHaveLegacyRecord,
+                        autoStart: autoStart)
+        switch next {
+        case .none, .wait:
+            break
+        case .markDone:
+            defaults.set(true, forKey: migratedKey)
+        case .reset:
+            do { try service.unregister() } catch { report("LegacyLoginItem: unregister failed: \(error.localizedDescription)") }
+            do { try service.register() } catch { report("LegacyLoginItem: register failed: \(error.localizedDescription)") }
+            if service.status != .enabled { report(failureHint) }
+            defaults.set(true, forKey: migratedKey)
         }
-        defaults.set(true, forKey: migratedKey)
-        return true
+        return next
+    }
+
+    // The entry point the app uses. Tests and Debug builds share the real prefs
+    // domain, so they neither touch login items nor mark the migration done.
+    static func migrateUnlessTesting(autoStart: Bool, touchLoginItems: Bool = AutoStart.shouldTouchLoginItems()) {
+        guard touchLoginItems else { return }
+        let step = migrate(autoStart: autoStart, mayHaveLegacyRecord: mayHaveLegacyRecord())
+        NSLog("LegacyLoginItem: \(step)")
     }
 }
 
