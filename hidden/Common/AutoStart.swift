@@ -27,7 +27,7 @@ extension SMAppService: LoginItemServing {}
 // once.
 enum LegacyLoginItem {
     static let migratedKey = "smAppServiceMigrated"
-    static let failureHint = "Hidden Bar could not remove the login item an old version left. In System Settings > General > Login Items & Extensions it shows as \"Hidden Bar\" under Allow in the Background. To remove it, turn \"Open Hidden Bar at login\" off and on again in Hidden Bar's Settings."
+    static let failureHint = "Hidden Bar could not remove the login item an old version left. System Settings > General > Login Items & Extensions lists it inside \"Hidden Bar\" under Allow in the Background, not as a row of its own. To remove it, turn \"Open Hidden Bar at login\" off and on again in Hidden Bar's Settings."
 
     enum Step: Equatable {
         case none       // already migrated

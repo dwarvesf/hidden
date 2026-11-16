@@ -6,39 +6,25 @@ so this file is the version that survives a machine switch and a fresh clone. Ke
 short: one line per item, pointing at the issue, PR, or file that holds the detail.
 For live numbers use `gh pr list` and `gh issue list`, not this file.
 
-Source of the current state: the 1.13.0 candidate, branch `release/1.13.0-candidate`, after the
-next-features run (`docs/megagoals/next-features/`). Core-model changes (separator length math,
-collapse state machine) are HIGH RISK and require a mandatory review-team pass.
-
-## Ship 1.13.0 (Han)
-
-- **Candidate is built, signed, notarized and stapled, not published.** Release steps stay with
-  Han: `docs/RUNBOOK.md` (tag, GitHub release, Sparkle appcast, Homebrew cask, App Store lane).
-  Cut a 1.12.0 build from `ed5eddb` (v1.12.0, #483), never from develop HEAD, because develop
-  carries the 1.13 features.
-- **Direct build bundle id.** Release-Direct uses `com.dwarvesv.minimalbar`, the same as
-  the App Store build (shared prefs, the two cannot coexist). Confirm that is the
-  decision, or move the direct build to `com.dwarvesv.minimalbar.direct`.
+Source of the current state: develop after v1.13.0 (build 21, published 2026-11-16). Core-model changes (separator length math, collapse state machine) are HIGH RISK and require a mandatory review-team pass.
 
 ## Merged, not yet a GitHub release
 
-- **1.13.0 candidate (all opt-in):** reveal without aiming, scroll, empty click, shake (#493);
-  type-to-find palette (#505); arrivals inbox (#503); presentation mode with manual start and a
-  mirror trigger (#504); shortcut recorder, hotkey registry and app catalog (#497); the General
-  pane scrolls (#504).
-- **1.12.0:** redesigned Settings, pinned sections (beta) on macOS 27, Ignore drags, Icons list
-  clean-up, Shift-click full bar, the system overflow notice (#473, #481, #487, #488, #495, #498).
+- **Pause switch wording** in Settings › Advanced (#515).
+- **Legacy login item fix, #456:** one SMAppService off/on reset removes the launcher-era `LauncherApplication` record; the hint names the "Hidden Bar" row under Allow in the Background (PR_PLACEHOLDER).
 
 ## Shipped
 
+- **1.13.0 (2026-11-16, build 21):** reveal without aiming, scroll, empty click, shake (#493); type-to-find palette (#505); arrivals inbox (#503); presentation mode with manual start and a mirror trigger (#504, #509, #511); shortcut recorder, hotkey registry and app catalog (#497); the General pane scrolls (#504). Notarized zip, Sparkle appcast (`docs/RUNBOOK.md`).
+- **1.12.0:** never released on its own; ships inside 1.13.0. Redesigned Settings, pinned sections (beta) on macOS 27, Ignore drags, Icons list clean-up, Shift-click full bar, the system overflow notice (#473, #481, #487, #488, #495, #498).
 - **1.11.2:** the macOS 27 fixes, Sparkle auto-update, arrow styles, the microphone and camera
   fix. v1.11.1 shipped without Sparkle; the first Sparkle-capable release carried the signed zip
   and `appcast.xml` (`docs/RUNBOOK.md`).
 
 ## Open after 1.13.0
 
-- **Upgrade-path BTM check, #456: FAIL (2026-11-16, mac-ui VM, macOS 27.2.1 26B131).** v1.9 with Start at login on, then the notarized v1.13.0 zip in /Applications, launched once, a reboot: `sfltool dumpbtm` still lists `4.com.dwarvesv.LauncherApplication` (login item, enabled, parent `2.com.dwarvesv.minimalbar`), and every 1.13.0 launch logs `Could not enable login item: com.dwarvesv.LauncherApplication: 22: Invalid argument`. The #468 change only keeps `smAppServiceMigrated` unset, so it retries and fails each launch. SMAppService itself is fine (status 1, one Open at Login row for /Applications/Hidden Bar.app). In System Settings the ghost is not a "LauncherApplication" row: it is an extra "Hidden Bar" row under Allow in the Background, so the `LegacyLoginItem.failureHint` text points at a row that does not exist. Turning Open Hidden Bar at login off in 1.13.0 (SMAppService unregister) removed the legacy record. Needs a code fix: `SMLoginItemSetEnabled` cannot reach a helper the bundle no longer ships. Evidence: `docs/implementation-notes/upgrade-btm-check-proof/`.
-
+- **Direct build bundle id.** 1.13.0 shipped Release-Direct as `com.dwarvesv.minimalbar`, the same as the App Store build (shared prefs, the two cannot coexist). Confirm that stays, or move the direct build to `com.dwarvesv.minimalbar.direct`.
+- **Upgrade-path BTM check, #456: FAIL on 1.13.0, PASS with the fix (2026-11-16, mac-ui VM, macOS 27.2.1 26B131).** 1.13.0: after v1.9 with Start at login on, an upgrade and a login, `sfltool dumpbtm` still lists `4.com.dwarvesv.LauncherApplication` and every launch logs error 22 from `SMLoginItemSetEnabled`. The fix (PR_PLACEHOLDER) resets the main app item once instead; on the same ghosted 1.13.0 state its first launch logs `Unregister error: 0`, `Register error: 0`, status 1, and the legacy record is gone, still gone after a fresh login, one Hidden Bar under Open at Login. A fresh install (no old container) is marked done without touching login items. System Settings has no row of its own for the legacy record: it sits inside the "Hidden Bar" Allow in the Background row, which an SMAppService app has anyway. Release step 7 still owes one run on real hardware before the next release. Evidence: `docs/implementation-notes/upgrade-btm-check-proof/` (`btm-dumps.txt` first run, `retest.txt` the fix).
 - **Presentation keeps all system items.** Measure the clock and battery system item ids live,
   then narrow `NativeVisibilityEngine.presentationSystemItems` from all (0..<64) to those two.
 - **Slideshow automatic trigger.** Dropped for 1.13.0; needs a live Keynote or PowerPoint check

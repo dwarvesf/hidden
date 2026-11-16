@@ -165,7 +165,7 @@ To undo any of them: `defaults delete com.dwarvesv.minimalbar <key>`.
 |---|---|
 | Icons I want visible got hidden after an update | ⌘-drag them to the right of the separator |
 | Login item missing after denying it once | System Settings > General > Login Items: re-enable Hidden Bar, then toggle the pref off/on |
-| An extra "Hidden Bar" under Allow in the Background (System Settings > General > Login Items & Extensions), left by a version before 1.11 | With "Open Hidden Bar at login" on, launch the current version once; it removes the old item. Otherwise turn "Open Hidden Bar at login" off and on in Settings |
+| The old "LauncherApplication" login item from a version before 1.11 (System Settings > General > Login Items & Extensions lists it inside "Hidden Bar" under Allow in the Background; a "Hidden Bar" row there is normal while launch at login is on) | With "Open Hidden Bar at login" on, launch the current version once; it removes the old item. Otherwise turn "Open Hidden Bar at login" off and on in Settings |
 | App language stuck | See the `AppleLanguages` command above, or System Settings > General > Language & Region > Applications |
 | Nothing hides on a macOS 27 beta | Known (issue #360); the menu bar re-architecture broke the hiding mechanism, fix under investigation |
 | A new or just-updated app's icon shows up already hidden | macOS 26 and earlier, or the App Store build: expected, see "Why new icons start hidden" below; ⌘-drag it to the right of the separator once. macOS 27 direct build: new and relaunched apps start visible (Pinned sections, beta) |
