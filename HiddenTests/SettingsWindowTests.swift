@@ -576,8 +576,8 @@ final class SettingsWindowTests: XCTestCase {
 
     // Given a Mac set to always show scroll bars, which narrows every pane
     // When each Settings tab lays out
-    // Then no label is clipped: each wrapping label is tall enough for its text at the width it actually has,
-    // and the Presentation mode "How it works" lines are among those checked
+    // Then no label is clipped: each label ends inside the visible width and is tall enough for its text at the
+    // width it actually has, and the Presentation mode "How it works" lines are among those checked
     func test_everyTab_noTextIsClippedWhenScrollersAreAlwaysVisible() throws {
         var context = fullContext()
         let bundles = (0..<30).map { "com.test.app\($0)" }
@@ -595,9 +595,12 @@ final class SettingsWindowTests: XCTestCase {
             window.layoutIfNeeded()
             window.layoutIfNeeded()
             guard let pane = controller.currentPane as? SettingsPaneController else { continue }
+            let region: NSView = pane.view.isDescendant(of: controller.paneScroll) ? controller.paneScroll.contentView : pane.view
             for field in Self.subviews(of: pane.view).compactMap({ $0 as? NSTextField }) where !field.isHidden && field.frame.width > 1 {
                 let text = field.stringValue
                 guard !text.isEmpty, let cell = field.cell else { continue }
+                XCTAssertLessThanOrEqual(field.convert(field.bounds, to: region).maxX, region.bounds.width + 0.5,
+                                         "\(tab): \"\(text.prefix(40))...\" runs past the visible width \(region.bounds.width)")
                 let needed = cell.cellSize(forBounds: NSRect(x: 0, y: 0, width: field.frame.width, height: .greatestFiniteMagnitude)).height
                 XCTAssertLessThanOrEqual(needed, field.frame.height + 0.5,
                                          "\(tab): \"\(text.prefix(40))...\" needs \(needed) pt at width \(field.frame.width) but has \(field.frame.height)")
