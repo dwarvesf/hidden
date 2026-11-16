@@ -43,6 +43,10 @@ protocol MenuBarEngine: AnyObject {
     // can tell a menu-bar app's popup window. Empty when the engine reads none.
     var menuBarItemOwners: Set<String> { get }
 
+    // Bundles the last read put in the hidden section: what an expand brings back
+    // onto the bar. Empty when the engine reads none.
+    var hiddenSectionBundles: Set<String> { get }
+
     // The user expanded or collapsed the bar, so a clock click no longer
     // collapses it when Notification Center closes.
     func userChangedBar()
@@ -69,6 +73,7 @@ extension MenuBarEngine {
     var isArrangementKnown: Bool { return true }
     var defersAutoCollapse: Bool { return false }
     var menuBarItemOwners: Set<String> { return [] }
+    var hiddenSectionBundles: Set<String> { return [] }
     func userChangedBar() {}
     func separatorsHiddenForCollapse(current: Bool) -> Bool { return current }
     var offersShowEverything: Bool { return false }

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Direct build on macOS 27: when you expand the bar and some of the revealed icons do not fit (on a notched MacBook, right of the notch), macOS puts them into its own « button. Hidden Bar now says so once, after an expand by click or hotkey: "Some icons do not fit in the menu bar, so macOS moved them into its own « button. Click « to see them. To make room, move icons you rarely use to the always-hidden section." It never shows again, and the collapse notice from before stays separate.
+
 ### Changed
 - Settings › Advanced: the switch "Show all icons while macOS hides one right of the arrow" is now "Pause hiding while macOS shows Now Playing, Focus and similar items", with a note that Hidden Bar hides nothing while one of them shows. Same stored setting, same behavior ([#446](https://github.com/dwarvesf/hidden/issues/446)).
 

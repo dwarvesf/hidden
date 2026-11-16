@@ -191,6 +191,111 @@ final class SystemOverflowTests: XCTestCase {
         XCTAssertFalse(policy.shouldShow())
         XCTAssertFalse(SystemOverflowNoticePolicy(defaults: defaults).shouldShow())
     }
+
+    // MARK: expand notice: the decision
+
+    func test_expandNoticeShowsOnlyWhenExpandedAndItemInOverflowAndNotShown() {
+        for isExpanded in [true, false] {
+            for inOverflow in [true, false] {
+                for alreadyShown in [true, false] {
+                    let show = SystemOverflowNoticePolicy.shouldShowAfterExpand(
+                        isExpanded: isExpanded, hiddenItemInOverflow: inOverflow, alreadyShown: alreadyShown)
+                    XCTAssertEqual(show, isExpanded && inOverflow && !alreadyShown,
+                                   "expanded \(isExpanded), in overflow \(inOverflow), shown \(alreadyShown)")
+                }
+            }
+        }
+    }
+
+    func test_expandNoticeFlagIsSeparateFromTheCollapseNotice() {
+        let suite = "SystemOverflowTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let policy = SystemOverflowNoticePolicy(defaults: defaults)
+        policy.recordShown()
+        XCTAssertTrue(policy.shouldShowAfterExpand())
+        policy.recordExpandShown()
+        XCTAssertFalse(policy.shouldShowAfterExpand())
+        XCTAssertFalse(SystemOverflowNoticePolicy(defaults: defaults).shouldShowAfterExpand())
+
+        let other = UserDefaults(suiteName: suite + ".other")!
+        defer { other.removePersistentDomain(forName: suite + ".other") }
+        let fresh = SystemOverflowNoticePolicy(defaults: other)
+        fresh.recordExpandShown()
+        XCTAssertTrue(fresh.shouldShow(), "the expand notice does not silence the collapse notice")
+    }
+
+    // MARK: expand notice: which hidden apps are in «
+
+    private func item(_ bundle: String, _ axFrame: CGRect, unreadable: Bool = false) -> MenuBarInventoryItem {
+        MenuBarInventoryItem(bundleIdentifier: bundle, frame: axFrame, isUnreadable: unreadable)
+    }
+
+    private func overflowed(hidden: Set<String>, running: Set<String>? = nil,
+                            inventory: [MenuBarInventoryItem], indicators: [SystemOverflowButton]) -> Set<String> {
+        SystemOverflowExpandMatcher.bundlesInOverflow(
+            hidden: hidden, running: running ?? hidden, inventory: inventory, indicators: indicators,
+            displays: MenuBarDisplay.displays(screenFrames: [main, portrait]), primaryScreenMaxY: primaryMaxY)
+    }
+
+    private let onBar = CGRect(x: 900, y: 0, width: 24, height: 24)
+
+    func test_hiddenAppMissingFromAccessibilityWhileButtonExistsIsInOverflow() {
+        let result = overflowed(hidden: ["a.app", "b.app"], inventory: [item("a.app", onBar)], indicators: [mainButton])
+        XCTAssertEqual(result, ["b.app"])
+    }
+
+    func test_nothingIsInOverflowWithoutAButton() {
+        XCTAssertEqual(overflowed(hidden: ["a.app"], inventory: [], indicators: []), [])
+    }
+
+    func test_everyHiddenAppOnTheBarMeansNoOverflow() {
+        let result = overflowed(hidden: ["a.app", "b.app"],
+                                inventory: [item("a.app", onBar), item("b.app", onBar.offsetBy(dx: 30, dy: 0))],
+                                indicators: [mainButton])
+        XCTAssertEqual(result, [])
+    }
+
+    func test_hiddenAppListedUnderTheButtonIsInOverflow() {
+        let result = overflowed(hidden: ["a.app"], inventory: [item("a.app", mainAXFrame)], indicators: [mainButton])
+        XCTAssertEqual(result, ["a.app"])
+    }
+
+    func test_hiddenAppListedOnNoDisplayIsInOverflow() {
+        let off = CGRect(x: 0, y: 5000, width: 24, height: 24)
+        let result = overflowed(hidden: ["a.app"], inventory: [item("a.app", off)], indicators: [mainButton])
+        XCTAssertEqual(result, ["a.app"])
+    }
+
+    func test_oneOverflowedItemOfSeveralCounts() {
+        let result = overflowed(hidden: ["a.app"],
+                                inventory: [item("a.app", onBar), item("a.app", mainAXFrame)],
+                                indicators: [mainButton])
+        XCTAssertEqual(result, ["a.app"])
+    }
+
+    func test_appThatDidNotAnswerAccessibilityIsNotJudged() {
+        let result = overflowed(hidden: ["a.app"], inventory: [item("a.app", .zero, unreadable: true)], indicators: [mainButton])
+        XCTAssertEqual(result, [])
+    }
+
+    func test_appThatIsNotRunningIsNotCounted() {
+        let result = overflowed(hidden: ["a.app", "b.app"], running: ["a.app"],
+                                inventory: [item("a.app", onBar)], indicators: [mainButton])
+        XCTAssertEqual(result, [])
+    }
+
+    func test_systemExtrasAreNotCounted() {
+        let result = overflowed(hidden: ["com.apple.controlcenter", "com.apple.MenuBarAgent"],
+                                inventory: [], indicators: [mainButton])
+        XCTAssertEqual(result, [])
+    }
+
+    func test_buttonWithoutFrameStillCountsAnAppMissingFromTheList() {
+        let unreadable = SystemOverflowButton(state: .closed, frame: nil)
+        XCTAssertEqual(overflowed(hidden: ["a.app"], inventory: [], indicators: [unreadable]), ["a.app"])
+        XCTAssertEqual(overflowed(hidden: ["a.app"], inventory: [item("a.app", mainAXFrame)], indicators: [unreadable]), [])
+    }
 }
 
 #endif

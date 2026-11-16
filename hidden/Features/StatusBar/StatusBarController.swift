@@ -409,7 +409,7 @@ class StatusBarController: MenuBarItemProvider {
         if AccessibilityPermission.shared.arrowClickOpensPreferences(isCollapsed: isCollapsed) {
             Util.showPrefWindow()
         }
-        self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar(userInitiated: true)
+        self.isCollapsed ? self.expandMenubar(userInitiated: true) : self.collapseMenuBar(userInitiated: true)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             self?.isToggle = false
         }
@@ -483,8 +483,12 @@ class StatusBarController: MenuBarItemProvider {
         #endif
     }
 
-    private func expandMenubar(activatingApp: Bool = true) {
+    private func expandMenubar(activatingApp: Bool = true, userInitiated: Bool = false) {
         guard self.isCollapsed else {return}
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        // Read before the engine expands: it is what the bar hid until now.
+        let hiddenBundles = userInitiated ? menuBarEngine.hiddenSectionBundles : []
+        #endif
         menuBarEngine.expand()
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
@@ -499,6 +503,10 @@ class StatusBarController: MenuBarItemProvider {
         }
         #if HIDDENBAR_NATIVE_VISIBILITY
         presentationController?.barExpanded()
+        if userInitiated {
+            SystemOverflowNotice.shared.checkAfterExpand(hiddenBundles: hiddenBundles,
+                                                         isExpanded: { [weak self] in !(self?.isCollapsed ?? true) })
+        }
         #endif
     }
     
