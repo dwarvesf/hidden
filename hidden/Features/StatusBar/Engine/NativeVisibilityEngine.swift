@@ -659,6 +659,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
         return Set(read + complete)
     }
 
+    var hiddenSectionBundles: Set<String> {
+        return Set(layout?.bundles(in: [.hidden]) ?? [])
+    }
+
     // Set by the controller: the palette's reveal session also keeps a bar the user changed.
     var onUserChangedBar: (() -> Void)?
 
