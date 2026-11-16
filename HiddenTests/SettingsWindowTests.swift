@@ -514,6 +514,130 @@ final class SettingsWindowTests: XCTestCase {
         }
     }
 
+    // MARK: card layout
+
+    /// The cards of a pane: the wide arranged subviews of its form, looking into nested stacks, never text.
+    private func cards(of pane: SettingsPaneController) -> [NSView] {
+        func walk(_ stack: NSStackView) -> [NSView] {
+            stack.arrangedSubviews.flatMap { view -> [NSView] in
+                if view.isHidden || view is NSTextField { return [] }
+                if let inner = view as? NSStackView { return walk(inner) }
+                return view.frame.width > 300 ? [view] : []
+            }
+        }
+        return walk(pane.form)
+    }
+
+    /// What a mouse user has: every scroll view keeps its scroller on screen and takes room for it.
+    private func forceAlwaysVisibleScrollers(in root: NSView) {
+        for scroll in ([root] + Self.subviews(of: root)).compactMap({ $0 as? NSScrollView }) {
+            scroll.scrollerStyle = .legacy
+            scroll.autohidesScrollers = false
+            scroll.hasVerticalScroller = true
+            scroll.tile()
+        }
+    }
+
+    // Given a Mac set to always show scroll bars, and an Icons list long enough to scroll
+    // When each Settings tab lays out
+    // Then every card on the tab has the same left and right edge, the left and right insets are
+    // equal, and nothing runs past the visible width
+    func test_everyTab_cardsShareEdgesWhenScrollersAreAlwaysVisible() throws {
+        var context = fullContext()
+        let bundles = (0..<30).map { "com.test.app\($0)" }
+        let store = FakeAppsStore(bundles: bundles, running: Set(bundles))
+        MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: context, store: store) }
+        context.menuBarAppsAvailable = true
+        let controller = PreferencesWindowController(context: context)
+        windows.append(controller)
+        var checked = 0
+        for tab in controller.tabs {
+            controller.select(tab, animate: false)
+            let window = try XCTUnwrap(controller.window)
+            forceAlwaysVisibleScrollers(in: try XCTUnwrap(window.contentView))
+            window.layoutIfNeeded()
+            guard let pane = controller.currentPane as? SettingsPaneController else { continue }
+            let scrolls = pane.view.isDescendant(of: controller.paneScroll)
+            let region: NSView = scrolls ? controller.paneScroll.contentView : pane.view
+            let frames = cards(of: pane).map { $0.convert($0.bounds, to: region) }
+            XCTAssertGreaterThan(frames.count, 0, "\(tab) has no cards")
+            guard let first = frames.first else { continue }
+            for frame in frames {
+                XCTAssertEqual(frame.minX, first.minX, accuracy: 0.5, "\(tab): a card starts at another x")
+                XCTAssertEqual(frame.maxX, first.maxX, accuracy: 0.5, "\(tab): a card ends at another x")
+            }
+            XCTAssertEqual(first.minX, SettingsMetrics.sideInset, accuracy: 0.5, "\(tab): left inset")
+            XCTAssertEqual(region.bounds.width - first.maxX, first.minX, accuracy: 0.5,
+                           "\(tab): the right inset is not the left one (visible width \(region.bounds.width), cards end at \(first.maxX))")
+            checked += 1
+        }
+        XCTAssertGreaterThanOrEqual(checked, 4, "General, Icons, Appearance and Advanced are all checked")
+    }
+
+    // Given an Icons list that scrolls
+    // When it lays out with an always-visible scroller
+    // Then the list is one card as wide as the others and its scroller sits inside that card
+    func test_menuBarApps_listScrollerSitsInsideItsCard() throws {
+        let bundles = (0..<30).map { "com.test.app\($0)" }
+        let pane = MenuBarAppsSettingsViewController(context: fullContext(), store: FakeAppsStore(bundles: bundles, running: Set(bundles)))
+        let host = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 900))
+        host.addSubview(pane.view)
+        pane.view.frame = host.bounds
+        forceAlwaysVisibleScrollers(in: pane.view)
+        host.layoutSubtreeIfNeeded()
+        // Every frame the pane draws: a group that draws its own, or a scrolling card.
+        let drawn = Self.subviews(of: pane.view).filter { ($0 as? SettingsGroupView)?.drawsFrame == true || $0 is SettingsScrollCard }
+        let frames = drawn.map { $0.convert($0.bounds, to: host) }
+        XCTAssertEqual(frames.count, 3, "the new-icon card, the list card and the reset card")
+        for frame in frames {
+            XCTAssertEqual(frame.minX, SettingsMetrics.sideInset, accuracy: 0.5)
+            XCTAssertEqual(frame.width, SettingsMetrics.contentWidth, accuracy: 0.5, "every card is as wide as the others")
+        }
+        let scroll = try XCTUnwrap(Self.subviews(of: pane.view).compactMap { $0 as? NSScrollView }.first)
+        let scrollFrame = scroll.convert(scroll.bounds, to: host)
+        let list = try XCTUnwrap(frames.first { $0.contains(CGPoint(x: scrollFrame.midX, y: scrollFrame.midY)) })
+        XCTAssertGreaterThanOrEqual(scrollFrame.minX, list.minX)
+        XCTAssertLessThanOrEqual(scrollFrame.maxX, list.maxX, "the list's scroller is inside the card")
+    }
+
+    // Given running apps with and without a caption, and one that is not running
+    // When the Icons list lays out
+    // Then every row starts its text at the same x, and the row with Remove is no taller than a captioned row
+    func test_menuBarApps_rowsAlignWhetherOrNotTheyOfferRemove() throws {
+        let store = FakeAppsStore(bundles: ["com.test.a", "com.test.b", "com.test.gone"], running: ["com.test.a", "com.test.b"])
+        store.captions = ["com.test.a": "macOS", "com.test.b": "macOS"]
+        let pane = MenuBarAppsSettingsViewController(context: fullContext(), store: store)
+        let host = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 900))
+        host.addSubview(pane.view)
+        pane.view.frame = host.bounds
+        host.layoutSubtreeIfNeeded()
+        let views = Self.subviews(of: pane.view)
+        func row(_ bundle: String) throws -> NSView {
+            let popup = try XCTUnwrap(control(MenuBarAppsSettingsViewController.popupIdentifier(for: bundle), in: views))
+            return try XCTUnwrap(popup.superview?.superview)
+        }
+        func textsMinX(_ row: NSView) throws -> CGFloat {
+            try XCTUnwrap(row.subviews.first { $0 is NSStackView }).frame.minX
+        }
+        let captioned = try row("com.test.a"), removable = try row("com.test.gone")
+        XCTAssertEqual(try textsMinX(captioned), try textsMinX(removable), accuracy: 0.5)
+        XCTAssertEqual(removable.frame.height, captioned.frame.height, accuracy: 0.5,
+                       "a row with Remove is as tall as a row with a caption")
+    }
+
+    // Given a row's Ignore drags checkbox and the footnote above the list
+    // When reading them
+    // Then each says in plain words what Ignore drags does
+    func test_menuBarApps_ignoreDragsExplainsItself() throws {
+        let pane = MenuBarAppsSettingsViewController(context: fullContext(), store: FakeAppsStore(bundles: ["com.test.a"], running: ["com.test.a"]))
+        let views = Self.subviews(of: pane.view)
+        let lock = try XCTUnwrap(control(MenuBarAppsSettingsViewController.lockIdentifier(for: "com.test.a"), in: views))
+        let tip = try XCTUnwrap(lock.toolTip)
+        XCTAssertTrue(tip.contains("moves on its own") && tip.contains("SwiftBar"), tip)
+        let footnote = try XCTUnwrap(views.compactMap { ($0 as? NSTextField)?.stringValue }.first { $0.hasPrefix("Each app stays in the section") })
+        XCTAssertTrue(footnote.contains("Ignore drags keeps an app in its section even when its icon moves on its own (SwiftBar, BitBar)."), footnote)
+    }
+
     // Given the direct build on macOS 27, then the separator engine
     // When General draws the preview
     // Then the arrow is the edge on 27 and the "|" separator otherwise
@@ -546,7 +670,8 @@ private final class FakeAppsStore: MenuBarAppsStore {
     func entries() -> [PinnedSectionsList.Entry] {
         PinnedSectionsList.entries(table: Dictionary(uniqueKeysWithValues: bundles.map { ($0, MenuBarSection.visible) }), name: { $0 })
     }
-    func identity(for bundle: String) -> MenuBarAppIdentity.Resolved { .init(name: bundle, icon: .generic, caption: nil) }
+    var captions: [String: String] = [:]
+    func identity(for bundle: String) -> MenuBarAppIdentity.Resolved { .init(name: bundle, icon: .generic, caption: captions[bundle]) }
     func icon(for bundle: String) -> NSImage { NSImage() }
     func runningBundles() -> Set<String> { runningReads += 1; return running }
     func set(_ section: MenuBarSection, for bundle: String) {}

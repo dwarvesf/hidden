@@ -86,6 +86,12 @@ final class PresentationController {
         noteTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: false) { [weak popover] _ in popover?.close() }
     }
 
+    func closeNote() {
+        noteTimer?.invalidate()
+        note?.close()
+        note = nil
+    }
+
     // MARK: Phase
 
     private func phaseChanged(_ phase: PresentationPhase) {

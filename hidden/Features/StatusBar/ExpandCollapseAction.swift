@@ -9,11 +9,22 @@ import AppKit
 
 // What a press on the expand/collapse button should do. Kept as a pure mapping
 // so the decision is unit-testable without a live status item or a real NSEvent.
-enum ExpandCollapseAction {
+enum ExpandCollapseAction: CaseIterable {
     case toggle
     case contextMenu
     case toggleSeparators
     case toggleWithFullBar
+    // A press that is only half a click (a mouse-down or a drag): the action
+    // runs on the mouse-up, so nothing happens here.
+    case ignore
+
+    // Only a plain click that expands the bar may follow with the arrivals
+    // question. A right-click shows the context menu and nothing else.
+    var mayShowArrivalsPrompt: Bool { self == .toggle }
+
+    // The context menu is the only thing on screen when it opens: a popover
+    // hanging from the arrow closes first instead of vanishing under the menu.
+    var closesArrowPopovers: Bool { self == .contextMenu }
 }
 
 enum ExpandCollapseActionResolver {
@@ -34,6 +45,10 @@ enum ExpandCollapseActionResolver {
     // left click so VoiceOver users can toggle the bar at all.
     static func action(eventType: NSEvent.EventType?, optionPressed: Bool, shiftPressed: Bool = false) -> ExpandCollapseAction {
         guard let eventType = eventType else { return .toggle }
+        switch eventType {
+        case .leftMouseDown, .leftMouseDragged, .rightMouseDown, .rightMouseDragged: return .ignore
+        default: break
+        }
         if optionPressed { return .toggleSeparators }
         switch eventType {
         case .leftMouseUp: return shiftPressed ? .toggleWithFullBar : .toggle

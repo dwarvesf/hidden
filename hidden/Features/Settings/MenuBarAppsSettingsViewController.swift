@@ -185,7 +185,7 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
                 control: turnOn)]))
             return
         }
-        add(SettingsForm.caption("Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too.".localized))
+        add(SettingsForm.caption("Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too. Ignore drags keeps an app in its section even when its icon moves on its own (SwiftBar, BitBar).".localized))
         if entries.isEmpty {
             add(SettingsGroupView(rows: [SettingsForm.row(
                 "No apps yet".localized,
@@ -218,26 +218,9 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
             return row(entry, caption: caption, canRemove: canRemove)
         })
         let fittingHeight = group.fittingSize.height
-        let height = min(fittingHeight, Self.maxListHeight)
         guard fittingHeight > Self.maxListHeight else { return group }
-        let document = FlippedView()
-        document.translatesAutoresizingMaskIntoConstraints = false
-        document.addSubview(group)
-        let scroll = NSScrollView()
-        scroll.translatesAutoresizingMaskIntoConstraints = false
-        scroll.hasVerticalScroller = true
-        scroll.drawsBackground = false
-        scroll.borderType = .noBorder
-        scroll.documentView = document
-        NSLayoutConstraint.activate([
-            group.topAnchor.constraint(equalTo: document.topAnchor),
-            group.leadingAnchor.constraint(equalTo: document.leadingAnchor),
-            group.trailingAnchor.constraint(equalTo: document.trailingAnchor),
-            group.bottomAnchor.constraint(equalTo: document.bottomAnchor),
-            document.widthAnchor.constraint(equalTo: scroll.contentView.widthAnchor),
-            scroll.heightAnchor.constraint(equalToConstant: height),
-        ])
-        return scroll
+        // Same rows, scrolling inside one card (the scroller stays inside its frame).
+        return SettingsScrollCard(group: group, height: Self.maxListHeight)
     }
 
     private func row(_ entry: PinnedSectionsList.Entry, caption: String?, canRemove: Bool) -> NSView {
@@ -256,7 +239,7 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         lock.controlSize = .small
         lock.state = entry.ignoresDrags ? .on : .off
         lock.identifier = NSUserInterfaceItemIdentifier(Self.lockIdentifier(for: entry.bundle))
-        lock.toolTip = "Keep this app in its section even when its icon moves on its own, as BitBar and SwiftBar do. Dragging no longer changes it; the popup still does.".localized
+        lock.toolTip = "Ignore drags keeps this app in its section even when its icon moves on its own (SwiftBar, BitBar). Dragging then changes nothing; the popup still does.".localized
         let controls = NSStackView(views: [lock, popup])
         controls.spacing = 10
 
@@ -323,13 +306,16 @@ final class MenuBarAppsSettingsViewController: SettingsPaneController {
         ])
         remove.identifier = NSUserInterfaceItemIdentifier(Self.removeIdentifier(for: entry.bundle))
         remove.setAccessibilityLabel("\(title) \(entry.name)")
-        remove.heightAnchor.constraint(greaterThanOrEqualToConstant: 16).isActive = true
+        // As tall as the caption it follows, so a row with Remove is no taller than any captioned row.
+        remove.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+        remove.setContentHuggingPriority(.defaultLow, for: .vertical)
 
         texts.removeArrangedSubview(caption)
         let line = NSStackView(views: [caption, remove])
         line.spacing = 3
         line.alignment = .firstBaseline
         texts.addArrangedSubview(line)
+        remove.heightAnchor.constraint(equalTo: caption.heightAnchor).isActive = true
     }
 
     @objc private func sectionPicked(_ sender: NSPopUpButton) {
@@ -400,11 +386,6 @@ final class NewTag: NSView {
         (text as NSString).draw(at: NSPoint(x: (bounds.width - size.width) / 2, y: (bounds.height - size.height) / 2),
                                 withAttributes: attributes)
     }
-}
-
-/// A scroll view's document grows downward only when flipped.
-private final class FlippedView: NSView {
-    override var isFlipped: Bool { true }
 }
 
 #if DEBUG

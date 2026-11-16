@@ -69,4 +69,35 @@ final class ExpandCollapseActionTests: XCTestCase {
         // separators toggle.
         XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .otherMouseUp, optionPressed: false), .toggleSeparators)
     }
+
+    // A right-click shows the context menu and nothing else: it never lets the
+    // arrivals question open, and it clears any popover hanging from the arrow.
+    func testRightClickNeverOpensTheArrivalsPromptOrAnyPopover() {
+        let action = ExpandCollapseActionResolver.action(eventType: .rightMouseUp, optionPressed: false)
+        XCTAssertEqual(action, .contextMenu)
+        XCTAssertFalse(action.mayShowArrivalsPrompt)
+        XCTAssertTrue(action.closesArrowPopovers)
+    }
+
+    func testOnlyAPlainLeftClickMayShowTheArrivalsPrompt() {
+        let withPrompt = ExpandCollapseAction.allCases.filter { $0.mayShowArrivalsPrompt }
+        XCTAssertEqual(withPrompt, [.toggle])
+        let closing = ExpandCollapseAction.allCases.filter { $0.closesArrowPopovers }
+        XCTAssertEqual(closing, [.contextMenu])
+    }
+
+    // The action runs on the mouse-up. A mouse-down or a drag of either button,
+    // with or without Option or Shift, must not toggle anything: Option made the
+    // down toggle the separators and the up toggle them back.
+    func testHalfAClickDoesNothing() {
+        let halves: [NSEvent.EventType] = [.rightMouseDown, .rightMouseDragged, .leftMouseDown, .leftMouseDragged]
+        for type in halves {
+            for option in [false, true] {
+                for shift in [false, true] {
+                    XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: type, optionPressed: option, shiftPressed: shift),
+                                   .ignore, "\(type.rawValue) option \(option) shift \(shift)")
+                }
+            }
+        }
+    }
 }

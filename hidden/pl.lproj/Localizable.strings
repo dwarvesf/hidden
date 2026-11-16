@@ -130,7 +130,7 @@ Steps to view always hidden icons:
 "Turn On" = "Turn On";
 "Pinned sections is off" = "Pinned sections is off";
 "Icons follow where macOS puts them. Turn on Pinned sections (beta) in Advanced to choose a section for each app." = "Icons follow where macOS puts them. Turn on Pinned sections (beta) in Advanced to choose a section for each app.";
-"Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too." = "Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too.";
+"Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too. Ignore drags keeps an app in its section even when its icon moves on its own (SwiftBar, BitBar)." = "Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too. Ignore drags keeps an app in its section even when its icon moves on its own (SwiftBar, BitBar).";
 "No apps yet" = "No apps yet";
 "Apps with a menu bar icon appear here after the bar collapses once." = "Apps with a menu bar icon appear here after the bar collapses once.";
 
@@ -150,7 +150,7 @@ Steps to view always hidden icons:
 "Reset all to visible" = "Reset all to visible";
 "Shows every app, including ones that are not running now." = "Shows every app, including ones that are not running now.";
 "Ignore drags" = "Ignore drags";
-"Keep this app in its section even when its icon moves on its own, as BitBar and SwiftBar do. Dragging no longer changes it; the popup still does." = "Keep this app in its section even when its icon moves on its own, as BitBar and SwiftBar do. Dragging no longer changes it; the popup still does.";
+"Ignore drags keeps this app in its section even when its icon moves on its own (SwiftBar, BitBar). Dragging then changes nothing; the popup still does." = "Ignore drags keeps this app in its section even when its icon moves on its own (SwiftBar, BitBar). Dragging then changes nothing; the popup still does.";
 "Remove" = "Usuń";
 "Not running" = "Nie działa";
 "Visible" = "Visible";
