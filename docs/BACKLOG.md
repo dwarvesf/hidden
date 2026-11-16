@@ -37,6 +37,8 @@ collapse state machine) are HIGH RISK and require a mandatory review-team pass.
 
 ## Open after 1.13.0
 
+- **Upgrade-path BTM check, #456: FAIL (2026-11-16, mac-ui VM, macOS 27.2.1 26B131).** v1.9 with Start at login on, then the notarized v1.13.0 zip in /Applications, launched once, a reboot: `sfltool dumpbtm` still lists `4.com.dwarvesv.LauncherApplication` (login item, enabled, parent `2.com.dwarvesv.minimalbar`), and every 1.13.0 launch logs `Could not enable login item: com.dwarvesv.LauncherApplication: 22: Invalid argument`. The #468 change only keeps `smAppServiceMigrated` unset, so it retries and fails each launch. SMAppService itself is fine (status 1, one Open at Login row for /Applications/Hidden Bar.app). In System Settings the ghost is not a "LauncherApplication" row: it is an extra "Hidden Bar" row under Allow in the Background, so the `LegacyLoginItem.failureHint` text points at a row that does not exist. Turning Open Hidden Bar at login off in 1.13.0 (SMAppService unregister) removed the legacy record. Needs a code fix: `SMLoginItemSetEnabled` cannot reach a helper the bundle no longer ships. Evidence: `docs/implementation-notes/upgrade-btm-check-proof/`.
+
 - **Presentation keeps all system items.** Measure the clock and battery system item ids live,
   then narrow `NativeVisibilityEngine.presentationSystemItems` from all (0..<64) to those two.
 - **Slideshow automatic trigger.** Dropped for 1.13.0; needs a live Keynote or PowerPoint check
@@ -69,9 +71,6 @@ collapse state machine) are HIGH RISK and require a mandatory review-team pass.
 - **#351 external monitor.** Closed, but the 26.4 external-display reproduction was never
   run. The multi-display rework is in #468; a real hot-plug and a second monitor are
   untested.
-- **Upgrade-path BTM check, #456.** The fix is in #468. Run on hardware: install the App
-  Store build or a pre-v1.11 build, update, confirm Login Items shows no leftover
-  `LauncherApplication` row.
 - **24h memory dogfood, #361 / #386.** Instruments stress-cycling found no leak. The Air
   now runs the v1.11.2 candidate; read `footprint -p "Hidden Bar"` after a day.
 
