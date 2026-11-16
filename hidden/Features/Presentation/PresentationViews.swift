@@ -434,7 +434,7 @@ enum PresentationTip {
     // Three short lines. No app is named: the screen may be shared.
     static func lines(pausesForCapture: Bool) -> [String] {
         return [
-            "Every app icon is hidden. macOS's own items stay.".localized,
+            "Every third-party app icon is hidden. macOS's own items stay.".localized,
             "Click Presenting to see how many apps are hidden, or to stop.".localized,
             pausesForCapture
                 ? "If the camera or microphone turns on, hiding pauses once so macOS can show which app uses it.".localized

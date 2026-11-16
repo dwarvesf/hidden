@@ -180,7 +180,7 @@ class PreferencesViewController: SettingsPaneController {
     // Each line is one fact; none repeats the Sensitive apps caption above.
     static let howItWorksLines = [
         "Start it with the shortcut above, the arrow's right-click menu, or automatically when a display is mirrored.",
-        "While it is on, every app icon is hidden. macOS's own items stay. Reveal gestures and the new-app question wait.",
+        "While it is on, every third-party app icon is hidden. macOS's own items stay. Reveal gestures and the new-app question wait.",
         "\"Find a hidden icon\" leaves sensitive apps out of its list too.",
         "If \"Show all icons when the microphone or camera turns on\" is on, a camera or microphone that turns on while you present pauses hiding once, so macOS can show which app uses it. Nothing is hidden meanwhile, sensitive apps included. Hiding resumes when you click Hide again or collapse the bar, or when the camera and microphone turn off. A camera or microphone already on when you start does not pause it. With the switch off, hiding never pauses.",
         "Stop it from the Presenting capsule, the shortcut, or the right-click menu. An automatic start also ends when mirroring stops.",
@@ -190,16 +190,17 @@ class PreferencesViewController: SettingsPaneController {
         let title = NSTextField(labelWithString: "How it works".localized)
         title.font = .systemFont(ofSize: NSFont.smallSystemFontSize, weight: .semibold)
         title.textColor = .secondaryLabelColor
-        let stack = NSStackView(views: [title] + Self.howItWorksLines.map { line -> NSView in
-            let label = SettingsForm.caption(line.localized)
-            label.preferredMaxLayoutWidth = SettingsMetrics.contentWidth
-            return label
-        })
+        let labels = Self.howItWorksLines.map { SettingsForm.caption($0.localized) }
+        let stack = NSStackView(views: [title] + labels)
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 4
         if let last = form.arrangedSubviews.last { form.setCustomSpacing(10, after: last) }
         addFullWidth(stack)
+        // Each line wraps at the width the pane has, which yields when scroll bars are always shown.
+        for label in labels {
+            label.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+        }
     }
 
     @objc private func editSensitiveApps(_ sender: NSButton) {

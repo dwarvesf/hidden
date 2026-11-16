@@ -250,14 +250,14 @@ Steps to view always hidden icons:
 "When a display is mirrored." = "When a display is mirrored.";
 "Sensitive apps" = "Sensitive apps";
 "Stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone." = "Stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone.";
-"Every app icon is hidden. macOS's own items stay." = "Every app icon is hidden. macOS's own items stay.";
+"Every third-party app icon is hidden. macOS's own items stay." = "Every third-party app icon is hidden. macOS's own items stay.";
 "Click Presenting to see how many apps are hidden, or to stop." = "Click Presenting to see how many apps are hidden, or to stop.";
 "If the camera or microphone turns on, hiding pauses once so macOS can show which app uses it." = "If the camera or microphone turns on, hiding pauses once so macOS can show which app uses it.";
 "Hiding keeps going when the camera or microphone turns on, as set in Settings." = "Hiding keeps going when the camera or microphone turns on, as set in Settings.";
 "Got it" = "Got it";
 "How it works" = "How it works";
 "Start it with the shortcut above, the arrow's right-click menu, or automatically when a display is mirrored." = "Start it with the shortcut above, the arrow's right-click menu, or automatically when a display is mirrored.";
-"While it is on, every app icon is hidden. macOS's own items stay. Reveal gestures and the new-app question wait." = "While it is on, every app icon is hidden. macOS's own items stay. Reveal gestures and the new-app question wait.";
+"While it is on, every third-party app icon is hidden. macOS's own items stay. Reveal gestures and the new-app question wait." = "While it is on, every third-party app icon is hidden. macOS's own items stay. Reveal gestures and the new-app question wait.";
 "\"Find a hidden icon\" leaves sensitive apps out of its list too." = "\"Find a hidden icon\" leaves sensitive apps out of its list too.";
 "If \"Show all icons when the microphone or camera turns on\" is on, a camera or microphone that turns on while you present pauses hiding once, so macOS can show which app uses it. Nothing is hidden meanwhile, sensitive apps included. Hiding resumes when you click Hide again or collapse the bar, or when the camera and microphone turn off. A camera or microphone already on when you start does not pause it. With the switch off, hiding never pauses." = "If \"Show all icons when the microphone or camera turns on\" is on, a camera or microphone that turns on while you present pauses hiding once, so macOS can show which app uses it. Nothing is hidden meanwhile, sensitive apps included. Hiding resumes when you click Hide again or collapse the bar, or when the camera and microphone turn off. A camera or microphone already on when you start does not pause it. With the switch off, hiding never pauses.";
 "Stop it from the Presenting capsule, the shortcut, or the right-click menu. An automatic start also ends when mirroring stops." = "Stop it from the Presenting capsule, the shortcut, or the right-click menu. An automatic start also ends when mirroring stops.";
