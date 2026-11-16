@@ -21,6 +21,8 @@ final class PresentationController {
     private var capsule: NSStatusItem?
     private var panel: NSPopover?
     private var note: NSPopover?
+    private var tip: NSPopover?
+    private var lastPhase: PresentationPhase = .off
     private var noteTimer: Timer?
     // The pause explains itself once per session; later the capsule just reads Paused.
     private var pauseExplained = false
@@ -51,6 +53,12 @@ final class PresentationController {
     var isOn: Bool { return engine.isPresentationOn }
 
     var menuTitle: String {
+        return Self.menuTitle(isOn: isOn)
+    }
+
+    // The right-click item names what a click does; the shortcut, when set, is
+    // drawn beside it by `NSMenuItem.setShortcut`.
+    static func menuTitle(isOn: Bool) -> String {
         return (isOn ? "Stop Presentation Mode" : "Start Presentation Mode").localized
     }
 
@@ -95,11 +103,15 @@ final class PresentationController {
     // MARK: Phase
 
     private func phaseChanged(_ phase: PresentationPhase) {
+        let previous = lastPhase
+        lastPhase = phase
         Preferences.presentationModeActive = phase != .off
         switch phase {
         case .off:
             panel?.close()
             note?.close()
+            tip?.close()
+            tip = nil
             if let item = capsule { NSStatusBar.system.removeStatusItem(item) }
             capsule = nil
         case .presenting, .paused, .couldNotHide:
@@ -110,6 +122,12 @@ final class PresentationController {
             if phase == .paused, !pauseExplained {
                 pauseExplained = true
                 showPanel()
+            }
+            if PresentationTip.shouldShow(previous: previous, phase: phase, panelShown: panel?.isShown == true) {
+                // The new capsule needs a beat to land in the menu bar before a popover can anchor to it.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in self?.showTip() }
+            } else if phase != .presenting {
+                tip?.close()
             }
         }
     }
@@ -129,12 +147,28 @@ final class PresentationController {
         showPanel()
     }
 
+    // MARK: First-start tip
+
+    // Once ever, under the capsule, naming no app. Skipped when the mode already
+    // moved on or the capsule's own panel is open: the tip must never cover it.
+    private func showTip() {
+        guard let button = capsule?.button, engine.currentPhase() == .presenting, panel?.isShown != true, tip == nil,
+              !Preferences.presentationTipShown else { return }
+        let view = PresentationTipView(pausesForCapture: Preferences.showWholeBarWhenCaptureStarts)
+        view.onGotIt = { [weak self] in self?.tip?.close() }
+        let popover = makePopover(view)
+        tip = popover
+        PresentationTip.markShown()
+        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+    }
+
     // MARK: Panel
 
     private func showPanel() {
         guard let button = capsule?.button else { return }
         let phase = engine.currentPhase()
         guard phase != .off else { return }
+        tip?.close()
         let view = PresentationPanelView(model: panelModel(for: phase))
         view.onStop = { [weak self] in
             self?.panel?.close()

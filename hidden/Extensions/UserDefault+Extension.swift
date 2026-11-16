@@ -37,5 +37,6 @@ extension UserDefaults {
         static let menuBarCatalogFirstSeen = "menuBarCatalogFirstSeen"
         static let arrivalsPending = "arrivalsPending"
         static let presentationModeActive = "presentationModeActive"
+        static let presentationTipShown = "presentationTipShown"
     }
 }

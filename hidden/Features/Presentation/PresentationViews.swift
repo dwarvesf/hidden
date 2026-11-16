@@ -414,3 +414,82 @@ final class PresentationNoteView: NSView {
         return count == 1 ? "1 app stays hidden".localized : String(format: "%d apps stay hidden".localized, count)
     }
 }
+
+// MARK: - First-start tip
+
+// When the first-start tip shows: once ever, on the first start that reaches
+// hiding with no panel already open under the capsule. The flag is an internal
+// preference, so a relaunch never shows it again.
+enum PresentationTip {
+    static func shouldShow(previous: PresentationPhase, phase: PresentationPhase, panelShown: Bool,
+                           defaults: UserDefaults = .standard) -> Bool {
+        guard previous == .off, phase == .presenting, !panelShown else { return false }
+        return !defaults.bool(forKey: UserDefaults.Key.presentationTipShown)
+    }
+
+    static func markShown(defaults: UserDefaults = .standard) {
+        defaults.set(true, forKey: UserDefaults.Key.presentationTipShown)
+    }
+
+    // Three short lines. No app is named: the screen may be shared.
+    static func lines(pausesForCapture: Bool) -> [String] {
+        return [
+            "Every third-party app icon is hidden. macOS's own items stay.".localized,
+            "Click Presenting to see how many apps are hidden, or to stop.".localized,
+            pausesForCapture
+                ? "If the camera or microphone turns on, hiding pauses once so macOS can show which app uses it.".localized
+                : "Hiding keeps going when the camera or microphone turns on, as set in Settings.".localized,
+        ]
+    }
+}
+
+final class PresentationTipView: NSView {
+    static let width: CGFloat = 300
+    private static let inset: CGFloat = 12
+
+    var onGotIt: (() -> Void)?
+
+    init(pausesForCapture: Bool) {
+        super.init(frame: .zero)
+        let stack = NSStackView()
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.spacing = 6
+        stack.edgeInsets = NSEdgeInsets(top: Self.inset, left: Self.inset, bottom: Self.inset, right: Self.inset)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: topAnchor),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor),
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            widthAnchor.constraint(equalToConstant: Self.width),
+        ])
+        let heading = NSTextField(labelWithString: "Presentation mode is on".localized)
+        heading.font = .systemFont(ofSize: 13, weight: .semibold)
+        stack.addArrangedSubview(heading)
+        stack.setCustomSpacing(8, after: heading)
+        for text in PresentationTip.lines(pausesForCapture: pausesForCapture) {
+            let label = NSTextField(wrappingLabelWithString: text)
+            label.font = .systemFont(ofSize: 12)
+            label.textColor = .secondaryLabelColor
+            label.isSelectable = false
+            label.preferredMaxLayoutWidth = Self.width - 2 * Self.inset
+            stack.addArrangedSubview(label)
+        }
+        let button = PresentationButton(title: "Got it".localized, style: .prominent, target: self, action: #selector(gotItPressed))
+        button.identifier = NSUserInterfaceItemIdentifier("presentationTipGotIt")
+        stack.setCustomSpacing(10, after: stack.arrangedSubviews.last!)
+        let spacer = NSView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        let footer = NSStackView(views: [spacer, button])
+        footer.orientation = .horizontal
+        footer.translatesAutoresizingMaskIntoConstraints = false
+        footer.widthAnchor.constraint(equalToConstant: Self.width - 2 * Self.inset).isActive = true
+        stack.addArrangedSubview(footer)
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    @objc private func gotItPressed() { onGotIt?() }
+}

@@ -574,6 +574,46 @@ final class SettingsWindowTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(checked, 4, "General, Icons, Appearance and Advanced are all checked")
     }
 
+    // Given a Mac set to always show scroll bars, which narrows every pane
+    // When each Settings tab lays out
+    // Then no label is clipped: each label ends inside the visible width and is tall enough for its text at the
+    // width it actually has, and the Presentation mode "How it works" lines are among those checked
+    func test_everyTab_noTextIsClippedWhenScrollersAreAlwaysVisible() throws {
+        var context = fullContext()
+        let bundles = (0..<30).map { "com.test.app\($0)" }
+        let store = FakeAppsStore(bundles: bundles, running: Set(bundles))
+        MenuBarAppsPane.makeViewController = { MenuBarAppsSettingsViewController(context: context, store: store) }
+        context.menuBarAppsAvailable = true
+        let controller = PreferencesWindowController(context: context)
+        windows.append(controller)
+        var checkedLines = Set<String>()
+        var checked = 0
+        for tab in controller.tabs {
+            controller.select(tab, animate: false)
+            let window = try XCTUnwrap(controller.window)
+            forceAlwaysVisibleScrollers(in: try XCTUnwrap(window.contentView))
+            window.layoutIfNeeded()
+            window.layoutIfNeeded()
+            guard let pane = controller.currentPane as? SettingsPaneController else { continue }
+            let region: NSView = pane.view.isDescendant(of: controller.paneScroll) ? controller.paneScroll.contentView : pane.view
+            for field in Self.subviews(of: pane.view).compactMap({ $0 as? NSTextField }) where !field.isHidden && field.frame.width > 1 {
+                let text = field.stringValue
+                guard !text.isEmpty, let cell = field.cell else { continue }
+                XCTAssertLessThanOrEqual(field.convert(field.bounds, to: region).maxX, region.bounds.width + 0.5,
+                                         "\(tab): \"\(text.prefix(40))...\" runs past the visible width \(region.bounds.width)")
+                let needed = cell.cellSize(forBounds: NSRect(x: 0, y: 0, width: field.frame.width, height: .greatestFiniteMagnitude)).height
+                XCTAssertLessThanOrEqual(needed, field.frame.height + 0.5,
+                                         "\(tab): \"\(text.prefix(40))...\" needs \(needed) pt at width \(field.frame.width) but has \(field.frame.height)")
+                checkedLines.insert(text)
+                checked += 1
+            }
+        }
+        XCTAssertGreaterThan(checked, 20)
+        for line in PreferencesViewController.howItWorksLines {
+            XCTAssertTrue(checkedLines.contains(line), "How it works line was not checked: \(line)")
+        }
+    }
+
     // Given an Icons list that scrolls
     // When it lays out with an always-visible scroller
     // Then the list is one card as wide as the others and its scroller sits inside that card

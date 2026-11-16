@@ -28,6 +28,18 @@ enum PresentationSnapshot {
                 scene.addSubview(chrome)
             }
         }
+        // The first-start tip under the capsule: with the camera switch on, and off.
+        for (pauses, name) in [(true, "tip"), (false, "tip-nopause")] {
+            shoot(size: NSSize(width: 760, height: 260), appearance: appearance,
+                  to: dir.appendingPathComponent("direct-present-\(name)-\(mode).png")) { scene in
+                _ = addMenuBar(to: scene, phase: .presenting, showsHiddenIcons: false)
+                let tip = PresentationTipView(pausesForCapture: pauses)
+                tip.frame = NSRect(origin: .zero, size: tip.fittingSize)
+                let chrome = PanelChrome(content: tip)
+                chrome.frame.origin = NSPoint(x: scene.bounds.width - 16 - chrome.frame.width, y: 34)
+                scene.addSubview(chrome)
+            }
+        }
         shoot(size: NSSize(width: 760, height: 150), appearance: appearance,
               to: dir.appendingPathComponent("direct-present-click-\(mode).png")) { scene in
             let strip = addMenuBar(to: scene, phase: nil, showsHiddenIcons: true)

@@ -18,7 +18,8 @@ import AppKit
 /// keys are saved in setUp and put back); the picker takes injected read and write.
 final class PresentationViewsTests: XCTestCase {
     private let keys = [UserDefaults.Key.presentationAutoMirrorEnabled, UserDefaults.Key.presentationSensitiveApps,
-                        UserDefaults.Key.presentationShortcut, UserDefaults.Key.presentationModeActive]
+                        UserDefaults.Key.presentationShortcut, UserDefaults.Key.presentationModeActive,
+                        UserDefaults.Key.presentationTipShown]
     private var saved: [String: Any] = [:]
     private var windows: [PreferencesWindowController] = []
 
@@ -68,13 +69,34 @@ final class PresentationViewsTests: XCTestCase {
         XCTAssertNotNil(control(UserDefaults.Key.presentationAutoMirrorEnabled, in: all))
         XCTAssertNotNil(control(UserDefaults.Key.presentationSensitiveApps, in: all), "the Edit button carries the key")
         XCTAssertNotNil(control(UserDefaults.Key.presentationShortcut, in: all), "the recorder button carries the key")
-        let footnote = texts(all).first { $0.hasPrefix("Sensitive apps stay hidden while presenting, except when \"Show all icons when the microphone or camera turns on\" pauses hiding") }
-        XCTAssertNotNil(footnote)
-        XCTAssertTrue(footnote?.contains("nothing is hidden") ?? false, "a pause lifts everything, sensitive apps too")
-        XCTAssertFalse(footnote?.localizedCaseInsensitiveContains("light") ?? true,
-                       "macOS hides the capsule that names the app, not the dot in the corner")
+        XCTAssertTrue(texts(all).contains("How it works"), "the how-it-works block heads the group's footnote")
         XCTAssertTrue(texts(all).contains("Stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone."),
                       "the Sensitive apps caption carries the same exception")
+    }
+
+    // Given the direct build on macOS 27
+    // When General draws
+    // Then the group says how presentation mode works: how to start it, what stays, the
+    // camera or microphone pause with its switch, and how to stop, each fact once
+    func test_group_saysHowItWorks() throws {
+        let all = texts(views())
+        let lines = PreferencesViewController.howItWorksLines
+        for line in lines { XCTAssertTrue(all.contains(line), "missing: \(line)") }
+        let start = try XCTUnwrap(lines.first { $0.hasPrefix("Start it with") })
+        XCTAssertTrue(start.contains("shortcut") && start.contains("right-click menu") && start.contains("display is mirrored"))
+        let camera = try XCTUnwrap(lines.first { $0.contains("microphone or camera turns on") })
+        XCTAssertTrue(camera.contains("pauses hiding once") && camera.contains("With the switch off, hiding never pauses"))
+        XCTAssertTrue(camera.contains("already on when you start does not pause"))
+        let stop = try XCTUnwrap(lines.first { $0.hasPrefix("Stop it from") })
+        XCTAssertTrue(stop.contains("capsule") && stop.contains("shortcut") && stop.contains("right-click menu") && stop.contains("mirroring stops"))
+        XCTAssertEqual(Set(lines).count, lines.count, "no sentence repeats")
+        let caption = "Stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone."
+        XCTAssertTrue(all.contains(caption))
+        XCTAssertFalse(lines.contains { $0.contains("even when you click the arrow") }, "the Sensitive apps caption says that once")
+        XCTAssertFalse(all.contains { $0.hasPrefix("Sensitive apps stay hidden while presenting, except when") }, "the old footnote is folded in")
+        for text in lines + ["How it works"] {
+            XCTAssertFalse(text.contains("\u{2014}") || text.contains("\u{2013}"), "no em or en dashes")
+        }
     }
 
     // Given a build or macOS without native hiding
@@ -233,5 +255,94 @@ final class PresentationViewsTests: XCTestCase {
         let plain = NSMenuItem(title: "x", action: nil, keyEquivalent: "")
         plain.setShortcut(nil)
         XCTAssertEqual(plain.keyEquivalent, "")
+    }
+
+    // MARK: First-start tip
+
+    private func suite(_ name: String) -> UserDefaults {
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+        addTeardownBlock { defaults.removePersistentDomain(forName: name) }
+        return defaults
+    }
+
+    // Given a first start that reaches hiding
+    // When the tip is asked for, shown, and a later start (in a new launch) asks again
+    // Then it shows exactly once, because the flag lives in the preferences
+    func test_tip_showsExactlyOnceAcrossLaunches() {
+        let first = suite("PresentationTipLaunch")
+        XCTAssertTrue(PresentationTip.shouldShow(previous: .off, phase: .presenting, panelShown: false, defaults: first))
+        PresentationTip.markShown(defaults: first)
+        XCTAssertFalse(PresentationTip.shouldShow(previous: .off, phase: .presenting, panelShown: false, defaults: first))
+        // A relaunch is a new defaults object over the same stored domain.
+        let relaunched = UserDefaults(suiteName: "PresentationTipLaunch")!
+        XCTAssertFalse(PresentationTip.shouldShow(previous: .off, phase: .presenting, panelShown: false, defaults: relaunched),
+                       "a later start does not show it again")
+    }
+
+    // Given the standard preferences
+    // When the flag is written and read back
+    // Then it is the internal key: false until the tip is shown, and not imported from the App Store build
+    func test_tip_flagIsAnInternalPreference() {
+        UserDefaults.standard.removeObject(forKey: UserDefaults.Key.presentationTipShown)
+        XCTAssertFalse(Preferences.presentationTipShown)
+        PresentationTip.markShown()
+        XCTAssertTrue(Preferences.presentationTipShown)
+        XCTAssertEqual(UserDefaults.Key.presentationTipShown, "presentationTipShown")
+        XCTAssertNil(AppStoreSettingsImport.importableKeys[UserDefaults.Key.presentationTipShown])
+    }
+
+    // Given the other moments the phase changes
+    // When asking for the tip
+    // Then it stays quiet: a resume, a pause, a failure, or a panel already open under the capsule
+    func test_tip_staysQuietWhenItWouldNotHelp() {
+        let defaults = suite("PresentationTipQuiet")
+        XCTAssertFalse(PresentationTip.shouldShow(previous: .paused, phase: .presenting, panelShown: false, defaults: defaults), "a resume")
+        XCTAssertFalse(PresentationTip.shouldShow(previous: .off, phase: .paused, panelShown: false, defaults: defaults))
+        XCTAssertFalse(PresentationTip.shouldShow(previous: .off, phase: .couldNotHide, panelShown: false, defaults: defaults),
+                       "nothing is hidden, so the tip would be untrue")
+        XCTAssertFalse(PresentationTip.shouldShow(previous: .off, phase: .off, panelShown: false, defaults: defaults))
+        XCTAssertFalse(PresentationTip.shouldShow(previous: .off, phase: .presenting, panelShown: true, defaults: defaults),
+                       "never over the capsule's own panel")
+        XCTAssertFalse(defaults.bool(forKey: UserDefaults.Key.presentationTipShown), "asking does not use up the one showing")
+    }
+
+    // Given sensitive apps chosen and the tip drawn on the shared screen
+    // When read
+    // Then it is three short lines, a heading and Got it, and names no app
+    func test_tip_isThreeLinesAndNamesNoApp() throws {
+        Preferences.presentationSensitiveApps = ["com.tinyspeck.slackmacgap"]
+        for pauses in [true, false] {
+            let view = PresentationTipView(pausesForCapture: pauses)
+            let all = texts(Self.subviews(of: view))
+            XCTAssertEqual(PresentationTip.lines(pausesForCapture: pauses).count, 3)
+            for line in PresentationTip.lines(pausesForCapture: pauses) { XCTAssertTrue(all.contains(line)) }
+            XCTAssertTrue(all.contains("Presentation mode is on"))
+            XCTAssertFalse(all.contains { $0.contains("Slack") || $0.contains("1Password") || $0.contains("slack") || $0.contains("com.") },
+                           "no app name on a shared screen")
+            XCTAssertFalse(Self.subviews(of: view).contains { $0 is PresentationChipFlow || $0 is PresentationChipView })
+            XCTAssertFalse(all.contains { $0.contains("\u{2014}") || $0.contains("\u{2013}") })
+        }
+        let on = PresentationTip.lines(pausesForCapture: true)[2]
+        let off = PresentationTip.lines(pausesForCapture: false)[2]
+        XCTAssertTrue(on.contains("pauses once"), on)
+        XCTAssertTrue(off.contains("keeps going"), "with the switch off the tip does not promise a pause: \(off)")
+        let view = PresentationTipView(pausesForCapture: true)
+        var dismissed = 0
+        view.onGotIt = { dismissed += 1 }
+        let button = try XCTUnwrap(Self.subviews(of: view).compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "presentationTipGotIt" })
+        XCTAssertEqual(button.title, "Got it")
+        button.performClick(nil)
+        XCTAssertEqual(dismissed, 1)
+    }
+
+    // MARK: Menu item
+
+    // Given the right-click menu
+    // When presentation mode is off and then on
+    // Then the item says what a click does
+    func test_menuTitle_flipsWithTheMode() {
+        XCTAssertEqual(PresentationController.menuTitle(isOn: false), "Start Presentation Mode")
+        XCTAssertEqual(PresentationController.menuTitle(isOn: true), "Stop Presentation Mode")
     }
 }

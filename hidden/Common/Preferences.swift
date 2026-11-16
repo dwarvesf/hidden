@@ -204,6 +204,18 @@ enum Preferences {
         }
     }
 
+    // Internal: the first-start tip under the Presenting capsule was shown once.
+    // Not a Settings row and not imported from the App Store build.
+    static var presentationTipShown: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: UserDefaults.Key.presentationTipShown)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.presentationTipShown)
+        }
+    }
+
     static var useFullStatusBarOnExpandEnabled: Bool {
         get {
             UserDefaults.standard.bool(forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
