@@ -306,11 +306,15 @@ class StatusBarController: MenuBarItemProvider {
         // so VoiceOver can operate the bar.
         let optionPressed = ExpandCollapseActionResolver.isOptionPressed(eventFlags: event?.modifierFlags, liveFlags: NSEvent.modifierFlags)
         let shiftPressed = ExpandCollapseActionResolver.isShiftPressed(eventFlags: event?.modifierFlags, liveFlags: NSEvent.modifierFlags)
-        switch ExpandCollapseActionResolver.action(eventType: event?.type, optionPressed: optionPressed, shiftPressed: shiftPressed) {
+        let action = ExpandCollapseActionResolver.action(eventType: event?.type, optionPressed: optionPressed, shiftPressed: shiftPressed)
+        if action.closesArrowPopovers { closeArrowPopovers() }
+        switch action {
+        case .ignore:
+            break
         case .toggle:
             let wasCollapsed = isCollapsed
             self.expandCollapseIfNeeded()
-            if wasCollapsed { showArrivalsIfWaiting() }
+            if wasCollapsed && action.mayShowArrivalsPrompt { showArrivalsIfWaiting() }
         case .toggleWithFullBar:
             // Shift-click expands with the full menu bar for this expansion only;
             // the stored setting is untouched. Collapsing works as a plain click.
@@ -1043,6 +1047,14 @@ extension StatusBarController {
     fileprivate func showArrivalsIfWaiting() {
         #if HIDDENBAR_NATIVE_VISIBILITY
         arrivalsPresenter.present(from: btnExpandCollapse.button)
+        #endif
+    }
+
+    // The arrivals prompt and the presentation note hang from the arrow.
+    fileprivate func closeArrowPopovers() {
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        arrivalsPresenter.close()
+        presentationController?.closeNote()
         #endif
     }
 
