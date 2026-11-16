@@ -102,7 +102,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
     
     func setupAutoStartApp() {
-        LegacyLoginItem.remove()
+        LegacyLoginItem.migrateUnlessTesting(autoStart: Preferences.isAutoStart)
         Util.setUpAutoStart(isAutoStart: Preferences.isAutoStart)
     }
     

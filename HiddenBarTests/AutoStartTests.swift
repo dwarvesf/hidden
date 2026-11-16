@@ -143,41 +143,133 @@ final class LegacyLoginItemTests: XCTestCase {
         return defaults
     }
 
-    func testSuccessfulRemovalSetsMigratedFlag() {
-        let defaults = makeDefaults()
-        var asked: [String] = []
-        let ok = LegacyLoginItem.remove(defaults: defaults, disable: { asked.append($0); return true }, report: { _ in })
-        XCTAssertTrue(ok)
-        XCTAssertEqual(asked, [LegacyLoginItem.helperBundleID])
-        XCTAssertTrue(defaults.bool(forKey: LegacyLoginItem.migratedKey))
+    func testDecisionTable() {
+        XCTAssertEqual(LegacyLoginItem.step(migrated: true, mayHaveLegacyRecord: true, autoStart: true), .none)
+        XCTAssertEqual(LegacyLoginItem.step(migrated: false, mayHaveLegacyRecord: false, autoStart: true), .markDone)
+        XCTAssertEqual(LegacyLoginItem.step(migrated: false, mayHaveLegacyRecord: false, autoStart: false), .markDone)
+        XCTAssertEqual(LegacyLoginItem.step(migrated: false, mayHaveLegacyRecord: true, autoStart: false), .wait)
+        XCTAssertEqual(LegacyLoginItem.step(migrated: false, mayHaveLegacyRecord: true, autoStart: true), .reset)
     }
 
-    // #456: a failed SMLoginItemSetEnabled must not mark the migration done.
-    func testFailedRemovalLeavesFlagUnsetAndReportsHint() {
+    // The upgrade path: launch at login on, a launcher-era record possible. The
+    // main app item goes off and on once, ends enabled, and the flag is set.
+    func testResetUnregistersThenRegistersOnceAndMarksDone() {
         let defaults = makeDefaults()
+        let service = RecordingLoginItem(status: .enabled)
         var reports: [String] = []
-        let ok = LegacyLoginItem.remove(defaults: defaults, disable: { _ in false }, report: { reports.append($0) })
-        XCTAssertFalse(ok)
-        XCTAssertFalse(defaults.bool(forKey: LegacyLoginItem.migratedKey))
-        XCTAssertEqual(reports, [LegacyLoginItem.failureHint])
+        let step = LegacyLoginItem.migrate(defaults: defaults, autoStart: true, mayHaveLegacyRecord: true,
+                                           service: service, report: { reports.append($0) })
+        XCTAssertEqual(step, .reset)
+        XCTAssertEqual(service.calls, ["unregister", "register"])
+        XCTAssertEqual(service.status, .enabled)
+        XCTAssertTrue(defaults.bool(forKey: LegacyLoginItem.migratedKey))
+        XCTAssertEqual(reports, [])
     }
 
-    func testFailedRemovalIsRetriedOnNextLaunch() {
+    // Bounded: a reset that does not land enabled reports the hint once and is
+    // not retried on the next launch.
+    func testFailedResetReportsHintOnceAndDoesNotLoop() {
         let defaults = makeDefaults()
-        _ = LegacyLoginItem.remove(defaults: defaults, disable: { _ in false }, report: { _ in })
-        var calls = 0
-        let ok = LegacyLoginItem.remove(defaults: defaults, disable: { _ in calls += 1; return true }, report: { _ in })
-        XCTAssertTrue(ok)
-        XCTAssertEqual(calls, 1)
+        let service = RecordingLoginItem(status: .enabled)
+        service.registerError = RecordingLoginItem.StubbedError()
+        var reports: [String] = []
+        LegacyLoginItem.migrate(defaults: defaults, autoStart: true, mayHaveLegacyRecord: true,
+                                service: service, report: { reports.append($0) })
+        XCTAssertTrue(defaults.bool(forKey: LegacyLoginItem.migratedKey))
+        XCTAssertEqual(reports.last, LegacyLoginItem.failureHint)
+
+        let again = LegacyLoginItem.migrate(defaults: defaults, autoStart: true, mayHaveLegacyRecord: true,
+                                            service: service, report: { reports.append($0) })
+        XCTAssertEqual(again, .none)
+        XCTAssertEqual(service.calls, ["unregister", "register"])
+    }
+
+    // Launch at login off: nothing is touched and the migration stays pending,
+    // so it runs at the first launch after the user turns it on.
+    func testLaunchAtLoginOffWaitsWithoutTouchingLoginItems() {
+        let defaults = makeDefaults()
+        let service = RecordingLoginItem(status: .notRegistered)
+        XCTAssertEqual(LegacyLoginItem.migrate(defaults: defaults, autoStart: false, mayHaveLegacyRecord: true,
+                                               service: service, report: { _ in }), .wait)
+        XCTAssertEqual(service.calls, [])
+        XCTAssertFalse(defaults.bool(forKey: LegacyLoginItem.migratedKey))
+
+        XCTAssertEqual(LegacyLoginItem.migrate(defaults: defaults, autoStart: true, mayHaveLegacyRecord: true,
+                                               service: service, report: { _ in }), .reset)
+        XCTAssertEqual(service.calls, ["unregister", "register"])
+    }
+
+    // A fresh install: no container, so login items are never touched.
+    func testFreshInstallIsMarkedDoneWithoutTouchingLoginItems() {
+        let defaults = makeDefaults()
+        let service = RecordingLoginItem(status: .enabled)
+        XCTAssertEqual(LegacyLoginItem.migrate(defaults: defaults, autoStart: true, mayHaveLegacyRecord: false,
+                                               service: service, report: { _ in }), .markDone)
+        XCTAssertEqual(service.calls, [])
         XCTAssertTrue(defaults.bool(forKey: LegacyLoginItem.migratedKey))
     }
 
-    func testAlreadyMigratedSkipsTheSystemCall() {
+    func testAlreadyMigratedTouchesNothing() {
         let defaults = makeDefaults()
         defaults.set(true, forKey: LegacyLoginItem.migratedKey)
-        var calls = 0
-        XCTAssertTrue(LegacyLoginItem.remove(defaults: defaults, disable: { _ in calls += 1; return false }, report: { _ in }))
-        XCTAssertEqual(calls, 0)
+        let service = RecordingLoginItem(status: .enabled)
+        XCTAssertEqual(LegacyLoginItem.migrate(defaults: defaults, autoStart: true, mayHaveLegacyRecord: true,
+                                               service: service, report: { _ in }), .none)
+        XCTAssertEqual(service.calls, [])
+    }
+
+    func testLegacyRecordSignalIsTheSandboxContainer() {
+        let home = URL(fileURLWithPath: "/Users/someone")
+        var asked: [String] = []
+        XCTAssertTrue(LegacyLoginItem.mayHaveLegacyRecord(home: home, bundleIdentifier: "com.dwarvesv.minimalbar",
+                                                          sandboxed: false, fileExists: { asked.append($0); return true }))
+        XCTAssertEqual(asked, ["/Users/someone/Library/Containers/com.dwarvesv.minimalbar"])
+        XCTAssertFalse(LegacyLoginItem.mayHaveLegacyRecord(home: home, bundleIdentifier: "com.dwarvesv.minimalbar",
+                                                           sandboxed: false, fileExists: { _ in false }))
+    }
+
+    // The App Store build runs inside its own container, which App Store 1.8
+    // and older (launcher era) share.
+    func testSandboxedBuildAlwaysMayHaveALegacyRecord() {
+        XCTAssertTrue(LegacyLoginItem.mayHaveLegacyRecord(home: URL(fileURLWithPath: "/x"), bundleIdentifier: "b",
+                                                          sandboxed: true, fileExists: { _ in false }))
+    }
+
+    func testHintNamesTheRowUsersSee() {
+        XCTAssertTrue(LegacyLoginItem.failureHint.contains("\"Hidden Bar\" under Allow in the Background"))
+        XCTAssertFalse(LegacyLoginItem.failureHint.contains("LauncherApplication"))
+    }
+
+    func testGateClosedTouchesNothing() {
+        // Under XCTest the real entry point must return before any system call
+        // or prefs write; the shared prefs domain must keep no migrated flag from it.
+        let before = UserDefaults.standard.object(forKey: LegacyLoginItem.migratedKey)
+        LegacyLoginItem.migrateUnlessTesting(autoStart: true, touchLoginItems: false)
+        XCTAssertEqual(UserDefaults.standard.object(forKey: LegacyLoginItem.migratedKey) as? Bool, before as? Bool)
+    }
+}
+
+// Records call order; register lands enabled and unregister notRegistered unless stubbed to throw.
+private final class RecordingLoginItem: LoginItemServing {
+    struct StubbedError: Error {}
+
+    var status: SMAppService.Status
+    var registerError: Error?
+    private(set) var calls: [String] = []
+
+    init(status: SMAppService.Status) {
+        self.status = status
+    }
+
+    func register() throws {
+        calls.append("register")
+        if let registerError { throw registerError }
+        status = .enabled
+    }
+
+    func unregister() throws {
+        calls.append("unregister")
+        status = .notRegistered
     }
 }
 
