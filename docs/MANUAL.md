@@ -77,7 +77,7 @@ Tabs in a centered control at the top (Cmd+1 to Cmd+5). A status card at the top
 | Advanced | Show this window when Hidden Bar opens | `isShowPreferences` |
 | Advanced | Make room for icons while they are shown: the app turns "regular" while expanded, so the frontmost app's menus give way | `useFullStatusBarOnExpandEnabled` |
 | Advanced (notch Macs) | Reach icons behind the camera notch | `notchOverflowEnabled` |
-| Advanced (macOS 27, direct) | Show all icons while macOS hides one right of the arrow | `pauseHidingForUnkeepableItems` |
+| Advanced (macOS 27, direct) | Pause hiding while macOS shows Now Playing, Focus and similar items: macOS 27 hides these items whenever an app hides icons, so while one shows, Hidden Bar hides nothing | `pauseHidingForUnkeepableItems` |
 | About (direct) | Check for updates automatically, Check for Updates… | Sparkle's `SUEnableAutomaticChecks` |
 
 The General pane scrolls when it is taller than the window (the window stops at 720 pt).

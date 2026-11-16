@@ -35,7 +35,7 @@ final class AdvancedSettingsViewController: SettingsPaneController {
             let pause = boundSwitch(UserDefaults.Key.pauseHidingForUnkeepableItems,
                                     read: { Preferences.pauseHidingForUnkeepableItems },
                                     write: { Preferences.pauseHidingForUnkeepableItems = $0 })
-            let row = SettingsForm.row("Show all icons while macOS hides one right of the arrow".localized,
+            let row = SettingsForm.row("Pause hiding while macOS shows Now Playing, Focus and similar items".localized,
                                        caption: " ", control: pause)
             macOSAlsoHidesCaption = Self.captionLabel(in: row)
             rows.append(row)
@@ -64,9 +64,10 @@ final class AdvancedSettingsViewController: SettingsPaneController {
 
     private func refreshMacOSAlsoHides() {
         let names = NativeVisibilityEngine.knownUnkeepableSystemItems.map(NativeVisibilityEngine.displayName(ofSystemItem:))
+        let help = "macOS 27 hides these items whenever an app hides icons. While one shows, Hidden Bar hides nothing.".localized
         macOSAlsoHidesCaption?.stringValue = names.isEmpty
-            ? "Some macOS items, such as Focus or Now Playing, can't stay shown. This keeps every icon shown while one of them is right of the arrow.".localized
-            : String(format: "macOS 27 also hides: %@".localized, names.joined(separator: ", "))
+            ? help
+            : help + " " + String(format: "Seen on this Mac: %@.".localized, names.joined(separator: ", "))
     }
 
     private static func captionLabel(in row: NSView) -> NSTextField? {

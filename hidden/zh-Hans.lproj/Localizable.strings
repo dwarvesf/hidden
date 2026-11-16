@@ -102,8 +102,9 @@ Steps to view always hidden icons:
 "Hides the menus of the app you are using while hidden icons are shown, so more icons fit." = "Hides the menus of the app you are using while hidden icons are shown, so more icons fit.";
 "Reach icons behind the camera notch" = "Reach icons behind the camera notch";
 "Right-click the arrow to list icons the notch covers." = "Right-click the arrow to list icons the notch covers.";
-"Show all icons while macOS hides one right of the arrow" = "Show all icons while macOS hides one right of the arrow";
-"Some macOS items, such as Focus or Now Playing, can't stay shown. This keeps every icon shown while one of them is right of the arrow." = "Some macOS items, such as Focus or Now Playing, can't stay shown. This keeps every icon shown while one of them is right of the arrow.";
+"Pause hiding while macOS shows Now Playing, Focus and similar items" = "Pause hiding while macOS shows Now Playing, Focus and similar items";
+"macOS 27 hides these items whenever an app hides icons. While one shows, Hidden Bar hides nothing." = "macOS 27 hides these items whenever an app hides icons. While one shows, Hidden Bar hides nothing.";
+"Seen on this Mac: %@." = "Seen on this Mac: %@.";
 "Hiding method" = "Hiding method";
 "macOS 27 visibility" = "macOS 27 visibility";
 "The arrow is the edge. Picked for your macOS version." = "The arrow is the edge. Picked for your macOS version.";
