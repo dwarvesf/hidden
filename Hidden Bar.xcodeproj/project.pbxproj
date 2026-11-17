@@ -911,7 +911,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 1010;
 				LastUpgradeCheck = 1130;
-				ORGANIZATIONNAME = "Dwarves Foundation";
+				ORGANIZATIONNAME = "Console Labs";
 				TargetAttributes = {
 					38276456C8B72E6FF49DF8FB = {
 						CreatedOnToolsVersion = 26.3;

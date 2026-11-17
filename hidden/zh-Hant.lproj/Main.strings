@@ -302,8 +302,8 @@
 /* Class = "NSMenuItem"; title = "Use Default"; ObjectID = "agt-UL-0e3"; */
 "agt-UL-0e3.title" = "使用預設值";
 
-/* Class = "NSTextFieldCell"; title = "MIT © Dwarves Foundation"; ObjectID = "b1t-QR-iSj"; */
-"b1t-QR-iSj.title" = "MIT © Dwarves Foundation";
+/* Class = "NSTextFieldCell"; title = "MIT © Console Labs"; ObjectID = "b1t-QR-iSj"; */
+"b1t-QR-iSj.title" = "MIT © Console Labs";
 
 /* Class = "NSBox"; title = "Box"; ObjectID = "bFi-aV-ejJ"; */
 "bFi-aV-ejJ.title" = "方框";

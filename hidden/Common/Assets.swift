@@ -3,7 +3,7 @@
 //  Hidden Bar
 //
 //  Created by Peter Luo on 2021/5/28.
-//  Copyright © 2021 Dwarves Foundation. All rights reserved.
+//  Copyright © 2021 Console Labs. All rights reserved.
 //
 
 import AppKit

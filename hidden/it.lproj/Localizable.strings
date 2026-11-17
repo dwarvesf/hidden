@@ -3,7 +3,7 @@
   Hidden Bar
 
   Created by Licardo on 2020/3/9.
-  Copyright © 2020 Dwarves Foundation. All rights reserved.
+  Copyright © 2020 Console Labs. All rights reserved.
 */
 
 "Preferences..." = "Preferenze...";
@@ -124,8 +124,7 @@ Steps to view always hidden icons:
 "Email" = "Email";
 "Source code" = "Source code";
 "Free and open source, MIT license." = "Free and open source, MIT license.";
-"Follow @dwarvesf on X" = "Follow @dwarvesf on X";
-"Made by Dwarves Foundation" = "Made by Dwarves Foundation";
+"Made by Console Labs" = "Made by Console Labs";
 
 /* Pinned sections (beta), Icons; English until translated */
 "Pinned sections (beta)" = "Pinned sections (beta)";

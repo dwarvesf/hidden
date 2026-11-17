@@ -2,7 +2,7 @@
 //  MacOS27Notice.swift
 //  Hidden Bar
 //
-//  Copyright © 2026 Dwarves Foundation. All rights reserved.
+//  Copyright © 2026 Console Labs. All rights reserved.
 //
 
 import AppKit
@@ -53,7 +53,7 @@ struct MacOS27NoticePolicy {
 
 final class MacOS27Notice: NSObject {
     static let shared = MacOS27Notice()
-    static let pageURL = URL(string: "https://dwarves.foundation/opensource")!
+    static let pageURL = URL(string: "https://github.com/consolelabs/hidden")!
     static let brewCommand = "brew install --cask hiddenbar"
 
     #if DEBUG
@@ -116,8 +116,8 @@ final class MacOS27Notice: NSObject {
         let alert = NSAlert()
         alert.alertStyle = .informational
         alert.messageText = "Hidden Bar cannot hide icons on macOS 27".localized
-        alert.informativeText = "macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from dwarves.foundation/opensource (free, open source) works on macOS 27.".localized
-        alert.addButton(withTitle: "Open dwarves.foundation/opensource".localized)
+        alert.informativeText = "macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from github.com/consolelabs/hidden (free, open source) works on macOS 27.".localized
+        alert.addButton(withTitle: "Open github.com/consolelabs/hidden".localized)
         alert.addButton(withTitle: "Close".localized)
         alert.addButton(withTitle: "Don't show again".localized)
         alert.window.title = "Hidden Bar on macOS 27".localized
