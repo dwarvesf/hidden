@@ -398,6 +398,11 @@ private func systemExtra(_ identifier: String?, x: CGFloat) -> MenuBarInventoryI
                                 systemIdentifier: identifier)
 }
 
+private func outsideApp(_ bundle: String, x: CGFloat) -> MenuBarInventoryItem {
+    return MenuBarInventoryItem(bundleIdentifier: bundle, frame: CGRect(x: x, y: 0, width: 24, height: 24),
+                                ownerName: "iStat Menus", runsOutsideApplicationsFolder: true)
+}
+
 final class FailOpenClassificationTests: XCTestCase {
     private func resolve(_ inventory: [MenuBarInventoryItem], isLTR: Bool = true) -> MenuBarLayout {
         return MenuBarLayoutResolver.resolve(inventory: inventory, separatorFrame: separator,
@@ -450,6 +455,34 @@ final class FailOpenClassificationTests: XCTestCase {
         let left = resolve([systemExtra("com.apple.menuextra.focusmode", x: 1100)])
         XCTAssertNotNil(right.reasonToKeepBarWhole(unkeepableSystemItems: unkeepable))
         XCTAssertNil(left.reasonToKeepBarWhole(unkeepableSystemItems: unkeepable))
+    }
+
+    // iStat Menus 7 runs its menu bar from ~/Library/Application Support (#521):
+    // macOS 27.0.1 hides it although its bundle id is allowed.
+    func testAppRunFromOutsideApplicationsRightOfArrowIsUnkeepable() {
+        let layout = resolve([outsideApp("com.bjango.istatmenus.status", x: 1400), item("com.app", x: 1100)])
+        XCTAssertEqual(layout.sections["com.bjango.istatmenus.status"], .visible)
+        XCTAssertEqual(layout.unkeepableVisibleApps, ["iStat Menus"])
+        XCTAssertNotNil(layout.reasonToKeepBarWhole(unkeepableSystemItems: []))
+    }
+
+    func testAppRunFromOutsideApplicationsLeftOfArrowCanBeHidden() {
+        let layout = resolve([outsideApp("com.bjango.istatmenus.status", x: 1100)])
+        XCTAssertTrue(layout.unkeepableVisibleApps.isEmpty)
+        XCTAssertNil(layout.reasonToKeepBarWhole(unkeepableSystemItems: []))
+    }
+
+    func testWhereAnAppRunsDecidesWhetherMacOSCanKeepIt() {
+        let folders = [URL(fileURLWithPath: "/Applications")]
+        func outside(_ path: String?) -> Bool {
+            AccessibilityMenuBarInventory.runsOutsideApplicationsFolder(path.map { URL(fileURLWithPath: $0) },
+                                                                        applicationFolders: folders)
+        }
+        XCTAssertTrue(outside("/Users/me/Library/Application Support/iStat Menus 7/iStat Menus Status.app"))
+        XCTAssertTrue(outside("/Users/me/Downloads/Some.app"))
+        XCTAssertFalse(outside("/Applications/iStat Menus.app/Contents/Library/LoginItems/iStat Menus Status.app"))
+        XCTAssertFalse(outside("/System/Library/CoreServices/Spotlight.app"), "macOS's own apps live in /System")
+        XCTAssertFalse(outside(nil), "a bare executable has no bundle id to allow anyway")
     }
 
     func testMissingSystemItemsAreThoseNoLongerListed() {
@@ -660,6 +693,21 @@ final class UnkeepableItemsOptInTests: XCTestCase {
         let (requests, result) = collapse([item(nil, x: 1400), item("com.app", x: 1100)], optIn: true)
         XCTAssertEqual(requests, 0, "macOS would hide an item the allow-list cannot name")
         XCTAssertEqual(result, .unavailable)
+    }
+
+    func testOptInKeepsAppRunFromOutsideApplicationsRightOfArrowShown() {
+        let (requests, result) = collapse([outsideApp("com.bjango.istatmenus.status", x: 1400), item("com.app", x: 1100)],
+                                          optIn: true)
+        XCTAssertEqual(requests, 0, "macOS would hide iStat Menus although it is allowed")
+        XCTAssertEqual(result, .unavailable)
+        XCTAssertTrue(NativeVisibilityEngine.knownUnkeepableApps.contains("iStat Menus"))
+    }
+
+    func testDefaultHidesAppRunFromOutsideApplicationsAndListsIt() {
+        let (requests, _) = collapse([outsideApp("com.bjango.istatmenus.status", x: 1400), item("com.app", x: 1100)],
+                                     optIn: false)
+        XCTAssertEqual(requests, 1, "off by default: hiding goes on as before")
+        XCTAssertTrue(NativeVisibilityEngine.knownUnkeepableApps.contains("iStat Menus"), "Preferences names it")
     }
 
     func testOptInStillCollapsesWhenTheOwnerIsLeftOfArrow() {

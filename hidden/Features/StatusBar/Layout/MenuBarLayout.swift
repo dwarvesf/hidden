@@ -34,6 +34,10 @@ struct MenuBarInventoryItem: Equatable {
     // The owner did not answer Accessibility in time, so the frame is unknown.
     var isUnreadable: Bool = false
     var ownerName: String? = nil
+    // Run from outside an Applications folder (iStat Menus 7 runs its menu bar
+    // from Application Support, #521) on a macOS that then hides it although
+    // its bundle id is allowed. Set by the inventory only where that holds.
+    var runsOutsideApplicationsFolder: Bool = false
 }
 
 // One connected display. Every display has its own menu bar, but AppKit hands
@@ -254,6 +258,10 @@ struct MenuBarLayout: Equatable {
     // Visible-section system extras that no system item identifier covers. Only
     // their bundle can try to keep them, so the engine checks they stay shown.
     var unprovenVisibleSystemItems: [String] = []
+    // Apps macOS will not keep although their bundle id is allowed, by bundle,
+    // with the name Preferences shows. Kept whatever section they are in, as
+    // pinned sections may move them after the read.
+    var appsMacOSHides: [String: String] = [:]
     // The active display's menu bar overflowed (a narrow display), and macOS
     // lists only the items that fit, so apps are missing from `sections`.
     var isIncomplete = false
@@ -262,11 +270,17 @@ struct MenuBarLayout: Equatable {
     func fillingIn(from earlier: MenuBarLayout) -> MenuBarLayout {
         var layout = self
         layout.sections.merge(earlier.sections) { current, _ in current }
+        layout.appsMacOSHides.merge(earlier.appsMacOSHides) { current, _ in current }
         return layout
     }
 
     func bundles(in wanted: Set<MenuBarSection>) -> [String] {
         return sections.filter { wanted.contains($0.value) }.map(\.key).sorted()
+    }
+
+    // Names of the visible-section apps macOS hides whatever the allow-list says.
+    var unkeepableVisibleApps: [String] {
+        return bundles(in: [.visible]).compactMap { appsMacOSHides[$0] }.sorted()
     }
 
     // Why nothing may be hidden with this layout: fail open rather than hide an
@@ -278,6 +292,9 @@ struct MenuBarLayout: Equatable {
         let unkeepable = unprovenVisibleSystemItems.filter(unkeepableSystemItems.contains)
         if !unkeepable.isEmpty {
             return "macOS hides these system items while hiding anything, and they sit right of the arrow: \(unkeepable)"
+        }
+        if !unkeepableVisibleApps.isEmpty {
+            return "macOS hides these apps run from outside an Applications folder although they are allowed, and they sit right of the arrow: \(unkeepableVisibleApps)"
         }
         return nil
     }
@@ -363,6 +380,8 @@ enum MenuBarLayoutResolver {
                     layout.unprovenVisibleSystemItems.append(identifier)
                 }
                 key = systemExtrasBundle
+            } else if item.runsOutsideApplicationsFolder {
+                layout.appsMacOSHides[key] = item.ownerName ?? key
             }
             // One app can own several items, but hiding applies to the whole
             // bundle. The most visible item wins so an icon the user kept visible
