@@ -25,7 +25,8 @@ protocol MenuBarClockProviding: AnyObject {
     func press(at location: CGPoint, mode: ClockPressMode,
                restore: @escaping () -> Void, finished: @escaping (ClockPressOutcome) -> Void)
 
-    // Whether the Notification Center panel is on screen (one window-list read).
+    // Whether the Notification Center panel is on screen (one window-list read, and
+    // an Accessibility read while one of its windows is up).
     var isNotificationCenterOpen: Bool { get }
 }
 
@@ -259,6 +260,24 @@ final class ClockReplay {
     }
 }
 
+// Whether Notification Center's panel is open. A notification on screen keeps a
+// window up that the window list cannot tell from the panel: same owner, layer and
+// screen-tall bounds (27.0.1). One left on screen when the bar collapses stays
+// there, and taking it for the panel dropped every click on the clock (the click
+// was not replayed, or the replay reported the panel shown without pressing).
+// `identifiers` lists the AXIdentifiers in Notification Center's windows, nil when
+// Accessibility cannot read them; it is asked only while a window is up.
+enum NotificationCenterPanel {
+    // Only the panel shows Edit Widgets; a notification on its own never does.
+    static let panelControlIdentifier = "widget-editor-button"
+
+    static func isOpen(windowUp: Bool, identifiers: () -> [String]?) -> Bool {
+        guard windowUp else { return false }
+        guard let identifiers = identifiers() else { return true }
+        return identifiers.contains(panelControlIdentifier)
+    }
+}
+
 // Finds the clock through public Accessibility API: MenuBarAgent's menu extra
 // `com.apple.menuextra.clock`, which has an AXPress action. Locations are global
 // display coordinates with a top-left origin, as CGEvent and Accessibility use.
@@ -448,12 +467,38 @@ final class SystemMenuBarClock: MenuBarClockProviding {
               // .excludeDesktopElements costs about 5 ms more per read; layer >= 0
               // already leaves the desktop out.
               let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] else { return false }
-        return windows.contains { window in
+        let windowUp = windows.contains { window in
             guard let pid = window[kCGWindowOwnerPID as String] as? pid_t, owners.contains(pid),
                   let layer = window[kCGWindowLayer as String] as? Int, layer >= 0,
                   let bounds = window[kCGWindowBounds as String] as? NSDictionary,
                   let frame = CGRect(dictionaryRepresentation: bounds) else { return false }
             return frame.height >= minimumHeight
+        }
+        return NotificationCenterPanel.isOpen(windowUp: windowUp, identifiers: { identifiers(in: owners) })
+    }
+
+    // The AXIdentifiers in Notification Center's windows, nil when Accessibility cannot read them.
+    private static func identifiers(in owners: Set<pid_t>) -> [String]? {
+        var found: [String] = []
+        for pid in owners {
+            let app = AXUIElementCreateApplication(pid)
+            AXUIElementSetMessagingTimeout(app, messagingTimeout)
+            guard let windows = value(of: app, kAXWindowsAttribute) as? [AXUIElement] else { return nil }
+            for window in windows {
+                collectIdentifiers(of: window, depth: 0, into: &found)
+            }
+        }
+        return found
+    }
+
+    // The panel's controls sit four levels below its window; deeper levels hold notification text.
+    private static func collectIdentifiers(of element: AXUIElement, depth: Int, into found: inout [String]) {
+        if let identifier = value(of: element, "AXIdentifier") as? String {
+            found.append(identifier)
+        }
+        guard depth < 5 else { return }
+        for child in children(of: element) {
+            collectIdentifiers(of: child, depth: depth + 1, into: &found)
         }
     }
 
