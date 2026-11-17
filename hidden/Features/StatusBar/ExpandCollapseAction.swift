@@ -57,3 +57,45 @@ enum ExpandCollapseActionResolver {
         }
     }
 }
+
+// What the full menu bar option needs from the app to make it the active one.
+// A seam so the choice of API is unit-testable without activating a real app.
+protocol FullBarActivating {
+    func activateIgnoringOtherApps()
+    func activateFromFrontApp()
+}
+
+extension NSApplication: FullBarActivating {
+    func activateIgnoringOtherApps() {
+        activate(ignoringOtherApps: true)
+    }
+
+    // From macOS 14 a plain activate() is also ignored when another app is
+    // frontmost, so name the front app as the one to take the active state from.
+    func activateFromFrontApp() {
+        guard #available(macOS 14.0, *) else { return }
+        if let front = NSWorkspace.shared.frontmostApplication, front != NSRunningApplication.current,
+           NSRunningApplication.current.activate(from: front, options: []) {
+            return
+        }
+        activate()
+    }
+}
+
+enum FullBarActivation {
+    // From macOS 14 activate(ignoringOtherApps:) and a plain activate() are
+    // ignored (cooperative activation), so the full menu bar option never took
+    // focus and the front app's menus kept the bar (#142). Older systems keep
+    // the old call.
+    static var usesCooperativeActivation: Bool {
+        return ProcessInfo.processInfo.isOperatingSystemAtLeast(OperatingSystemVersion(majorVersion: 14, minorVersion: 0, patchVersion: 0))
+    }
+
+    static func activate(_ app: FullBarActivating, cooperative: Bool = usesCooperativeActivation) {
+        if cooperative {
+            app.activateFromFrontApp()
+        } else {
+            app.activateIgnoringOtherApps()
+        }
+    }
+}
