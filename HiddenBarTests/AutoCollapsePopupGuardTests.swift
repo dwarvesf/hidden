@@ -28,6 +28,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
     private var time: TimeInterval = 0
     private var owners: Set<String> = []
     private var ownerReads = 0
+    private var logged: [String] = []
 
     // A 1600 x 900 display with a 24 pt menu bar, and a 900 x 1600 one to its
     // right, raised so its menu bar sits higher.
@@ -42,6 +43,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         time = 0
         owners = ["com.example.netmon"]
         ownerReads = 0
+        logged = []
     }
 
     private func makeGuard() -> AutoCollapsePopupGuard {
@@ -56,7 +58,8 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
                                       bundleIdentifier: { bundles[$0] },
                                       menuBarItemOwners: { [unowned self] in ownerReads += 1; return owners },
                                       now: { [unowned self] in time },
-                                      ownPID: ownPID)
+                                      ownPID: ownPID,
+                                      log: { [unowned self] in logged.append($0) })
     }
 
     private func window(_ pid: pid_t, layer: Int, _ frame: CGRect) -> OnScreenWindow {
@@ -81,6 +84,24 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         XCTAssertTrue(popupGuard.defersCollapse())
         time = 10
         XCTAssertTrue(popupGuard.defersCollapse(), "re-armed, still open")
+    }
+
+    // A field report can then name what held auto-collapse (#524): the owner and
+    // layer, once per hold, and nothing the window shows.
+    func testLogsTheHoldingWindowOncePerHold() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: popUpMenu, CGRect(x: 1200, y: 24, width: 300, height: 400))]
+        XCTAssertTrue(popupGuard.defersCollapse())
+        time = 10
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(logged, ["AutoCollapse: holding for a popup from com.example.netmon at layer \(popUpMenu)"])
+
+        list.windows = []
+        XCTAssertFalse(popupGuard.defersCollapse())
+        list.windows = [window(99, layer: status, CGRect(x: 823, y: 26, width: 315, height: 93))]
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(logged.last, "AutoCollapse: holding for a popup from pid 99 at layer \(status)", "a new hold logs again")
+        XCTAssertEqual(logged.count, 2)
     }
 
     // #319: a network monitor's graph is a status-level panel under its item.

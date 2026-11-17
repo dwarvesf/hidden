@@ -60,6 +60,7 @@ final class AutoCollapsePopupGuard {
     private let now: () -> TimeInterval
     private let ownPID: pid_t
     private let cap: TimeInterval
+    private let log: (String) -> Void
     private var deferringSince: TimeInterval?
 
     // menuBarItemOwners: bundles the engine read in the menu bar. On macOS 27 the
@@ -72,7 +73,8 @@ final class AutoCollapsePopupGuard {
          menuBarItemOwners: @escaping () -> Set<String> = { [] },
          now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
          ownPID: pid_t = ProcessInfo.processInfo.processIdentifier,
-         cap: TimeInterval = AutoCollapsePopupGuard.defaultCap) {
+         cap: TimeInterval = AutoCollapsePopupGuard.defaultCap,
+         log: @escaping (String) -> Void = { NSLog("%@", $0) }) {
         self.windows = windows
         self.displays = displays
         self.bundleIdentifier = bundleIdentifier
@@ -80,15 +82,20 @@ final class AutoCollapsePopupGuard {
         self.now = now
         self.ownPID = ownPID
         self.cap = cap
+        self.log = log
     }
 
     // Called when the auto-hide timer fires: true to re-arm instead of collapsing.
     func defersCollapse() -> Bool {
-        guard isPopupOpen() else {
+        guard let holder = popupWindow() else {
             deferringSince = nil
             return false
         }
         let time = now()
+        if deferringSince == nil {
+            // Owner and layer only: never a window title or other content.
+            log("AutoCollapse: holding for a popup from \(bundleIdentifier(holder.ownerPID) ?? "pid \(holder.ownerPID)") at layer \(holder.layer)")
+        }
         let since = deferringSince ?? time
         deferringSince = since
         if time - since >= cap {
@@ -104,9 +111,14 @@ final class AutoCollapsePopupGuard {
     }
 
     func isPopupOpen() -> Bool {
+        return popupWindow() != nil
+    }
+
+    // The first window that counts as a popup hanging from the menu bar.
+    private func popupWindow() -> OnScreenWindow? {
         let displays = self.displays()
         let all = windows.onScreenWindows().filter { $0.ownerPID != ownPID }
-        guard !displays.isEmpty, !all.isEmpty else { return false }
+        guard !displays.isEmpty, !all.isEmpty else { return nil }
         let bands = displays.map(\.menuBarBand).filter { !$0.isEmpty }
         let panelHeight = (displays.map(\.height).min() ?? 0) / 2
 
@@ -129,23 +141,23 @@ final class AutoCollapsePopupGuard {
             // short and widgets sit below the desktop (negative layers).
             if window.layer >= 0, window.frame.height >= panelHeight, panelHeight > 0,
                bundle(of: window.ownerPID) == Self.notificationCenterBundleIdentifier {
-                return true
+                return window
             }
             guard let band = bands.first(where: { Self.hangs(window.frame, from: $0) }) else { continue }
             if window.layer == Self.popUpMenuLayer || window.layer == Self.statusLayer {
-                return true
+                return window
             }
             // A menu-bar app's own window under the band, at any level. Wide
             // windows are an app's document windows touching the top of the
             // screen, not popovers.
             guard window.layer >= 0, window.frame.width <= band.width / 2 else { continue }
-            if statusItemOwners.contains(window.ownerPID) { return true }
+            if statusItemOwners.contains(window.ownerPID) { return window }
             if itemOwnerBundles == nil { itemOwnerBundles = menuBarItemOwners() }
             if let id = bundle(of: window.ownerPID), itemOwnerBundles?.contains(id) == true {
-                return true
+                return window
             }
         }
-        return false
+        return nil
     }
 
     // Touches the band (or sits just under it) and reaches below it, so the
