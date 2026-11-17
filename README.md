@@ -23,8 +23,8 @@
 Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
 <p align="center">
-	<img width="400" src="img/screen1.png">
-	<img width="400" src="img/screen2.png">
+	<img width="400" src="img/store/1-tidy-menu-bar.png">
+	<img width="400" src="img/store/3-settings.png">
 </p>
 
 ## 🚀 Install
@@ -34,6 +34,8 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 ###  App Store
 
 [![AppStore](img/appstore.svg)](https://itunes.apple.com/app/hidden-bar/id1452453066)
+
+The App Store build is sandboxed and cannot hide icons on macOS 27. On macOS 27, use the GitHub or Homebrew build below.
 
 ### Others
 
@@ -54,10 +56,12 @@ brew install --cask hiddenbar
 ## 🕹 Usage
 
 * `⌘` + drag to move the Hidden icons around in the menu bar.
-* Click the Arrow icon to hide menu bar items.
+* Click the Arrow icon to hide menu bar items, and click it again to show them.
+* Option-click the Arrow to reach the always-hidden section, a second group that stays hidden when you click the arrow.
+* Settings has the hide delay, a global shortcut, other ways to reveal icons (hover, scroll, shake) and the arrow style.
 
 <p align="center">
-	<img src="img/tutorial.gif">
+	<img width="960" src="img/hero.gif">
 </p>
 
 ## 📚 Documentation
