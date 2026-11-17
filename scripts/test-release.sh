@@ -52,6 +52,12 @@ esac
 EOF
 stub curl <<'EOF'
 #!/bin/bash
+# STUB_CURL_RC sets the exit code; STUB_CURL_FILE is copied to the -o target (a download)
+if [ -n "${STUB_CURL_FILE:-}" ]; then
+  out=""; prev=""
+  for a in "$@"; do [ "$prev" = "-o" ] && out="$a"; prev="$a"; done
+  [ -z "$out" ] || cp "$STUB_CURL_FILE" "$out"
+fi
 exit "${STUB_CURL_RC:-0}"
 EOF
 stub op <<'EOF'
@@ -269,8 +275,8 @@ fixture_rows_pass() { # fixtures built from the real plist pass the Feed URL and
   row_has 'Feed URL' "$REAL_FEED" && ! row_has 'Feed URL' FAIL && row_has 'EdDSA public key' 'equals the pinned key'
 }
 t check-app-fixture-rows-match-pins fixture_rows_pass
-prior_key() { rc_is 1 check_pubkey "$APP_KEY" && check_pubkey "$APP_EMPTY"; }
-t pubkey-differs-from-prior-fails prior_key
+key_check() { rc_is 1 check_pubkey "$APP_KEY" && check_pubkey "$APP_EMPTY"; }
+t check-pubkey-rejects-other-key key_check
 
 # ---- guards and shell safety ------------------------------------------------------------
 
@@ -401,6 +407,78 @@ live_process() {
   kill "$p" 2>/dev/null; wait "$p" 2>/dev/null; return $rc
 }
 t smoke-assert-live-process-passes live_process
+
+# ---- stages through stubs ---------------------------------------------------------------
+
+# stage_appcast end to end on fixtures: the built zip is payload.bin (signed by the fixture key,
+# which the fixture export app declares), and curl is a stub that serves a prior-release zip
+# holding a fixture app with the key under test. Nothing is launched; the zip is only unpacked.
+appcast_run() { # case-name prior-app-key : leaves rc, stdout and out/ under $WORK/ac-<case-name>
+  local d="$WORK/ac-$1" prior_len
+  mkdir -p "$d/out" "$d/tmp/trashed" "$d/src"
+  make_bundle "$d/src" "$2" >/dev/null
+  ditto -c -k --keepParent "$d/src/Hidden Bar.app" "$d/prior.zip"
+  prior_len="$(stat -f %z "$d/prior.zip")"
+  ( export TMPDIR="$d/tmp" STUB_CURL_FILE="$d/prior.zip"
+    T=""; make_tmp; setup_traps
+    OUT="$d/out"; OP_SOURCE=connect; VER=1.12.0; BUILD=19; PRIOR_TAG=v1.11.2; HELPER="$H"
+    EXPORT_APP="$(make_bundle "$d/export" "$PUB")"
+    /usr/libexec/PlistBuddy -c 'Add :LSMinimumSystemVersion string 13.0' "$EXPORT_APP/Contents/Info.plist"
+    cp "$F/notes-1.12.0.html" "$OUT/release-notes.html"
+    VZIP="$OUT/Hidden-Bar-v$VER-macos.zip"; cp "$F/payload.bin" "$VZIP"; ZIP_LEN="$(stat -f %z "$VZIP")"; ZIP_SIG="$SIG"
+    sed "s|length=\"2026759\"|length=\"$prior_len\"|" "$F/prior-1.xml" > "$T/prior-appcast.xml"
+    stage_appcast ) > "$d/stdout" 2>&1
+  echo $? > "$d/rc"
+}
+appcast_run key-differs "$(cat "$F/wrongkey.pub.b64")"
+prior_key_differs() { # the prior-zip branch ran and refused: the latest published app has another key
+  local o="$WORK/ac-key-differs/stdout"
+  [ "$(cat "$WORK/ac-key-differs/rc")" = 1 ] && grep -q 'Prior app key: FAIL: SUPublicEDKey differs' "$o" &&
+  ! grep -q 'Enclosure 1.11.2' "$o"
+}
+t pubkey-differs-from-prior-fails prior_key_differs
+appcast_run key-same "$PINNED_PUBKEY"
+prior_key_same() { # positive control: the same branch accepts the pinned key and moves on to the next check
+  local o="$WORK/ac-key-same/stdout"
+  grep -q 'Prior app key: equals the pinned key' "$o" && ! grep -q 'Prior app key: FAIL' "$o" && grep -q 'Enclosure 1.11.2: FAIL' "$o"
+}
+t pubkey-equals-prior-passes prior_key_same
+
+# main() with every stage that builds, signs or notarizes replaced by a marker stub, so only
+# the orchestration is real: the order of stages, the exit code and the report.
+main_run() { # case-name check_app-outcome(pass|fail) : rc, stdout and out/ under $WORK/main-<case-name>
+  local d="$WORK/main-$1" outcome="$2"
+  mkdir -p "$d/tmp/trashed" "$d/marks"
+  ( export TMPDIR="$d/tmp"
+    FAILED=0; N=0; SKIPPED=""; DRAFT_NOTE=""; EDKEY=""     # globals earlier cases left behind
+    stage_preflight() { PRE_STATE=stub; HEAD_SHA=abc1234; TREE_NOTE="stubbed"; row "Preflight" "stub" "stubbed"; }
+    stage_tests() { row "Tests" "stub" "SKIPPED (stub)"; }
+    stage_build() { mkdir -p "$OUT/export"; cp -R "$APP_NONE" "$OUT/export/"; : > "$d/marks/build"; }
+    stage_notarize() { : > "$d/marks/notarize"; return 0; }
+    stage_zips() { : > "$d/marks/zips"; return 0; }
+    stage_sign() { : > "$d/marks/sign"; return 0; }
+    stage_appcast() { : > "$d/marks/appcast"; return 0; }
+    stage_smoke() { : > "$d/marks/smoke"; return 0; }
+    if [ "$outcome" = pass ]; then check_app() { row "App checks" "stub" "ok"; return 0; }; fi
+    main --notes "$d/notes.html" --out "$d/out" ) > "$d/stdout" 2>&1
+  echo $? > "$d/rc"
+}
+main_run check-app-fails fail
+main_check_app_fails() {
+  local d="$WORK/main-check-app-fails" c
+  c="$d/out/checks.md"
+  [ "$(cat "$d/rc")" = 1 ] && [ -f "$d/marks/build" ] && grep -q '^| [0-9]* | Signature: identity, timestamp, runtime | .* | FAIL: ' "$c" &&
+  grep -q '^Result: FAILED (exit 1)' "$c" && ! grep -q 'Result: every check passed' "$c" &&
+  [ -z "$(ls "$d/marks" | grep -v '^build$')" ]
+}
+t main-check-app-failure-exits-1 main_check_app_fails
+main_run all-pass pass
+main_all_pass() { # positive control: the same harness exits 0 and runs every later stage when check_app passes
+  local d="$WORK/main-all-pass"
+  [ "$(cat "$d/rc")" = 0 ] && grep -q '^Result: every check passed' "$d/out/checks.md" &&
+  [ "$(ls "$d/marks" | tr '\n' ' ')" = "appcast build notarize sign smoke zips " ]
+}
+t main-all-stages-pass-exits-0 main_all_pass
 
 # ---- report -----------------------------------------------------------------------------
 
