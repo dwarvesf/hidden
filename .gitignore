@@ -132,7 +132,9 @@ DerivedData/
 /AGENTS.md
 /CLAUDE.md
 /WORKFLOW.md
-/docs/verification/
+/docs/verification/**
+!/docs/verification/**/
+!/docs/verification/**/*.png
 /_meta/
 /docs/specs/
 /docs/implementation-notes/
