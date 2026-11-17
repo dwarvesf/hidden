@@ -41,10 +41,19 @@
         background: #1d4f73;
       }
       .card video { position: absolute; left: 0; top: 0; display: block; }
-      #cardA { left: 160px; top: 250px; width: 1600px; height: 340px; }
-      #cardB { left: 213px; top: 60px; width: 1494px; height: 840px; }
-      #cardA video { width: 1600px; height: 340px; }
-      #cardB video { width: 1494px; height: 840px; }
+      #cardA { left: 144px; top: 315px; width: 1632px; height: 330px; }
+      #cardA video { width: 1632px; height: 330px; }
+      /* Settings windows: the shared shadow sits on a wrapper, the card carries the window's corner shape
+         (macOS radius about 50 source px). General shows the top of the window and fades out at the cut. */
+      .win { position: absolute; filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.35)); }
+      .wcard { position: relative; width: 100%; height: 100%; overflow: hidden; }
+      .win video { position: absolute; left: 0; top: 0; display: block; width: 100%; height: 100%; }
+      #winB1 { left: 240px; top: 56px; width: 1440px; height: 834px; }
+      #winB1 .wcard { border-radius: 56px; -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 82%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0, #000 82%, transparent 100%); }
+      #winB2 { left: 160px; top: 197px; width: 1600px; height: 626px; }
+      #winB2 .wcard { border-radius: 62px; }
+      #winB3 { left: 160px; top: 248px; width: 1600px; height: 524px; }
+      #winB3 .wcard { border-radius: 62px; }
 
       .capwrap { position: absolute; left: 0; width: 1920px; bottom: 74px; display: flex; justify-content: center; }
       .cap {
@@ -62,7 +71,7 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="24.3" data-width="1920" data-height="1080">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="17.85" data-width="1920" data-height="1080">
 
       <div id="title" class="clip fill" data-start="0" data-duration="2.0" data-track-index="0">
         <div id="titleIn" class="fill center">
@@ -74,23 +83,26 @@
 
       <div id="beatA" class="fill">
         <div id="cardA" class="card">
-          <video id="vidA" class="clip" data-start="2.0" data-duration="14.0" data-track-index="2" src="assets/clipA.mp4" muted playsinline></video>
+          <video id="vidA1" class="clip" data-start="2.0" data-duration="1.8" data-track-index="2" src="assets/clipA1.mp4" muted playsinline></video>
+          <video id="vidA2" class="clip" data-start="3.8" data-duration="2.25" data-track-index="2" src="assets/clipA2.mp4" muted playsinline></video>
+          <video id="vidA3" class="clip" data-start="6.05" data-duration="2.3" data-track-index="2" src="assets/clipA3.mp4" muted playsinline></video>
+          <video id="vidA4" class="clip" data-start="8.35" data-duration="1.7" data-track-index="2" src="assets/clipA4.mp4" muted playsinline></video>
         </div>
       </div>
 
       <div id="beatB" class="fill">
-        <div id="cardB" class="card">
-          <video id="vidB" class="clip" data-start="16.0" data-duration="6.1" data-track-index="2" src="assets/clipB.mp4" muted playsinline></video>
-        </div>
+        <div id="winB1" class="win"><div class="wcard"><video id="vidB1" class="clip" data-start="10.05" data-duration="1.5" data-track-index="2" src="assets/clipB1.mp4" muted playsinline></video></div></div>
+        <div id="winB2" class="win"><div class="wcard"><video id="vidB2" class="clip" data-start="11.55" data-duration="2.4" data-track-index="2" src="assets/clipB2.mp4" muted playsinline></video></div></div>
+        <div id="winB3" class="win"><div class="wcard"><video id="vidB3" class="clip" data-start="13.95" data-duration="1.7" data-track-index="2" src="assets/clipB3.mp4" muted playsinline></video></div></div>
       </div>
 
-      <div id="cap1" class="clip capwrap" data-start="2.2" data-duration="2.4" data-track-index="3"><div class="cap" id="cap1In">Icons tuck behind one arrow</div></div>
-      <div id="cap2" class="clip capwrap" data-start="4.8" data-duration="4.7" data-track-index="3"><div class="cap" id="cap2In">Click the arrow to show them</div></div>
-      <div id="cap3" class="clip capwrap" data-start="9.7" data-duration="3.6" data-track-index="3"><div class="cap" id="cap3In">An always-hidden section</div></div>
-      <div id="cap4" class="clip capwrap" data-start="13.5" data-duration="2.4" data-track-index="3"><div class="cap" id="cap4In">Click again to tuck them away</div></div>
-      <div id="cap5" class="clip capwrap" data-start="16.2" data-duration="5.8" data-track-index="3"><div class="cap" id="cap5In">Make it yours in Settings</div></div>
+      <div id="cap1" class="clip capwrap" data-start="2.1" data-duration="1.6" data-track-index="3"><div class="cap" id="cap1In">Icons tuck behind one arrow</div></div>
+      <div id="cap2" class="clip capwrap" data-start="3.9" data-duration="2.05" data-track-index="3"><div class="cap" id="cap2In">Click the arrow to show them</div></div>
+      <div id="cap3" class="clip capwrap" data-start="6.15" data-duration="2.1" data-track-index="3"><div class="cap" id="cap3In">An always-hidden section</div></div>
+      <div id="cap4" class="clip capwrap" data-start="8.45" data-duration="1.5" data-track-index="3"><div class="cap" id="cap4In">Click again to tuck them away</div></div>
+      <div id="cap5" class="clip capwrap" data-start="10.15" data-duration="5.4" data-track-index="3"><div class="cap" id="cap5In">Make it yours in Settings</div></div>
 
-      <div id="end" class="clip fill" data-start="22.1" data-duration="2.2" data-track-index="0">
+      <div id="end" class="clip fill" data-start="15.65" data-duration="2.2" data-track-index="0">
         <div id="endIn" class="fill center">
           <img class="icon-sm" src="assets/icon.png" alt="" />
           <div class="endname">Free on the Mac App Store</div>
@@ -107,20 +119,22 @@
       tl.to("#titleIn", { opacity: 0, duration: 0.25, ease: "power2.in" }, 1.75);
 
       // footage cards
-      tl.fromTo("#cardA", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 2.0);
-      tl.to("#cardA", { opacity: 0, duration: 0.25, ease: "power2.in" }, 15.75);
-      tl.fromTo("#cardB", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 16.0);
-      tl.to("#cardB", { opacity: 0, duration: 0.25, ease: "power2.in" }, 21.85);
+      tl.fromTo("#cardA", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 2.0);
+      tl.to("#cardA", { opacity: 0, duration: 0.2, ease: "power2.in" }, 9.85);
+      [["winB1", 10.05, 1.5], ["winB2", 11.55, 2.4], ["winB3", 13.95, 1.7]].forEach(([id, t, d]) => {
+        tl.fromTo("#" + id, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, t);
+        tl.to("#" + id, { opacity: 0, duration: 0.15, ease: "power2.in" }, t + d - 0.15);
+      });
 
       // captions
-      const caps = [["cap1In", 2.2, 2.4], ["cap2In", 4.8, 4.7], ["cap3In", 9.7, 3.6], ["cap4In", 13.5, 2.4], ["cap5In", 16.2, 5.8]];
+      const caps = [["cap1In", 2.1, 1.6], ["cap2In", 3.9, 2.05], ["cap3In", 6.15, 2.1], ["cap4In", 8.45, 1.5], ["cap5In", 10.15, 5.4]];
       caps.forEach(([id, t, d]) => {
         tl.fromTo("#" + id, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, t);
         tl.to("#" + id, { opacity: 0, duration: 0.2, ease: "power2.in" }, t + d - 0.2);
       });
 
       // end card
-      tl.fromTo("#endIn", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 22.1);
+      tl.fromTo("#endIn", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 15.65);
 
       window.__timelines["main"] = tl;
       tl.seek(0);
