@@ -4,7 +4,7 @@ Every worker on this mega-goal follows this file. It is pinned at Wave 0 and cha
 
 ## 1. Where you work
 
-- Clone: `git clone -q git@github.com:dwarvesf/hidden.git ~/.cache/hidden-bar/clones/<slug>`, then `git checkout -b <branch> origin/develop`. One clone per sub-goal. Never use `/Users/tieubao/workspace/dwarvesf/hidden` (the shared checkout) or another worker's clone.
+- Clone: `git clone -q git@github.com:consolelabs/hidden.git ~/.cache/hidden-bar/clones/<slug>`, then `git checkout -b <branch> origin/develop`. One clone per sub-goal. Never use `/Users/tieubao/workspace/consolelabs/hidden` (the shared checkout) or another worker's clone.
 - Derived data: always `HIDDEN_TEST_DD=~/.cache/hidden-bar/dd-<slug>` (or `--dd`). The default `~/.cache/hidden-bar/dd` is shared and parallel runs corrupt it.
 - Base: `origin/develop`. Before each push: `git fetch -q origin`, then `git rebase origin/develop` (or merge, if you already pushed and the PR has review comments). Resolve conflicts yourself.
 - PR target: `develop`. Never merge. The lead merges after the wave verifier passes.

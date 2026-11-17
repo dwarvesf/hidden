@@ -10,9 +10,9 @@ import Cocoa
 
 /// Version and build, updates (direct build only), and where to get help.
 final class AboutViewController: SettingsPaneController {
-    static let changelogURL = URL(string: "https://github.com/dwarvesf/hidden/blob/develop/CHANGELOG.md")!
-    static let sourceURL = URL(string: "https://github.com/dwarvesf/hidden")!
-    static let issuesURL = URL(string: "https://github.com/dwarvesf/hidden/issues")!
+    static let changelogURL = URL(string: "https://github.com/consolelabs/hidden/blob/develop/CHANGELOG.md")!
+    static let sourceURL = URL(string: "https://github.com/consolelabs/hidden")!
+    static let issuesURL = URL(string: "https://github.com/consolelabs/hidden/issues")!
     static let websiteURL = URL(string: "https://dwarves.foundation/")!
     static let xURL = URL(string: "https://x.com/dwarvesf")!
     static let emailAddress = "macos@d.foundation"

@@ -145,7 +145,7 @@ the real `/Applications`). Never judge arrow or hiding behaviour on a copy outsi
 
 The direct build self-updates through Sparkle 2 (`SUFeedURL` in
 `hidden/Info-Direct.plist` is
-`https://github.com/dwarvesf/hidden/releases/latest/download/appcast.xml`, so
+`https://github.com/consolelabs/hidden/releases/latest/download/appcast.xml`, so
 the appcast must be an asset of the **latest** release). The private EdDSA key
 lives in 1Password (`dfoundation-prod`, item "Hidden Bar Sparkle EdDSA private
 key"); only the public key (`SUPublicEDKey`) is in the repo. Losing the key
@@ -167,22 +167,22 @@ sign_update --ed-key-file <(op read 'op://dfoundation-prod/Hidden Bar Sparkle Ed
 # 3. appcast entry (reads the same key; run over a folder holding the new zip
 #    plus the previous appcast.xml so history is kept; skip the download on
 #    the first Sparkle release)
-gh release download --pattern appcast.xml -R dwarvesf/hidden   # from the previous release
+gh release download --pattern appcast.xml -R consolelabs/hidden   # from the previous release
 generate_appcast --ed-key-file <(op read 'op://dfoundation-prod/Hidden Bar Sparkle EdDSA private key/password') \
-  --download-url-prefix 'https://github.com/dwarvesf/hidden/releases/download/v1.12/' \
-  --link 'https://github.com/dwarvesf/hidden' .
+  --download-url-prefix 'https://github.com/consolelabs/hidden/releases/download/v1.12/' \
+  --link 'https://github.com/consolelabs/hidden' .
 
 # 4. publish: the zip and appcast.xml are both release assets
-gh release upload v1.12 Hidden-Bar-v1.12-macos.zip appcast.xml --clobber -R dwarvesf/hidden
+gh release upload v1.12 Hidden-Bar-v1.12-macos.zip appcast.xml --clobber -R consolelabs/hidden
 
 # 5. also upload a copy of the zip named Hidden-Bar-macos.zip, so
 #    releases/latest/download/Hidden-Bar-macos.zip stays stable (a byte-identical
 #    copy; the appcast and the Homebrew cask keep using the versioned name)
 cp Hidden-Bar-v1.12-macos.zip Hidden-Bar-macos.zip
-gh release upload v1.12 Hidden-Bar-macos.zip --clobber -R dwarvesf/hidden
+gh release upload v1.12 Hidden-Bar-macos.zip --clobber -R consolelabs/hidden
 ```
 
-Check before announcing: `curl -sIL https://github.com/dwarvesf/hidden/releases/latest/download/appcast.xml`
+Check before announcing: `curl -sIL https://github.com/consolelabs/hidden/releases/latest/download/appcast.xml`
 ends in 200, and the entry's `sparkle:version` equals `CURRENT_PROJECT_VERSION`
 (Sparkle compares that, not the marketing version, so it must increase every
 release). Because `latest` follows the newest published release, publish the

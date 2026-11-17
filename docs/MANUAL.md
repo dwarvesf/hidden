@@ -193,5 +193,5 @@ drags" on its row to keep it where you put it.
 ## Requirements
 
 macOS 13 Ventura or later. Pre-Ventura (10.13 - 12.x): use
-[v1.10](https://github.com/dwarvesf/hidden/releases/tag/v1.10), the last release
+[v1.10](https://github.com/consolelabs/hidden/releases/tag/v1.10), the last release
 on the old autostart mechanism.

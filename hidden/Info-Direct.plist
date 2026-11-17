@@ -33,7 +33,7 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>SUFeedURL</key>
-	<string>https://github.com/dwarvesf/hidden/releases/latest/download/appcast.xml</string>
+	<string>https://github.com/consolelabs/hidden/releases/latest/download/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>C7MH2NS46vKD4nNh9i4BmFzXLSAbP2jM5qZcaPw9u3w=</string>
 </dict>
