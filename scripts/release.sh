@@ -36,12 +36,12 @@ PKG_RESOLVED="$PROJECT/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 CHANGELOG="$ROOT/CHANGELOG.md"
 HELPER_SRC="$ROOT/scripts/release-helper.swift"
 
-REPO_SLUG="dwarvesf/hidden"
+REPO_SLUG="consolelabs/hidden"
 TEAM_ID="W777S7V8TN"
 BUNDLE_ID="com.dwarvesv.minimalbar"
 INSTALLED_APP="${HB_INSTALLED_APP:-/Applications/Hidden Bar.app}"
 # Pinned: change only in a reviewed commit. Installed copies trust exactly this key and feed.
-PINNED_FEED_URL="https://github.com/dwarvesf/hidden/releases/latest/download/appcast.xml"
+PINNED_FEED_URL="https://github.com/consolelabs/hidden/releases/latest/download/appcast.xml"
 PINNED_PUBKEY="C7MH2NS46vKD4nNh9i4BmFzXLSAbP2jM5qZcaPw9u3w="
 VAULT="dfoundation-prod"
 ASC_TITLE_SUFFIX="Hacker Bar Release"
@@ -768,7 +768,10 @@ stage_appcast() {
   while IFS="$(printf '\t')" read -r v s u l g; do
     if [ "$u" = "$url" ]; then f="$VZIP"
     else
-      case "$u" in "https://github.com/$REPO_SLUG/releases/download/"*) ;; *) fail_row "Enclosure $s" "url allowlist" "foreign url $u"; return 1 ;; esac
+      # the 1.13.0 and 1.11.2 items in the published feed still point at dwarvesf/hidden
+      case "$u" in
+        "https://github.com/$REPO_SLUG/releases/download/"*|"https://github.com/dwarvesf/hidden/releases/download/"*) ;;
+        *) fail_row "Enclosure $s" "url allowlist" "foreign url $u"; return 1 ;; esac
       f="$T/prior/$s.zip"
       curl -fsSL --proto '=https' --proto-redir '=https' --max-time 300 -o "$f" "$u" || { fail_row "Enclosure $s" "curl $u" "download failed"; return 1; }
       [ "$(stat -f %z "$f")" = "$l" ] || { fail_row "Enclosure $s" "size vs length" "downloaded $(stat -f %z "$f") bytes, item says $l"; return 1; }
