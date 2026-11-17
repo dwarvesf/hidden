@@ -29,7 +29,7 @@ Hidden Bar lets you hide menu bar items to give your Mac a cleaner look.
 
 ## 🚀 Install
 
-> **Official downloads.** Dwarves publishes Hidden Bar only through [GitHub Releases](https://github.com/consolelabs/hidden/releases), the Homebrew cask `hiddenbar`, and the [Mac App Store listing](https://itunes.apple.com/app/hidden-bar/id1452453066). Any other site offering Hidden Bar (for example `hiddenbar.app`) is not run by Dwarves.
+> **Official downloads.** Console Labs publishes Hidden Bar only through [GitHub Releases](https://github.com/consolelabs/hidden/releases), the Homebrew cask `hiddenbar`, and the [Mac App Store listing](https://itunes.apple.com/app/hidden-bar/id1452453066). Any other site offering Hidden Bar (for example `hiddenbar.app`) is not run by Console Labs.
 
 ###  App Store
 
@@ -91,4 +91,4 @@ API introduced there.
 - [VimMotion](https://github.com/consolelabs/VimMotionApp) Vim style shortcut for MacOS
 ## License
 
-MIT &copy; [Dwarves Foundation](https://github.com/dwarvesf)
+MIT &copy; [Console Labs](https://console.so)

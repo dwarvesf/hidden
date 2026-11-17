@@ -3,7 +3,7 @@
   Hidden Bar
 
   Created by Licardo on 2020/3/9.
-  Copyright © 2020 Dwarves Foundation. All rights reserved.
+  Copyright © 2020 Console Labs. All rights reserved.
 */
 
 "Preferences..." = "Preferences...";
@@ -13,8 +13,8 @@
 "Quit" = "Quit";
 "macOS 27: get the working version..." = "macOS 27: get the working version...";
 "Hidden Bar cannot hide icons on macOS 27" = "Hidden Bar cannot hide icons on macOS 27";
-"macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from dwarves.foundation/opensource (free, open source) works on macOS 27." = "macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from dwarves.foundation/opensource (free, open source) works on macOS 27.";
-"Open dwarves.foundation/opensource" = "Open dwarves.foundation/opensource";
+"macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from github.com/consolelabs/hidden (free, open source) works on macOS 27." = "macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from github.com/consolelabs/hidden (free, open source) works on macOS 27.";
+"Open github.com/consolelabs/hidden" = "Open github.com/consolelabs/hidden";
 "Close" = "Close";
 "Don't show again" = "Don't show again";
 "Hidden Bar on macOS 27" = "Hidden Bar on macOS 27";
@@ -158,8 +158,7 @@ Steps to view always hidden icons:
 "Email" = "Email";
 "Source code" = "Source code";
 "Free and open source, MIT license." = "Free and open source, MIT license.";
-"Follow @dwarvesf on X" = "Follow @dwarvesf on X";
-"Made by Dwarves Foundation" = "Made by Dwarves Foundation";
+"Made by Console Labs" = "Made by Console Labs";
 
 /* Pinned sections (beta), Icons; English until translated */
 "Pinned sections (beta)" = "Pinned sections (beta)";

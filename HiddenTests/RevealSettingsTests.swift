@@ -2,7 +2,7 @@
 //  RevealSettingsTests.swift
 //  HiddenTests
 //
-//  Copyright © 2026 Dwarves Foundation. All rights reserved.
+//  Copyright © 2026 Console Labs. All rights reserved.
 //
 
 import XCTest

@@ -3,7 +3,7 @@
 //  Hidden Bar
 //
 //  Created by phucld on 12/19/19.
-//  Copyright © 2019 Dwarves Foundation. All rights reserved.
+//  Copyright © 2019 Console Labs. All rights reserved.
 //
 
 import Foundation

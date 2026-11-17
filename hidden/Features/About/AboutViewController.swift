@@ -3,7 +3,7 @@
 //  Hidden Bar
 //
 //  Created by phucld on 12/19/19.
-//  Copyright © 2019 Dwarves Foundation. All rights reserved.
+//  Copyright © 2019 Console Labs. All rights reserved.
 //
 
 import Cocoa
@@ -13,8 +13,7 @@ final class AboutViewController: SettingsPaneController {
     static let changelogURL = URL(string: "https://github.com/consolelabs/hidden/blob/develop/CHANGELOG.md")!
     static let sourceURL = URL(string: "https://github.com/consolelabs/hidden")!
     static let issuesURL = URL(string: "https://github.com/consolelabs/hidden/issues")!
-    static let websiteURL = URL(string: "https://dwarves.foundation/")!
-    static let xURL = URL(string: "https://x.com/dwarvesf")!
+    static let websiteURL = URL(string: "https://console.so")!
     static let emailAddress = "support@console.so"
     static let checkForUpdatesIdentifier = NSUserInterfaceItemIdentifier("checkForUpdates")
 
@@ -51,8 +50,7 @@ final class AboutViewController: SettingsPaneController {
             SettingsForm.row("Email".localized, control: email),
             Self.linkRow(SettingsForm.link("Source code".localized, url: Self.sourceURL),
                          caption: "Free and open source, MIT license.".localized),
-            Self.linkRow(SettingsForm.link("Follow @dwarvesf on X".localized, url: Self.xURL, image: Self.xLogo)),
-            Self.linkRow(SettingsForm.link("Made by Dwarves Foundation".localized, url: Self.websiteURL)),
+            Self.linkRow(SettingsForm.link("Made by Console Labs".localized, url: Self.websiteURL)),
         ])
     }
 
@@ -127,26 +125,4 @@ final class AboutViewController: SettingsPaneController {
         UpdateController.shared.checkForUpdates()
         #endif
     }
-
-    /// The X logo, drawn from its outline so no asset is needed.
-    static let xLogo: NSImage = {
-        let image = NSImage(size: NSSize(width: 13, height: 13), flipped: true) { rect in
-            let scale = rect.width / 1200
-            let outer: [(CGFloat, CGFloat)] = [(714, 519), (1161, 0), (1055, 0), (667, 451), (357, 0), (0, 0), (468, 682),
-                                               (0, 1226), (106, 1226), (515, 750), (843, 1226), (1200, 1226)]
-            let inner: [(CGFloat, CGFloat)] = [(569, 688), (144, 80), (307, 80), (1055, 1150), (892, 1150)]
-            let path = NSBezierPath()
-            for points in [outer, inner] {
-                path.move(to: NSPoint(x: points[0].0 * scale, y: points[0].1 * scale * 1200 / 1227))
-                points.dropFirst().forEach { path.line(to: NSPoint(x: $0.0 * scale, y: $0.1 * scale * 1200 / 1227)) }
-                path.close()
-            }
-            path.windingRule = .evenOdd
-            NSColor.black.setFill()
-            path.fill()
-            return true
-        }
-        image.isTemplate = true
-        return image
-    }()
 }

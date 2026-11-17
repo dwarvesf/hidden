@@ -3,7 +3,7 @@
 //  Hidden Bar
 //
 //  Created by Licardo on 2020/3/9.
-//  Copyright © 2020 Dwarves Foundation. All rights reserved.
+//  Copyright © 2020 Console Labs. All rights reserved.
 //
 
 import Foundation

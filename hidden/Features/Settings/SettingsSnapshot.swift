@@ -2,7 +2,7 @@
 //  SettingsSnapshot.swift
 //  Hidden Bar
 //
-//  Copyright © 2026 Dwarves Foundation. All rights reserved.
+//  Copyright © 2026 Console Labs. All rights reserved.
 //
 
 #if DEBUG
