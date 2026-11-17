@@ -1,0 +1,32 @@
+/* Shared look for the App Store screenshots (Hidden Bar and Blurred): 2880x1800, 135deg two-stop
+   gradient, Inter 600 headline, captured media with a 20px radius (strips) or its native macOS
+   window shape (windows) and the same soft shadow. Hidden Bar gradient is indigo to violet. */
+:root {
+  --g1: #3b2fb8;
+  --g2: #8b5cf6;
+  --ink: #ffffff;
+  --shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  --font: "Inter", "SF Pro Display", -apple-system, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 2880px; height: 1800px; overflow: hidden; }
+body {
+  font-family: var(--font);
+  font-weight: 600;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--g1) 0%, var(--g2) 100%);
+}
+.stage { width: 2880px; height: 1800px; display: flex; flex-direction: column; align-items: center; }
+h1 {
+  font-size: 168px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  margin-top: 150px;
+  text-align: center;
+}
+.media { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding-bottom: 100px; }
+.strip { width: 2016px; border-radius: 20px; box-shadow: var(--shadow); display: block; }
+.win { display: block; filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.35)); }
+.label { font-size: 56px; letter-spacing: -0.01em; opacity: 0.82; margin-bottom: 26px; align-self: flex-start; margin-left: 432px; }
+.group + .group { margin-top: 84px; }
