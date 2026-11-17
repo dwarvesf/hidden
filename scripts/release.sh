@@ -213,7 +213,7 @@ leak_scan() { # paths... : prints "clean" (rc 0) or the files holding key materi
 }
 
 write_report() { # exit-code
-  local code="$1" scan sums
+  local code="$1" scan
   [ -n "$OUT" ] && [ -d "$OUT" ] || return 0
   if scan="$(leak_scan "$OUT")"; then
     row "No key material left" "grep -rlF <PEM marker> and <EdDSA key from memory> over --out and the run log" "0 hits"
@@ -228,7 +228,7 @@ write_report() { # exit-code
     echo
     printf 'Built %s on %s (macOS %s, %s), branch `%s`, HEAD `%s` (%s). Build %s. Nothing was tagged or uploaded.' \
       "$(LC_ALL=C date -u '+%Y-%m-%d %H:%M UTC')" "$(scutil --get ComputerName 2>/dev/null || hostname)" "$(sw_vers -productVersion)" \
-      "$(xcodebuild -version 2>/dev/null | head -1)" "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" "${HEAD_SHA:-?}" "${TREE_NOTE:-tree not checked}" "${BUILD:-?}"
+      "$(xcodebuild -version 2>/dev/null | head -1)" "$(cd "$ROOT" && git rev-parse --abbrev-ref HEAD 2>/dev/null)" "${HEAD_SHA:-?}" "${TREE_NOTE:-tree not checked}" "${BUILD:-?}"
     [ -z "$SKIPPED" ] || printf ' SKIPPED on request:%s.' "$SKIPPED"
     echo
     echo
@@ -673,7 +673,7 @@ stage_build() {
 }
 
 stage_notarize() { # app
-  local app="$1" r rc id status summary issues_type i
+  local app="$1" r rc id status summary issues_type i log_ok=0 issues_note
   capture asc_fetch || { secrets_wipe; fail_row "ASC API key" "op item get (fields by pattern)" "$R"; return 1; }
   row "ASC API key" "op item get via $OP_SOURCE, fields by pattern" "read into a mode 700 temp dir, key file mode 600"
   ditto -c -k --keepParent "$app" "$T/submit.zip"
@@ -683,15 +683,18 @@ stage_notarize() { # app
   status="$(plutil -extract status raw -o - "$OUT/notary-submit.json" 2>/dev/null)"
   if [ -n "$id" ]; then
     for i in 1 2 3; do
-      xcrun notarytool log "$id" --key "$T/secret/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER" "$OUT/notary-log.json" >/dev/null 2>&1 && break
+      if xcrun notarytool log "$id" --key "$T/secret/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER" "$OUT/notary-log.json" >/dev/null 2>&1; then log_ok=1; break; fi
       sleep 10
     done
   fi
   secrets_wipe; ASC_KEY_ID=""; ASC_ISSUER=""
+  if [ "$log_ok" = 1 ]; then issues_note="$(plutil -extract issues json -o - "$OUT/notary-log.json" 2>/dev/null | head -c 300)"
+  else issues_note="notary log unreadable after 3 tries"; fi
   if [ "$status" != Accepted ]; then
-    fail_row "Notarization" "xcrun notarytool submit --wait --timeout 2h" "submission ${id:-none} status '${status:-none}' (rc $rc); issues: $(plutil -extract issues json -o - "$OUT/notary-log.json" 2>/dev/null | head -c 300)"
+    fail_row "Notarization" "xcrun notarytool submit --wait --timeout 2h" "submission ${id:-none} status '${status:-none}' (rc $rc); issues: $issues_note"
     return 1
   fi
+  [ "$log_ok" = 1 ] || { fail_row "Notarization" "xcrun notarytool log" "submission $id Accepted, but the notary log was unreadable after 3 tries, so its issues are unknown"; return 1; }
   summary="$(plutil -extract statusSummary raw -o - "$OUT/notary-log.json" 2>/dev/null)"
   issues_type="$(plutil -type issues "$OUT/notary-log.json" 2>/dev/null)"
   case "$issues_type" in
@@ -745,7 +748,7 @@ stage_sign() {
 }
 
 stage_appcast() {
-  local new="$OUT/appcast.xml" prior="$T/prior-appcast.xml" minos url link pubdate r first=1 v s u l g f n_prior n_new pub
+  local new="$OUT/appcast.xml.unverified" prior="$T/prior-appcast.xml" minos url link pubdate r first=1 v s u l g f n_prior n_new pub
   minos="$(plist_get "$EXPORT_APP" LSMinimumSystemVersion)"
   url="https://github.com/$REPO_SLUG/releases/download/v$VER/Hidden-Bar-v$VER-macos.zip"
   link="https://github.com/$REPO_SLUG/releases/tag/v$VER"
@@ -768,10 +771,11 @@ stage_appcast() {
   while IFS="$(printf '\t')" read -r v s u l g; do
     if [ "$u" = "$url" ]; then f="$VZIP"
     else
-      # the 1.13.0 and 1.11.2 items in the published feed still point at dwarvesf/hidden
+      # older items in the published feed still point at dwarvesf/hidden
       case "$u" in
         "https://github.com/$REPO_SLUG/releases/download/"*|"https://github.com/dwarvesf/hidden/releases/download/"*) ;;
         *) fail_row "Enclosure $s" "url allowlist" "foreign url $u"; return 1 ;; esac
+      case "$s" in ""|*[!0-9A-Za-z._-]*) fail_row "Enclosure (unsafe version)" "shortVersionString charset" "a prior item's shortVersionString is not [0-9A-Za-z._-]+"; return 1 ;; esac
       f="$T/prior/$s.zip"
       curl -fsSL --proto '=https' --proto-redir '=https' --max-time 300 -o "$f" "$u" || { fail_row "Enclosure $s" "curl $u" "download failed"; return 1; }
       [ "$(stat -f %z "$f")" = "$l" ] || { fail_row "Enclosure $s" "size vs length" "downloaded $(stat -f %z "$f") bytes, item says $l"; return 1; }
@@ -786,6 +790,7 @@ stage_appcast() {
     if helper verify "$f" "$g" "$pub" >/dev/null; then row "Enclosure $s" "release-helper verify (signature from appcast.xml)" "VALID ($l bytes)"
     else fail_row "Enclosure $s" "release-helper verify" "INVALID"; return 1; fi
   done < "$T/sigs.tsv"
+  mv "$new" "$OUT/appcast.xml" || { fail_row "Appcast" "mv appcast.xml.unverified appcast.xml" "rename failed"; return 1; }
 }
 
 stage_smoke() {

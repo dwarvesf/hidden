@@ -83,6 +83,7 @@ case "$1 $2" in
     printf '{"id":"00000000-0000-0000-0000-000000000001","status":"%s","message":"Processing complete"}\n' "$STUB_NOTARY" ;;
   "notarytool log")
     out="${!#}"
+    [ -z "${STUB_NOTARY_LOGFAIL:-}" ] || { echo "Error: could not fetch the log" >&2; exit 1; }
     if [ "$STUB_NOTARY" = Accepted ]; then echo '{"status":"Accepted","statusSummary":"Ready for distribution","issues":null}' > "$out"
     else echo '{"status":"Invalid","statusSummary":"Archive contains critical validation errors","issues":[{"message":"The binary is not signed."}]}' > "$out"; fi ;;
   "stapler staple"|"stapler validate") exit 0 ;;
@@ -337,10 +338,11 @@ t tree-drift-detected tree_drift
 # ---- secrets handling, notarization (stubbed xcrun and op) ------------------------------
 
 make_bundle "$WORK/notary-app" "$REAL_KEY" >/dev/null
-notarize_run() { # STUB_NOTARY value : runs the stage in a subshell with the real EXIT trap
+notarize_run() { # case-name [STUB_NOTARY value, default the case name] [log-fails] : runs the stage in a subshell with the real EXIT trap
   local case_dir="$WORK/notary-$1"
   mkdir -p "$case_dir/out" "$case_dir/tmp" "$case_dir/tmp/trashed"
-  ( export TMPDIR="$case_dir/tmp" STUB_NOTARY="$1"; T=""; make_tmp; setup_traps; OUT="$case_dir/out"; OP_SOURCE=connect
+  ( export TMPDIR="$case_dir/tmp" STUB_NOTARY="${2:-$1}" STUB_NOTARY_LOGFAIL="${3:-}"; T=""; make_tmp; setup_traps; OUT="$case_dir/out"; OP_SOURCE=connect
+    sleep() { :; }     # the log retries wait 10 s each in a real run
     stage_notarize "$WORK/notary-app/Hidden Bar.app" ) > "$case_dir/stdout" 2>&1
   echo $? > "$case_dir/rc"
 }
@@ -358,6 +360,13 @@ accepted() {
   grep -q 'Staple: worked' "$o" && grep -q 'Gatekeeper: accepted' "$o" && no_key_left "$WORK/notary-Accepted"
 }
 t notarize-accepted-passes accepted
+notarize_run AcceptedNoLog Accepted 1
+log_unreadable() { # Accepted but the log never arrives: a FAILED row, never "issues none"
+  local o="$WORK/notary-AcceptedNoLog/stdout"
+  [ "$(cat "$WORK/notary-AcceptedNoLog/rc")" = 1 ] && grep -q 'Notarization: FAIL: .*Accepted, but the notary log was unreadable' "$o" &&
+  ! grep -q 'issues none' "$o" && no_key_left "$WORK/notary-AcceptedNoLog"
+}
+t notarize-log-unreadable-fails log_unreadable
 leak_detects() {
   mkdir -p "$WORK/leak/clean" "$WORK/leak/pem" "$WORK/leak/ed"
   echo nothing > "$WORK/leak/clean/a.txt"; printf 'x\n%s\n' "$PEM_MARK" > "$WORK/leak/pem/a.txt"
@@ -413,7 +422,7 @@ t smoke-assert-live-process-passes live_process
 # stage_appcast end to end on fixtures: the built zip is payload.bin (signed by the fixture key,
 # which the fixture export app declares), and curl is a stub that serves a prior-release zip
 # holding a fixture app with the key under test. Nothing is launched; the zip is only unpacked.
-appcast_run() { # case-name prior-app-key : leaves rc, stdout and out/ under $WORK/ac-<case-name>
+appcast_run() { # case-name prior-app-key [verify-ok|bad-version] : leaves rc, stdout and out/ under $WORK/ac-<case-name>
   local d="$WORK/ac-$1" prior_len
   mkdir -p "$d/out" "$d/tmp/trashed" "$d/src"
   make_bundle "$d/src" "$2" >/dev/null
@@ -427,6 +436,8 @@ appcast_run() { # case-name prior-app-key : leaves rc, stdout and out/ under $WO
     cp "$F/notes-1.12.0.html" "$OUT/release-notes.html"
     VZIP="$OUT/Hidden-Bar-v$VER-macos.zip"; cp "$F/payload.bin" "$VZIP"; ZIP_LEN="$(stat -f %z "$VZIP")"; ZIP_SIG="$SIG"
     sed "s|length=\"2026759\"|length=\"$prior_len\"|" "$F/prior-1.xml" > "$T/prior-appcast.xml"
+    [ "${3:-}" != bad-version ] || sed -i '' 's|<sparkle:shortVersionString>1.11.2<|<sparkle:shortVersionString>../x<|' "$T/prior-appcast.xml"
+    if [ "${3:-}" = verify-ok ]; then helper() { if [ "$1" = verify ]; then return 0; fi; "$HELPER" "$@"; }; fi   # the fixture cannot sign a prior zip
     stage_appcast ) > "$d/stdout" 2>&1
   echo $? > "$d/rc"
 }
@@ -434,7 +445,7 @@ appcast_run key-differs "$(cat "$F/wrongkey.pub.b64")"
 prior_key_differs() { # the prior-zip branch ran and refused: the latest published app has another key
   local o="$WORK/ac-key-differs/stdout"
   [ "$(cat "$WORK/ac-key-differs/rc")" = 1 ] && grep -q 'Prior app key: FAIL: SUPublicEDKey differs' "$o" &&
-  ! grep -q 'Enclosure 1.11.2' "$o"
+  ! grep -q 'Enclosure 1.11.2' "$o" && [ ! -e "$WORK/ac-key-differs/out/appcast.xml" ] && [ -f "$WORK/ac-key-differs/out/appcast.xml.unverified" ]
 }
 t pubkey-differs-from-prior-fails prior_key_differs
 appcast_run key-same "$PINNED_PUBKEY"
@@ -443,6 +454,20 @@ prior_key_same() { # positive control: the same branch accepts the pinned key an
   grep -q 'Prior app key: equals the pinned key' "$o" && ! grep -q 'Prior app key: FAIL' "$o" && grep -q 'Enclosure 1.11.2: FAIL' "$o"
 }
 t pubkey-equals-prior-passes prior_key_same
+appcast_run verified "$PINNED_PUBKEY" verify-ok
+appcast_published_after_checks() { # appcast.xml appears only once every check passed
+  local d="$WORK/ac-verified"
+  [ "$(cat "$d/rc")" = 0 ] && [ -f "$d/out/appcast.xml" ] && [ ! -e "$d/out/appcast.xml.unverified" ] ||
+    { echo "rc $(cat "$d/rc"); $(ls "$d/out" | tr '\n' ' ')"; return 1; }
+}
+t appcast-named-only-after-checks appcast_published_after_checks
+appcast_run bad-version "$PINNED_PUBKEY" bad-version
+unsafe_version() { # a prior item's shortVersionString never reaches a path or a download
+  local o="$WORK/ac-bad-version/stdout"
+  [ "$(cat "$WORK/ac-bad-version/rc")" = 1 ] && grep -q "FAIL: a prior item's shortVersionString is not" "$o" &&
+  ! grep -q 'Prior app key' "$o"
+}
+t appcast-unsafe-short-version-refused unsafe_version
 
 # main() with every stage that builds, signs or notarizes replaced by a marker stub, so only
 # the orchestration is real: the order of stages, the exit code and the report.
@@ -493,6 +518,13 @@ report_shape() {
   local rc=$?; OUT=""; return $rc
 }
 t report-shape report_shape
+report_branch() { # the branch line comes from the repo root, whatever the working directory
+  local o="$WORK/report-cwd" want
+  want="$(command git -C "$ROOT" rev-parse --abbrev-ref HEAD)"; mkdir -p "$o"
+  ( cd "$WORK" && OUT="$o"; VER=1.12.0; HEAD_SHA=abc1234; : > "$ROWS_FILE"; write_report 0 >/dev/null )
+  grep -qF "branch \`$want\`," "$o/checks.md"
+}
+t report-branch-from-repo-root report_branch
 
 echo
 echo "test-release: $PASSED passed, $FAILED_N failed, $SKIPPED_N skipped${FAILED_NAMES:+ (failed:$FAILED_NAMES)}"
