@@ -56,13 +56,14 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
     // bundle id is allowed (#521), as it does Hidden Bar's own arrow. Measured
     // with iStat Menus 7, whose LaunchAgent runs it from ~/Library/Application
     // Support: hidden on 27.0.1 and 27.2.1, kept when run from /Applications.
-    // /System is left out: macOS's own apps live there, and SystemUIServer's
-    // extras are kept by bundle.
+    // macOS's own processes are left out: SystemUIServer's extras are kept by
+    // bundle, and sharingd (/usr/libexec) lists an item no one sees.
     static func runsOutsideApplicationsFolder(_ bundleURL: URL?,
                                               applicationFolders: [URL] = FileManager.default.urls(for: .applicationDirectory,
                                                                                                    in: .localDomainMask)) -> Bool {
         guard let url = bundleURL else { return false }
-        if url.resolvingSymlinksInPath().standardizedFileURL.path.hasPrefix("/System/") { return false }
+        let path = url.resolvingSymlinksInPath().standardizedFileURL.path
+        if ["/System/", "/usr/", "/Library/Apple/"].contains(where: path.hasPrefix) { return false }
         return !NativeVisibilityEngine.isInApplicationsFolder(url, applicationFolders: applicationFolders)
     }
 

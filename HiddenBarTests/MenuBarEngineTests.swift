@@ -482,6 +482,7 @@ final class FailOpenClassificationTests: XCTestCase {
         XCTAssertTrue(outside("/Users/me/Downloads/Some.app"))
         XCTAssertFalse(outside("/Applications/iStat Menus.app/Contents/Library/LoginItems/iStat Menus Status.app"))
         XCTAssertFalse(outside("/System/Library/CoreServices/Spotlight.app"), "macOS's own apps live in /System")
+        XCTAssertFalse(outside("/usr/libexec/sharingd"), "macOS's own daemons live in /usr (seen on 27.0.1)")
         XCTAssertFalse(outside(nil), "a bare executable has no bundle id to allow anyway")
     }
 
