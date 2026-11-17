@@ -11,6 +11,10 @@ Everything Hidden Bar can do, including the parts with no UI.
   the separator's left are hidden when collapsed.
 - **Option-click the arrow**: show/hide the separators and the always-hidden
   area without expanding.
+- **Right-click the arrow to show always-hidden icons** (Settings › Advanced ›
+  "Right-click on the arrow": Show always-hidden icons): right-click then does
+  what Option-click does, as it did before 1.11, so no keyboard is needed.
+  The menu moves to **Option-right-click**. The default stays Show menu.
 - **Shift-click the arrow**: expand and use the full menu bar for this
   expansion only, like "Use the full menu bar on expanding" but without
   changing the setting. It reverts when the bar collapses.
@@ -76,6 +80,7 @@ Tabs in a centered control at the top (Cmd+1 to Cmd+5). A status card at the top
 | Appearance | Fade the arrow when icons are hidden | `stealthExpandIconEnabled` |
 | Advanced | Show this window when Hidden Bar opens | `isShowPreferences` |
 | Advanced | Make room for icons while they are shown: the app turns "regular" while expanded, so the frontmost app's menus give way | `useFullStatusBarOnExpandEnabled` |
+| Advanced | Right-click on the arrow: Show menu (default) or Show always-hidden icons, which moves the menu to Option-right-click | `rightClickAction` (`showMenu`, `showAlwaysHidden`) |
 | Advanced (notch Macs) | Reach icons behind the camera notch | `notchOverflowEnabled` |
 | Advanced (macOS 27, direct) | Pause hiding while macOS shows Now Playing, Focus and similar items: macOS 27 hides these items whenever an app hides icons, so while one shows, Hidden Bar hides nothing | `pauseHidingForUnkeepableItems` |
 | About (direct) | Check for updates automatically, Check for Updates… | Sparkle's `SUEnableAutomaticChecks` |

@@ -45,6 +45,7 @@ final class SettingsWindowTests: XCTestCase {
         UserDefaults.Key.newAppDefaultSection,                                    // Icons: when an app adds a new icon
         UserDefaults.Key.presentationShortcut,                                    // Presentation mode shortcut, macOS 27 direct only
         UserDefaults.Key.presentationSensitiveApps,                               // Presentation mode sensitive apps, macOS 27 direct only
+        UserDefaults.Key.rightClickAction,                                        // Advanced: right-click on the arrow
     ]
 
     private var saved: [String: Any] = [:]
@@ -183,6 +184,41 @@ final class SettingsWindowTests: XCTestCase {
         XCTAssertFalse(NotchOverflowSupport.isAvailable(osMajorVersion: 27, hasNotch: true))
         XCTAssertFalse(NotchOverflowSupport.isAvailable(osMajorVersion: 28, hasNotch: true))
         XCTAssertFalse(NotchOverflowSupport.isAvailable(osMajorVersion: 27, hasNotch: false))
+    }
+
+    // Given the Advanced pane, in the App Store build on macOS 26 and the direct build on macOS 27
+    // When picking "Show always-hidden icons", then "Show menu" in "Right-click on the arrow"
+    // Then rightClickAction stores each choice, the popup starts on Show menu when nothing is
+    //      stored, and the caption says how to reach what right-click no longer does
+    func test_advanced_rightClickPopupWritesItsKey() throws {
+        var old = fullContext()
+        old.build = .appStore
+        old.osMajorVersion = 26
+        for context in [old, fullContext()] {
+            AppDefaults.store.removeObject(forKey: UserDefaults.Key.rightClickAction)
+            let pane = AdvancedSettingsViewController(context: context)
+            let popup = try XCTUnwrap(control(UserDefaults.Key.rightClickAction, in: Self.subviews(of: pane.view)) as? NSPopUpButton)
+            func captions() -> [String] { Self.subviews(of: pane.view).compactMap { ($0 as? NSTextField)?.stringValue } }
+
+            XCTAssertEqual(popup.itemTitles, ["Show menu", "Show always-hidden icons"])
+            XCTAssertEqual(popup.indexOfSelectedItem, 0)
+            XCTAssertTrue(captions().contains(AdvancedSettingsViewController.rightClickCaption(for: .showMenu)))
+            for choice in [RightClickAction.showAlwaysHidden, .showMenu] {
+                popup.selectItem(at: RightClickAction.allCases.firstIndex(of: choice)!)
+                popup.sendAction(popup.action, to: popup.target)
+                XCTAssertEqual(AppDefaults.store.string(forKey: UserDefaults.Key.rightClickAction), choice.rawValue)
+                XCTAssertEqual(Preferences.rightClickAction, choice)
+                let shown = captions()
+                XCTAssertTrue(shown.contains(AdvancedSettingsViewController.rightClickCaption(for: choice)), "\(choice) caption missing")
+                for other in RightClickAction.allCases where other != choice {
+                    XCTAssertFalse(shown.contains(AdvancedSettingsViewController.rightClickCaption(for: other)), "\(other) caption still shown")
+                }
+            }
+
+            // Set elsewhere (defaults write), the popup follows.
+            Preferences.rightClickAction = .showAlwaysHidden
+            XCTAssertEqual(popup.indexOfSelectedItem, 1)
+        }
     }
 
     // Given the Appearance tiles
@@ -499,7 +535,9 @@ final class SettingsWindowTests: XCTestCase {
     // Then each locale carries them (English text for now), so none shows a raw key
     func test_everyLocale_carriesTheSettingsKeys() {
         let keys = ["Hidden Bar is working", "Hide icons again", "Never", "After %d seconds", "Your menu bar",
-                    "This App Store version can't hide icons on macOS 27", "Check for Updates…", "What's new"]
+                    "This App Store version can't hide icons on macOS 27", "Check for Updates…", "What's new",
+                    "Right-click on the arrow", "Show menu", "Show always-hidden icons",
+                    "Option-click the arrow to see always-hidden icons.", "Option-right-click the arrow to open the menu."]
         let localizations = Bundle.main.localizations.filter { $0 != "Base" }
         XCTAssertGreaterThan(localizations.count, 5)
         for locale in localizations {

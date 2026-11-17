@@ -27,6 +27,21 @@ enum ExpandCollapseAction: CaseIterable {
     var closesArrowPopovers: Bool { self == .contextMenu }
 }
 
+// What a plain right-click on the arrow does (Settings › Advanced). Before 1.11
+// it showed the always-hidden icons; since then it opens the menu. The raw value
+// is what Preferences stores.
+enum RightClickAction: String, CaseIterable {
+    case showMenu
+    case showAlwaysHidden
+
+    static let `default`: RightClickAction = .showMenu
+
+    /// Anything unknown or missing reads as the default.
+    init(storedValue: String?) {
+        self = storedValue.flatMap(RightClickAction.init(rawValue:)) ?? .default
+    }
+}
+
 enum ExpandCollapseActionResolver {
     // On macOS 27 the mouse-up event a status bar button hands to its action
     // carries empty modifier flags even while Option is held (#434), so the live
@@ -43,11 +58,17 @@ enum ExpandCollapseActionResolver {
     // A nil event type means there is no real NSEvent behind the press, which is
     // what assistive synthesis (VoiceOver AXPress) produces: treat it as a plain
     // left click so VoiceOver users can toggle the bar at all.
-    static func action(eventType: NSEvent.EventType?, optionPressed: Bool, shiftPressed: Bool = false) -> ExpandCollapseAction {
+    // With right-click set to show the always-hidden icons, the two swap: a
+    // right-click toggles them and Option-right-click opens the menu.
+    static func action(eventType: NSEvent.EventType?, optionPressed: Bool, shiftPressed: Bool = false,
+                       rightClick: RightClickAction = .default) -> ExpandCollapseAction {
         guard let eventType = eventType else { return .toggle }
         switch eventType {
         case .leftMouseDown, .leftMouseDragged, .rightMouseDown, .rightMouseDragged: return .ignore
         default: break
+        }
+        if eventType == .rightMouseUp && rightClick == .showAlwaysHidden {
+            return optionPressed ? .contextMenu : .toggleSeparators
         }
         if optionPressed { return .toggleSeparators }
         switch eventType {

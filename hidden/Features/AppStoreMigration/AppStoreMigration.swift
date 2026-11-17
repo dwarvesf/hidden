@@ -63,6 +63,7 @@ enum AppStoreSettingsImport {
         UserDefaults.Key.presentationAutoMirrorEnabled: .number,
         UserDefaults.Key.presentationSensitiveApps: .dictionary,
         UserDefaults.Key.presentationShortcut: .data,
+        UserDefaults.Key.rightClickAction: .string,
     ]
 
     static func containerPreferencesURL(home: URL, bundleIdentifier: String) -> URL {

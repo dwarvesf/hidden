@@ -49,6 +49,44 @@ final class ExpandCollapseActionTests: XCTestCase {
         XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .rightMouseUp, optionPressed: true), .toggleSeparators)
     }
 
+    // "Right-click on the arrow": the menu unless the user picks the
+    // always-hidden icons, which is what right-click did before 1.11.
+    func testRightClickChoiceDefaultsToTheMenu() {
+        XCTAssertEqual(RightClickAction.default, .showMenu)
+        XCTAssertEqual(RightClickAction(storedValue: nil), .showMenu)
+        XCTAssertEqual(RightClickAction(storedValue: "nonsense"), .showMenu)
+        XCTAssertEqual(RightClickAction(storedValue: RightClickAction.showAlwaysHidden.rawValue), .showAlwaysHidden)
+        XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .rightMouseUp, optionPressed: false, rightClick: .showMenu), .contextMenu)
+    }
+
+    func testRightClickShowsAlwaysHiddenIconsWhenChosen() {
+        let action = ExpandCollapseActionResolver.action(eventType: .rightMouseUp, optionPressed: false, rightClick: .showAlwaysHidden)
+        XCTAssertEqual(action, .toggleSeparators)
+        XCTAssertFalse(action.mayShowArrivalsPrompt)
+        XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .rightMouseUp, optionPressed: false, shiftPressed: true,
+                                                           rightClick: .showAlwaysHidden), .toggleSeparators)
+    }
+
+    // With right-click taken, the menu stays one Option away.
+    func testOptionRightClickShowsTheMenuWhenRightClickShowsAlwaysHidden() {
+        XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .rightMouseUp, optionPressed: true, rightClick: .showAlwaysHidden), .contextMenu)
+    }
+
+    // The choice is about the right button only: left clicks and half clicks keep their meaning.
+    func testRightClickChoiceLeavesOtherPressesAlone() {
+        for choice in RightClickAction.allCases {
+            XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: nil, optionPressed: false, rightClick: choice), .toggle)
+            XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .leftMouseUp, optionPressed: false, rightClick: choice), .toggle)
+            XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .leftMouseUp, optionPressed: true, rightClick: choice), .toggleSeparators)
+            XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: .leftMouseUp, optionPressed: false, shiftPressed: true, rightClick: choice),
+                           .toggleWithFullBar)
+            for type in [NSEvent.EventType.rightMouseDown, .rightMouseDragged] {
+                XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: type, optionPressed: false, rightClick: choice), .ignore)
+                XCTAssertEqual(ExpandCollapseActionResolver.action(eventType: type, optionPressed: true, rightClick: choice), .ignore)
+            }
+        }
+    }
+
     // #434: on macOS 27 the button's mouse-up event arrives with no modifier
     // flags while Option is physically held; the live flags must still count.
     func testOptionDetectedFromLiveFlagsWhenEventFlagsAreEmpty() {
