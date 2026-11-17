@@ -1,6 +1,6 @@
 # memory-soak
 
-An hourly, read-only memory sample of the installed Hidden Bar, for a 14-day soak. It exists to answer dwarvesf/hidden #386 (footprint reported to grow to 600 MB after weeks of uptime) with our own numbers, using the reporter's method: `footprint` and `heap`.
+An hourly, read-only memory sample of the installed Hidden Bar, for a 14-day soak. It exists to answer consolelabs/hidden #386 (footprint reported to grow to 600 MB after weeks of uptime) with our own numbers, using the reporter's method: `footprint` and `heap`.
 
 ## What it measures
 
