@@ -32,6 +32,8 @@ private final class FakeInventory: MenuBarInventoryProviding {
     var items: [MenuBarInventoryItem] = []
     var authorizationRequests = 0
     var snapshots = 0
+    // False: a read never comes back, as when an app never answers.
+    var answers = true
 
     func requestAuthorization() {
         authorizationRequests += 1
@@ -39,7 +41,7 @@ private final class FakeInventory: MenuBarInventoryProviding {
 
     func snapshot(completion: @escaping ([MenuBarInventoryItem]) -> Void) {
         snapshots += 1
-        completion(items)
+        if answers { completion(items) }
     }
 }
 
@@ -1189,6 +1191,94 @@ final class NativeVisibilityEngineTests: XCTestCase {
         visibility.succeed(visibility.requests.count - 1)
         XCTAssertEqual(results, [.collapsed])
         XCTAssertEqual(engine.state, .collapsed)
+    }
+
+    // MARK: A request macOS never answers (#523, #524)
+
+    // While a collapse is in flight every arrow click and auto-collapse is
+    // ignored, so one macOS never answers must not keep the engine busy.
+    func testACollapseMacOSNeverAnswersGivesUpAndShowsTheBar() {
+        let engine = makeEngine()
+        var timeouts: [(delay: TimeInterval, fire: () -> Void)] = []
+        engine.scheduleCollapseTimeout = { timeouts.append(($0, $1)) }
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+        XCTAssertEqual(engine.state, .calibrating)
+        XCTAssertEqual(timeouts.map(\.delay), [NativeVisibilityEngine.collapseTimeout])
+
+        timeouts.first?.fire()
+        XCTAssertEqual(engine.state, .expanded, "nothing was hidden, so the bar shows expanded")
+        XCTAssertEqual(results, [.unavailable])
+
+        let late = visibility.succeed(0)
+        XCTAssertTrue(late.isInvalidated, "a late answer is dropped, so it hides nothing")
+        XCTAssertEqual(engine.state, .expanded)
+        XCTAssertEqual(results, [.unavailable], "the collapse reports once")
+
+        engine.collapse { results.append($0) }
+        XCTAssertEqual(visibility.requests.count, 2, "the next click asks again")
+        visibility.succeed(1)
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertEqual(results, [.unavailable, .collapsed])
+    }
+
+    func testACollapseWhoseSectionReadNeverReturnsGivesUp() {
+        let engine = makeEngine()
+        var timeout: (() -> Void)?
+        engine.scheduleCollapseTimeout = { timeout = $1 }
+        inventory.answers = false
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+        XCTAssertEqual(engine.state, .calibrating)
+
+        timeout?()
+        XCTAssertEqual(engine.state, .expanded)
+        XCTAssertEqual(results, [.unavailable])
+        XCTAssertTrue(visibility.requests.isEmpty)
+    }
+
+    // The controller re-arms auto-collapse when told, as the auto-hide timer
+    // that fired into the stuck collapse was used up.
+    func testAutoCollapseTriesAgainAfterACollapseTimedOut() {
+        let engine = makeEngine()
+        engine.scheduleCollapseTimeout = { [unowned self] in time.after($0, $1) }
+        var timedOut = 0
+        engine.onCollapseTimedOut = { [unowned self, unowned engine] in
+            timedOut += 1
+            time.after(10) { engine.collapse { _ in } }
+        }
+        engine.collapse { _ in }
+        time.advance(to: NativeVisibilityEngine.collapseTimeout)
+        XCTAssertEqual(timedOut, 1)
+        XCTAssertEqual(engine.state, .expanded)
+
+        time.advance(to: NativeVisibilityEngine.collapseTimeout + 10)
+        XCTAssertEqual(visibility.requests.count, 2, "auto-collapse runs again")
+        visibility.succeed(1)
+        XCTAssertEqual(engine.state, .collapsed)
+    }
+
+    func testATimeoutLeavesACollapseThatLandedAlone() {
+        let engine = makeEngine()
+        var timeouts: [() -> Void] = []
+        engine.scheduleCollapseTimeout = { timeouts.append($1) }
+        var timedOut = 0
+        engine.onCollapseTimedOut = { timedOut += 1 }
+        engine.collapse { _ in }
+        let held = visibility.succeed(0)
+        timeouts[0]()
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertFalse(held.isInvalidated)
+
+        // A newer collapse in flight is not cut short by the older one's timeout.
+        engine.expand()
+        engine.collapse { _ in }
+        XCTAssertEqual(timeouts.count, 2)
+        timeouts[0]()
+        XCTAssertEqual(engine.state, .calibrating)
+        visibility.succeed(1)
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertEqual(timedOut, 0)
     }
 
     // MARK: Microphone and camera (#432, #437)

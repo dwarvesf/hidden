@@ -238,6 +238,7 @@ class StatusBarController: MenuBarItemProvider {
             native.expandBar = { [weak self] in self?.expandMenubar() }
             native.collapseBar = { [weak self] in self?.collapseMenuBar() }
             native.expandBarForCapture = { [weak self] in self?.expandMenubar(activatingApp: false) }
+            native.onCollapseTimedOut = { [weak self] in self?.autoCollapseIfNeeded() }
             pinnedSectionsObserver = NotificationCenter.default.addObserver(forName: .pinnedSectionsChanged, object: nil, queue: .main) { [weak native] _ in
                 native?.pinnedSectionsDidChange()
             }
