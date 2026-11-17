@@ -190,6 +190,13 @@ t cut-cmp-detects-altered-prior altered_prior
 
 # ---- app checks on throwaway ad-hoc bundles --------------------------------------------
 
+# What the shipped app declares, read from the real plist and never from the pins: the fixture
+# bundles carry these values, so a pin that drifted from the plist fails the Feed URL and
+# EdDSA rows below instead of being copied into the fixtures.
+REAL_PLIST="$ROOT/hidden/Info-Direct.plist"
+REAL_FEED="$(/usr/libexec/PlistBuddy -c 'Print :SUFeedURL' "$REAL_PLIST" 2>/dev/null)"
+REAL_KEY="$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' "$REAL_PLIST" 2>/dev/null)"
+
 make_bundle() { # dir pubkey : a minimal app bundle (a copy of /usr/bin/true as its executable)
   local d="$1/Hidden Bar.app"
   mkdir -p "$d/Contents/MacOS"
@@ -203,7 +210,7 @@ make_bundle() { # dir pubkey : a minimal app bundle (a copy of /usr/bin/true as 
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>1.12.0</string>
 <key>CFBundleVersion</key><string>19</string>
-<key>SUFeedURL</key><string>$PINNED_FEED_URL</string>
+<key>SUFeedURL</key><string>$REAL_FEED</string>
 <key>SUPublicEDKey</key><string>$2</string>
 </dict></plist>
 PL
@@ -211,9 +218,9 @@ PL
 }
 printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict><key>com.apple.security.app-sandbox</key><true/></dict></plist>\n' > "$WORK/sandbox.entitlements"
 cp "$ROOT/hidden/Hidden-Direct.entitlements" "$WORK/empty.entitlements"
-APP_SBX="$(make_bundle "$WORK/b-sbx" "$PINNED_PUBKEY")"; codesign --force -s - --entitlements "$WORK/sandbox.entitlements" "$APP_SBX" 2>/dev/null
-APP_EMPTY="$(make_bundle "$WORK/b-empty" "$PINNED_PUBKEY")"; codesign --force -s - --entitlements "$WORK/empty.entitlements" "$APP_EMPTY" 2>/dev/null
-APP_NONE="$(make_bundle "$WORK/b-none" "$PINNED_PUBKEY")"; codesign --force -s - "$APP_NONE" 2>/dev/null
+APP_SBX="$(make_bundle "$WORK/b-sbx" "$REAL_KEY")"; codesign --force -s - --entitlements "$WORK/sandbox.entitlements" "$APP_SBX" 2>/dev/null
+APP_EMPTY="$(make_bundle "$WORK/b-empty" "$REAL_KEY")"; codesign --force -s - --entitlements "$WORK/empty.entitlements" "$APP_EMPTY" 2>/dev/null
+APP_NONE="$(make_bundle "$WORK/b-none" "$REAL_KEY")"; codesign --force -s - "$APP_NONE" 2>/dev/null
 APP_KEY="$(make_bundle "$WORK/b-key" "$(cat "$F/wrongkey.pub.b64")")"; codesign --force -s - --entitlements "$WORK/empty.entitlements" "$APP_KEY" 2>/dev/null
 
 t check-sandbox-entitled-fails rc_is 1 check_sandbox "$APP_SBX"
@@ -242,7 +249,7 @@ devid_sandboxed() {
   local app ident
   ident="$(security find-identity -v -p codesigning 2>/dev/null | sed -n 's/.*"\(Developer ID Application: .*(W777S7V8TN)\)".*/\1/p' | head -1)"
   [ -n "$ident" ] || { echo "no Developer ID identity"; return 77; }
-  app="$(make_bundle "$WORK/b-devid" "$PINNED_PUBKEY")"
+  app="$(make_bundle "$WORK/b-devid" "$REAL_KEY")"
   perl -e 'alarm 90; exec @ARGV' codesign --force --sign "$ident" --timestamp --options runtime \
     --entitlements "$WORK/sandbox.entitlements" "$app" >/dev/null 2>&1 || { echo "Developer ID signing with --timestamp failed (offline or locked keychain)"; return 77; }
   rows_of check_app "$app" 1.12.0 19; [ $? = 1 ] &&
@@ -250,6 +257,18 @@ devid_sandboxed() {
     { echo "rows: $(printf '%s' "$ROWS" | head -2 | tr '\n' ' ')"; return 1; }
 }
 devid_sandboxed >"$WORK/case.log" 2>&1; result check-app-devid-sandboxed-fails $? "$(tail -1 "$WORK/case.log")"
+pin_matches_plist() { # what: the pin in release.sh equals the shipped plist value, both non-empty
+  local pin="$2" real="$3"
+  [ -n "$real" ] || { echo "$1: hidden/Info-Direct.plist has no value"; return 1; }
+  [ "$pin" = "$real" ] || { echo "$1 drifted: release.sh pins '$pin', hidden/Info-Direct.plist has '$real'"; return 1; }
+}
+t pin-feed-url-matches-plist pin_matches_plist SUFeedURL "$PINNED_FEED_URL" "$REAL_FEED"
+t pin-pubkey-matches-plist pin_matches_plist SUPublicEDKey "$PINNED_PUBKEY" "$REAL_KEY"
+fixture_rows_pass() { # fixtures built from the real plist pass the Feed URL and EdDSA rows against the pins
+  rows_of check_app "$APP_EMPTY" 1.12.0 19
+  row_has 'Feed URL' "$REAL_FEED" && ! row_has 'Feed URL' FAIL && row_has 'EdDSA public key' 'equals the pinned key'
+}
+t check-app-fixture-rows-match-pins fixture_rows_pass
 prior_key() { rc_is 1 check_pubkey "$APP_KEY" && check_pubkey "$APP_EMPTY"; }
 t pubkey-differs-from-prior-fails prior_key
 
@@ -311,7 +330,7 @@ t tree-drift-detected tree_drift
 
 # ---- secrets handling, notarization (stubbed xcrun and op) ------------------------------
 
-make_bundle "$WORK/notary-app" "$PINNED_PUBKEY" >/dev/null
+make_bundle "$WORK/notary-app" "$REAL_KEY" >/dev/null
 notarize_run() { # STUB_NOTARY value : runs the stage in a subshell with the real EXIT trap
   local case_dir="$WORK/notary-$1"
   mkdir -p "$case_dir/out" "$case_dir/tmp" "$case_dir/tmp/trashed"
