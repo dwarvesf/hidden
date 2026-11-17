@@ -258,3 +258,7 @@ Steps to view always hidden icons:
 "None" = "None";
 "Choose the apps that stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone." = "Choose the apps that stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone.";
 "Apps with a menu bar icon appear here once Hidden Bar has seen them." = "Apps with a menu bar icon appear here once Hidden Bar has seen them.";
+"Right-click on the arrow" = "Right-click on the arrow";
+"Show menu" = "Show menu";
+"Show always-hidden icons" = "Show always-hidden icons";
+"Option-right-click the arrow to open the menu." = "Option-right-click the arrow to open the menu.";

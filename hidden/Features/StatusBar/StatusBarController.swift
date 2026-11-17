@@ -311,7 +311,8 @@ class StatusBarController: MenuBarItemProvider {
         // so VoiceOver can operate the bar.
         let optionPressed = ExpandCollapseActionResolver.isOptionPressed(eventFlags: event?.modifierFlags, liveFlags: NSEvent.modifierFlags)
         let shiftPressed = ExpandCollapseActionResolver.isShiftPressed(eventFlags: event?.modifierFlags, liveFlags: NSEvent.modifierFlags)
-        let action = ExpandCollapseActionResolver.action(eventType: event?.type, optionPressed: optionPressed, shiftPressed: shiftPressed)
+        let action = ExpandCollapseActionResolver.action(eventType: event?.type, optionPressed: optionPressed, shiftPressed: shiftPressed,
+                                                         rightClick: Preferences.rightClickAction)
         if action.closesArrowPopovers { closeArrowPopovers() }
         switch action {
         case .ignore:
@@ -328,9 +329,11 @@ class StatusBarController: MenuBarItemProvider {
             // Right-click opens the same context menu the separator has (#356),
             // making settings reachable from the control everyone clicks.
             // The separators/always-hidden toggle stays on option-click.
+            // With right-click set to the always-hidden icons, Option-right-click.
             showContextMenu(from: sender)
         case .toggleSeparators:
-            // Both option+left and option+right land here: separators toggle.
+            // Option-click lands here, and a plain right-click when the user
+            // picked "Show always-hidden icons" for it.
             self.showHideSeparatorsAndAlwayHideArea()
         }
     }

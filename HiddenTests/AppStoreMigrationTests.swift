@@ -99,7 +99,7 @@ final class AppStoreMigrationTests: XCTestCase {
             UserDefaults.Key.revealOnShakeEnabled, UserDefaults.Key.newAppDefaultSection,
             UserDefaults.Key.findHiddenIconShortcut,
             UserDefaults.Key.presentationAutoMirrorEnabled, UserDefaults.Key.presentationSensitiveApps,
-            UserDefaults.Key.presentationShortcut,
+            UserDefaults.Key.presentationShortcut, UserDefaults.Key.rightClickAction,
         ]
         XCTAssertEqual(Set(AppStoreSettingsImport.importableKeys.keys), appKeys)
     }

@@ -253,6 +253,19 @@ enum Preferences {
         }
     }
 
+    // What a plain right-click on the arrow does. Stored as the choice's name;
+    // anything unreadable reads as the menu, the default since 1.11.
+    static var rightClickAction: RightClickAction {
+        get {
+            RightClickAction(storedValue: AppDefaults.store.string(forKey: UserDefaults.Key.rightClickAction))
+        }
+
+        set {
+            AppDefaults.store.set(newValue.rawValue, forKey: UserDefaults.Key.rightClickAction)
+            NotificationCenter.default.post(Notification(name: .prefsChanged))
+        }
+    }
+
     static var notchOverflowEnabled: Bool {
         get {
             AppDefaults.store.bool(forKey: UserDefaults.Key.notchOverflowEnabled)

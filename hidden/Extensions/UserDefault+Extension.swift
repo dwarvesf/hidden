@@ -33,6 +33,7 @@ extension UserDefaults {
         static let presentationAutoMirrorEnabled = "presentationAutoMirrorEnabled"
         static let presentationSensitiveApps = "presentationSensitiveApps"
         static let presentationShortcut = "presentationShortcut"
+        static let rightClickAction = "rightClickAction"
         // Internal: not user-facing, so not in the App Store import whitelist.
         static let menuBarCatalogFirstSeen = "menuBarCatalogFirstSeen"
         static let arrivalsPending = "arrivalsPending"

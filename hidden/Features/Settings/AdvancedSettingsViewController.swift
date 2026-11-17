@@ -11,6 +11,22 @@ import AppKit
 final class AdvancedSettingsViewController: SettingsPaneController {
     private var macOSAlsoHidesCaption: NSTextField?
 
+    /// English title of a "Right-click on the arrow" choice, also its Localizable.strings key.
+    static func rightClickTitle(for choice: RightClickAction) -> String {
+        switch choice {
+        case .showMenu: return "Show menu"
+        case .showAlwaysHidden: return "Show always-hidden icons"
+        }
+    }
+
+    /// Where the action right-click does not do went.
+    static func rightClickCaption(for choice: RightClickAction) -> String {
+        switch choice {
+        case .showMenu: return "Option-click the arrow to see always-hidden icons.".localized
+        case .showAlwaysHidden: return "Option-right-click the arrow to open the menu.".localized
+        }
+    }
+
     override func buildForm() {
         let showWindow = boundSwitch(UserDefaults.Key.isShowPreference, read: { Preferences.isShowPreference },
                                      write: { Preferences.isShowPreference = $0 })
@@ -21,7 +37,8 @@ final class AdvancedSettingsViewController: SettingsPaneController {
         var rows = [SettingsForm.row("Show this window when Hidden Bar opens".localized, control: showWindow),
                     SettingsForm.row("Make room for icons while they are shown".localized,
                                           caption: "Hides the menus of the app you are using while hidden icons are shown, so more icons fit.".localized,
-                                          control: fullBar)]
+                                          control: fullBar),
+                    rightClickRow()]
         // The notch row only where a notch exists and macOS can put icons behind it.
         if context.showsNotchOverflow {
             let notch = boundSwitch(UserDefaults.Key.notchOverflowEnabled, read: { Preferences.notchOverflowEnabled },
@@ -60,6 +77,32 @@ final class AdvancedSettingsViewController: SettingsPaneController {
         // One group: every row here is set once, if ever.
         addSection(nil, rows: rows)
         refreshAll()
+    }
+
+    // A popup, not a switch: it names both choices, like the menu it replaces.
+    private func rightClickRow() -> NSView {
+        let popup = NSPopUpButton(frame: .zero, pullsDown: false)
+        popup.controlSize = .small
+        for choice in RightClickAction.allCases {
+            popup.addItem(withTitle: Self.rightClickTitle(for: choice).localized)
+        }
+        popup.identifier = NSUserInterfaceItemIdentifier(UserDefaults.Key.rightClickAction)
+        popup.target = self
+        popup.action = #selector(rightClickPicked(_:))
+        let row = SettingsForm.row("Right-click on the arrow".localized,
+                                   caption: Self.rightClickCaption(for: Preferences.rightClickAction), control: popup)
+        let caption = (row.subviews.first { $0 is NSStackView } as? NSStackView)?.arrangedSubviews.last as? NSTextField
+        onRefresh { [weak popup, weak caption] in
+            let choice = Preferences.rightClickAction
+            popup?.selectItem(at: RightClickAction.allCases.firstIndex(of: choice) ?? 0)
+            caption?.stringValue = Self.rightClickCaption(for: choice)
+        }
+        return row
+    }
+
+    @objc private func rightClickPicked(_ sender: NSPopUpButton) {
+        guard RightClickAction.allCases.indices.contains(sender.indexOfSelectedItem) else { return }
+        Preferences.rightClickAction = RightClickAction.allCases[sender.indexOfSelectedItem]
     }
 
     private func refreshMacOSAlsoHides() {
