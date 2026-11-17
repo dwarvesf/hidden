@@ -66,6 +66,10 @@ import AppKit
 //   one run from elsewhere (Downloads, a build folder): it hides that app's
 //   icons although they are allowed, Hidden Bar's own arrow included, leaving no
 //   arrow to expand with. Outside an Applications folder nothing is hidden.
+//   Another app run from elsewhere (iStat Menus 7 from Application Support,
+//   #521) is hidden the same way although it is allowed; Preferences lists it
+//   with the system items macOS will not keep, and the opt-in keeps the bar
+//   whole while one sits right of the arrow.
 // Everything one held restriction allows besides Hidden Bar itself. Two holds are
 // the same only when every part matches, so a swap between lists that name the
 // same apps but different system items is not skipped.
@@ -485,6 +489,12 @@ final class NativeVisibilityEngine: MenuBarEngine {
             NSLog("NativeVisibility: arrow at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
             if !layout.unnameableVisibleItems.isEmpty || !layout.unprovenVisibleSystemItems.isEmpty {
                 NSLog("NativeVisibility: visible without a bundle id \(layout.unnameableVisibleItems); visible system extras to check \(layout.unprovenVisibleSystemItems)")
+            }
+            let unkeepableApps = layout.unkeepableVisibleApps
+            if !unkeepableApps.isEmpty, !Set(unkeepableApps).isSubset(of: Self.knownUnkeepableApps) {
+                NSLog("NativeVisibility: macOS hides \(unkeepableApps) although they are allowed: they run from outside an Applications folder")
+                Self.knownUnkeepableApps = Array(Set(Self.knownUnkeepableApps).union(unkeepableApps)).sorted()
+                NotificationCenter.default.post(name: .unkeepableSystemItemsChanged, object: nil)
             }
             self.layout = layout
             body(layout)
@@ -1133,6 +1143,8 @@ final class NativeVisibilityEngine: MenuBarEngine {
 
     // What Preferences shows as "macOS 27 also hides".
     static private(set) var knownUnkeepableSystemItems: [String] = []
+    // Same, for apps run from outside an Applications folder, by name.
+    static private(set) var knownUnkeepableApps: [String] = []
 
     private func rememberUnkeepable(_ identifiers: [String]) {
         unkeepableSystemItems.formUnion(identifiers)

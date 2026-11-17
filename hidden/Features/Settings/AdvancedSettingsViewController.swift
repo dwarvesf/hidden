@@ -64,6 +64,7 @@ final class AdvancedSettingsViewController: SettingsPaneController {
 
     private func refreshMacOSAlsoHides() {
         let names = NativeVisibilityEngine.knownUnkeepableSystemItems.map(NativeVisibilityEngine.displayName(ofSystemItem:))
+            + NativeVisibilityEngine.knownUnkeepableApps
         let help = "macOS 27 hides these items whenever an app hides icons. While one shows, Hidden Bar hides nothing.".localized
         macOSAlsoHidesCaption?.stringValue = names.isEmpty
             ? help

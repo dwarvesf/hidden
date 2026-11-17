@@ -19,7 +19,7 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
     // more time, so a busy app is not dropped from the allow list and hidden.
     private static let retryTimeout: Float = 0.5
 
-    private typealias App = (pid: pid_t, bundleIdentifier: String?, name: String?)
+    private typealias App = (pid: pid_t, bundleIdentifier: String?, name: String?, runsOutsideApplicationsFolder: Bool)
 
     private var hasRequestedAuthorization = false
 
@@ -42,13 +42,29 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
         let ownPID = ProcessInfo.processInfo.processIdentifier
         let apps: [App] = NSWorkspace.shared.runningApplications
             .filter { $0.processIdentifier != ownPID && Self.mayOwnStatusItems(bundleURL: $0.bundleURL, bundleIdentifier: $0.bundleIdentifier) }
-            .map { (pid: $0.processIdentifier, bundleIdentifier: $0.bundleIdentifier, name: $0.localizedName) }
+            .map { (pid: $0.processIdentifier, bundleIdentifier: $0.bundleIdentifier, name: $0.localizedName,
+                    runsOutsideApplicationsFolder: Self.runsOutsideApplicationsFolder($0.bundleURL)) }
         DispatchQueue.global(qos: .userInitiated).async {
             let start = Date()
             let items = Self.statusItems(of: apps)
             NSLog("NativeVisibility: inventory of \(apps.count) apps took \(Int(Date().timeIntervalSince(start) * 1000)) ms")
             DispatchQueue.main.async { completion(items) }
         }
+    }
+
+    // macOS 27 hides an app run from outside an Applications folder although its
+    // bundle id is allowed (#521), as it does Hidden Bar's own arrow. Measured
+    // with iStat Menus 7, whose LaunchAgent runs it from ~/Library/Application
+    // Support: hidden on 27.0.1 and 27.2.1, kept when run from /Applications.
+    // macOS's own processes are left out: SystemUIServer's extras are kept by
+    // bundle, and sharingd (/usr/libexec) lists an item no one sees.
+    static func runsOutsideApplicationsFolder(_ bundleURL: URL?,
+                                              applicationFolders: [URL] = FileManager.default.urls(for: .applicationDirectory,
+                                                                                                   in: .localDomainMask)) -> Bool {
+        guard let url = bundleURL else { return false }
+        let path = url.resolvingSymlinksInPath().standardizedFileURL.path
+        if ["/System/", "/usr/", "/Library/Apple/"].contains(where: path.hasPrefix) { return false }
+        return !NativeVisibilityEngine.isInApplicationsFolder(url, applicationFolders: applicationFolders)
     }
 
     // Apps and bare executables (scripts, helpers without an Info.plist) can own
@@ -94,7 +110,8 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
                            let app = apps[index]
                            guard app.bundleIdentifier != nil else { return [] }
                            return [MenuBarInventoryItem(bundleIdentifier: app.bundleIdentifier, frame: .zero,
-                                                        isUnreadable: true, ownerName: app.name)]
+                                                        isUnreadable: true, ownerName: app.name,
+                                                        runsOutsideApplicationsFolder: app.runsOutsideApplicationsFolder)]
                        })
     }
 
@@ -152,11 +169,13 @@ final class AccessibilityMenuBarInventory: MenuBarInventoryProviding {
         return .items(children.map { child in
             guard let frame = frame(of: child) else {
                 return MenuBarInventoryItem(bundleIdentifier: app.bundleIdentifier, frame: .zero,
-                                            isUnreadable: true, ownerName: app.name)
+                                            isUnreadable: true, ownerName: app.name,
+                                            runsOutsideApplicationsFolder: app.runsOutsideApplicationsFolder)
             }
             return MenuBarInventoryItem(bundleIdentifier: app.bundleIdentifier, frame: frame,
                                         systemIdentifier: isSystemOwner ? identifier(of: child) : nil,
-                                        ownerName: app.name)
+                                        ownerName: app.name,
+                                        runsOutsideApplicationsFolder: app.runsOutsideApplicationsFolder)
         })
     }
 
