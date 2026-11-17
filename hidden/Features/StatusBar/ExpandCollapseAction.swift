@@ -62,7 +62,7 @@ enum ExpandCollapseActionResolver {
 // A seam so the choice of API is unit-testable without activating a real app.
 protocol FullBarActivating {
     func activateIgnoringOtherApps()
-    func activateCooperatively()
+    func activateFromFrontApp()
 }
 
 extension NSApplication: FullBarActivating {
@@ -70,24 +70,30 @@ extension NSApplication: FullBarActivating {
         activate(ignoringOtherApps: true)
     }
 
-    func activateCooperatively() {
-        if #available(macOS 14.0, *) {
-            activate()
+    // From macOS 14 a plain activate() is also ignored when another app is
+    // frontmost, so name the front app as the one to take the active state from.
+    func activateFromFrontApp() {
+        guard #available(macOS 14.0, *) else { return }
+        if let front = NSWorkspace.shared.frontmostApplication, front != NSRunningApplication.current,
+           NSRunningApplication.current.activate(from: front, options: []) {
+            return
         }
+        activate()
     }
 }
 
 enum FullBarActivation {
-    // From macOS 14 activate(ignoringOtherApps:) is ignored (cooperative
-    // activation), so the full menu bar option never took focus and the front
-    // app's menus kept the bar (#142). Older systems keep the old call.
+    // From macOS 14 activate(ignoringOtherApps:) and a plain activate() are
+    // ignored (cooperative activation), so the full menu bar option never took
+    // focus and the front app's menus kept the bar (#142). Older systems keep
+    // the old call.
     static var usesCooperativeActivation: Bool {
         return ProcessInfo.processInfo.isOperatingSystemAtLeast(OperatingSystemVersion(majorVersion: 14, minorVersion: 0, patchVersion: 0))
     }
 
     static func activate(_ app: FullBarActivating, cooperative: Bool = usesCooperativeActivation) {
         if cooperative {
-            app.activateCooperatively()
+            app.activateFromFrontApp()
         } else {
             app.activateIgnoringOtherApps()
         }

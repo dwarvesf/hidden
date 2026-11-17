@@ -103,19 +103,19 @@ final class ExpandCollapseActionTests: XCTestCase {
 }
 
 // The full menu bar option must take focus: activate(ignoringOtherApps:) is
-// ignored from macOS 14, so there the cooperative call is the one to make (#142).
+// ignored from macOS 14, so there the active state is taken from the front app (#142).
 final class FullBarActivationTests: XCTestCase {
 
     private final class SpyApp: FullBarActivating {
         var calls: [String] = []
         func activateIgnoringOtherApps() { calls.append("ignoringOtherApps") }
-        func activateCooperatively() { calls.append("cooperative") }
+        func activateFromFrontApp() { calls.append("fromFrontApp") }
     }
 
-    func testMacOS14AndLaterUsesTheCooperativeCall() {
+    func testMacOS14AndLaterTakesTheActiveStateFromTheFrontApp() {
         let app = SpyApp()
         FullBarActivation.activate(app, cooperative: true)
-        XCTAssertEqual(app.calls, ["cooperative"])
+        XCTAssertEqual(app.calls, ["fromFrontApp"])
     }
 
     func testOlderMacOSKeepsTheIgnoringOtherAppsCall() {
@@ -127,6 +127,6 @@ final class FullBarActivationTests: XCTestCase {
     func testDefaultFollowsTheRunningOS() {
         let app = SpyApp()
         FullBarActivation.activate(app)
-        XCTAssertEqual(app.calls, [FullBarActivation.usesCooperativeActivation ? "cooperative" : "ignoringOtherApps"])
+        XCTAssertEqual(app.calls, [FullBarActivation.usesCooperativeActivation ? "fromFrontApp" : "ignoringOtherApps"])
     }
 }
