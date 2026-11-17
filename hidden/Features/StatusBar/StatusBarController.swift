@@ -498,8 +498,7 @@ class StatusBarController: MenuBarItemProvider {
         
         if activatingApp && wantsFullBar {
             NSApp.setActivationPolicy(.regular)
-            NSApp.activate(ignoringOtherApps: true)
-            
+            FullBarActivation.activate(NSApp)
         }
         #if HIDDENBAR_NATIVE_VISIBILITY
         presentationController?.barExpanded()
@@ -518,7 +517,7 @@ class StatusBarController: MenuBarItemProvider {
         let keyWindow = NSApp.isActive ? NSApp.keyWindow : nil
         NSApp.setActivationPolicy(policy)
         if wantsRegular {
-            NSApp.activate(ignoringOtherApps: true)
+            FullBarActivation.activate(NSApp)
         } else if let keyWindow {
             // Dropping to .accessory deactivates the app, so bring back the window in use.
             DispatchQueue.main.async { keyWindow.bringToFront() }
