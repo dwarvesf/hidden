@@ -2550,6 +2550,45 @@ final class ClockReplayTests: XCTestCase {
     }
 }
 
+// Notification Center's windows as Accessibility listed them on 27.0.1 (AXIdentifier
+// values, tree order). A notification left on screen at a collapse keeps a window
+// as tall as the screen up, the same window the panel uses.
+final class NotificationCenterPanelTests: XCTestCase {
+    private let desktopWidgets = [
+        "widget-local:com.apple.Photos:com.apple.Photos.PhotosReliveWidget:com.apple.Photos.PhotosReliveWidget",
+        "widget-local:com.apple.weather:com.apple.weather.widget:com.apple.weather",
+        "widget-local:com.apple.iCal:com.apple.iCal.CalendarWidgetExtension:com.apple.CalendarWidget.CalendarMonthWidget",
+        "month-view-current-date"
+    ]
+
+    func testANotificationOnScreenIsNotThePanel() {
+        let banner = ["C4E395C9-425E-4EF6-AD7D-EA02632B947C", "title", "body", "widgets-overlay-view"]
+        XCTAssertFalse(NotificationCenterPanel.isOpen(windowUp: true, identifiers: { banner + self.desktopWidgets }),
+                       "a click on the clock must still open the panel while a notification shows")
+    }
+
+    func testThePanelWithNotificationsIsOpen() {
+        let panel = ["AXNotificationListItems", "C4E395C9-425E-4EF6-AD7D-EA02632B947C", "title", "body",
+                     "3287DC28-A6A6-4184-A7C0-F493275D9DD9", "title", "body",
+                     "widget-editor-button", "xmark", "widgets-overlay-view"]
+        XCTAssertTrue(NotificationCenterPanel.isOpen(windowUp: true, identifiers: { panel + self.desktopWidgets }))
+    }
+
+    func testTheEmptyPanelIsOpen() {
+        XCTAssertTrue(NotificationCenterPanel.isOpen(windowUp: true, identifiers: { ["widget-editor-button", "widgets-overlay-view"] }))
+    }
+
+    func testNoWindowIsClosedWithoutAskingAccessibility() {
+        var asked = false
+        XCTAssertFalse(NotificationCenterPanel.isOpen(windowUp: false, identifiers: { asked = true; return ["widget-editor-button"] }))
+        XCTAssertFalse(asked, "the window list alone answers while no window is up")
+    }
+
+    func testUnreadableAccessibilityFallsBackToTheWindow() {
+        XCTAssertTrue(NotificationCenterPanel.isOpen(windowUp: true, identifiers: { nil }))
+    }
+}
+
 // The clock-click state machine on its own, with a manual clock and a fake panel.
 final class NotificationCenterSessionTests: XCTestCase {
     private var time: ManualTime!
