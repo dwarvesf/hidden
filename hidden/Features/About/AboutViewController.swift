@@ -15,7 +15,7 @@ final class AboutViewController: SettingsPaneController {
     static let issuesURL = URL(string: "https://github.com/consolelabs/hidden/issues")!
     static let websiteURL = URL(string: "https://dwarves.foundation/")!
     static let xURL = URL(string: "https://x.com/dwarvesf")!
-    static let emailAddress = "macos@d.foundation"
+    static let emailAddress = "support@console.so"
     static let checkForUpdatesIdentifier = NSUserInterfaceItemIdentifier("checkForUpdates")
 
     /// "Version 1.12 (18) · Direct download"; support needs to know which build.
