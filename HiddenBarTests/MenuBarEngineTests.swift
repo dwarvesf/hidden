@@ -3534,3 +3534,45 @@ final class PresentationModeEngineTests: XCTestCase {
     }
 }
 
+
+// MARK: - Capture activity listeners (#386)
+
+// Each monitor adds CoreAudio and CoreMediaIO property listeners and removes them
+// again, on deinit and on every device change. A removal that does not match its
+// add leaves the listener (a malloc block) registered for the life of the app,
+// which is how the footprint grew to hundreds of MB over weeks of uptime.
+final class CaptureActivityMonitorTests: XCTestCase {
+    func testRemovedListenersDoNotStayRegistered() throws {
+        let cycles = 100
+        // The first monitor loads CoreMediaIO, which keeps its own blocks.
+        autoreleasepool { _ = CaptureActivityMonitor() }
+        let before = try liveMallocBlocks()
+        for _ in 0..<cycles {
+            autoreleasepool { _ = CaptureActivityMonitor() }
+        }
+        let grown = try liveMallocBlocks() - before
+        // A leak keeps at least one block per system-object listener per cycle
+        // (2 x cycles), plus one per audio process and camera.
+        XCTAssertLessThan(grown, cycles / 2, "listener blocks still registered after \(cycles) add/remove cycles: \(grown)")
+    }
+
+    // Live __NSMallocBlock__ count in this process, read with /usr/bin/heap after
+    // the main queue drains.
+    private func liveMallocBlocks() throws -> Int {
+        RunLoop.current.run(until: Date().addingTimeInterval(0.5))
+        let heap = Process()
+        heap.executableURL = URL(fileURLWithPath: "/usr/bin/heap")
+        heap.arguments = ["\(ProcessInfo.processInfo.processIdentifier)"]
+        let out = Pipe()
+        heap.standardOutput = out
+        heap.standardError = Pipe()
+        try heap.run()
+        let data = out.fileHandleForReading.readDataToEndOfFile()
+        heap.waitUntilExit()
+        let line = String(decoding: data, as: UTF8.self).split(separator: "\n").first { $0.contains("__NSMallocBlock__") }
+        guard heap.terminationStatus == 0, let count = line?.split(separator: " ").first.flatMap({ Int($0) }) else {
+            throw XCTSkip("heap could not read this process (status \(heap.terminationStatus))")
+        }
+        return count
+    }
+}
