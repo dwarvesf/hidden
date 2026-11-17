@@ -10,4 +10,4 @@ The direct-download build (GitHub / Homebrew, not the App Store build) can check
 
 **Contact Us**
 
-If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at macos@d.foundation.
+If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at support@console.so.
