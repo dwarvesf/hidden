@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v1.13.1 (2026-11-18)
 
 ### Added
 - Settings › Advanced › "Right-click on the arrow": Show menu (the default, unchanged) or Show always-hidden icons. The second brings back the right-click of Hidden Bar before 1.11, which showed the always-hidden icons like Option-click does, so a Mac used without a keyboard (a TV, a remote) can reach them. The menu then opens with Option-right-click.
