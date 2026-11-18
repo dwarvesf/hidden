@@ -75,7 +75,7 @@ final class AutoCollapsePopupGuard {
          displays: @escaping () -> [PopupGuardDisplay] = AutoCollapsePopupGuard.screenDisplays,
          bundleIdentifier: @escaping (pid_t) -> String? = { NSRunningApplication(processIdentifier: $0)?.bundleIdentifier },
          menuBarItemOwners: @escaping () -> Set<String> = { [] },
-         notificationCenterPanelIsOpen: @escaping () -> Bool = { SystemMenuBarClock.isNotificationCenterOpen },
+         notificationCenterPanelIsOpen: @escaping () -> Bool = AutoCollapsePopupGuard.systemNotificationCenterPanelIsOpen,
          now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
          ownPID: pid_t = ProcessInfo.processInfo.processIdentifier,
          cap: TimeInterval = AutoCollapsePopupGuard.defaultCap,
@@ -89,6 +89,13 @@ final class AutoCollapsePopupGuard {
         self.ownPID = ownPID
         self.cap = cap
         self.log = log
+    }
+
+    // Before macOS 27 a notification keeps no screen-tall window up, so the window
+    // alone means the panel; the panel's own control was only checked on 27.
+    static func systemNotificationCenterPanelIsOpen() -> Bool {
+        guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 else { return true }
+        return SystemMenuBarClock.isNotificationCenterOpen
     }
 
     // Called when the auto-hide timer fires: true to re-arm instead of collapsing.
