@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Hidden Bar</title>
+        <link>https://github.com/dwarvesf/hidden</link>
+        <description>Hidden Bar updates</description>
+        <language>en</language>
+        <item>
+            <title>Version 1.12.0</title>
+            <pubDate>Sun, 15 Nov 2026 16:33:08 GMT</pubDate>
+            <sparkle:version>19</sparkle:version>
+            <sparkle:shortVersionString>1.12.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <sparkle:fullReleaseNotesLink>https://github.com/dwarvesf/hidden/releases/tag/v1.12.0</sparkle:fullReleaseNotesLink>
+            <description><![CDATA[
+<ul>
+<li>A redesigned Settings window.</li>
+<li>Hiding works again while an app keeps the microphone open (Wispr Flow, Krisp, Discord...).</li>
+<li>Switching from the App Store version offers to import your settings.</li>
+<li>macOS 27: pinned sections (beta) keep icons where you put them after apps restart.</li>
+<li>Fixes for macOS 26 and earlier.</li>
+</ul>
+]]></description>
+            <enclosure url="https://github.com/dwarvesf/hidden/releases/download/v1.12.0/Hidden-Bar-v1.12.0-macos.zip" sparkle:edSignature="qAsECvbmtEMdTEWB3C8crQ3PZy4JhXBRbEfZjgZ3rYmzYP+WKIJJXoH6PxsYag7/J+yKZH79EuU5mlNfe6zTBQ==" length="2174551" type="application/octet-stream"/>
+        </item>
+        <item>
+            <title>Version 1.11.2</title>
+            <pubDate>Sun, 15 Nov 2026 06:50:21 GMT</pubDate>
+            <sparkle:version>17</sparkle:version>
+            <sparkle:shortVersionString>1.11.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <sparkle:fullReleaseNotesLink>https://github.com/dwarvesf/hidden/releases/tag/v1.11.2</sparkle:fullReleaseNotesLink>
+            <description><![CDATA[
+<ul>
+<li>macOS 27: clicking the clock opens Notification Center again.</li>
+<li>Icons you keep right of the arrow stay visible.</li>
+<li>Microphone and camera indicators are no longer hidden.</li>
+<li>Multi-display fixes, auto-update, and Turkish, Ukrainian and Italian translations.</li>
+</ul>
+]]></description>
+            <enclosure url="https://github.com/dwarvesf/hidden/releases/download/v1.11.2/Hidden-Bar-v1.11.2-macos.zip" length="2026759" type="application/octet-stream" sparkle:edSignature="qAsECvbmtEMdTEWB3C8crQ3PZy4JhXBRbEfZjgZ3rYmzYP+WKIJJXoH6PxsYag7/J+yKZH79EuU5mlNfe6zTBQ=="/>
+        </item>
+    </channel>
+</rss>

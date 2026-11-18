@@ -106,15 +106,35 @@ the real `/Applications`). Never judge arrow or hiding behaviour on a copy outsi
    (every occurrence: the App Store target's four configurations plus the
    Direct target's four; `grep -c MARKETING_VERSION` must match the count you
    edited).
-3. Archive the GitHub build with the **Hidden Bar** scheme
-   (`Release-Direct`; builds the **Hidden Bar Direct** target), then notarize (Developer ID), staple, zip, and publish a
-   GitHub release with notes listing closed issues. The **Hidden Bar App Store**
-   scheme archives `Release`, the sandboxed App Store build, which cannot hide
-   on macOS 27. v1.11 shipped that build to GitHub by mistake. Before zipping,
-   confirm the app is unsandboxed:
+3. Build the GitHub release artifacts with one command, on the Mac mini, from a
+   clean tree at the release commit:
 
    ```sh
-   codesign -d --entitlements - 'Hidden Bar.app' | grep app-sandbox  # must print nothing
+   scripts/release.sh --notes notes.html     # <ul>...</ul> for the appcast item
+   ```
+
+   It runs the tests, archives the **Hidden Bar** scheme (`Release-Direct`;
+   builds the **Hidden Bar Direct** target), checks the app, notarizes,
+   staples, zips, EdDSA-signs, builds `appcast.xml`, smoke-tests the zip with
+   a host restore, and writes `build/release-<version>/checks.md` with one row
+   per check. It never tags, uploads or publishes; `checks.md` ends with the
+   publish commands as text. `scripts/release.sh --check-app <app>` runs the
+   app checks alone on any bundle; `bash scripts/test-release.sh` tests the
+   script offline. The steps below are what the script does, for a manual
+   run or when the script is broken on release day.
+
+   The **Hidden Bar App Store** scheme archives `Release`, the sandboxed App
+   Store build, which cannot hide on macOS 27. v1.11 shipped that build to
+   GitHub by mistake. Before zipping, confirm the app is signed Developer ID
+   first, then that it is unsandboxed. The order matters: an ad-hoc or
+   unsigned build has no entitlements, so the sandbox grep alone prints
+   nothing and passes on the wrong build.
+
+   ```sh
+   codesign -dvv 'Hidden Bar.app' 2>&1 | grep -E '^Authority=Developer ID Application: .*\(W777S7V8TN\)$|^Timestamp=|flags=.*runtime'
+   # must print 3 lines: the Developer ID authority, a Timestamp, and runtime flags
+   codesign -d --entitlements - --xml 'Hidden Bar.app'   # must print a plist ...
+   codesign -d --entitlements - --xml 'Hidden Bar.app' | grep -c app-sandbox   # ... and this must print 0
    ```
 
    The target signs automatically for development, so a plain archive fails
@@ -150,6 +170,15 @@ the appcast must be an asset of the **latest** release). The private EdDSA key
 lives in 1Password (`dfoundation-prod`, item "Hidden Bar Sparkle EdDSA private
 key"); only the public key (`SUPublicEDKey`) is in the repo. Losing the key
 means no installed copy can ever verify another update, so never regenerate it.
+
+`scripts/release.sh` does steps 1 to 3 below and writes the zips and
+`appcast.xml` under `build/release-<version>/`: it signs with `sign_update`
+from the pinned Sparkle tarball (sha256 checked every run), verifies every
+enclosure against `SUPublicEDKey` (pinned in the script), and builds the
+appcast by prepending the new item to the latest published `appcast.xml`, so
+every prior item stays byte-identical (it does not use `generate_appcast`,
+which rewrites prior items). Steps 4 and 5, the upload and publish, stay
+manual; `checks.md` prints them. The manual commands, for reference:
 
 Sparkle's `sign_update` and `generate_appcast` come from the Sparkle release
 tarball matching the pinned package version (2.10.1, `Sparkle-<ver>.tar.xz`
