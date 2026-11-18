@@ -19,6 +19,7 @@ static NSError *HBNativeVisibilityError(NSString *reason) {
 
 #import <dlfcn.h>
 #import <objc/message.h>
+#import <os/log.h>
 
 // MenuBarClientCore is the private framework behind macOS 27's assessment
 // (exam lockdown) mode, which can restrict the menu bar to an allow-list. It is
@@ -80,7 +81,12 @@ void HBNativeVisibilityInvalidate(id assertion) {
             ((void (*)(id, SEL))objc_msgSend)(assertion, HBInvalidate());
         }
     } @catch (NSException *exception) {
-        NSLog(@"NativeVisibility: invalidate raised %@: %@", exception.name, exception.reason);
+        // NSLog would show <private> in the unified log; same subsystem and
+        // stderr line as the Swift side's NSLog.
+        NSString *line = [NSString stringWithFormat:@"NativeVisibility: invalidate raised %@: %@", exception.name, exception.reason];
+        os_log_t log = os_log_create((NSBundle.mainBundle.bundleIdentifier ?: @"com.dwarvesv.minimalbar").UTF8String, "app");
+        os_log(log, "%{public}@", line);
+        fprintf(stderr, "%s\n", line.UTF8String);
     }
 }
 
