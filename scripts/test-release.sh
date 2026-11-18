@@ -194,6 +194,17 @@ altered_prior() {
   ! cmp -s "$WORK/feed-alt.xml" "$WORK/feed-1.xml" && ! cut_cmp_prior "$WORK/feed-alt.xml" "$F/prior-1.xml" "$WORK/cut4"
 }
 t cut-cmp-detects-altered-prior altered_prior
+prior_no_final_newline() { # a published feed with no newline after </rss> (as v1.13.0's) still compares equal
+  [ -n "$(tail -c 1 "$F/prior-1-nonl.xml")" ] &&
+  "$H" appcast --prior "$F/prior-1-nonl.xml" --item "$WORK/item-19.xml" --out "$WORK/feed-nonl.xml" &&
+  [ "$(count_items "$WORK/feed-nonl.xml")" = 2 ] && cut_cmp_prior "$WORK/feed-nonl.xml" "$F/prior-1-nonl.xml" "$WORK/cut5"
+}
+t cut-cmp-prior-no-final-newline prior_no_final_newline
+altered_prior_no_final_newline() { # the newline allowance never hides a real byte change
+  sed 's|<pubDate>Sun, 15 Nov 2026 06:50:21 GMT|<pubDate>Sun, 15 Nov 2026 06:50:22 GMT|' "$WORK/feed-nonl.xml" > "$WORK/feed-nonl-alt.xml"
+  ! cmp -s "$WORK/feed-nonl-alt.xml" "$WORK/feed-nonl.xml" && ! cut_cmp_prior "$WORK/feed-nonl-alt.xml" "$F/prior-1-nonl.xml" "$WORK/cut6"
+}
+t cut-cmp-no-final-newline-detects-altered altered_prior_no_final_newline
 
 # ---- app checks on throwaway ad-hoc bundles --------------------------------------------
 

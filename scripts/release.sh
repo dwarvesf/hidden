@@ -511,8 +511,11 @@ readback_new_item() { # appcast build short min-os url length : rc 1 and the mis
 }
 
 cut_cmp_prior() { # new-appcast prior-appcast scratch : the new feed minus its first item is byte-identical to the prior
+  # awk ends its output with a newline, so the prior side gets one too when its last byte is
+  # not one (the published 1.13.0 feed has none); every other byte still has to match
   awk 's==0 && $0=="        <item>"{s=1; next} s==1{ if ($0=="        </item>") s=2; next } {print}' "$1" > "$3"
-  cmp -s "$3" "$2"
+  { cat "$2"; [ -z "$(tail -c 1 "$2")" ] || printf '\n'; } > "$3.prior"
+  cmp -s "$3" "$3.prior"
 }
 
 count_items() { grep -cxF '        <item>' "$1"; }
