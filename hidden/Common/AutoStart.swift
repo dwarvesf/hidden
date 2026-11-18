@@ -26,7 +26,10 @@ extension SMAppService: LoginItemServing {}
 // every record under the app, so the migration turns launch at login off and on
 // once.
 enum LegacyLoginItem {
-    static let migratedKey = "smAppServiceMigrated"
+    // Not "smAppServiceMigrated": 1.11 and 1.11.1 set that key even when removing
+    // the helper failed, and nothing tells those users from the ones a later
+    // build cleaned. A new key makes every launcher-era install reset once more.
+    static let migratedKey = "legacyLoginItemReset"
     static let failureHint = "Hidden Bar could not remove the login item an old version left. System Settings > General > Login Items & Extensions lists it inside \"Hidden Bar\" under Allow in the Background, not as a row of its own. To remove it, turn \"Open Hidden Bar at login\" off and on again in Hidden Bar's Settings."
 
     enum Step: Equatable {
