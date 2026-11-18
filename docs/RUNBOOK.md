@@ -41,8 +41,10 @@ Standard checks before any release:
 - `hoverToExpand` off: no monitor log line, hover does nothing; on (the
   Preferences checkbox, no relaunch): dwell expands (synthesize a `mouseMoved` stream: cursor warping alone fires no
   events);
-- autostart pref on -> `AutoStart: SMAppService.mainApp.status = 1` on stderr;
-  off -> `= 0` (run the binary directly to capture stderr);
+- autostart pref on -> `AutoStart: status = 1` on stderr;
+  off -> `= 0` (`open --stderr FILE "/Applications/Hidden Bar.app"`, or run the binary
+  directly, to capture stderr; the unified log shows these lines as `<private>`, only
+  the static lines logged with `AppLog.publicLine` are readable there);
 - localization tables stay parseable: `plutil -lint hidden/*.lproj/*.strings`.
 
 ### Debug hooks harness (`scripts/hb-cmd`)

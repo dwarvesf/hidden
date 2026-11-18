@@ -10,7 +10,7 @@
 - macOS 27 (direct build): a plain notification no longer holds auto-hide for up to 10 minutes. macOS keeps a screen-tall Notification Center window up under a notification, and auto-hide took it for the open panel. It now checks that the panel itself is open (it has Edit Widgets) before waiting ([#524](https://github.com/dwarvesf/hidden/issues/524)).
 
 ### Changed
-- When auto-hide holds back because of the Settings window, the new-apps prompt, Notification Center, the palette or the pointer sitting in the menu bar, the log now says which, once per expansion. Look for "AutoCollapse: holding for" in Console.
+- When auto-hide holds back because of the Settings window, the new-apps prompt, Notification Center, the palette or the pointer sitting in the menu bar, the log now says which, once per expansion. The reason line ("AutoCollapse: holding for ...") is readable in Console; the app behind a popup hold and other details are in the stderr log, which the manual's "Capture a log" shows how to save. The lines for a collapse macOS never answered and for "hiding unavailable" are readable in Console too.
 
 ## v1.13.1 (2026-11-18)
 

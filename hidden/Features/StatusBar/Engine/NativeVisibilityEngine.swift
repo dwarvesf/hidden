@@ -257,12 +257,13 @@ final class NativeVisibilityEngine: MenuBarEngine {
         }
 
         guard visibility.isAvailable else {
-            logUnavailableOnce("the native menu-bar visibility API is not available in this build or on this macOS")
+            logUnavailableOnce("NativeVisibility: hiding unavailable: the native menu-bar visibility API is not available in this build or on this macOS")
             state = .unavailable
             return completion(.unavailable)
         }
         guard runsFromApplicationsFolder() else {
-            logUnavailableOnce("macOS 27 would also hide Hidden Bar's own arrow: it hides only apps it knows by bundle id, and Hidden Bar runs from outside an Applications folder (\(Bundle.main.bundlePath))")
+            logUnavailableOnce("NativeVisibility: hiding unavailable: Hidden Bar runs from outside an Applications folder, so macOS 27 would also hide its arrow",
+                               detail: "macOS 27 would also hide Hidden Bar's own arrow: it hides only apps it knows by bundle id, and Hidden Bar runs from outside an Applications folder (\((Bundle.main.bundlePath as NSString).abbreviatingWithTildeInPath))")
             state = .unavailable
             return completion(.unavailable)
         }
@@ -276,7 +277,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
             // hide icons the user kept visible. Not latched: it works as soon as
             // the permission is granted.
             inventory.requestAuthorization()
-            logUnavailableOnce("Accessibility permission is needed to read the menu-bar sections")
+            logUnavailableOnce("NativeVisibility: hiding unavailable: Accessibility permission is needed to read the menu-bar sections")
             return completion(.unavailable)
         }
         state = .calibrating
@@ -288,13 +289,13 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 if self.holdsPresentationList {
                     return self.holdPresentationListUnread(completion)
                 }
-                self.logUnavailableOnce("the arrow's position cannot be read yet")
+                self.logUnavailableOnce("NativeVisibility: hiding unavailable: the arrow's position cannot be read yet")
                 self.state = .expanded
                 return completion(.unavailable)
             }
             if !self.holdsPresentationList, self.pausesHidingForUnkeepableItems(),
                let reason = layout.reasonToKeepBarWhole(unkeepableSystemItems: self.unkeepableSystemItems) {
-                self.logUnavailableOnce(reason)
+                self.logUnavailableOnce("NativeVisibility: hiding unavailable: an icon right of the arrow cannot be kept visible, so the bar stays whole", detail: reason)
                 self.state = .expanded
                 return completion(.unavailable)
             }
@@ -623,6 +624,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         let attempt = collapseAttempt
         scheduleCollapseTimeout(Self.collapseTimeout) { [weak self] in
             guard let self = self, attempt == self.collapseAttempt, self.state == .calibrating else { return }
+            AppLog.publicLine("NativeVisibility: macOS did not answer the hide request; showing the whole menu bar")
             NSLog("NativeVisibility: macOS did not answer the hide request within \(Int(Self.collapseTimeout)) s; showing the whole menu bar")
             self.revealAll()
             self.state = .expanded
@@ -1098,10 +1100,16 @@ final class NativeVisibilityEngine: MenuBarEngine {
     }
 
     // Logged when the reason changes, so a retried collapse does not spam.
-    private func logUnavailableOnce(_ reason: String) {
+    // `line` is the public line (static, so no user data); `detail`, when the
+    // reason carries data such as a path or app names, stays in the private line.
+    private func logUnavailableOnce(_ line: StaticString, detail: String? = nil) {
+        let reason = detail ?? "\(line)"
         guard reason != lastUnavailableReason else { return }
         lastUnavailableReason = reason
-        NSLog("NativeVisibility: hiding unavailable: \(reason)")
+        AppLog.publicLine(line)
+        if let detail {
+            NSLog("NativeVisibility: hiding unavailable: \(detail)")
+        }
     }
 
     // Checks whether macOS hid a system extra the allow-list could only try to
