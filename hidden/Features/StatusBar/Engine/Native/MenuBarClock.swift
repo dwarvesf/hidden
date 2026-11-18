@@ -468,7 +468,7 @@ final class SystemMenuBarClock: MenuBarClockProviding {
     // The panel is a window as tall as the screen; banners are a few rows tall and
     // desktop widgets sit below the desktop. Owner, layer and bounds need no
     // Screen Recording permission, unlike window names.
-    private static var isNotificationCenterOpen: Bool {
+    static var isNotificationCenterOpen: Bool {
         return notificationCenterIsOpen(minimumHeight: (NSScreen.screens.map(\.frame.height).min() ?? 0) / 2)
     }
 

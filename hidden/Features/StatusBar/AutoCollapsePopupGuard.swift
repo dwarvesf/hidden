@@ -57,6 +57,7 @@ final class AutoCollapsePopupGuard {
     private let displays: () -> [PopupGuardDisplay]
     private let bundleIdentifier: (pid_t) -> String?
     private let menuBarItemOwners: () -> Set<String>
+    private let notificationCenterPanelIsOpen: () -> Bool
     private let now: () -> TimeInterval
     private let ownPID: pid_t
     private let cap: TimeInterval
@@ -67,10 +68,14 @@ final class AutoCollapsePopupGuard {
     // menu bar draws every app's items itself, so the window list has no
     // per-item windows to name the owners; before 27 each item is a status
     // window in the band and is picked up from the same read.
+    // notificationCenterPanelIsOpen: a notification on screen keeps a screen-tall
+    // Notification Center window up too, so the window alone does not mean the
+    // panel is open. Asked only when such a window is found.
     init(windows: OnScreenWindowListing = CGOnScreenWindowList(),
          displays: @escaping () -> [PopupGuardDisplay] = AutoCollapsePopupGuard.screenDisplays,
          bundleIdentifier: @escaping (pid_t) -> String? = { NSRunningApplication(processIdentifier: $0)?.bundleIdentifier },
          menuBarItemOwners: @escaping () -> Set<String> = { [] },
+         notificationCenterPanelIsOpen: @escaping () -> Bool = { SystemMenuBarClock.isNotificationCenterOpen },
          now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
          ownPID: pid_t = ProcessInfo.processInfo.processIdentifier,
          cap: TimeInterval = AutoCollapsePopupGuard.defaultCap,
@@ -79,6 +84,7 @@ final class AutoCollapsePopupGuard {
         self.displays = displays
         self.bundleIdentifier = bundleIdentifier
         self.menuBarItemOwners = menuBarItemOwners
+        self.notificationCenterPanelIsOpen = notificationCenterPanelIsOpen
         self.now = now
         self.ownPID = ownPID
         self.cap = cap
@@ -141,6 +147,7 @@ final class AutoCollapsePopupGuard {
             // short and widgets sit below the desktop (negative layers).
             if window.layer >= 0, window.frame.height >= panelHeight, panelHeight > 0,
                bundle(of: window.ownerPID) == Self.notificationCenterBundleIdentifier {
+                guard notificationCenterPanelIsOpen() else { continue }
                 return window
             }
             guard let band = bands.first(where: { Self.hangs(window.frame, from: $0) }) else { continue }

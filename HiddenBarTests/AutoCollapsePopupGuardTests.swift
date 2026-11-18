@@ -28,6 +28,8 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
     private var time: TimeInterval = 0
     private var owners: Set<String> = []
     private var ownerReads = 0
+    private var panelOpen = true
+    private var panelReads = 0
     private var logged: [String] = []
 
     // A 1600 x 900 display with a 24 pt menu bar, and a 900 x 1600 one to its
@@ -43,6 +45,8 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         time = 0
         owners = ["com.example.netmon"]
         ownerReads = 0
+        panelOpen = true
+        panelReads = 0
         logged = []
     }
 
@@ -57,6 +61,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
                                       displays: { [unowned self] in displays },
                                       bundleIdentifier: { bundles[$0] },
                                       menuBarItemOwners: { [unowned self] in ownerReads += 1; return owners },
+                                      notificationCenterPanelIsOpen: { [unowned self] in panelReads += 1; return panelOpen },
                                       now: { [unowned self] in time },
                                       ownPID: ownPID,
                                       log: { [unowned self] in logged.append($0) })
@@ -182,6 +187,34 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         XCTAssertTrue(popupGuard.defersCollapse())
         list.windows = []
         XCTAssertFalse(popupGuard.defersCollapse(), "closed")
+    }
+
+    // macOS 27 keeps a screen-tall Notification Center window up under a plain
+    // notification banner; the panel itself is not open, so the bar may collapse.
+    func testTallNotificationCenterWindowWithoutThePanelDoesNotDefer() {
+        let popupGuard = makeGuard()
+        panelOpen = false
+        list.windows = [window(notificationCenter, layer: 23, CGRect(x: 0, y: 0, width: 1600, height: 900))]
+        XCTAssertFalse(popupGuard.defersCollapse())
+        XCTAssertEqual(panelReads, 1)
+    }
+
+    func testTallNotificationCenterWindowWithThePanelOpenDefers() {
+        let popupGuard = makeGuard()
+        panelOpen = true
+        list.windows = [window(notificationCenter, layer: 23, CGRect(x: 0, y: 0, width: 1600, height: 900))]
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(panelReads, 1)
+    }
+
+    func testPanelCheckRunsOnlyWhenANotificationCenterWindowIsFound() {
+        let popupGuard = makeGuard()
+        list.windows = [
+            window(notificationCenter, layer: 23, CGRect(x: 1240, y: 30, width: 350, height: 90)),
+            window(netMonitor, layer: popUpMenu, CGRect(x: 1200, y: 24, width: 300, height: 400)),
+        ]
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(panelReads, 0, "a banner and a menu need no Accessibility read")
     }
 
     func testNotificationBannersAndWidgetsDoNotDefer() {
