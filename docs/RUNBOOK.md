@@ -152,7 +152,8 @@ the real `/Applications`). Never judge arrow or hiding behaviour on a copy outsi
    ```
 4. App Store (separate lane, **Hidden Bar App Store** scheme): the MAS listing
    has lagged GitHub since v1.8 (issues #281/#202); decide deliberately whether
-   a release goes there too.
+   a release goes there too. If it does, follow "App Store release" below,
+   after the direct release is published.
 5. Homebrew cask (`brew install --cask hiddenbar`) follows the GitHub release
    artifact; notarization matters (issue #219).
 6. Sparkle appcast (direct build only, see below): sign the notarized zip, add
@@ -216,6 +217,76 @@ ends in 200, and the entry's `sparkle:version` equals `CURRENT_PROJECT_VERSION`
 (Sparkle compares that, not the marketing version, so it must increase every
 release). Because `latest` follows the newest published release, publish the
 release as a draft first, upload assets, then publish.
+
+## App Store release
+
+Order: **the direct release first, then the App Store.** The listing copy
+(`docs/appstore/listing.json`) sends macOS 27 users to the direct download and
+names the direct version, so that GitHub release must be published (and
+`releases/latest` must resolve) before the App Store version goes to review.
+Both lanes build the same commit with the same `MARKETING_VERSION` and
+`CURRENT_PROJECT_VERSION`.
+
+Two scripts, both offline-testable with `bash scripts/test-release-mas.sh`:
+
+- `scripts/release-mas.sh` builds, signs and exports the pkg. It never uploads.
+- `scripts/asc-release.py` uploads, creates the version, attaches the build,
+  applies `docs/appstore/listing.json`, and submits. Standard library only (it
+  signs the API token with the system `openssl`); nothing to install.
+
+Steps, from a clean tree at the release commit, after the direct release is out:
+
+```sh
+export HB_MAS_PROFILE='<profile name or uuid>'   # see the table below
+scripts/release-mas.sh --dry-run                  # preflight only: builds nothing, reads no secret
+scripts/release-mas.sh                            # archive, export, check; prints the next command
+python3 -I scripts/asc-release.py release <version> <build> --pkg <pkg> \
+  --copyright '<year> <holder>' --review-email <email> --dry-run
+python3 -I scripts/asc-release.py release <version> <build> --pkg <pkg> \
+  --copyright '<year> <holder>' --review-email <email>
+```
+
+`release --dry-run` does every offline check (pkg readable, listing within
+Apple's limits, versions well formed) and every read, writes nothing to App
+Store Connect, and stops before upload and submit. The real run is safe to
+rerun: it skips an upload whose build is already on App Store Connect and a
+version that already exists. It waits for build processing (up to
+`HB_BUILD_WAIT_SECONDS`), then attaches the build, sets the review contact,
+applies the listing, and submits. Review is Apple's; with release type
+automatic after approval, the version goes live when approved. Single steps
+are subcommands (`state`, `upload`, `create-version`, `attach-build`,
+`review-contact`, `apply-listing`, `submit`); `state` shows versions, builds
+and review submissions.
+
+| Variable | Used by | Meaning |
+|---|---|---|
+| `HB_MAS_PROFILE` | release-mas.sh | Required. Name or UUID of the installed `MAC_APP_STORE` provisioning profile for `com.dwarvesv.minimalbar`. `asc-release.py profile --cert-serial <Apple Distribution cert serial>` downloads or creates one and prints its name and UUID. |
+| `HB_ASC_KEY_ID`, `HB_ASC_ISSUER_ID`, `HB_ASC_KEY_FILE` | both | The App Store Connect API key (id, issuer, `.p8` path). Set all three or none. With none, the key is read from 1Password: Connect first, then the ambient account. |
+| `HB_OP_VAULT` | asc-release.py | 1Password vault holding the key item (default `dfoundation-prod`). |
+| `HB_ASC_ITEM_SUFFIX` | asc-release.py | Title suffix of the key item (default `Hacker Bar Release`); exactly one item must match. |
+| `HB_TEAM_ID` | release-mas.sh | Apple team id (default `W777S7V8TN`). |
+| `HB_MAS_INSTALLER_CERT` | release-mas.sh | Installer identity that signs the pkg (default `3rd Party Mac Developer Installer`). |
+| `HB_COPYRIGHT` | asc-release.py | Default for `--copyright` (the version's copyright line). |
+| `HB_REVIEW_EMAIL` | asc-release.py | Default for `--review-email` (App Review contact email). |
+| `HB_BUILD_WAIT_SECONDS` | asc-release.py | How long to wait for build processing (default 2700). |
+
+Rules the scripts encode (learned in the 1.13.1 run):
+
+- **Manual signing at export**: the `Apple Distribution` identity plus the
+  existing MAS profile. Automatic export needs cloud signing access the API
+  key does not have.
+- **Never `umask 077`.** Apple rejects a pkg with root-only files (altool error
+  90255). The scripts keep the key in a mode 700 temp dir instead and refuse a
+  pkg that others cannot read.
+- **Export compliance**: the build is marked "no non-exempt encryption".
+- **Release type**: automatic after approval.
+- The key never lands in the build directory, a log or the process output; the
+  temp copies are truncated when the script exits.
+
+If a step fails: a missing or expired profile (`profile_installed` fails in the
+preflight) is fixed with `asc-release.py profile`; a 90255 on upload means the
+pkg or its folder was created by a restrictive umask, so rebuild; a build
+stuck in processing is retried with `attach-build` once it shows `VALID`.
 
 ## Direct vs App Store targets
 
