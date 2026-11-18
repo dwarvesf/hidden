@@ -47,6 +47,8 @@ The Hidden Bar is notarized before distributed out side App Store. It's safe to 
 brew install --cask hiddenbar
 ```
 
+Coming from the App Store version? Quit it and move `/Applications/Hidden Bar.app` to the Trash first: Homebrew does not install over it. Your settings stay; the new version offers to import them on first launch.
+
 #### Manual download
 
 - [Download latest version](https://github.com/consolelabs/hidden/releases/latest)

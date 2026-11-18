@@ -55,6 +55,7 @@ final class MacOS27Notice: NSObject {
     static let shared = MacOS27Notice()
     static let pageURL = URL(string: "https://github.com/consolelabs/hidden")!
     static let brewCommand = "brew install --cask hiddenbar"
+    static let brewFirstStep = "Quit this App Store version and move it to the Trash first. Homebrew does not install over it."
 
     #if DEBUG
     /// Launch with `-forceMacOS27Notice YES` to take the macOS 27 path on any
@@ -141,7 +142,11 @@ final class MacOS27Notice: NSObject {
         let command = NSTextField(labelWithString: brewCommand)
         command.font = .monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
         command.isSelectable = true
-        let stack = NSStackView(views: [label, command])
+        // Homebrew refuses while this copy sits in /Applications.
+        let first = NSTextField(wrappingLabelWithString: brewFirstStep.localized)
+        first.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        first.preferredMaxLayoutWidth = 300
+        let stack = NSStackView(views: [label, command, first])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 4

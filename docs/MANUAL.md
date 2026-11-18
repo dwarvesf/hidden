@@ -56,6 +56,18 @@ section is enabled.
 - Native hiding blocks Notification Center, so clicking the clock while the bar is collapsed expands it, opens Notification Center, and collapses it again when the panel closes, unless you expand or collapse it yourself meanwhile.
 - Native hiding also hides the menu-bar capsule that names the app using the microphone or camera (the orange or green indicator); the dot in the screen corner still shows. So while any app uses the microphone or a camera, Hidden Bar stops hiding and shows the whole bar, and hides again when that stops. The arrow keeps its collapsed look meanwhile. Screen recording is not covered: macOS offers no public way to detect it.
 
+### Switching from the App Store version
+
+The App Store version cannot hide icons on macOS 27; the direct build can. To switch:
+
+1. Quit the App Store version and move `/Applications/Hidden Bar.app` to the Trash. Homebrew refuses to install while it is there, and only the copy in `/Applications` can hide icons on macOS 27.
+2. Install the direct build: `brew install --cask hiddenbar`, or download it from [GitHub Releases](https://github.com/consolelabs/hidden/releases/latest) and drag it into Applications.
+3. Open it. On first launch it offers, once each:
+   - **Quit and Switch** if the App Store version (or an older direct version, 1.8 to 1.12) is still running.
+   - **Import your settings**: the App Store version keeps its settings in its own container. Import copies every Hidden Bar setting, including "Open Hidden Bar at login", which then opens this copy. "Not now" starts with default settings but keeps "Open Hidden Bar at login" as it was.
+   - **Move the App Store copy to the Trash**, if it is still installed. When macOS refuses (an App Store install can belong to the system), Hidden Bar says so and names the path to drag to the Trash in Finder.
+   - **Move to Applications**, when it runs from Downloads or a temporary folder.
+
 ## Settings window
 
 Tabs in a centered control at the top (Cmd+1 to Cmd+5). A status card at the top of General says whether Hidden Bar is working, and if not, what to do (grant Accessibility, move to Applications, or that the App Store build cannot hide on macOS 27). The "Your menu bar" preview draws the edge the running engine uses: the arrow on the macOS 27 direct build, the "|" separator otherwise.
