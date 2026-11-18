@@ -616,9 +616,6 @@ final class NativeVisibilityEngine: MenuBarEngine {
     var scheduleCollapseTimeout: (TimeInterval, @escaping () -> Void) -> Void = {
         DispatchQueue.main.asyncAfter(deadline: .now() + $0, execute: $1)
     }
-    // Set by the controller to re-arm auto-collapse: its timer fired into the
-    // collapse that timed out.
-    var onCollapseTimedOut: (() -> Void)?
     private var collapseAttempt = 0
 
     // Leaves the bar as an activation failure does: nothing held, expanded. The
@@ -632,7 +629,6 @@ final class NativeVisibilityEngine: MenuBarEngine {
             self.revealAll()
             self.state = .expanded
             completion(.unavailable)
-            self.onCollapseTimedOut?()
         }
     }
     var clockNow: () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }

@@ -1343,19 +1343,20 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertTrue(visibility.requests.isEmpty)
     }
 
-    // The controller re-arms auto-collapse when told, as the auto-hide timer
-    // that fired into the stuck collapse was used up.
+    // Timeouts report the same failure as other unavailable requests, so the
+    // controller can apply one retry budget to every failure.
     func testAutoCollapseTriesAgainAfterACollapseTimedOut() {
         let engine = makeEngine()
         engine.scheduleCollapseTimeout = { [unowned self] in time.after($0, $1) }
-        var timedOut = 0
-        engine.onCollapseTimedOut = { [unowned self, unowned engine] in
-            timedOut += 1
-            time.after(10) { engine.collapse { _ in } }
+        var results: [CollapseResult] = []
+        engine.collapse { [unowned self, unowned engine] result in
+            results.append(result)
+            if result == .unavailable {
+                time.after(10) { engine.collapse { _ in } }
+            }
         }
-        engine.collapse { _ in }
         time.advance(to: NativeVisibilityEngine.collapseTimeout)
-        XCTAssertEqual(timedOut, 1)
+        XCTAssertEqual(results, [.unavailable])
         XCTAssertEqual(engine.state, .expanded)
 
         time.advance(to: NativeVisibilityEngine.collapseTimeout + 10)
@@ -1368,9 +1369,8 @@ final class NativeVisibilityEngineTests: XCTestCase {
         let engine = makeEngine()
         var timeouts: [() -> Void] = []
         engine.scheduleCollapseTimeout = { timeouts.append($1) }
-        var timedOut = 0
-        engine.onCollapseTimedOut = { timedOut += 1 }
-        engine.collapse { _ in }
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
         let held = visibility.succeed(0)
         timeouts[0]()
         XCTAssertEqual(engine.state, .collapsed)
@@ -1378,13 +1378,13 @@ final class NativeVisibilityEngineTests: XCTestCase {
 
         // A newer collapse in flight is not cut short by the older one's timeout.
         engine.expand()
-        engine.collapse { _ in }
+        engine.collapse { results.append($0) }
         XCTAssertEqual(timeouts.count, 2)
         timeouts[0]()
         XCTAssertEqual(engine.state, .calibrating)
         visibility.succeed(1)
         XCTAssertEqual(engine.state, .collapsed)
-        XCTAssertEqual(timedOut, 0)
+        XCTAssertEqual(results, [.collapsed, .collapsed], "stale timeouts never report another result")
     }
 
     // MARK: Microphone and camera (#432, #437)
