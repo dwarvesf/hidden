@@ -4,6 +4,7 @@
 
 ### Fixed
 - Auto-hide no longer waits on a screen-edge window one or two points wide, such as the hot border a KVM switch draws, and it now sees a menu bar popup that starts a few points above the bar ([#548](https://github.com/dwarvesf/hidden/issues/548)).
+- macOS 27 (direct build): clicking the clock while the bar is collapsed no longer moves the pointer to the middle of the clock. Hidden Bar now repeats the click where the pointer already is ([#547](https://github.com/dwarvesf/hidden/issues/547)).
 
 ## v1.13.1 (2026-11-18)
 

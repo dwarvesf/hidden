@@ -1021,6 +1021,21 @@ final class NativeVisibilityEngineTests: XCTestCase {
         }
     }
 
+    // The replay clicks where the pointer already is, so it does not jump to the
+    // clock's centre.
+    func testClockReplayClicksAtThePointerInsideTheClock() {
+        let clock = CGRect(x: 1880, y: 0, width: 60, height: 24)
+        let pointer = CGPoint(x: 1895, y: 6)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: pointer, clockFrame: clock), pointer)
+    }
+
+    func testClockReplayFallsBackToTheCentreWhenThePointerIsOutsideOrUnknown() {
+        let clock = CGRect(x: 1880, y: 0, width: 60, height: 24)
+        let centre = CGPoint(x: 1910, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: CGPoint(x: 600, y: 400), clockFrame: clock), centre)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: nil, clockFrame: clock), centre)
+    }
+
     func testClockIsWatchedOnlyWhileARestrictionIsHeld() {
         let engine = makeEngine()
         XCTAssertNil(clock.onClick)
