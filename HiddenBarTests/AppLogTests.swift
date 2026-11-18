@@ -28,7 +28,9 @@ final class AppLogTests: XCTestCase {
         close(saved)
         try handle.close()
         let written = try String(contentsOf: file, encoding: .utf8)
-        XCTAssertTrue(written.hasSuffix("] AutoCollapse: holding for the palette 100%\n"), written)
-        XCTAssertEqual(written.components(separatedBy: "\n").filter { !$0.isEmpty }.count, 1, written)
+        // Under Xcode and xcodebuild os_log also mirrors the line to stderr in its own
+        // shape ("[events] ..."); ours is the one with "[pid:thread]" before the text.
+        let ours = try NSRegularExpression(pattern: #"\[\d+:\d+\] AutoCollapse: holding for the palette 100%$"#, options: .anchorsMatchLines)
+        XCTAssertEqual(ours.numberOfMatches(in: written, range: NSRange(written.startIndex..., in: written)), 1, written)
     }
 }
