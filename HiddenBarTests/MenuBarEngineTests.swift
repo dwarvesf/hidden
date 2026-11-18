@@ -313,13 +313,17 @@ final class MultiDisplayLayoutTests: XCTestCase {
                                                 systemIdentifier: "menu-bar-overflow-indicator")
 
     func testOverflowIndicatorMarksTheReadIncompleteAndIsNoItem() {
-        let layout = MenuBarLayoutResolver.resolve(
-            inventory: [overflow, listed("com.visible", on: portrait, fromRight: 150)],
-            separatorFrame: arrow(on: portrait, fromRight: 200), alwaysHiddenSeparatorFrame: nil,
-            displays: bothDisplays, isLTR: true, excludingBundle: nil)
-        XCTAssertTrue(layout.isIncomplete)
-        XCTAssertEqual(layout.sections, ["com.visible": .visible])
-        XCTAssertEqual(layout.unprovenVisibleSystemItems, [], "the chevron is not an item macOS could be asked to keep")
+        for identifier in ["menu-bar-overflow-indicator", "menu-bar-overflow-indicator-expanded"] {
+            var indicator = overflow
+            indicator.systemIdentifier = identifier
+            let layout = MenuBarLayoutResolver.resolve(
+                inventory: [indicator, listed("com.visible", on: portrait, fromRight: 150)],
+                separatorFrame: arrow(on: portrait, fromRight: 200), alwaysHiddenSeparatorFrame: nil,
+                displays: bothDisplays, isLTR: true, excludingBundle: nil)
+            XCTAssertTrue(layout.isIncomplete, identifier)
+            XCTAssertEqual(layout.sections, ["com.visible": .visible])
+            XCTAssertEqual(layout.unprovenVisibleSystemItems, [], "the chevron is not an item macOS could be asked to keep")
+        }
     }
 
     func testIncompleteReadTakesMissingAppsFromAnEarlierRead() {
@@ -330,23 +334,76 @@ final class MultiDisplayLayoutTests: XCTestCase {
                        ["com.kept": .visible, "com.moved": .hidden, "com.hidden": .hidden])
     }
 
-    private func engineOnBothDisplays(_ inventory: FakeInventory, _ visibility: FakeVisibility, arrowOn display: MenuBarDisplay) -> NativeVisibilityEngine {
+    private func engineOnBothDisplays(_ inventory: FakeInventory, _ visibility: FakeVisibility, arrowOn display: MenuBarDisplay,
+                                     running: Set<String> = [],
+                                     memory: MenuBarSectionMemory = InMemorySectionMemory(),
+                                     pinned: MenuBarSectionMemory = InMemorySectionMemory(),
+                                     pins: Bool = false) -> NativeVisibilityEngine {
         let items = FakeItems()
         return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                       ownBundleIdentifier: "com.dwarvesv.minimalbar",
-                                      itemFrame: { _ in arrow(on: display, fromRight: 200) },
-                                      displays: { bothDisplays }, isLTR: { true })
+                                      itemFrame: { $0 === items.toggleItem ? arrow(on: display, fromRight: 200) : nil },
+                                      displays: { bothDisplays }, runningBundleIdentifiers: { running }, isLTR: { true },
+                                      sectionMemory: memory, pinnedSections: pinned, pinsSections: { pins })
     }
 
-    func testOverflowingFirstReadLeavesTheBarWhole() {
+    func testOverflowingFirstReadHidesListedAppsAndKeepsUnlistedAppsVisible() {
+        let inventory = FakeInventory()
+        inventory.items = [overflow, listed("com.visible", on: portrait, fromRight: 150),
+                           listed("com.hidden", on: portrait, fromRight: 300)]
+        let visibility = FakeVisibility()
+        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait,
+                                          running: ["com.unlisted", "com.apple.MenuBarAgent", "com.dwarvesv.minimalbar"])
+        var result: CollapseResult?
+        engine.collapse { result = $0 }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.unlisted", "com.visible"])
+        XCTAssertEqual(engine.menuBarItemOwners, ["com.hidden", "com.visible"], "an unlisted running app is not a known menu-bar owner")
+        guard !visibility.requests.isEmpty else { return }
+        visibility.succeed(0)
+        XCTAssertEqual(result, .collapsed)
+        XCTAssertEqual(engine.state, .collapsed)
+    }
+
+    func testOverflowingFirstReadUsesRememberedSectionsWhenPinsAreOff() {
         let inventory = FakeInventory()
         inventory.items = [overflow, listed("com.visible", on: portrait, fromRight: 150)]
         let visibility = FakeVisibility()
-        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait)
-        var result: CollapseResult?
-        engine.collapse { result = $0 }
-        XCTAssertEqual(result, .unavailable)
-        XCTAssertTrue(visibility.requests.isEmpty)
+        let memory = InMemorySectionMemory()
+        memory.sections = ["com.saved-hidden": .hidden, "com.saved-visible": .visible]
+        let pinned = InMemorySectionMemory()
+        pinned.sections = ["com.saved-hidden": .visible]
+        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait,
+                                          running: ["com.saved-hidden", "com.saved-visible", "com.unknown"],
+                                          memory: memory, pinned: pinned)
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.first?.bundles,
+                       ["com.dwarvesv.minimalbar", "com.saved-visible", "com.unknown", "com.visible"])
+        XCTAssertEqual(engine.layout?.sections["com.saved-hidden"], .hidden)
+    }
+
+    func testOverflowingFirstReadUsesPinnedSectionsWithoutInventingDrags() {
+        let inventory = FakeInventory()
+        inventory.items = [overflow, listed("com.visible", on: portrait, fromRight: 150)]
+        let visibility = FakeVisibility()
+        let memory = InMemorySectionMemory()
+        memory.sections = ["com.saved": .visible]
+        let pinned = InMemorySectionMemory()
+        pinned.sections = ["com.saved": .hidden]
+        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait,
+                                          running: ["com.saved", "com.unknown"],
+                                          memory: memory, pinned: pinned, pins: true)
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.unknown", "com.visible"])
+        XCTAssertEqual(pinned.sections["com.saved"], .hidden)
+        XCTAssertEqual(memory.sections["com.saved"], .visible, "an omitted icon was not observed moving")
+        XCTAssertNil(pinned.sections["com.unknown"], "a running app need not own any menu-bar icon")
+        guard !visibility.requests.isEmpty else { return }
+        visibility.succeed(0)
+        engine.expand()
+        inventory.items = [listed("com.saved", on: portrait, fromRight: 150)]
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.last?.bundles, ["com.dwarvesv.minimalbar"])
+        XCTAssertEqual(pinned.sections["com.saved"], .hidden)
     }
 
     // Collapsed once on the wide display, then again while the narrow one is

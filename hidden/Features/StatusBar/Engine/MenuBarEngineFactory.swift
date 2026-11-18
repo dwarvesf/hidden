@@ -30,6 +30,9 @@ enum MenuBarEngineFactory {
             })
             let engine = NativeVisibilityEngine(items: items,
                                                 captureActivity: CaptureActivityMonitor(),
+                                                runningBundleIdentifiers: {
+                                                    Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
+                                                },
                                                 runsFromApplicationsFolder: runsFromApplicationsFolder,
                                                 pausesHidingForUnkeepableItems: { Preferences.pauseHidingForUnkeepableItems },
                                                 expandsWhenCaptureStarts: { Preferences.showWholeBarWhenCaptureStarts },

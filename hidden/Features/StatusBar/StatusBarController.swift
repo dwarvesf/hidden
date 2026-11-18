@@ -457,6 +457,7 @@ class StatusBarController: MenuBarItemProvider {
         if wantsFullBar {
             NSApp.setActivationPolicy(.regular)
         }
+        autoCollapseIfNeeded()
     }
 
     private var collapsedArrowImage: NSImage? {
