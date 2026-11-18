@@ -1,0 +1,61 @@
+#!/bin/bash
+# scripts/memory-soak/test-heartbeat : prove `sample` pings its heartbeat once per completed sample and not otherwise.
+#
+# Uses a stub ping helper that appends a line per call, a temp log, and a label that is not loaded, so the
+# live LaunchAgent, the live log and the live heartbeat are never touched. Cases:
+#   sampled      app not running (no such app path), URL file present   -> 1 ping, exit 0
+#   no-url       URL file absent                                        -> 0 pings, exit 0
+#   soak-ended   END_EPOCH already past (NEGATIVE CONTROL)              -> 0 pings, exit 0
+#   ping-fails   ping helper exits non-zero                             -> exit 0, "heartbeat ping failed" logged
+#   running      a fake "Hidden Bar" process, real footprint            -> 1 ping (the sampled-and-measured path)
+#   no-footprint same process, `footprint` stubbed to print nothing     -> 0 pings (footprint=NA stays silent)
+# Exit 0 when every case matches, 1 otherwise.
+set -u
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+SAMPLE="$HERE/sample"
+T="$(mktemp -d)"
+fails=0
+
+printf '#!/bin/bash\necho ping >> "%s/hits"\n' "$T" > "$T/ping-ok"
+printf '#!/bin/bash\nexit 7\n' > "$T/ping-bad"
+chmod +x "$T/ping-ok" "$T/ping-bad"
+echo "https://example.invalid/v1/heartbeat/FIXTURE" > "$T/url"
+
+# A fake app: a process whose command line contains "<app>/Contents/MacOS/Hidden Bar", which is what sample pgreps.
+FAKE="$T/Fake Hidden Bar.app"
+mkdir -p "$FAKE/Contents/MacOS" "$T/stubbin"
+printf '#!/bin/bash\nsleep 120\n' > "$FAKE/Contents/MacOS/Hidden Bar"
+chmod +x "$FAKE/Contents/MacOS/Hidden Bar"
+"$FAKE/Contents/MacOS/Hidden Bar" &
+FAKEPID=$!
+trap 'kill $FAKEPID 2>/dev/null' EXIT
+printf '#!/bin/bash\nexit 0\n' > "$T/stubbin/footprint"
+chmod +x "$T/stubbin/footprint"
+sleep 1
+
+# run <case> <ping-helper> <url-file> <end-epoch> <expect-pings> <expect-log-grep>
+run() {
+    : >| "$T/hits"
+    : >| "$T/log"
+    HB_SOAK_LOG="$T/log" HB_SOAK_APP="${APP:-$T/NoSuch.app}" HB_SOAK_LABEL=mini.hiddenbar-memory-soak-test \
+        HB_SOAK_HB_FILE="$3" HB_SOAK_PING="$2" env PATH="${EXTRA_PATH:+$EXTRA_PATH:}$PATH" "$SAMPLE" $4 >/dev/null 2>&1
+    local rc=$? pings
+    pings=$(wc -l < "$T/hits" | tr -d ' ')
+    if [ "$rc" = 0 ] && [ "$pings" = "$5" ] && { [ -z "$6" ] || grep -q "$6" "$T/log"; }; then
+        printf 'PASS %-11s pings=%s exit=%s\n' "$1" "$pings" "$rc"
+    else
+        printf 'FAIL %-11s pings=%s exit=%s (want pings=%s exit=0 log~%s)\n' "$1" "$pings" "$rc" "$5" "$6"
+        fails=$((fails + 1))
+    fi
+}
+
+run sampled    "$T/ping-ok"  "$T/url"  ""  1 "state=not-running"
+run no-url     "$T/ping-ok"  "$T/none" ""  0 "state=not-running"
+run soak-ended "$T/ping-ok"  "$T/url"  1   0 "soak-ended"
+run ping-fails "$T/ping-bad" "$T/url"  ""  0 "heartbeat ping failed"
+APP="$FAKE" run running      "$T/ping-ok" "$T/url" "" 1 "footprint=[0-9]"
+APP="$FAKE" EXTRA_PATH="$T/stubbin" run no-footprint "$T/ping-ok" "$T/url" "" 0 "footprint=NA"
+
+[ "$fails" = 0 ] && echo "-- summary: all cases match" || echo "-- summary: $fails case(s) FAIL"
+[ "$fails" = 0 ]

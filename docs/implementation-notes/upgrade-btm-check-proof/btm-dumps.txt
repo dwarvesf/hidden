@@ -1,0 +1,145 @@
+Hidden Bar upgrade-path BTM check, mac-ui VM (Lume), macOS 27.2.1 (26B131), 2026-11-16.
+sfltool dumpbtm run as root in the guest, filtered to Hidden Bar records. Runner and other app records removed.
+
+=== 0-baseline: before install, no Hidden Bar records
+(no Hidden Bar / dwarves entries in sfltool dumpbtm)
+
+=== 1-v19-enabled: v1.9 (13) installed from the v1.9 release dmg, Start at login ticked in its Preferences
+ #7:
+                 UUID: CB4E8110-B24A-41FD-9E82-864A345DC361
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+      Team Identifier: W777S7V8TN
+                 Type: app (0x2)
+                Flags: [ sandboxed ] (0x40)
+          Disposition: [disabled, allowed, not notified] (0x2)
+           Identifier: 2.com.dwarvesv.minimalbar
+                  URL: /Applications/Hidden Bar.app
+           Generation: 0
+    Bundle Identifier: com.dwarvesv.minimalbar
+ #8:
+                 UUID: 223E464B-A2C0-431F-953C-F22E815DF02A
+                 Name: LauncherApplication
+       Developer Name: Dwarves Foundation Company Limited
+      Team Identifier: W777S7V8TN
+                 Type: login item (0x4)
+                Flags: [ sandboxed ] (0x40)
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 4.com.dwarvesv.LauncherApplication
+                  URL: Contents/Library/LoginItems/LauncherApplication.app
+           Generation: 1
+    Bundle Identifier: com.dwarvesv.LauncherApplication
+    Parent Identifier: 2.com.dwarvesv.minimalbar
+
+=== 2-v19-after-reboot: after a reboot (auto-login); the helper launched v1.9 at login
+ #7:
+                 UUID: CB4E8110-B24A-41FD-9E82-864A345DC361
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+      Team Identifier: W777S7V8TN
+                 Type: app (0x2)
+                Flags: [ sandboxed ] (0x40)
+          Disposition: [disabled, allowed, not notified] (0x2)
+           Identifier: 2.com.dwarvesv.minimalbar
+                  URL: /Applications/Hidden Bar.app
+           Generation: 0
+    Bundle Identifier: com.dwarvesv.minimalbar
+ #8:
+                 UUID: 223E464B-A2C0-431F-953C-F22E815DF02A
+                 Name: LauncherApplication
+       Developer Name: Dwarves Foundation Company Limited
+      Team Identifier: W777S7V8TN
+                 Type: login item (0x4)
+                Flags: [ sandboxed ] (0x40)
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 4.com.dwarvesv.LauncherApplication
+                  URL: Contents/Library/LoginItems/LauncherApplication.app
+           Generation: 1
+    Bundle Identifier: com.dwarvesv.LauncherApplication
+    Parent Identifier: 2.com.dwarvesv.minimalbar
+
+=== 3-v113-first-launch: /Applications replaced with Hidden-Bar-v1.13.0-macos.zip (notarized, spctl accepted), launched once
+ #7:
+                 UUID: CB4E8110-B24A-41FD-9E82-864A345DC361
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+      Team Identifier: W777S7V8TN
+                 Type: app (0x2)
+                Flags: [ sandboxed ] (0x40)
+          Disposition: [disabled, allowed, not notified] (0x2)
+           Identifier: 2.com.dwarvesv.minimalbar
+                  URL: /Applications/Hidden Bar.app
+           Generation: 0
+    Bundle Identifier: com.dwarvesv.minimalbar
+ #8:
+                 UUID: 223E464B-A2C0-431F-953C-F22E815DF02A
+                 Name: LauncherApplication
+       Developer Name: Dwarves Foundation Company Limited
+      Team Identifier: W777S7V8TN
+                 Type: login item (0x4)
+                Flags: [ sandboxed ] (0x40)
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 4.com.dwarvesv.LauncherApplication
+                  URL: Contents/Library/LoginItems/LauncherApplication.app
+           Generation: 1
+    Bundle Identifier: com.dwarvesv.LauncherApplication
+    Parent Identifier: 2.com.dwarvesv.minimalbar
+
+=== 4-v113-after-reboot: after Import of the App Store settings (isAutoStart true, SMAppService status 1) and a reboot
+ #7:
+                 UUID: CB4E8110-B24A-41FD-9E82-864A345DC361
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+      Team Identifier: W777S7V8TN
+                 Type: app (0x2)
+                Flags: [ sandboxed ] (0x40)
+          Disposition: [enabled, allowed, not notified] (0x3)
+           Identifier: 2.com.dwarvesv.minimalbar
+                  URL: /Applications/Hidden Bar.app
+           Generation: 2
+    Bundle Identifier: com.dwarvesv.minimalbar
+ #8:
+                 UUID: 223E464B-A2C0-431F-953C-F22E815DF02A
+                 Name: LauncherApplication
+       Developer Name: Dwarves Foundation Company Limited
+      Team Identifier: W777S7V8TN
+                 Type: login item (0x4)
+                Flags: [ sandboxed ] (0x40)
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 4.com.dwarvesv.LauncherApplication
+                  URL: Contents/Library/LoginItems/LauncherApplication.app
+           Generation: 1
+    Bundle Identifier: com.dwarvesv.LauncherApplication
+    Parent Identifier: 2.com.dwarvesv.minimalbar
+
+=== 5-toggle-off: after turning Open Hidden Bar at login off in 1.13.0 Settings
+ #7:
+                 UUID: CB4E8110-B24A-41FD-9E82-864A345DC361
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+      Team Identifier: W777S7V8TN
+                 Type: app (0x2)
+                Flags: [ sandboxed ] (0x40)
+          Disposition: [disabled, allowed, not notified] (0x2)
+           Identifier: 2.com.dwarvesv.minimalbar
+                  URL: /Applications/Hidden Bar.app
+           Generation: 3
+    Bundle Identifier: com.dwarvesv.minimalbar
+
+=== Hidden Bar 1.13.0 log: pid 1552 first launch, pid 425 launch at login after the reboot (ServiceManagement and SMAppService only)
+2026-11-16 03:35:22.596 Df Hidden Bar[1552:271f] (ServiceManagement) Could not enable login item: com.dwarvesv.LauncherApplication: 22: Invalid argument
+2026-11-16 03:35:22.607 Df Hidden Bar[1552:271f] [com.apple.libxpc.SMAppService:all] Service <private> status: 0
+2026-11-16 03:35:22.613 Df Hidden Bar[1552:271f] [com.apple.libxpc.SMAppService:all] Service <private> status: 0
+2026-11-16 03:35:22.619 Df Hidden Bar[1552:271f] [com.apple.libxpc.SMAppService:all] Service <private> status: 0
+2026-11-16 03:36:28.666 Df Hidden Bar[1552:271f] [com.apple.libxpc.SMAppService:all] Service <private> status: 0
+2026-11-16 03:36:28.674 Df Hidden Bar[1552:271f] [com.apple.libxpc.SMAppService:all] Register (<private>) error: 0
+2026-11-16 03:36:28.683 Df Hidden Bar[1552:271f] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:36:28.689 Df Hidden Bar[1552:271f] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:37:03.043 Df Hidden Bar[425:a58] (ServiceManagement) Could not enable login item: com.dwarvesv.LauncherApplication: 22: Invalid argument
+2026-11-16 03:37:03.120 Df Hidden Bar[425:a58] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:37:03.166 Df Hidden Bar[425:a58] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:37:03.187 Df Hidden Bar[425:a58] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:39:40.443 Df Hidden Bar[425:a58] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:39:40.457 Df Hidden Bar[425:a58] [com.apple.libxpc.SMAppService:all] Unregister (<private>) error: 0
+2026-11-16 03:39:40.469 Df Hidden Bar[425:a58] [com.apple.libxpc.SMAppService:all] Service <private> status: 0
+2026-11-16 03:39:40.477 Df Hidden Bar[425:a58] [com.apple.libxpc.SMAppService:all] Service <private> status: 0

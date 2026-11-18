@@ -57,6 +57,9 @@ flowchart TD
 
 - **`AppDelegate`** (entry): registers default prefs, sets up the global hotkey,
   runs the one-shot legacy login-item migration, owns the `StatusBarController`.
+  Global shortcuts live in `HotKeyRegistry` (keyed by the preference that stores
+  each one, re-read on `.prefsChanged`); `ShortcutRecorderRow` is the one
+  Settings control that records them.
 - **`StatusBarController`** (the product, ~370 lines): the three status items,
   when to collapse/expand, auto-hide timer, interaction-awareness, hover-to-expand,
   self-restore of dragged-off items.
@@ -64,29 +67,70 @@ flowchart TD
   The controller calls `collapse` / `expand` / `updateAlwaysHiddenSection` /
   `invalidateLayout` and never writes a status-item length itself.
   `MenuBarEngineFactory` is the one place that picks an engine for the running
-  OS; today that is always `LegacyLengthEngine` (the length trick below).
+  OS and build: `NativeVisibilityEngine` on macOS 27 and later in the direct
+  build (`HIDDENBAR_NATIVE_VISIBILITY`), `LegacyLengthEngine` (the length trick
+  below) everywhere else, the App Store build on any OS included.
+- **`ShortcutRecorderRow`** and **`HotKeyRegistry`** (`Features/Settings`, `Models`):
+  every global shortcut (expand/collapse, find a hidden icon, presentation mode)
+  is a `Data` preference recorded by the one `ShortcutRecorderRow` and bound by
+  the registry, which re-reads on `.prefsChanged`. The registry never imports the
+  hot key library; `AppDelegate` supplies the Carbon binding. A recorder refuses
+  a combination that is already another Hidden Bar shortcut and names that one.
+- **`MenuBarItemCatalog`** (`Features/StatusBar/Layout`, direct build only): the
+  list of menu-bar apps (bundle id, name, icon, section, first-seen time, running
+  state) built from the engine's unrestricted reads plus the pinned-sections table.
+  It posts `.menuBarCatalogChanged` and the arrivals of the latest read; macOS's own
+  extras are left out. The pure merge and diff is `MenuBarCatalogState`. The palette,
+  arrivals and the presentation picker all read from it; none adds a read of its own.
+- **`Reveal`** (`Features/Reveal`): opt-in scroll, empty-click and shake gestures that
+  show the hidden icons. `RevealGestures` is the pure recognizer (thresholds in
+  `RevealTuning`), `RevealHitTester` tells empty bar from an icon through one
+  Accessibility read at the pointer, and `RevealController` asks `StatusBarController`
+  to expand. Global mouse and scroll monitors only, installed only while a pref is on.
+- **`Palette`** (`Features/Palette`, direct build): the type-to-find panel.
+  `PaletteModel` and `PaletteRanking` are pure; `PaletteController` owns the
+  non-activating key panel, so typing needs no key monitor. Return runs a
+  `PaletteRevealSession`, which mirrors the clock session: it allows one more bundle
+  through `MenuBarEngine.allowTemporarily`, presses the icon, and puts the old list
+  back when its menu closes, unless the user changed the bar meanwhile.
+- **`Arrivals`** (`Features/Arrivals`, direct build): `ArrivalsInbox` is the pure
+  decision (seen set, pending queue, answers, upgrade seeding, 24 hour lapse).
+  `ArrivalsController` applies `newAppDefaultSection` to each catalog arrival once,
+  through `PinnedSectionEdits.set`; Ask Me queues it in `arrivalsPending`, dots the
+  arrow, and the prompt popover answers.
+- **`Presentation`** (`Features/Presentation`, direct build): `PresentationState` is
+  the pure state machine (manual or mirror cause, camera and microphone pause with a
+  2.5 s quiet period). `PresentationController` owns the capsule status item and the
+  panels; `DisplayMirroring` reads `CGDisplayIsInMirrorSet` from the screen-parameters
+  notice. The engine holds one desired list (`hold(whenBar:)`) and one reconcile
+  (`reconcileHold`), so a launch, a clock click or a re-activation never swaps the strict
+  list back; a refused list fails open and a crash releases it.
 - **`Preferences`** (facade enum): typed accessors over `UserDefaults`; setters
   post `NotificationCenter` notifications that the controller and prefs window
   observe. There is no other state store.
-- **`PreferencesViewController` / `PreferencesWindowController`**: the only
-  window (storyboard-based), shown on demand from the context menu.
+- **`PreferencesWindowController`**: the only window, built in code with
+  a centered tab control and panes (`PreferencesViewController` is General; Appearance, Advanced
+  and About sit in `Features/Settings` and `Features/About`), shown on demand
+  from the context menu. `SettingsContext` carries the build, OS and status the
+  panes branch on; `SettingsModel.swift` holds the AppKit-free decisions.
 
 ## Behavior layers on the core trick
 
 | Layer | Mechanism | Cost when unused |
 |---|---|---|
 | Auto-hide | one-shot `Timer` after expand; at fire, if the pointer sits in any screen's menubar band (`visibleFrame.maxY ... frame.maxY`), it re-arms instead of collapsing | none (single point-in-rect check at fire) |
-| Hover-to-expand (opt-in) | global `.mouseMoved` monitor + 0.5s dwell timer; installed only when the `hoverToExpand` default is true at launch | zero: monitor not installed |
+| Hover-to-expand (opt-in) | global `.mouseMoved` monitor + 0.5s dwell timer; installed while the `hoverToExpand` default is true (Preferences checkbox; installed or removed on change) | zero: monitor not installed |
 | Self-restore | `isVisible = true` forced on our items at launch; Cmd-dragging them off otherwise bricks the app (its only UI is those items) | none |
 | Always-hidden section | a second separator item; its own length games, gated by `alwaysHiddenSectionEnabled` | item not created |
+| Reveal gestures (opt-in) | global scroll and mouse monitors; one Accessibility read at the pointer once a gesture is recognized | zero: no monitor with every reveal pref off |
+| Find a hidden icon (opt-in) | one registered global shortcut; a non-activating panel over `MenuBarItemCatalog` | zero: no shortcut, no panel |
+| Arrivals (opt-in Ask Me) | catalog arrival diff; one pref write per new app | none with Show It or Hide It beyond the write |
+| Presentation mode (opt-in) | a strict held list in the native engine, a capsule status item, mirror and capture signals | zero: no capsule while off |
 
 ## Autostart
 
 macOS 13+ `SMAppService.mainApp`: the app registers itself; the login item is
-visible and revocable in System Settings > General > Login Items. On first
-launch after upgrade, a one-shot migration deauthorizes the legacy
-`com.dwarvesv.LauncherApplication` helper registration (the BTM database never
-garbage-collects those; see Apple TN3111). The helper app itself is gone.
+visible and revocable in System Settings > General > Login Items. Builds up to v1.10 registered a `com.dwarvesv.LauncherApplication` helper instead, and the BTM database never garbage-collects that record (Apple TN3111). `SMLoginItemSetEnabled` cannot reach it once the helper is gone from the bundle (error 22), so `LegacyLoginItem` uses the one call that does: unregistering `SMAppService.mainApp` drops every record under the app. When the old sandbox container exists (or the build is sandboxed) and launch at login is on, it unregisters and re-registers the main app once, then sets `smAppServiceMigrated`; with launch at login off it waits. The helper app itself is gone.
 
 ## Security posture
 
@@ -97,14 +141,27 @@ the committed `Package.resolved`. The opt-in hover monitor observes pointer
 position only and discards event payloads. About-window links are hardcoded.
 A full-tree audit (2026-06) scored 9/10 with hygiene-level findings only.
 
+The above describes the App Store build. The direct build (target **Hidden Bar
+Direct**, unsandboxed) additionally links [Sparkle](https://sparkle-project.org)
+2 for self-update: it fetches one appcast from the GitHub release assets over
+HTTPS and installs only archives whose EdDSA signature matches `SUPublicEDKey`.
+No system profile is sent (Sparkle's `SUEnableSystemProfiling` stays off). The
+App Store binary contains no Sparkle code, framework, or Info.plist keys; see
+the RUNBOOK for how that split is built and checked.
+
 ## Known architectural limits
 
 - **The notch**: hidden icons sit "under" the notch area on notched Macs; the
   trick cannot reveal them there. The real fix is a spillover/second-bar design
   (tracked in issues #357/#341/#148; candidate implementations in PRs #350/#358).
-- **macOS 27**: the menu bar re-architecture in macOS 27 betas
+- **macOS 27**: the menu bar re-architecture in macOS 27
   (`NSMenuBarNavigationSceneExtension`) breaks length-inflation hiding entirely
-  (issue #360). A different mechanism may be required.
+  (issue #360). The direct build hides natively there (`NativeVisibilityEngine`,
+  which reads the sections over Accessibility); the App Store build cannot,
+  because the sandbox blocks those reads, and keeps `LegacyLengthEngine`, which
+  does not hide on 27. The behavior of macOS 27's own overflow « (when items
+  land in it, never behind the notch) is re-measured by
+  [`scripts/overflow-probe`](../scripts/overflow-probe/README.md).
 - **Other apps' open menus**: interaction-awareness is pointer-position-based;
   a pointer deep inside another app's open dropdown is below the menubar band,
   so the collapse can still fire there.

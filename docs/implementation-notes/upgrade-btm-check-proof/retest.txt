@@ -1,0 +1,105 @@
+Retest of the fix (branch fix/legacy-login-item), mac-ui VM, macOS 27.2.1 (26B131), 2026-11-16.
+Build: Release-Direct archive of the branch, exported developer-id, signed W777S7V8TN (not notarized; copied in without quarantine, spctl: source=Developer ID).
+sfltool dumpbtm as root, Hidden Bar records only. Log lines: ServiceManagement and SMAppService, process Hidden Bar.
+
+== Path A: v1.9 straight to the fix build
+-- v1.9 installed, launch at login on, after a login:
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+          Disposition: [disabled, allowed, not notified] (0x2)
+           Identifier: 2.com.dwarvesv.minimalbar
+                 Name: LauncherApplication
+       Developer Name: Dwarves Foundation Company Limited
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 4.com.dwarvesv.LauncherApplication
+    Parent Identifier: 2.com.dwarvesv.minimalbar
+-- fix build first launch (direct prefs empty, so launch at login off): migration waits, no SMLoginItemSetEnabled call, legacy record still there:
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+          Disposition: [disabled, allowed, not notified] (0x2)
+           Identifier: 2.com.dwarvesv.minimalbar
+                 Name: LauncherApplication
+       Developer Name: Dwarves Foundation Company Limited
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 4.com.dwarvesv.LauncherApplication
+    Parent Identifier: 2.com.dwarvesv.minimalbar
+-- Import of the old settings registered the main app (service status was 3, notFound); that register alone dropped the legacy record:
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 2.com.dwarvesv.minimalbar
+-- fresh login: the one reset ran (Unregister error 0, Register error 0, status 1), smAppServiceMigrated true:
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 2.com.dwarvesv.minimalbar
+2026-11-16 03:54:20.545 Df Hidden Bar[465:a9e] [com.apple.libxpc.SMAppService:all] Unregister (<private>) error: 0
+2026-11-16 03:54:20.554 Df Hidden Bar[465:a9e] [com.apple.libxpc.SMAppService:all] Register (<private>) error: 0
+2026-11-16 03:54:20.566 Df Hidden Bar[465:a9e] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:54:20.579 Df Hidden Bar[465:a9e] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:54:20.589 Df Hidden Bar[465:a9e] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:54:20.602 Df Hidden Bar[465:a9e] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+
+== Path B: the #456 state (1.13.0 with the ghost) upgraded to the fix build
+-- v1.9, launch at login on, login; then 1.13.0, Import, login: legacy record still there (reproduces the first run):
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 2.com.dwarvesv.minimalbar
+                 Name: LauncherApplication
+       Developer Name: Dwarves Foundation Company Limited
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 4.com.dwarvesv.LauncherApplication
+    Parent Identifier: 2.com.dwarvesv.minimalbar
+-- fix build launched once (launch at login on, flag unset, old container present): the reset ran and the legacy record is gone. Log: pid 480 is 1.13.0 at the earlier login (error 22), pid 871 is the fix build:
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 2.com.dwarvesv.minimalbar
+2026-11-16 03:58:10.102 Df Hidden Bar[480:b1a] (ServiceManagement) Could not enable login item: com.dwarvesv.LauncherApplication: 22: Invalid argument
+2026-11-16 03:58:10.132 Df Hidden Bar[480:b1a] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:58:10.146 Df Hidden Bar[480:b1a] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:58:10.165 Df Hidden Bar[480:b1a] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:58:53.318 Df Hidden Bar[871:18e8] [com.apple.libxpc.SMAppService:all] Unregister (<private>) error: 0
+2026-11-16 03:58:53.324 Df Hidden Bar[871:18e8] [com.apple.libxpc.SMAppService:all] Register (<private>) error: 0
+2026-11-16 03:58:53.330 Df Hidden Bar[871:18e8] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:58:53.335 Df Hidden Bar[871:18e8] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:58:53.341 Df Hidden Bar[871:18e8] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 03:58:53.346 Df Hidden Bar[871:18e8] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+-- fresh login: legacy record still gone, no second reset (status reads only), launched at login, one Hidden Bar under Open at Login (3-retest-fix-after-login-items.png):
+                 Name: Hidden Bar
+       Developer Name: Dwarves Foundation Company Limited
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 2.com.dwarvesv.minimalbar
+  "isAutoStart" => true
+  "smAppServiceMigrated" => true
+
+== Path C: fresh install (same build re-signed as com.dwarvesv.minimalbar.freshcheck, which never had a sandbox container)
+== container for com.dwarvesv.minimalbar.freshcheck ==
+absent
+== prefs ==
+  "isAutoStart" => true
+  "smAppServiceMigrated" => true
+== BTM records for com.dwarvesv.minimalbar.freshcheck ==
+ #8:
+                 Name: Hidden Bar Fresh
+       Developer Name: Dwarves Foundation Company Limited
+      Team Identifier: W777S7V8TN
+                 Type: app (0x2)
+                Flags: [  ] (0)
+          Disposition: [enabled, allowed, notified] (0xb)
+           Identifier: 2.com.dwarvesv.minimalbar.freshcheck
+                  URL: /Applications/Hidden Bar Fresh.app
+    Bundle Identifier: com.dwarvesv.minimalbar.freshcheck
+== SMAppService log, Hidden Bar Fresh ==
+2026-11-16 04:02:06.353 Df Hidden Bar[957:1e6c] [com.apple.libxpc.SMAppService:all] Service <private> status: 3
+2026-11-16 04:02:06.363 Df Hidden Bar[957:1e6c] [com.apple.libxpc.SMAppService:all] Register (<private>) error: 0
+2026-11-16 04:02:06.369 Df Hidden Bar[957:1e6c] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 04:02:06.375 Df Hidden Bar[957:1e6c] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+-- smAppServiceMigrated set back to false (an existing install upgrading), relaunched: status reads only, no Unregister or Register:
+== SMAppService log, Hidden Bar Fresh ==
+2026-11-16 04:02:43.114 Df Hidden Bar[1082:21a2] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 04:02:43.119 Df Hidden Bar[1082:21a2] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+2026-11-16 04:02:43.125 Df Hidden Bar[1082:21a2] [com.apple.libxpc.SMAppService:all] Service <private> status: 1
+  "smAppServiceMigrated" => true
+-- 4-retest-fresh-install-login-items.png: the fresh app also has a row under Allow in the Background. That row is normal for an SMAppService main app on macOS 27; the legacy record has no row of its own.

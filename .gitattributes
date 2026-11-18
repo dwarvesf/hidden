@@ -1,0 +1,2 @@
+# Localization tables keep both sides when two branches add strings to the same file.
+hidden/*.lproj/Localizable.strings merge=union

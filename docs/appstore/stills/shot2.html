@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hidden Bar screenshot 2</title>
+<link rel="stylesheet" href="stills.css">
+<style>
+  /* strip-always.png is 1180 px wide, shown at 2400 px (x2.034). Section x ranges, in source px:
+     always hidden 149-233, hidden 346-428, shown 605-1139 (icons found by scanning the capture). */
+  .sections { position: relative; width: 2400px; height: 372px; }
+  .sections .strip { position: absolute; left: 0; bottom: 0; width: 2400px; }
+  .sections .label { position: absolute; top: 0; margin: 0; align-self: auto; transform: translateX(-50%); white-space: nowrap; }
+  .sections .bracket { position: absolute; top: 96px; height: 22px; border: 4px solid rgba(255, 255, 255, 0.6); border-bottom: none; border-radius: 6px 6px 0 0; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <h1>Three sections, one tidy bar</h1>
+  <div class="media">
+    <div class="sections">
+      <div class="label" style="left: 388px;">Always hidden</div>
+      <div class="bracket" style="left: 275px; width: 228px;"></div>
+      <div class="label" style="left: 787px;">Hidden</div>
+      <div class="bracket" style="left: 675px; width: 224px;"></div>
+      <div class="label" style="left: 1759px;">Shown</div>
+      <div class="bracket" style="left: 1202px; width: 1115px;"></div>
+      <img class="strip" src="captures/strip-always.png" alt="Menu bar with the always-hidden section, the hidden icons and the shown icons">
+    </div>
+  </div>
+</div>
+</body>
+</html>

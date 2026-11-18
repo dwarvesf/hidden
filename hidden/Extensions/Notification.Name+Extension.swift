@@ -3,7 +3,7 @@
 //  Hidden Bar
 //
 //  Created by Peter Luo on 2020/6/26.
-//  Copyright © 2020 Dwarves Foundation. All rights reserved.
+//  Copyright © 2020 Console Labs. All rights reserved.
 //
 
 import Cocoa
@@ -12,4 +12,8 @@ extension Notification.Name {
     
     static let prefsChanged = Notification.Name("prefsChanged")
     static let alwayHideToggle = Notification.Name("alwayHideToggle")
+    static let useFullStatusBarToggle = Notification.Name("useFullStatusBarToggle")
+    static let stealthExpandIconToggle = Notification.Name("stealthExpandIconToggle")
+    static let arrowStyleChanged = Notification.Name("arrowStyleChanged")
+    static let accessibilityPermissionChanged = Notification.Name("accessibilityPermissionChanged")
 }

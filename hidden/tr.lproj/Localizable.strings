@@ -1,0 +1,295 @@
+/* 
+  Localizable.strings
+  Hidden Bar
+
+  Created by Licardo on 2020/3/9.
+  Copyright © 2020 Console Labs. All rights reserved.
+*/
+
+"Preferences..." = "Tercihler…";
+"Toggle Auto Collapse" = "Otomatik daralt";
+"Enable Auto Collapse" = "Otomatik daraltmayı etkinleştir";
+"Disable Auto Collapse" = "Otomatik daraltmayı devre dışı bırak";
+"Quit" = "Çıkış";
+"Set Shortcut" = "Kısayol ayarla";
+"Tutorial text" = "
+Her zaman gizli (“Always Hidden”) özelliğiyle menü çubuğu simgelerinizi derli toplu tutabilirsiniz. Nasıl kullanılır?
+Özelliği etkinleştirmek için:
+1. Her zaman gizli “􀥤” (yarı saydam renk çubuğu) seçeneğini etkinleştirin
+2. 􀆔 tuşuna basılı tutun ve bu çubuğu normal çubuğun soluna sürükleyin, ardından gizlemek istediğiniz simgeleri bu çubuğun soluna taşıyın.
+3. Son olarak ⌥ Option tuşuna basılı tutarak “􀆊” daraltma simgesine tıklayın, simgeler gizlensin.
+Her zaman gizli simgeleri göstermek için:
+1. ⌥ Option tuşuna basılı tutarak daraltma simgesine tekrar tıklayın
+2. Özelliği kapatmak için aynı adımı tekrarlayın. Keyfini çıkarın 😉!
+";
+"Arrow style" = "Arrow style";
+"Arrow" = "Arrow";
+"Chevron" = "Chevron";
+"Dot" = "Dot";
+"Line" = "Line";
+"Hidden Bar needs Accessibility access to hide icons." = "Hidden Bar needs Accessibility access to hide icons.";
+"Open Settings…" = "Open Settings…";
+"Expand the bar when the pointer rests on the menu bar" = "Expand the bar when the pointer rests on the menu bar";
+"Show the whole bar when the microphone or camera turns on" = "Show the whole bar when the microphone or camera turns on";
+"Tutorial text (arrow boundary)" = "
+Use the always hidden feature to keep your icons tidy. Here's how to set it
+Steps to enable:
+1. Enable the always hidden “|” (translucent color bar)
+2. Hold  ⌘ and drag it to the left of the arrow, then move any icons you want to disappear on the left of that bar.
+3. Finally, hold ⌥ Option and click the collapse “<” icon to make it disappear.
+Steps to view always hidden icons:
+1. Option-click the “<” icon again to view and repeat the action to enable the feature. Enjoy 😉!
+";
+
+/* Settings window (1.12) */
+"General" = "General";
+"Icons" = "Simgeler";
+"Appearance" = "Appearance";
+"Advanced" = "Advanced";
+"About" = "About";
+"Hidden Bar is working" = "Hidden Bar is working";
+"Click the arrow in the menu bar, or press %@, to show hidden icons." = "Click the arrow in the menu bar, or press %@, to show hidden icons.";
+"Click the arrow in the menu bar to show hidden icons." = "Click the arrow in the menu bar to show hidden icons.";
+"Hidden Bar needs Accessibility access" = "Hidden Bar needs Accessibility access";
+"macOS 27 lets Hidden Bar hide icons only with this permission. Nothing is hidden until you turn it on." = "macOS 27 lets Hidden Bar hide icons only with this permission. Nothing is hidden until you turn it on.";
+"Open System Settings" = "Open System Settings";
+"Move Hidden Bar to Applications" = "Move Hidden Bar to Applications";
+"It is running from %@. macOS 27 hides icons only for apps in the Applications folder, so nothing is hidden yet." = "It is running from %@. macOS 27 hides icons only for apps in the Applications folder, so nothing is hidden yet.";
+"This App Store version can't hide icons on macOS 27" = "This App Store version can't hide icons on macOS 27";
+"Apple's sandbox blocks hiding on macOS 27. Your settings below are kept." = "Apple's sandbox blocks hiding on macOS 27. Your settings below are kept.";
+"Learn More…" = "Learn More…";
+"Your menu bar" = "Your menu bar";
+"Always hidden" = "Always hidden";
+"Translucent bar" = "Translucent bar";
+"Hidden" = "Hidden";
+"Separator" = "Separator";
+"Always shown" = "Always shown";
+"Hold ⌘ and drag an icon left of the arrow to hide it." = "Hold ⌘ and drag an icon left of the arrow to hide it.";
+"Hold ⌘ and drag an icon left of the | separator to hide it." = "Hold ⌘ and drag an icon left of the | separator to hide it.";
+"Option-click the arrow to see always-hidden icons." = "Option-click the arrow to see always-hidden icons.";
+"Open Hidden Bar at login" = "Open Hidden Bar at login";
+"Could not update the login item" = "Could not update the login item";
+"Check System Settings > General > Login Items and make sure Hidden Bar is allowed." = "Check System Settings > General > Login Items and make sure Hidden Bar is allowed.";
+"Hide icons again" = "Hide icons again";
+"Never" = "Never";
+"After %d seconds" = "After %d seconds";
+"After 1 minute" = "After 1 minute";
+"Always-hidden section" = "Always-hidden section";
+"A second group, left of the hidden icons, that stays hidden when you click the arrow." = "A second group, left of the hidden icons, that stays hidden when you click the arrow.";
+"Keyboard shortcut" = "Keyboard shortcut";
+"Type a Shortcut…" = "Type a Shortcut…";
+"Clear" = "Clear";
+"Also show hidden icons when you" = "Also show hidden icons when you";
+"Rest the pointer on the menu bar" = "Rest the pointer on the menu bar";
+"Scroll down on the menu bar" = "Scroll down on the menu bar";
+"Scroll up to hide them again." = "Scroll up to hide them again.";
+"Click empty space in the menu bar" = "Click empty space in the menu bar";
+"Shake the pointer at the top of the screen" = "Shake the pointer at the top of the screen";
+"Three quick side-to-side moves." = "Three quick side-to-side moves.";
+"Clicking anywhere off the menu bar hides them again." = "Clicking anywhere off the menu bar hides them again.";
+"Privacy and permissions" = "Privacy and permissions";
+"Accessibility" = "Accessibility";
+"Allowed" = "Allowed";
+"Off" = "Off";
+"Show all icons when the microphone or camera turns on" = "Show all icons when the microphone or camera turns on";
+"So you see which app is using it. Click the arrow to hide again." = "So you see which app is using it. Click the arrow to hide again.";
+"Fade the arrow when icons are hidden" = "Fade the arrow when icons are hidden";
+"The arrow turns almost invisible until you need it. It is still there to click." = "The arrow turns almost invisible until you need it. It is still there to click.";
+"Each preview shows the arrow with icons hidden, then shown." = "Each preview shows the arrow with icons hidden, then shown.";
+"Show this window when Hidden Bar opens" = "Show this window when Hidden Bar opens";
+"Make room for icons while they are shown" = "Make room for icons while they are shown";
+"Hides the menus of the app you are using while hidden icons are shown, so more icons fit." = "Hides the menus of the app you are using while hidden icons are shown, so more icons fit.";
+"Reach icons behind the camera notch" = "Reach icons behind the camera notch";
+"Right-click the arrow to list icons the notch covers." = "Right-click the arrow to list icons the notch covers.";
+"Pause hiding while macOS shows Now Playing, Focus and similar items" = "Pause hiding while macOS shows Now Playing, Focus and similar items";
+"macOS 27 hides these items whenever an app hides icons. While one shows, Hidden Bar hides nothing." = "macOS 27 hides these items whenever an app hides icons. While one shows, Hidden Bar hides nothing.";
+"Seen on this Mac: %@." = "Seen on this Mac: %@.";
+"Hiding method" = "Hiding method";
+"macOS 27 visibility" = "macOS 27 visibility";
+"The arrow is the edge. Picked for your macOS version." = "The arrow is the edge. Picked for your macOS version.";
+"The | separator is the edge. Picked for your macOS version." = "The | separator is the edge. Picked for your macOS version.";
+"Version" = "Version";
+"Direct download" = "Direct download";
+"Mac App Store" = "Mac App Store";
+"Keeps your menu bar tidy." = "Keeps your menu bar tidy.";
+"Check for updates automatically" = "Check for updates automatically";
+"Last checked %@." = "Last checked %@.";
+"Check for Updates…" = "Check for Updates…";
+"What's new" = "What's new";
+"Updates come from the Mac App Store." = "Updates come from the Mac App Store.";
+"Help and feedback" = "Help and feedback";
+"Report a problem" = "Report a problem";
+"On GitHub. Please say your macOS version and which Hidden Bar you use." = "On GitHub. Please say your macOS version and which Hidden Bar you use.";
+"Email" = "Email";
+"Source code" = "Source code";
+"Free and open source, MIT license." = "Free and open source, MIT license.";
+"Made by Console Labs" = "Made by Console Labs";
+
+/* Pinned sections (beta), Icons; English until translated */
+"Pinned sections (beta)" = "Pinned sections (beta)";
+"Keeps each app in the section you pick in Icons, also after it restarts. Applies at the next collapse." = "Keeps each app in the section you pick in Icons, also after it restarts. Applies at the next collapse.";
+"Turn On" = "Turn On";
+"Pinned sections is off" = "Pinned sections is off";
+"Icons follow where macOS puts them. Turn on Pinned sections (beta) in Advanced to choose a section for each app." = "Icons follow where macOS puts them. Turn on Pinned sections (beta) in Advanced to choose a section for each app.";
+"Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too. Ignore drags keeps an app in its section even when its icon moves on its own (SwiftBar, BitBar)." = "Each app stays in the section you pick, also after it restarts. ⌘-dragging an icon across the arrow moves it too. Ignore drags keeps an app in its section even when its icon moves on its own (SwiftBar, BitBar).";
+"No apps yet" = "No apps yet";
+"Apps with a menu bar icon appear here after the bar collapses once." = "Apps with a menu bar icon appear here after the bar collapses once.";
+
+/* Icons pane: names of macOS services and the "macOS" caption; English until translated */
+"Widgets and Live Activities" = "Widgets and Live Activities";
+"Calendar" = "Calendar";
+"AirDrop and Sharing" = "AirDrop and Sharing";
+"Shortcuts" = "Shortcuts";
+"Photos" = "Photos";
+"Printing" = "Printing";
+"Screen Sharing" = "Screen Sharing";
+"iPhone and iPad Apps" = "iPhone and iPad Apps";
+"Background Items" = "Background Items";
+"Wi-Fi" = "Wi-Fi";
+"macOS" = "macOS";
+"Reset" = "Reset";
+"Reset all to visible" = "Reset all to visible";
+"Shows every app, including ones that are not running now." = "Shows every app, including ones that are not running now.";
+"Ignore drags" = "Ignore drags";
+"Ignore drags keeps this app in its section even when its icon moves on its own (SwiftBar, BitBar). Dragging then changes nothing; the popup still does." = "Ignore drags keeps this app in its section even when its icon moves on its own (SwiftBar, BitBar). Dragging then changes nothing; the popup still does.";
+"Remove" = "Kaldır";
+"Not running" = "Çalışmıyor";
+"Visible" = "Visible";
+"Show Everything" = "Show Everything";
+"Also used by %@" = "Also used by %@";
+"Show or hide icons" = "Show or hide icons";
+"Ask Me" = "Ask Me";
+"Show It" = "Show It";
+"Hide It" = "Hide It";
+"When an app adds a new icon" = "When an app adds a new icon";
+"Ask puts a dot on the arrow and keeps the icon shown until you choose." = "Ask puts a dot on the arrow and keeps the icon shown until you choose.";
+"NEW" = "NEW";
+"Not chosen yet" = "Not chosen yet";
+"Not chosen yet. Not running now." = "Not chosen yet. Not running now.";
+"New in your menu bar" = "New in your menu bar";
+"%d new apps in your menu bar" = "%d new apps in your menu bar";
+"Choose once. Hidden Bar remembers, also after the app or your Mac restarts." = "Choose once. Hidden Bar remembers, also after the app or your Mac restarts.";
+"Not running now. It stays shown until you choose." = "Not running now. It stays shown until you choose.";
+"Added %d icons. They show or hide together." = "Added %d icons. They show or hide together.";
+"Added an icon %@" = "Added an icon %@";
+"just now" = "just now";
+"Show" = "Show";
+"Hide" = "Hide";
+"More" = "More";
+"Always hide" = "Always hide";
+"Kept" = "Kept";
+"OK" = "OK";
+"Not sure? It stays shown until you choose." = "Not sure? It stays shown until you choose.";
+"Settings…" = "Settings…";
+"and %d more" = "and %d more";
+"Hide All" = "Hide All";
+"Show All" = "Show All";
+"Show leaves a new icon where macOS puts it. Nothing is asked." = "Show leaves a new icon where macOS puts it. Nothing is asked.";
+"Hide moves a new icon to Hidden at once. Nothing is asked." = "Hide moves a new icon to Hidden at once. Nothing is asked.";
+"Find a hidden icon" = "Find a hidden icon";
+"Opens a search under the arrow. Type a few letters, then press Return to open that app's menu." = "Opens a search under the arrow. Type a few letters, then press Return to open that app's menu.";
+"Find a Hidden Icon..." = "Find a Hidden Icon...";
+"Open" = "Open";
+"Opening…" = "Opening…";
+"Open its menu" = "Open its menu";
+"Keep shown" = "Keep shown";
+"Always hide" = "Always hide";
+"Close" = "Close";
+"%@ is shown in the menu bar now." = "%@ is shown in the menu bar now.";
+"%@ is not running." = "%@ is not running.";
+"Only hidden icons are listed. Shown icons are already one click away." = "Only hidden icons are listed. Shown icons are already one click away.";
+"No hidden icon matches \"%@\"" = "No hidden icon matches \"%@\"";
+"Nothing is hidden right now" = "Nothing is hidden right now";
+"Hold ⌘ and drag an icon left of the arrow, or pick sections in Settings." = "Hold ⌘ and drag an icon left of the arrow, or pick sections in Settings.";
+"Open Menu Bar Apps" = "Open Menu Bar Apps";
+"It reads which apps are in the menu bar and opens their menus. It never reads what is on your screen." = "It reads which apps are in the menu bar and opens their menus. It never reads what is on your screen.";
+"%@ can't be opened from here" = "%@ can't be opened from here";
+"macOS hides Focus, Siri and Now Playing whenever Hidden Bar hides icons. Click the arrow to show everything." = "macOS hides Focus, Siri and Now Playing whenever Hidden Bar hides icons. Click the arrow to show everything.";
+"Hidden Bar is not hiding icons right now" = "Hidden Bar is not hiding icons right now";
+"Every icon is already in the menu bar, so there is nothing to find. Open Settings to see why." = "Every icon is already in the menu bar, so there is nothing to find. Open Settings to see why.";
+"Its icon does not answer Accessibility. Click the arrow to show everything, then click its icon." = "Its icon does not answer Accessibility. Click the arrow to show everything, then click its icon.";
+"Presenting" = "Presenting";
+"Paused" = "Paused";
+"Couldn't hide" = "Couldn't hide";
+"+%d more" = "+%d more";
+"Presentation mode is on" = "Presentation mode is on";
+"Started because \"%@\" is mirrored. Ends when mirroring stops." = "Started because \"%@\" is mirrored. Ends when mirroring stops.";
+"Started because a display is mirrored. Ends when mirroring stops." = "Started because a display is mirrored. Ends when mirroring stops.";
+"Started by you. It stays on until you stop it." = "Started by you. It stays on until you stop it.";
+"Hidden now: 1 app" = "Hidden now: 1 app";
+"Hidden now: %d apps" = "Hidden now: %d apps";
+"1 sensitive app stays hidden even if you click the arrow" = "1 sensitive app stays hidden even if you click the arrow";
+"%d sensitive apps stay hidden even if you click the arrow" = "%d sensitive apps stay hidden even if you click the arrow";
+"Stop Presenting" = "Stop Presenting";
+"macOS's own items stay." = "macOS's own items stay.";
+"Hiding paused: camera or microphone in use" = "Hiding paused: camera or microphone in use";
+"Nothing is hidden right now, sensitive apps included. macOS 27 hides the capsule that names the app using your camera or microphone along with other icons, so Hidden Bar shows every icon when one turns on." = "Nothing is hidden right now, sensitive apps included. macOS 27 hides the capsule that names the app using your camera or microphone along with other icons, so Hidden Bar shows every icon when one turns on.";
+"To keep apps out of a shared screen during a call:" = "To keep apps out of a shared screen during a call:";
+"Share one window, not the whole screen" = "Share one window, not the whole screen";
+"The menu bar is not in the picture." = "The menu bar is not in the picture.";
+"Quit sensitive apps before the call" = "Quit sensitive apps before the call";
+"Hidden Bar will not quit apps for you." = "Hidden Bar will not quit apps for you.";
+"OK" = "OK";
+"Resumes on its own." = "Resumes on its own.";
+"Hide again" = "Hide again";
+"Hidden Bar could not hide your icons" = "Hidden Bar could not hide your icons";
+"macOS did not accept the request, so every icon is showing. Stop presentation mode and start it again, or quit the sensitive apps first." = "macOS did not accept the request, so every icon is showing. Stop presentation mode and start it again, or quit the sensitive apps first.";
+"1 app stays hidden" = "1 app stays hidden";
+"%d apps stay hidden" = "%d apps stay hidden";
+"Stop Presentation Mode" = "Stop Presentation Mode";
+"Start Presentation Mode" = "Start Presentation Mode";
+"Presentation mode" = "Presentation mode";
+"Turn on automatically" = "Turn on automatically";
+"When a display is mirrored." = "When a display is mirrored.";
+"Sensitive apps" = "Sensitive apps";
+"Stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone." = "Stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone.";
+"Every third-party app icon is hidden. macOS's own items stay." = "Every third-party app icon is hidden. macOS's own items stay.";
+"Click Presenting to see how many apps are hidden, or to stop." = "Click Presenting to see how many apps are hidden, or to stop.";
+"If the camera or microphone turns on, hiding pauses once so macOS can show which app uses it." = "If the camera or microphone turns on, hiding pauses once so macOS can show which app uses it.";
+"Hiding keeps going when the camera or microphone turns on, as set in Settings." = "Hiding keeps going when the camera or microphone turns on, as set in Settings.";
+"Got it" = "Got it";
+"How it works" = "How it works";
+"Start it with the shortcut above, the arrow's right-click menu, or automatically when a display is mirrored." = "Start it with the shortcut above, the arrow's right-click menu, or automatically when a display is mirrored.";
+"While it is on, every third-party app icon is hidden. macOS's own items stay. Reveal gestures and the new-app question wait." = "While it is on, every third-party app icon is hidden. macOS's own items stay. Reveal gestures and the new-app question wait.";
+"\"Find a hidden icon\" leaves sensitive apps out of its list too." = "\"Find a hidden icon\" leaves sensitive apps out of its list too.";
+"If \"Show all icons when the microphone or camera turns on\" is on, a camera or microphone that turns on while you present pauses hiding once, so macOS can show which app uses it. Nothing is hidden meanwhile, sensitive apps included. Hiding resumes when you click Hide again or collapse the bar, or when the camera and microphone turn off. A camera or microphone already on when you start does not pause it. With the switch off, hiding never pauses." = "If \"Show all icons when the microphone or camera turns on\" is on, a camera or microphone that turns on while you present pauses hiding once, so macOS can show which app uses it. Nothing is hidden meanwhile, sensitive apps included. Hiding resumes when you click Hide again or collapse the bar, or when the camera and microphone turn off. A camera or microphone already on when you start does not pause it. With the switch off, hiding never pauses.";
+"Stop it from the Presenting capsule, the shortcut, or the right-click menu. An automatic start also ends when mirroring stops." = "Stop it from the Presenting capsule, the shortcut, or the right-click menu. An automatic start also ends when mirroring stops.";
+"Edit..." = "Edit...";
+"None" = "None";
+"Choose the apps that stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone." = "Choose the apps that stay hidden while presenting, even when you click the arrow, except while hiding is paused for the camera or microphone.";
+"Apps with a menu bar icon appear here once Hidden Bar has seen them." = "Apps with a menu bar icon appear here once Hidden Bar has seen them.";
+"Right-click on the arrow" = "Right-click on the arrow";
+"Show menu" = "Show menu";
+"Show always-hidden icons" = "Show always-hidden icons";
+"Option-right-click the arrow to open the menu." = "Option-right-click the arrow to open the menu.";
+"Hidden Bar from the App Store is running. Quit it and switch to this version?" = "Hidden Bar from the App Store is running. Quit it and switch to this version?";
+"Only one Hidden Bar can run at a time. The App Store version stays installed until you choose otherwise." = "Aynı anda yalnızca bir Hidden Bar çalışabilir. Siz aksini seçene kadar App Store sürümü yüklü kalır.";
+"Hidden Bar %@ is running. Quit it and switch to this version?" = "Hidden Bar %@ çalışıyor. Çıkıp bu sürüme geçilsin mi?";
+"Only one Hidden Bar can run at a time. The older version stays where it is until you choose otherwise." = "Aynı anda yalnızca bir Hidden Bar çalışabilir. Siz aksini seçene kadar eski sürüm olduğu yerde kalır.";
+"Quit and Switch" = "Çık ve Geç";
+"Cancel" = "Vazgeç";
+"Import your settings from the App Store version?" = "Ayarlarınız App Store sürümünden içe aktarılsın mı?";
+"Hidden Bar from the App Store keeps its settings in a separate place. Import them so this version starts the way you set it up." = "App Store’daki Hidden Bar ayarlarını ayrı bir yerde tutar. Bu sürümün sizin kurduğunuz gibi başlaması için bunları içe aktarın.";
+"Import" = "İçe Aktar";
+"Not now" = "Şimdi Değil";
+"Move the App Store copy to the Trash?" = "App Store kopyası Çöp Sepeti’ne taşınsın mı?";
+"The App Store version of Hidden Bar is still installed:\n%@\nYou can restore it from the Trash later." = "Hidden Bar’ın App Store sürümü hâlâ yüklü:\n%@\nDaha sonra Çöp Sepeti’nden geri yükleyebilirsiniz.";
+"Move to Trash" = "Çöp Sepeti’ne Taşı";
+"Hidden Bar could not move the App Store copy to the Trash" = "Hidden Bar, App Store kopyasını Çöp Sepeti’ne taşıyamadı";
+"Drag it to the Trash in Finder instead:\n%@" = "Bunun yerine Finder’da Çöp Sepeti’ne sürükleyin:\n%@";
+"The App Store copy is in /Applications. Quit Hidden Bar, move /Applications/Hidden Bar.app to the Trash, drag this copy into Applications, then open it from there." = "App Store kopyası /Applications içinde. Hidden Bar’dan çıkın, /Applications/Hidden Bar.app dosyasını Çöp Sepeti’ne taşıyın, bu kopyayı Uygulamalar klasörüne sürükleyin, sonra oradan açın.";
+"This account can't add apps to /Applications. Ask an administrator to drag Hidden Bar into /Applications, then open it from there." = "Bu hesap /Applications klasörüne uygulama ekleyemiyor. Bir yöneticiden Hidden Bar’ı /Applications klasörüne sürüklemesini isteyin, sonra oradan açın.";
+"Hidden Bar is running from outside Applications. The copy already in Applications goes to the Trash, then Hidden Bar relaunches from there." = "Hidden Bar is running from outside Applications. The copy already in Applications goes to the Trash, then Hidden Bar relaunches from there.";
+"Hidden Bar is running from outside Applications. Move it there so it keeps working after you empty Downloads, then relaunch." = "Hidden Bar is running from outside Applications. Move it there so it keeps working after you empty Downloads, then relaunch.";
+"Move Hidden Bar to the Applications folder?" = "Hidden Bar Uygulamalar klasörüne taşınsın mı?";
+"Move to Applications" = "Uygulamalar’a Taşı";
+"Hidden Bar can hide icons only from /Applications" = "Hidden Bar simgeleri yalnızca /Applications içinden gizleyebilir";
+"a temporary folder" = "a temporary folder";
+"Hidden Bar cannot hide icons on macOS 27" = "Hidden Bar macOS 27’de simgeleri gizleyemiyor";
+"macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from github.com/consolelabs/hidden (free, open source) works on macOS 27." = "macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from github.com/consolelabs/hidden (free, open source) works on macOS 27.";
+"Open github.com/consolelabs/hidden" = "github.com/consolelabs/hidden adresini aç";
+"Don't show again" = "Bir Daha Gösterme";
+"Hidden Bar on macOS 27" = "macOS 27’de Hidden Bar";
+"macOS 27: get the working version..." = "macOS 27: çalışan sürümü edinin...";
+"Or install it with Homebrew:" = "Veya Homebrew ile yükleyin:";
+"Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "Quit this App Store version and move it to the Trash first. Homebrew does not install over it.";
