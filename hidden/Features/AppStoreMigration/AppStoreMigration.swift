@@ -384,7 +384,7 @@ final class AppStoreMigration {
                                info: "Only one Hidden Bar can run at a time. The App Store version stays installed until you choose otherwise.".localized)
         case .offerToReplaceOlderCopy(let pid):
             let older = apps.first { $0.processIdentifier == pid }
-            let version = older?.bundleURL.flatMap(AppStoreCopyFinder.shortVersion(of:)) ?? ""
+            let version = others.first { $0.pid == pid }?.version ?? ""
             return offerSwitch(from: older,
                                message: String(format: "Hidden Bar %@ is running. Quit it and switch to this version?".localized, version),
                                info: "Only one Hidden Bar can run at a time. The older version stays where it is until you choose otherwise.".localized)
