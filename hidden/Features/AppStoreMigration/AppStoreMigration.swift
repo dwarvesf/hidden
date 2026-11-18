@@ -66,6 +66,11 @@ enum AppStoreSettingsImport {
         UserDefaults.Key.rightClickAction: .string,
     ]
 
+    /// Importable keys the direct build writes by itself on its first collapse:
+    /// the separator state, and the pinned-sections table the macOS 27 engine
+    /// fills from where icons sit. They say nothing about what the user chose.
+    static let keysWrittenAtLaunch: Set<String> = [UserDefaults.Key.areSeparatorsHidden, UserDefaultsPinnedSections.key]
+
     static func containerPreferencesURL(home: URL, bundleIdentifier: String) -> URL {
         home.appendingPathComponent("Library/Containers/\(bundleIdentifier)/Data/Library/Preferences/\(bundleIdentifier).plist")
     }
@@ -110,7 +115,23 @@ enum AppStoreSettingsImport {
                             alreadyAnswered: Bool) -> Bool {
         guard !alreadyAnswered, let containerValues else { return false }
         guard !customizedKeys(in: containerValues, registeredDefaults: registeredDefaults).isEmpty else { return false }
-        return customizedKeys(in: directValues, registeredDefaults: registeredDefaults).isEmpty
+        let chosenByUser = directValues.filter { !keysWrittenAtLaunch.contains($0.key) }
+        return customizedKeys(in: chosenByUser, registeredDefaults: registeredDefaults).isEmpty
+    }
+
+    /// The App Store build had "Open at login" on.
+    static func opensAtLogin(_ containerValues: [String: Any]?) -> Bool {
+        (containerValues?[UserDefaults.Key.isAutoStart] as? NSNumber)?.boolValue ?? false
+    }
+
+    /// "Not now" still keeps "Open at login": the login item is the system's,
+    /// and leaving this build's unset "off" in place would remove it without a
+    /// word. Returns the keys written.
+    @discardableResult
+    static func applyDecline(_ containerValues: [String: Any], to defaults: UserDefaults) -> [String] {
+        guard opensAtLogin(containerValues) else { return [] }
+        defaults.set(true, forKey: UserDefaults.Key.isAutoStart)
+        return [UserDefaults.Key.isAutoStart]
     }
 
     /// Copies the importable values; returns the keys written.
@@ -119,6 +140,16 @@ enum AppStoreSettingsImport {
         let values = importable(from: containerValues)
         for (key, value) in values { defaults.set(value, forKey: key) }
         return values.keys.sorted()
+    }
+}
+
+/// Whether launch applies this build's "Open at login" to the system.
+enum LaunchLoginItem {
+    /// While the import offer is still to come and the App Store build opened
+    /// at login, this build's unset "off" would unregister the App Store copy's
+    /// login item before the user answers; leave it alone until then.
+    static func shouldApply(importOfferPending: Bool, containerOpensAtLogin: Bool, directAutoStart: Bool) -> Bool {
+        !(importOfferPending && containerOpensAtLogin && !directAutoStart)
     }
 }
 
@@ -131,6 +162,11 @@ enum AppStoreCopyFinder {
     static func bundleIdentifier(of bundleURL: URL) -> String? {
         let info = AppStoreSettingsImport.readPlist(at: bundleURL.appendingPathComponent("Contents/Info.plist"))
         return info?["CFBundleIdentifier"] as? String
+    }
+
+    static func shortVersion(of bundleURL: URL) -> String? {
+        let info = AppStoreSettingsImport.readPlist(at: bundleURL.appendingPathComponent("Contents/Info.plist"))
+        return info?["CFBundleShortVersionString"] as? String
     }
 
     /// The usual install spots, checked in addition to what Launch Services knows.
@@ -173,6 +209,8 @@ enum OtherRunningCopy {
         let pid: pid_t
         let bundleURL: URL?
         let isAppStoreBuild: Bool
+        /// CFBundleShortVersionString of the copy on disk, when readable.
+        var version: String? = nil
     }
 
     enum Decision: Equatable {
@@ -181,12 +219,20 @@ enum OtherRunningCopy {
         case quitInFavorOf(pid_t)
         /// The App Store copy: ask before quitting it and taking over.
         case offerToReplaceAppStoreCopy(pid_t)
+        /// An older direct copy (1.8 to 1.12) at another path: the same offer.
+        case offerToReplaceOlderCopy(pid_t)
+    }
+
+    /// True when `version` is older than `running`, compared numerically.
+    static func isOlder(_ version: String?, than running: String?) -> Bool {
+        guard let version, let running else { return false }
+        return version.compare(running, options: .numeric) == .orderedAscending
     }
 
     /// `others` are running apps with this bundle id, this process excluded.
     /// Debug builds pass `countsOtherPaths: false` so a dev build runs next to
     /// the installed copy, and `countsAppStoreCopies` to test the offer.
-    static func decide(others: [Instance], runningBundle: URL,
+    static func decide(others: [Instance], runningBundle: URL, runningVersion: String? = nil,
                        countsOtherPaths: Bool = true, countsAppStoreCopies: Bool = true) -> Decision {
         let running = runningBundle.resolvingSymlinksInPath().standardizedFileURL.path
         func isSamePath(_ instance: Instance) -> Bool {
@@ -196,8 +242,12 @@ enum OtherRunningCopy {
             if isSamePath(instance) { return true }
             return instance.isAppStoreBuild ? countsAppStoreCopies : countsOtherPaths
         }
-        if let direct = counted.first(where: { !$0.isAppStoreBuild || isSamePath($0) }) {
-            return .quitInFavorOf(direct.pid)
+        let direct = counted.filter { !$0.isAppStoreBuild || isSamePath($0) }
+        if let current = direct.first(where: { isSamePath($0) || !isOlder($0.version, than: runningVersion) }) {
+            return .quitInFavorOf(current.pid)
+        }
+        if let older = direct.first {
+            return .offerToReplaceOlderCopy(older.pid)
         }
         if let appStore = counted.first {
             return .offerToReplaceAppStoreCopy(appStore.pid)
@@ -310,13 +360,15 @@ final class AppStoreMigration {
                 isAppStoreBuild: bundle.map {
                     AppStoreCopyFinder.isAppStoreBuild($0, fileManager: environment.fileManager)
                         || AppStoreCopyFinder.hasAppStoreSignature($0)
-                } ?? false)
+                } ?? false,
+                version: bundle.flatMap(AppStoreCopyFinder.shortVersion(of:)))
         }
+        let runningVersion = AppStoreCopyFinder.shortVersion(of: environment.bundleURL)
         #if DEBUG
-        let decision = OtherRunningCopy.decide(others: others, runningBundle: environment.bundleURL,
+        let decision = OtherRunningCopy.decide(others: others, runningBundle: environment.bundleURL, runningVersion: runningVersion,
                                                countsOtherPaths: false, countsAppStoreCopies: Self.isEnabled)
         #else
-        let decision = OtherRunningCopy.decide(others: others, runningBundle: environment.bundleURL)
+        let decision = OtherRunningCopy.decide(others: others, runningBundle: environment.bundleURL, runningVersion: runningVersion)
         #endif
         NSLog("AppStoreMigration: other running copy decision \(decision)")
 
@@ -327,24 +379,36 @@ final class AppStoreMigration {
             quit(inFavorOf: apps.first { $0.processIdentifier == pid })
             return false
         case .offerToReplaceAppStoreCopy(let pid):
-            let appStoreCopy = apps.first { $0.processIdentifier == pid }
-            let alert = NSAlert()
-            alert.alertStyle = .informational
-            alert.messageText = "Hidden Bar from the App Store is running. Quit it and switch to this version?".localized
-            alert.informativeText = "Only one Hidden Bar can run at a time. The App Store version stays installed until you choose otherwise.".localized
-            alert.addButton(withTitle: "Quit and Switch".localized)
-            alert.addButton(withTitle: "Cancel".localized)
-            guard run(alert, id: "switch") == .alertFirstButtonReturn, let appStoreCopy else {
-                quit(inFavorOf: appStoreCopy)
-                return false
-            }
-            guard Self.terminate(appStoreCopy) else {
-                NSLog("AppStoreMigration: the App Store copy did not quit")
-                quit(inFavorOf: appStoreCopy)
-                return false
-            }
-            return true
+            return offerSwitch(from: apps.first { $0.processIdentifier == pid },
+                               message: "Hidden Bar from the App Store is running. Quit it and switch to this version?".localized,
+                               info: "Only one Hidden Bar can run at a time. The App Store version stays installed until you choose otherwise.".localized)
+        case .offerToReplaceOlderCopy(let pid):
+            let older = apps.first { $0.processIdentifier == pid }
+            let version = others.first { $0.pid == pid }?.version ?? ""
+            return offerSwitch(from: older,
+                               message: String(format: "Hidden Bar %@ is running. Quit it and switch to this version?".localized, version),
+                               info: "Only one Hidden Bar can run at a time. The older version stays where it is until you choose otherwise.".localized)
         }
+    }
+
+    /// "Quit and Switch": quits the other copy and keeps this one running.
+    private func offerSwitch(from other: NSRunningApplication?, message: String, info: String) -> Bool {
+        let alert = NSAlert()
+        alert.alertStyle = .informational
+        alert.messageText = message
+        alert.informativeText = info
+        alert.addButton(withTitle: "Quit and Switch".localized)
+        alert.addButton(withTitle: "Cancel".localized)
+        guard run(alert, id: "switch") == .alertFirstButtonReturn, let other else {
+            quit(inFavorOf: other)
+            return false
+        }
+        guard Self.terminate(other) else {
+            NSLog("AppStoreMigration: the other copy did not quit")
+            quit(inFavorOf: other)
+            return false
+        }
+        return true
     }
 
     private func quit(inFavorOf app: NSRunningApplication?) {
@@ -380,15 +444,35 @@ final class AppStoreMigration {
         environment.defaults.dictionaryRepresentation()
     }
 
-    /// Returns true when settings were imported.
+    /// This build's settings as launch found them, before the first collapse
+    /// writes anything; the import decision reads these.
+    private var launchDirectValues: [String: Any]?
+
+    /// Called first thing at launch, before any alert or collapse.
+    func captureLaunchState() {
+        launchDirectValues = directValues
+    }
+
+    /// The import offer will show at this launch, unless this build is a test host.
+    var wouldOfferImport: Bool {
+        AppStoreSettingsImport.shouldOffer(containerValues: containerValues,
+                                           directValues: launchDirectValues ?? directValues,
+                                           registeredDefaults: environment.registeredDefaults,
+                                           alreadyAnswered: ledger.isAnswered(MigrationOfferLedger.importKey))
+    }
+
+    /// `setupAutoStartApp` asks this before applying "Open at login".
+    func appliesLoginItemAtLaunch(directAutoStart: Bool) -> Bool {
+        guard Self.isEnabled else { return true }
+        return LaunchLoginItem.shouldApply(importOfferPending: wouldOfferImport,
+                                           containerOpensAtLogin: AppStoreSettingsImport.opensAtLogin(containerValues),
+                                           directAutoStart: directAutoStart)
+    }
+
+    /// Returns true when settings were written, imported or kept on "Not now".
     @discardableResult
     func offerImportIfNeeded() -> Bool {
-        let container = containerValues
-        guard AppStoreSettingsImport.shouldOffer(containerValues: container,
-                                                 directValues: directValues,
-                                                 registeredDefaults: environment.registeredDefaults,
-                                                 alreadyAnswered: ledger.isAnswered(MigrationOfferLedger.importKey)),
-              let container else { return false }
+        guard wouldOfferImport, let container = containerValues else { return false }
 
         let alert = NSAlert()
         alert.alertStyle = .informational
@@ -404,7 +488,7 @@ final class AppStoreMigration {
             return true
         case .alertSecondButtonReturn:
             ledger.recordAnswer(MigrationOfferLedger.importKey)
-            return false
+            return !AppStoreSettingsImport.applyDecline(container, to: environment.defaults).isEmpty
         default:
             return false
         }
@@ -439,9 +523,14 @@ final class AppStoreMigration {
         switch run(alert, id: "trash") {
         case .alertFirstButtonReturn:
             ledger.recordAnswer(MigrationOfferLedger.trashKey)
-            NSWorkspace.shared.recycle(copies) { _, error in
-                if let error { NSLog("AppStoreMigration: recycle failed: \(error.localizedDescription)") }
-                DispatchQueue.main.async(execute: next)
+            NSWorkspace.shared.recycle(copies) { [self] _, error in
+                DispatchQueue.main.async { [self] in
+                    if let error {
+                        NSLog("AppStoreMigration: recycle failed: \(error.localizedDescription)")
+                        explainTrashFailure(error, copies: copies)
+                    }
+                    next()
+                }
             }
         case .alertSecondButtonReturn:
             ledger.recordAnswer(MigrationOfferLedger.trashKey)
@@ -449,6 +538,18 @@ final class AppStoreMigration {
         default:
             next()
         }
+    }
+
+    /// The answer is already recorded, so this is the only time the user hears
+    /// that the App Store copy is still there.
+    private func explainTrashFailure(_ error: Error, copies: [URL]) {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = "Hidden Bar could not move the App Store copy to the Trash".localized
+        alert.informativeText = error.localizedDescription + "\n\n"
+            + String(format: "Drag it to the Trash in Finder instead:\n%@".localized, copies.map(\.path).joined(separator: "\n"))
+        alert.addButton(withTitle: "OK".localized)
+        run(alert, id: "trashfailed")
     }
 
     // MARK: Move into /Applications
@@ -569,7 +670,7 @@ final class AppStoreMigration {
 
     #if DEBUG
     /// Test hook: launch with `-debugAnswerAlerts "switch=first,move=second"`.
-    /// Each named alert (switch, import, trash, move, explain, error) gets that
+    /// Each named alert (switch, import, trash, trashfailed, move, explain, error) gets that
     /// answer after 3 seconds, time for a screenshot; any alert not named is
     /// aborted, which records nothing and moves nothing.
     private static let debugAnswers: [String: String]? = AppDefaults.store.string(forKey: "debugAnswerAlerts").map {

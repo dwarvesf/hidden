@@ -79,6 +79,22 @@ enum SettingsStatus: Equatable {
     var isWarning: Bool { self != .working }
 }
 
+/// The folder the status card names when Hidden Bar runs outside /Applications.
+enum RunningFolder {
+    /// Gatekeeper's translocation and the system temp folders have random
+    /// names ("d.", "T"); the card says "a temporary folder" for those.
+    static func isTemporary(_ bundleURL: URL) -> Bool {
+        let path = bundleURL.standardizedFileURL.path
+        return path.contains("/AppTranslocation/")
+            || ["/private/var/folders/", "/var/folders/", "/private/tmp/", "/tmp/"].contains { path.hasPrefix($0) }
+    }
+
+    static func displayName(of bundleURL: URL,
+                            displayName: (String) -> String = { FileManager.default.displayName(atPath: $0) }) -> String {
+        isTemporary(bundleURL) ? "a temporary folder".localized : displayName(bundleURL.deletingLastPathComponent().path)
+    }
+}
+
 /// What marks the edge between hidden and shown icons in the preview strip.
 enum PreviewBoundary: Equatable {
     /// macOS 27 direct build: the arrow itself.

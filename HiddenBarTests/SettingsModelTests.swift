@@ -64,6 +64,24 @@ final class SettingsModelTests: XCTestCase {
         XCTAssertTrue([SettingsStatus.needsAccessibility, .outsideApplications, .appStoreOnMacOS27].allSatisfy(\.isWarning))
     }
 
+    // Given Hidden Bar opened from a translocated or temporary path
+    // When the status card names the folder it runs from
+    // Then it says "a temporary folder", not the random folder name ("d.")
+    func test_statusCard_namesATemporaryFolderPlainly() {
+        let temporary = ["/private/var/folders/ab/xyz/T/AppTranslocation/1234-ABCD/d/Hidden Bar.app",
+                         "/var/folders/ab/xyz/T/Hidden Bar.app",
+                         "/private/tmp/x/Hidden Bar.app",
+                         "/tmp/Hidden Bar.app"]
+        for path in temporary {
+            XCTAssertTrue(RunningFolder.isTemporary(URL(fileURLWithPath: path)), path)
+            XCTAssertEqual(RunningFolder.displayName(of: URL(fileURLWithPath: path), displayName: { _ in "d." }),
+                           "a temporary folder".localized, path)
+        }
+        let downloads = URL(fileURLWithPath: "/Users/x/Downloads/Hidden Bar.app")
+        XCTAssertFalse(RunningFolder.isTemporary(downloads))
+        XCTAssertEqual(RunningFolder.displayName(of: downloads, displayName: { $0 == "/Users/x/Downloads" ? "Downloads" : "?" }), "Downloads")
+    }
+
     // MARK: preview edge
 
     func test_previewBoundary_followsTheEngine() {

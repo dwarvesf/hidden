@@ -23,6 +23,11 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         #if DEBUG
         if SettingsSnapshot.runIfRequested() { return }
         #endif
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        // Before the first collapse writes the separator state and the pinned
+        // table, which would read as settings of this build's own.
+        AppStoreMigration.shared.captureLaunchState()
+        #endif
         guard ensureSingleInstance() else { return }
         #if HIDDENBAR_NATIVE_VISIBILITY
         // Pinned sections (beta) fill the Settings tab the native engine has.
@@ -54,7 +59,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     /// Settings imported from the App Store build were written straight to
     /// UserDefaults; apply the ones with side effects and tell the UI.
     private func applyImportedPreferences() {
-        Util.setUpAutoStart(isAutoStart: Preferences.isAutoStart)
+        // The App Store copy may still hold the login item; point it at this copy.
+        Util.setUpAutoStart(isAutoStart: Preferences.isAutoStart, takingOver: true)
         hotKeys.reload()
         for name in Self.importedPreferenceNotifications {
             NotificationCenter.default.post(name: name, object: nil)
@@ -106,6 +112,12 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     
     func setupAutoStartApp() {
         LegacyLoginItem.migrateUnlessTesting(autoStart: Preferences.isAutoStart)
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        guard AppStoreMigration.shared.appliesLoginItemAtLaunch(directAutoStart: Preferences.isAutoStart) else {
+            NSLog("AutoStart: login item left alone until the App Store import is answered")
+            return
+        }
+        #endif
         Util.setUpAutoStart(isAutoStart: Preferences.isAutoStart)
     }
     

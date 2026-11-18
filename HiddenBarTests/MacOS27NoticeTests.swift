@@ -78,6 +78,8 @@ final class MacOS27NoticeTests: XCTestCase {
         let command = try XCTUnwrap(fields.first { $0.stringValue == MacOS27Notice.brewCommand })
         XCTAssertTrue(command.isSelectable)
         XCTAssertFalse(command.isEditable)
+        XCTAssertNotNil(fields.first { $0.stringValue == MacOS27Notice.brewFirstStep.localized },
+                        "Homebrew refuses while the App Store copy is in /Applications; the notice says to remove it first")
         XCTAssertGreaterThan(stack.frame.height, 0)
     }
 }

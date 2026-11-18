@@ -298,3 +298,9 @@ Steps to view always hidden icons:
 "Show menu" = "Show menu";
 "Show always-hidden icons" = "Show always-hidden icons";
 "Option-right-click the arrow to open the menu." = "Option-right-click the arrow to open the menu.";
+"Hidden Bar %@ is running. Quit it and switch to this version?" = "Hidden Bar %@ is running. Quit it and switch to this version?";
+"Only one Hidden Bar can run at a time. The older version stays where it is until you choose otherwise." = "Only one Hidden Bar can run at a time. The older version stays where it is until you choose otherwise.";
+"Hidden Bar could not move the App Store copy to the Trash" = "Hidden Bar could not move the App Store copy to the Trash";
+"Drag it to the Trash in Finder instead:\n%@" = "Drag it to the Trash in Finder instead:\n%@";
+"a temporary folder" = "a temporary folder";
+"Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "Quit this App Store version and move it to the Trash first. Homebrew does not install over it.";
