@@ -161,10 +161,15 @@ final class AutoCollapsePopupGuard {
     }
 
     // Touches the band (or sits just under it) and reaches below it, so the
-    // menu bar's own windows and its items are not popups.
+    // menu bar's own windows and its items are not popups. A popup may start
+    // above the band, and a window thinner than a popup can be is a screen-edge
+    // hot border (KVM switches draw one 1 pt wide).
+    static let minPopupThickness: CGFloat = 8
+
     static func hangs(_ frame: CGRect, from band: CGRect) -> Bool {
+        guard frame.width >= minPopupThickness, frame.height >= minPopupThickness else { return false }
         let reach = CGRect(x: band.minX, y: band.minY, width: band.width, height: band.height + bandTolerance)
-        return frame.intersects(reach) && frame.maxY > band.maxY + 1 && frame.minY >= band.minY - 1
+        return frame.intersects(reach) && frame.maxY > band.maxY + 1
     }
 
     // Same band as the clock's menu-bar hit test.

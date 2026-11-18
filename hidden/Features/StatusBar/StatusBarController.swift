@@ -135,9 +135,10 @@ class StatusBarController: MenuBarItemProvider {
     // expanding" on, an auto-collapse deactivates the app and dismisses this
     // window mid-edit (#170, same family as #66/#151). Defer the collapse while
     // it is on screen, without creating the controller or loading its window
-    // when preferences were never opened.
+    // when preferences were never opened. With the option off nothing is
+    // dismissed, so the window must not hold auto-hide.
     private var isPreferencesWindowVisible: Bool {
-        return PreferencesWindowController.isVisible
+        return wantsFullBar && PreferencesWindowController.isVisible
     }
     
     //MARK: - Methods
@@ -522,6 +523,7 @@ class StatusBarController: MenuBarItemProvider {
             button.image = Assets.collapseImage
         }
         popupGuard.reset()
+        loggedCollapseHolds.removeAll()
         autoCollapseIfNeeded()
         
         if activatingApp && wantsFullBar {
@@ -567,7 +569,25 @@ class StatusBarController: MenuBarItemProvider {
     // A popup hanging from the menu bar (#319) defers for up to 10 minutes; the
     // window list is read last, only when nothing else defers.
     private var defersCollapseApartFromPointer: Bool {
-        return isPreferencesWindowVisible || arrivalsPromptIsShown || menuBarEngine.defersAutoCollapse || isRevealingForPalette || popupGuard.defersCollapse()
+        return holdsCollapse(for: "the Settings window", if: isPreferencesWindowVisible)
+            || holdsCollapse(for: "the new-apps prompt", if: arrivalsPromptIsShown)
+            || holdsCollapse(for: "Notification Center", if: menuBarEngine.defersAutoCollapse)
+            || holdsCollapse(for: "the palette", if: isRevealingForPalette)
+            || popupGuard.defersCollapse()
+    }
+
+    // Reasons already logged since the bar last expanded, so a hold that lasts
+    // many timer fires logs once. Only the reason is logged, never window titles.
+    private var loggedCollapseHolds = Set<String>()
+
+    // The condition is evaluated lazily, so the order and short-circuit of the
+    // callers do not change.
+    private func holdsCollapse(for reason: String, if condition: @autoclosure () -> Bool) -> Bool {
+        guard condition() else { return false }
+        if loggedCollapseHolds.insert(reason).inserted {
+            NSLog("AutoCollapse: holding for %@", reason)
+        }
+        return true
     }
 
     // The palette has an app's menu open that it allowed for a moment.
@@ -590,7 +610,10 @@ class StatusBarController: MenuBarItemProvider {
             // from the clock collapses the bar itself once it closes. A popup
             // hanging from the menu bar (#319) defers too, for up to 10 minutes;
             // the window list is read last, only when nothing else defers.
-            if self.autoHideDeferral?() ?? (self.isMouseInMenuBar || self.defersCollapseApartFromPointer) {
+            let shouldDefer = self.autoHideDeferral?()
+                ?? (self.holdsCollapse(for: "the pointer in the menu bar", if: self.isMouseInMenuBar)
+                    || self.defersCollapseApartFromPointer)
+            if shouldDefer {
                 self.startTimerToAutoHide()
             } else {
                 self.collapseMenuBar(automatic: true)

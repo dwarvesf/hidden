@@ -306,6 +306,9 @@ final class SystemMenuBarClock: MenuBarClockProviding {
     static var debugPressWithAX = false
     #endif
 
+    // Where the pointer is now, in the same global top-left space as the clock's frame.
+    var pointerLocation: () -> CGPoint? = { CGEvent(source: nil)?.location }
+
     private var monitor: Any?
     // The clock's frame when a click on it began with Notification Center closed.
     private var clickedClockFrame: CGRect?
@@ -330,11 +333,12 @@ final class SystemMenuBarClock: MenuBarClockProviding {
         let onMain = { (outcome: ClockPressOutcome) in
             DispatchQueue.main.async { restore(); finished(outcome) }
         }
+        let pointerLocation = self.pointerLocation
         queue.asyncAfter(deadline: .now() + Self.liftDelay) {
             let clocks = Self.clocks()
             // Never replay on a different display if its clock cannot be found.
             guard let clock = clocks.first(where: { $0.frame.contains(location) }),
-                  let events = Self.clickEvents(at: CGPoint(x: clock.frame.midX, y: clock.frame.midY)) else {
+                  let events = Self.clickEvents(at: Self.replayPoint(pointer: pointerLocation(), clockFrame: clock.frame)) else {
                 return onMain(.noClock)
             }
             #if DEBUG
@@ -366,6 +370,13 @@ final class SystemMenuBarClock: MenuBarClockProviding {
                                      finished: { outcome in DispatchQueue.main.async { finished(outcome) } })
             replay.pressed()
         }
+    }
+
+    // The replayed click lands on the pointer when it is already on the clock, so
+    // the pointer stays put; otherwise on the clock's centre.
+    static func replayPoint(pointer: CGPoint?, clockFrame: CGRect) -> CGPoint {
+        if let pointer, clockFrame.contains(pointer) { return pointer }
+        return CGPoint(x: clockFrame.midX, y: clockFrame.midY)
     }
 
     static func clickEvents(at point: CGPoint) -> [CGEvent]? {
