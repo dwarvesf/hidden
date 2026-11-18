@@ -124,6 +124,7 @@ enum AutoStart {
     @discardableResult
     static func applyUnlessTesting(
         enabled: Bool,
+        takingOver: Bool = false,
         service: LoginItemServing = SMAppService.mainApp,
         touchLoginItems: Bool = shouldTouchLoginItems()
     ) -> Bool {
@@ -131,7 +132,20 @@ enum AutoStart {
             NSLog("AutoStart: skipped (test or Debug build), login items untouched")
             return true
         }
-        return apply(enabled: enabled, service: service)
+        return enabled && takingOver ? takeOver(service: service) : apply(enabled: enabled, service: service)
+    }
+
+    // Another copy with this bundle id (the App Store build) may hold the login
+    // item, and register() on an item already enabled leaves it pointing there.
+    // Unregister first, so the item opens this copy.
+    @discardableResult
+    static func takeOver(service: LoginItemServing = SMAppService.mainApp) -> Bool {
+        if service.status != .notRegistered {
+            do { try service.unregister() } catch { NSLog("AutoStart: take-over unregister failed: \(error.localizedDescription)") }
+        }
+        do { try service.register() } catch { NSLog("AutoStart: take-over register failed: \(error.localizedDescription)") }
+        NSLog("AutoStart: took over, status = \(service.status.rawValue)")
+        return service.status == .enabled
     }
 
     // Returns whether the system ended up in the desired state. A throw is one

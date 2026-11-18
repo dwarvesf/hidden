@@ -144,6 +144,70 @@ final class AppStoreMigrationTests: XCTestCase {
                                                           registeredDefaults: registered, alreadyAnswered: false))
     }
 
+    // Given the App Store copy running at launch, so the direct build collapses before the offer
+    // When the first collapse wrote the separator state and the pinned-sections table
+    // Then those writes do not count as the direct build's own settings, and the import is still offered
+    func test_keysTheDirectBuildWritesAtLaunchDoNotBlockTheImport() {
+        let launchWrites: [String: Any] = [UserDefaults.Key.areSeparatorsHidden: true,
+                                           UserDefaultsPinnedSections.key: ["com.example.app": 1]]
+        XCTAssertTrue(AppStoreSettingsImport.shouldOffer(containerValues: ["isAutoHide": false], directValues: launchWrites,
+                                                         registeredDefaults: registered, alreadyAnswered: false))
+        var chosen = launchWrites
+        chosen["hoverToExpand"] = true
+        XCTAssertFalse(AppStoreSettingsImport.shouldOffer(containerValues: ["isAutoHide": false], directValues: chosen,
+                                                          registeredDefaults: registered, alreadyAnswered: false),
+                       "a setting the user changed in this build still wins")
+    }
+
+    // Given the direct build's settings captured at launch
+    // When something is written to its domain afterwards (an alert held the launch while the bar collapsed)
+    // Then the import decision reads the launch values
+    func test_importDecisionReadsTheSettingsAsLaunchFoundThem() throws {
+        _ = try writeContainerPlist(["isAutoHide": false, "isAutoStart": true])
+        let migration = AppStoreMigration(environment: .init(home: root, bundleURL: downloadsApp, bundleIdentifier: bundleID,
+                                                             defaults: defaults, registeredDefaults: registered))
+        migration.captureLaunchState()
+        defaults.set(true, forKey: UserDefaults.Key.alwaysHiddenSectionEnabled)
+        XCTAssertTrue(migration.wouldOfferImport)
+        MigrationOfferLedger(defaults: defaults).recordAnswer(MigrationOfferLedger.importKey)
+        XCTAssertFalse(migration.wouldOfferImport, "answered once, never again")
+    }
+
+    // MARK: open at login across the switch
+
+    // Given the App Store build opened at login and the import offer is still to come
+    // When the direct build sets up its login item at launch
+    // Then it leaves the item alone instead of applying its own unset "off"
+    func test_loginItemIsLeftAloneWhileTheImportIsPending() {
+        XCTAssertFalse(LaunchLoginItem.shouldApply(importOfferPending: true, containerOpensAtLogin: true, directAutoStart: false))
+        XCTAssertTrue(LaunchLoginItem.shouldApply(importOfferPending: false, containerOpensAtLogin: true, directAutoStart: false),
+                      "once answered, this build's setting applies")
+        XCTAssertTrue(LaunchLoginItem.shouldApply(importOfferPending: true, containerOpensAtLogin: false, directAutoStart: false))
+        XCTAssertTrue(LaunchLoginItem.shouldApply(importOfferPending: true, containerOpensAtLogin: true, directAutoStart: true))
+        XCTAssertTrue(AppStoreSettingsImport.opensAtLogin(["isAutoStart": true]))
+        XCTAssertFalse(AppStoreSettingsImport.opensAtLogin(["isAutoStart": false]))
+        XCTAssertFalse(AppStoreSettingsImport.opensAtLogin(nil))
+    }
+
+    // Given the App Store build opened at login
+    // When the user answers "Not now" to the import, and Hidden Bar launches again
+    // Then "Open at login" stays on in this build, and nothing else is copied
+    func test_notNowKeepsOpenAtLogin() {
+        let written = AppStoreSettingsImport.applyDecline(["isAutoStart": true, "isAutoHide": false, "arrowStyle": "chevron"], to: defaults)
+        XCTAssertEqual(written, [UserDefaults.Key.isAutoStart])
+        XCTAssertTrue(defaults.bool(forKey: UserDefaults.Key.isAutoStart))
+        XCTAssertEqual(defaults.persistentDomain(forName: suiteName).map { Set($0.keys) }, [UserDefaults.Key.isAutoStart])
+        // The next launch: the offer is answered, so this build's value applies, and it is on.
+        XCTAssertTrue(LaunchLoginItem.shouldApply(importOfferPending: false, containerOpensAtLogin: true,
+                                                  directAutoStart: defaults.bool(forKey: UserDefaults.Key.isAutoStart)))
+        XCTAssertTrue(defaults.bool(forKey: UserDefaults.Key.isAutoStart))
+
+        let off = UserDefaults(suiteName: suiteName + ".off")!
+        defer { off.removePersistentDomain(forName: suiteName + ".off") }
+        XCTAssertEqual(AppStoreSettingsImport.applyDecline(["isAutoStart": false, "isAutoHide": false], to: off), [])
+        XCTAssertNil(off.persistentDomain(forName: suiteName + ".off")?[UserDefaults.Key.isAutoStart])
+    }
+
     func testOfferIsShownOnlyOnceAfterAnyAnswer() {
         let ledger = MigrationOfferLedger(defaults: defaults)
         XCTAssertFalse(ledger.isAnswered(MigrationOfferLedger.importKey))
@@ -284,12 +348,102 @@ final class AppStoreMigrationTests: XCTestCase {
                                                countsOtherPaths: false, countsAppStoreCopies: true), .quitInFavorOf(43))
     }
 
+    // Given an older direct copy (1.8 to 1.12) running from another folder
+    // When this newer copy opens
+    // Then it offers "Quit and Switch" instead of quitting silently
+    func test_olderDirectCopyIsOfferedAQuit() {
+        let older = OtherRunningCopy.Instance(pid: 42, bundleURL: URL(fileURLWithPath: "/Applications/Hidden Bar.app"),
+                                              isAppStoreBuild: false, version: "1.12")
+        XCTAssertEqual(OtherRunningCopy.decide(others: [older], runningBundle: downloadsApp, runningVersion: "1.13.0"),
+                       .offerToReplaceOlderCopy(42))
+        let v18 = OtherRunningCopy.Instance(pid: 43, bundleURL: URL(fileURLWithPath: "/Applications/Hidden Bar.app"),
+                                            isAppStoreBuild: false, version: "1.8")
+        XCTAssertEqual(OtherRunningCopy.decide(others: [v18], runningBundle: downloadsApp, runningVersion: "1.13.0"),
+                       .offerToReplaceOlderCopy(43))
+    }
+
+    // Given another direct copy that is not older, or whose version is unknown, or a relaunch of this same copy
+    // When this copy opens
+    // Then it brings that copy forward and quits, as before
+    func test_directCopyNotOlderStillWinsSilently() {
+        func copy(_ version: String?, _ path: String = "/Applications/Hidden Bar.app") -> OtherRunningCopy.Instance {
+            .init(pid: 42, bundleURL: URL(fileURLWithPath: path), isAppStoreBuild: false, version: version)
+        }
+        XCTAssertEqual(OtherRunningCopy.decide(others: [copy("1.13.0")], runningBundle: downloadsApp, runningVersion: "1.13.0"), .quitInFavorOf(42))
+        XCTAssertEqual(OtherRunningCopy.decide(others: [copy("1.14")], runningBundle: downloadsApp, runningVersion: "1.13.0"), .quitInFavorOf(42))
+        XCTAssertEqual(OtherRunningCopy.decide(others: [copy(nil)], runningBundle: downloadsApp, runningVersion: "1.13.0"), .quitInFavorOf(42))
+        XCTAssertEqual(OtherRunningCopy.decide(others: [copy("1.12", downloadsApp.path)], runningBundle: downloadsApp, runningVersion: "1.13.0"),
+                       .quitInFavorOf(42), "a relaunch of the same bundle path")
+        XCTAssertTrue(OtherRunningCopy.isOlder("1.9", than: "1.13.0"))
+        XCTAssertTrue(OtherRunningCopy.isOlder("1.12.3", than: "1.13"))
+        XCTAssertFalse(OtherRunningCopy.isOlder("1.13.0", than: "1.13.0"))
+        XCTAssertFalse(OtherRunningCopy.isOlder(nil, than: "1.13.0"))
+        XCTAssertFalse(OtherRunningCopy.isOlder("1.12", than: nil))
+    }
+
     // Given an import from the App Store build
     // When its settings are applied
     // Then the pinned-sections notice goes out too, as the engine and the catalog listen to it, not to prefsChanged
     func test_importTellsTheAppAboutPinnedSections() {
         XCTAssertTrue(AppDelegate.importedPreferenceNotifications.contains(.pinnedSectionsChanged))
         XCTAssertTrue(AppDelegate.importedPreferenceNotifications.contains(.prefsChanged))
+    }
+
+    // Given the migration alerts and the status card's button
+    // When looking in every Localizable.strings the app ships
+    // Then each locale carries them with the same placeholders, so none shows a raw key or drops a path
+    func test_everyLocale_carriesTheMigrationStrings() {
+        let keys = [
+            "Hidden Bar from the App Store is running. Quit it and switch to this version?",
+            "Only one Hidden Bar can run at a time. The App Store version stays installed until you choose otherwise.",
+            "Hidden Bar %@ is running. Quit it and switch to this version?",
+            "Only one Hidden Bar can run at a time. The older version stays where it is until you choose otherwise.",
+            "Quit and Switch",
+            "Cancel",
+            "Import your settings from the App Store version?",
+            "Hidden Bar from the App Store keeps its settings in a separate place. Import them so this version starts the way you set it up.",
+            "Import",
+            "Not now",
+            "Move the App Store copy to the Trash?",
+            "The App Store version of Hidden Bar is still installed:\n%@\nYou can restore it from the Trash later.",
+            "Move to Trash",
+            "Hidden Bar could not move the App Store copy to the Trash",
+            "Drag it to the Trash in Finder instead:\n%@",
+            "The App Store copy is in /Applications. Quit Hidden Bar, move /Applications/Hidden Bar.app to the Trash, drag this copy into Applications, then open it from there.",
+            "This account can't add apps to /Applications. Ask an administrator to drag Hidden Bar into /Applications, then open it from there.",
+            "Hidden Bar is running from outside Applications. The copy already in Applications goes to the Trash, then Hidden Bar relaunches from there.",
+            "Hidden Bar is running from outside Applications. Move it there so it keeps working after you empty Downloads, then relaunch.",
+            "Move Hidden Bar to the Applications folder?",
+            "Move to Applications",
+            "Hidden Bar can hide icons only from /Applications",
+            "OK",
+            "a temporary folder",
+            "Hidden Bar cannot hide icons on macOS 27",
+            "macOS 27 no longer lets App Store apps hide menu-bar icons. Hidden Bar from github.com/consolelabs/hidden (free, open source) works on macOS 27.",
+            "Open github.com/consolelabs/hidden",
+            "Close",
+            "Don't show again",
+            "Hidden Bar on macOS 27",
+            "macOS 27: get the working version...",
+            "Or install it with Homebrew:",
+            "Quit this App Store version and move it to the Trash first. Homebrew does not install over it.",
+        ]
+        let localizations = Bundle.main.localizations.filter { $0 != "Base" }
+        XCTAssertGreaterThan(localizations.count, 5)
+        for locale in localizations {
+            guard let path = Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: locale),
+                  let table = NSDictionary(contentsOfFile: path) as? [String: String] else {
+                XCTFail("no Localizable.strings for \(locale)")
+                continue
+            }
+            for key in keys {
+                guard let value = table[key] else { XCTFail("\(locale) is missing \"\(key)\""); continue }
+                for token in ["%@", "\n"] {
+                    XCTAssertEqual(value.components(separatedBy: token).count, key.components(separatedBy: token).count,
+                                   "\(locale) \"\(key)\" changes the \(token) count")
+                }
+            }
+        }
     }
 
     // Given a build that does not use the native engine

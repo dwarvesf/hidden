@@ -249,6 +249,33 @@ final class LegacyLoginItemTests: XCTestCase {
     }
 }
 
+final class AutoStartTakeOverTests: XCTestCase {
+    // Given a login item already enabled, held by the App Store copy with the same bundle id
+    // When the direct build takes it over after the import
+    // Then it unregisters and registers again, so the item opens this copy
+    func test_takeOverReregistersAnEnabledItem() {
+        let service = RecordingLoginItem(status: .enabled)
+        XCTAssertTrue(AutoStart.applyUnlessTesting(enabled: true, takingOver: true, service: service, touchLoginItems: true))
+        XCTAssertEqual(service.calls, ["unregister", "register"])
+        XCTAssertEqual(service.status, .enabled)
+    }
+
+    func test_takeOverOfNoItemOnlyRegisters() {
+        let service = RecordingLoginItem(status: .notRegistered)
+        XCTAssertTrue(AutoStart.takeOver(service: service))
+        XCTAssertEqual(service.calls, ["register"])
+    }
+
+    // Given "Open at login" off after the import
+    // When applying it with takingOver
+    // Then it only unregisters, as a plain apply does
+    func test_takeOverIsOnlyForOn() {
+        let service = RecordingLoginItem(status: .enabled)
+        XCTAssertTrue(AutoStart.applyUnlessTesting(enabled: false, takingOver: true, service: service, touchLoginItems: true))
+        XCTAssertEqual(service.calls, ["unregister"])
+    }
+}
+
 // Records call order; register lands enabled and unregister notRegistered unless stubbed to throw.
 private final class RecordingLoginItem: LoginItemServing {
     struct StubbedError: Error {}
