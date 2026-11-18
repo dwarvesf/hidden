@@ -90,6 +90,7 @@
 		988E6BB58BB0E21724D3421E /* StackView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F3F11C2608925A0054B881 /* StackView+Extension.swift */; };
 		99EA334772E1715B21C424BB /* MenuBarLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 092D9DE26A006349D87B304D /* MenuBarLayout.swift */; };
 		9B1765C0B5634CFABD06A916 /* AutoStartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F013C3E5499B4EA7B816F7A8 /* AutoStartTests.swift */; };
+		A9D0DE00000000000000E002 /* AppLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D0DE00000000000000E001 /* AppLogTests.swift */; };
 		9C79B5D97BC90E0174BC52BE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F2F828CAAE82A4D34BDDCBB /* Cocoa.framework */; };
 		9CD9B70D63B58C9A7A31481A /* NotchOverflowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE73DB4E0664488997EEB6DE /* NotchOverflowController.swift */; };
 		9F3C757469DFAA7965B8380E /* CaptureActivityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C1A7E52B9D04F6A8E21C0D7 /* CaptureActivityMonitor.swift */; };
@@ -369,6 +370,7 @@
 		DEFBDF50E5A67397D95D1946 /* UpdateController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
 		E3BF69BE15B7DE0272612470 /* NotchOverflowMenuBuilderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchOverflowMenuBuilderTests.swift; sourceTree = "<group>"; };
 		F013C3E5499B4EA7B816F7A8 /* AutoStartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoStartTests.swift; sourceTree = "<group>"; };
+		A9D0DE00000000000000E001 /* AppLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogTests.swift; sourceTree = "<group>"; };
 		F248811CF183BD0A4D71C4C6 /* NativeVisibilityEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeVisibilityEngine.swift; sourceTree = "<group>"; };
 		F51314A736131BE28182E378 /* AccessibilityPermission.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityPermission.swift; sourceTree = "<group>"; };
 		FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityMenuBarInventory.swift; sourceTree = "<group>"; };
@@ -560,6 +562,7 @@
 				764544B7EDBB41A18087ED6F /* ExpandCollapseActionTests.swift */,
 				A0C0F1E5D3B2470A9C1E2002 /* AutoCollapsePopupGuardTests.swift */,
 				F013C3E5499B4EA7B816F7A8 /* AutoStartTests.swift */,
+				A9D0DE00000000000000E001 /* AppLogTests.swift */,
 				A27C0DE00000000000000004 /* MacOS27NoticeTests.swift */,
 				CC5FC25336EC320548CF4C87 /* AccessibilityPermissionTests.swift */,
 				60AFBE8D4C25548192E7D135 /* SettingsModelTests.swift */,
@@ -1210,6 +1213,7 @@
 				B12AD86D3E924502860225CC /* ExpandCollapseActionTests.swift in Sources */,
 				A0C0F1E5D3B2470A9C1E2014 /* AutoCollapsePopupGuardTests.swift in Sources */,
 				9B1765C0B5634CFABD06A916 /* AutoStartTests.swift in Sources */,
+				A9D0DE00000000000000E002 /* AppLogTests.swift in Sources */,
 				A27C0DE00000000000000003 /* MacOS27Notice.swift in Sources */,
 				A27C0DE00000000000000005 /* MacOS27NoticeTests.swift in Sources */,
 				A27C0DE00000000000000006 /* String+Extension.swift in Sources */,

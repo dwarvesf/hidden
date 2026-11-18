@@ -62,6 +62,7 @@ final class AutoCollapsePopupGuard {
     private let ownPID: pid_t
     private let cap: TimeInterval
     private let log: (String) -> Void
+    private let logPublic: (StaticString) -> Void
     private var deferringSince: TimeInterval?
 
     // menuBarItemOwners: bundles the engine read in the menu bar. On macOS 27 the
@@ -79,7 +80,8 @@ final class AutoCollapsePopupGuard {
          now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
          ownPID: pid_t = ProcessInfo.processInfo.processIdentifier,
          cap: TimeInterval = AutoCollapsePopupGuard.defaultCap,
-         log: @escaping (String) -> Void = { NSLog("%@", $0) }) {
+         log: @escaping (String) -> Void = { NSLog("%@", $0) },
+         logPublic: @escaping (StaticString) -> Void = { AppLog.publicLine($0) }) {
         self.windows = windows
         self.displays = displays
         self.bundleIdentifier = bundleIdentifier
@@ -89,6 +91,7 @@ final class AutoCollapsePopupGuard {
         self.ownPID = ownPID
         self.cap = cap
         self.log = log
+        self.logPublic = logPublic
     }
 
     // Before macOS 27 a notification keeps no screen-tall window up, so the window
@@ -106,12 +109,15 @@ final class AutoCollapsePopupGuard {
         }
         let time = now()
         if deferringSince == nil {
-            // Owner and layer only: never a window title or other content.
+            // The public line is static so Console shows the hold; the owner and
+            // layer stay in the private line, never a window title or content.
+            logPublic("AutoCollapse: holding for a menu bar popup")
             log("AutoCollapse: holding for a popup from \(bundleIdentifier(holder.ownerPID) ?? "pid \(holder.ownerPID)") at layer \(holder.layer)")
         }
         let since = deferringSince ?? time
         deferringSince = since
         if time - since >= cap {
+            logPublic("AutoCollapse: a menu bar popup held auto-hide for the full limit; collapsing anyway")
             NSLog("AutoCollapse: a menu-bar popup has been open for %.0f s; collapsing anyway", time - since)
             return false
         }

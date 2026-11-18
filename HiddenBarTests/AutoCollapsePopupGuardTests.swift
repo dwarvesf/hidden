@@ -31,6 +31,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
     private var panelOpen = true
     private var panelReads = 0
     private var logged: [String] = []
+    private var loggedPublic: [String] = []
 
     // A 1600 x 900 display with a 24 pt menu bar, and a 900 x 1600 one to its
     // right, raised so its menu bar sits higher.
@@ -48,6 +49,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         panelOpen = true
         panelReads = 0
         logged = []
+        loggedPublic = []
     }
 
     private func makeGuard() -> AutoCollapsePopupGuard {
@@ -64,7 +66,8 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
                                       notificationCenterPanelIsOpen: { [unowned self] in panelReads += 1; return panelOpen },
                                       now: { [unowned self] in time },
                                       ownPID: ownPID,
-                                      log: { [unowned self] in logged.append($0) })
+                                      log: { [unowned self] in logged.append($0) },
+                                      logPublic: { [unowned self] in loggedPublic.append("\($0)") })
     }
 
     private func window(_ pid: pid_t, layer: Int, _ frame: CGRect) -> OnScreenWindow {
@@ -109,6 +112,18 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         XCTAssertEqual(logged.count, 2)
     }
 
+    // The public log gets a line that names no app, window or layer; the detail
+    // stays in the private line above.
+    func testPublicLineIsStaticAndLoggedOncePerHold() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: popUpMenu, CGRect(x: 1200, y: 24, width: 300, height: 400))]
+        XCTAssertTrue(popupGuard.defersCollapse())
+        time = 10
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(loggedPublic, ["AutoCollapse: holding for a menu bar popup"])
+        XCTAssertFalse(loggedPublic.joined().contains("netmon"))
+    }
+
     // #319: a network monitor's graph is a status-level panel under its item.
     func testStatusLevelPopoverDefers() {
         let popupGuard = makeGuard()
@@ -140,6 +155,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         XCTAssertTrue(popupGuard.defersCollapse())
         time = 5 + 600
         XCTAssertFalse(popupGuard.defersCollapse(), "the cap wins")
+        XCTAssertEqual(loggedPublic.last, "AutoCollapse: a menu bar popup held auto-hide for the full limit; collapsing anyway")
         time = 5 + 610
         XCTAssertFalse(popupGuard.defersCollapse(), "until the bar is expanded again")
 
