@@ -130,9 +130,10 @@ class StatusBarController: MenuBarItemProvider {
     // expanding" on, an auto-collapse deactivates the app and dismisses this
     // window mid-edit (#170, same family as #66/#151). Defer the collapse while
     // it is on screen, without creating the controller or loading its window
-    // when preferences were never opened.
+    // when preferences were never opened. With the option off nothing is
+    // dismissed, so the window must not hold auto-hide.
     private var isPreferencesWindowVisible: Bool {
-        return PreferencesWindowController.isVisible
+        return wantsFullBar && PreferencesWindowController.isVisible
     }
     
     //MARK: - Methods
