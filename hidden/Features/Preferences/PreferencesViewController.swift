@@ -218,7 +218,7 @@ class PreferencesViewController: SettingsPaneController {
 
     private func refreshStatus() {
         let status = context.status
-        let folder = FileManager.default.displayName(atPath: Bundle.main.bundleURL.deletingLastPathComponent().path)
+        let folder = RunningFolder.displayName(of: Bundle.main.bundleURL)
         statusCard.configure(status, shortcut: Preferences.globalKey?.description, runningFolder: folder)
 
         let alwaysHidden = context.previewAlwaysHidden ?? Preferences.alwaysHiddenSectionEnabled
