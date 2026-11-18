@@ -27,6 +27,10 @@ scripts/memory-soak/install --uninstall  # stop early; the plist goes to the Tra
 
 The LaunchAgent is `mini.hiddenbar-memory-soak`. It runs at load and every 3600 s, and boots itself out once the end date (install time + 14 days, passed as an epoch argument) has passed. Check with `launchctl print gui/$UID/mini.hiddenbar-memory-soak`. Launchd stderr goes to `~/Library/Logs/hiddenbar-memory-soak.err`.
 
+## Heartbeat
+
+Each completed sample pings the `mini.hiddenbar-memory-soak` vps-mon heartbeat (`~/.config/vps-mon/hiddenbar-memory-soak-heartbeat-url`, through vps-mon `bin/hb-ping`). A sample with no footprint reading does not ping. No URL file, or a failed ping, changes nothing. The end-date branch does not ping, so the heartbeat goes silent once the soak is over: at the end epoch (1796051986, 2026-11-30) retire it with vps-mon `bin/retire-heartbeat mini.hiddenbar-memory-soak`. `scripts/memory-soak/test-heartbeat` proves it.
+
 ## Reading a leak
 
 A leak is footprint and node count both rising across days at the same pid; a new pid (app restarted) restarts the series, so compare within a pid only.

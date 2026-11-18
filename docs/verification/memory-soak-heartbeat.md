@@ -17,10 +17,14 @@ PASS sampled     pings=1 exit=0
 PASS no-url      pings=0 exit=0
 PASS soak-ended  pings=0 exit=0
 PASS ping-fails  pings=0 exit=0
+PASS running     pings=1 exit=0
+PASS no-footprint pings=0 exit=0
 -- summary: all cases match
 ```
 
 Real sample, stub ping helper, temp log, the installed Hidden Bar running: exit 0, one ping, one log line (`pid=... footprint=... nodes=...`).
+
+`running` uses a fake "Hidden Bar" process and the real `footprint`; `no-footprint` stubs `footprint` to print nothing, so the sample logs `footprint=NA` and must not ping.
 
 ## NEGATIVE CONTROL
 
@@ -37,3 +41,5 @@ scripts/memory-soak/test-heartbeat
 ## End of soak
 
 The `soak-ended` case is the proof the end-date branch does not ping: the heartbeat then goes silent on purpose. Retire it after the end epoch with vps-mon `bin/retire-heartbeat mini.hiddenbar-memory-soak`.
+
+Second control, review fixes: `negctl.sh` with the closing ping line deleted (`sed -i '' '/ || heartbeat$/d' scripts/memory-soak/sample`): `running` goes RED (pings=0, want 1). With `sample` at the previous commit (no footprint=NA skip): `no-footprint` goes RED (pings=1, want 0).

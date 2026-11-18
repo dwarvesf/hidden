@@ -8,7 +8,7 @@
 # Env: HB_SOAK_LOG (default ~/Library/Logs/hiddenbar-memory-soak.log), HB_SOAK_APP, HB_SOAK_LABEL,
 #      HB_SOAK_HB_FILE and HB_SOAK_PING (the vps-mon heartbeat URL file and the hb-ping helper).
 #
-# Liveness: each completed sample (app running or not) pings the mini.hiddenbar-memory-soak heartbeat.
+# Liveness: each completed sample (app running or not, but not one with footprint=NA) pings the mini.hiddenbar-memory-soak heartbeat.
 # No URL file or a failed ping never changes the exit code. The end-epoch branch does NOT ping, so the
 # heartbeat goes silent after the soak by design: retire it with vps-mon bin/retire-heartbeat then.
 # Line: TS pid=N up=ETIME footprint=B peak=B nodes=N heap_bytes=B version=SHORT+BUILD
@@ -72,4 +72,5 @@ if [ -z "$nodes" ]; then
 fi
 
 log "pid=$pid up=$up footprint=$footprint peak=$peak nodes=$nodes heap_bytes=$heap_bytes version=$version$note"
-heartbeat
+# A sample without a footprint reading did not measure anything: stay silent so a broken sampler alerts.
+[ "$footprint" = NA ] || heartbeat
