@@ -229,6 +229,23 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         XCTAssertEqual(ownerReads, 1, "item owners are asked for only when a candidate window needs them")
     }
 
+    // KVM hot borders and similar tools keep a 1 pt window on the screen edge.
+    func testThinEdgeWindowsDoNotDefer() {
+        let popupGuard = makeGuard()
+        list.windows = [
+            window(netMonitor, layer: 0, CGRect(x: 0, y: 0, width: 1, height: 900)),
+            window(99, layer: status, CGRect(x: 1599, y: 0, width: 1, height: 900)),
+            window(99, layer: status, CGRect(x: 0, y: 24, width: 1600, height: 4)),
+        ]
+        XCTAssertFalse(popupGuard.defersCollapse())
+    }
+
+    func testPopupStartingAboveTheBarDefers() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: popUpMenu, CGRect(x: 1200, y: -6, width: 300, height: 400))]
+        XCTAssertTrue(popupGuard.defersCollapse())
+    }
+
     func testPopupUnderASecondDisplaysMenuBarDefers() {
         let popupGuard = makeGuard()
         list.windows = [window(netMonitor, layer: popUpMenu, CGRect(x: 2100, y: -334, width: 280, height: 300))]

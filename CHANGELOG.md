@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Auto-hide no longer waits on a screen-edge window one or two points wide, such as the hot border a KVM switch draws, and it now sees a menu bar popup that starts a few points above the bar ([#548](https://github.com/dwarvesf/hidden/issues/548)).
+
 ## v1.13.1 (2026-11-18)
 
 ### Added
