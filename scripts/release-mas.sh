@@ -24,8 +24,9 @@
 # Lessons this script encodes (App Store 1.13.1 run):
 #   - Manual signing at export: the "Apple Distribution" identity plus the existing profile.
 #     Automatic export needs cloud signing access the ASC API key does not have.
-#   - Never umask 077. Apple rejects a pkg whose files are root-only (altool error 90255).
-#     The key lives in a mode 700 temp dir instead, and the pkg's mode is checked below.
+#   - Never umask 077. Apple rejects a package whose files only root can read (altool error
+#     90255). The key lives in a mode 700 temp dir instead, and the archived app and the pkg
+#     are checked for world-readability before anything is uploaded.
 #
 # Exit: 0 ok (or dry-run plan printed) | 1 build or export failed | 2 usage or preflight error.
 #
@@ -140,12 +141,18 @@ world_readable() { # path : rc 0 when others can read it (and, for a directory, 
   if [ -d "$1" ]; then [ $((8#$m & 5)) = 5 ]; else [ $((8#$m & 4)) = 4 ]; fi
 }
 
+check_payload() { # dir : rc 1 and the first offenders when a file or folder under it is not world-readable
+  local bad
+  bad="$(find "$1" \( -type d ! -perm -o=rx \) -o \( ! -type d ! -type l ! -perm -o=r \) 2>/dev/null | head -3)"
+  [ -z "$bad" ] || { echo "not world-readable under $1 (first: $(echo $bad)): Apple rejects files only root can read with error 90255; a umask 077 build causes it"; return 1; }
+}
+
 check_pkg() { # export-dir : prints the pkg path; rc 1 with the reason when it is unusable
   local n pkg
   n="$(ls "$1"/*.pkg 2>/dev/null | grep -c .)"
   [ "$n" = 1 ] || { echo "expected exactly one pkg in $1, found $n"; return 1; }
   pkg="$(ls "$1"/*.pkg)"
-  world_readable "$1" && world_readable "$pkg" || { echo "pkg or its folder is not world-readable (mode $(mode_of "$pkg")): Apple rejects that with error 90255; a umask 077 build causes it"; return 1; }
+  world_readable "$1" && world_readable "$pkg" || { echo "pkg or its folder is not world-readable (mode $(mode_of "$pkg")); a umask 077 build causes it (Apple error 90255)"; return 1; }
   pkgutil --check-signature "$pkg" >/dev/null 2>&1 || { echo "pkgutil --check-signature failed for $pkg"; return 1; }
   echo "$pkg"
 }
@@ -170,7 +177,7 @@ fetch_key() { # sets AUTH; the key goes to a mode 700 dir via asc-release.py, ne
 }
 
 stage_build() { # out-dir
-  local out="$1"
+  local out="$1" r
   mkdir -p "$out"; cd "$ROOT" || die "cannot cd to $ROOT"
   echo "HEAD $(git rev-parse HEAD)"
   xcodebuild archive -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
@@ -178,6 +185,7 @@ stage_build() { # out-dir
     DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Automatic "${AUTH[@]}" > "$out/archive.log" 2>&1 \
     || { tail -30 "$out/archive.log" | filter; return 1; }
   tail -2 "$out/archive.log" | filter
+  r="$(check_payload "$out/HiddenBar.xcarchive/Products")" || { echo "$r" >&2; return 1; }
   write_export_plist "$out/export.plist"
   xcodebuild -exportArchive -archivePath "$out/HiddenBar.xcarchive" -exportPath "$out/export" \
     -exportOptionsPlist "$out/export.plist" "${AUTH[@]}" > "$out/export.log" 2>&1 \

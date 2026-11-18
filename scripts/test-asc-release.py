@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 
+sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
 spec = importlib.util.spec_from_file_location("asc_release", os.path.join(HERE, "asc-release.py"))
 R = importlib.util.module_from_spec(spec)

@@ -275,17 +275,18 @@ Rules the scripts encode (learned in the 1.13.1 run):
 - **Manual signing at export**: the `Apple Distribution` identity plus the
   existing MAS profile. Automatic export needs cloud signing access the API
   key does not have.
-- **Never `umask 077`.** Apple rejects a pkg with root-only files (altool error
-  90255). The scripts keep the key in a mode 700 temp dir instead and refuse a
-  pkg that others cannot read.
+- **Never `umask 077`.** Apple rejects a package whose files only root can read
+  (altool error 90255). The scripts keep the key in a mode 700 temp dir instead,
+  and refuse an archived app or pkg that others cannot read.
 - **Export compliance**: the build is marked "no non-exempt encryption".
 - **Release type**: automatic after approval.
 - The key never lands in the build directory, a log or the process output; the
   temp copies are truncated when the script exits.
 
 If a step fails: a missing or expired profile (`profile_installed` fails in the
-preflight) is fixed with `asc-release.py profile`; a 90255 on upload means the
-pkg or its folder was created by a restrictive umask, so rebuild; a build
+preflight) is fixed with `asc-release.py profile`; a 90255 on upload means files
+in the app or pkg were created by a restrictive umask, so rebuild with the
+default umask; a build
 stuck in processing is retried with `attach-build` once it shows `VALID`.
 
 ## Direct vs App Store targets

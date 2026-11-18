@@ -42,7 +42,7 @@ stub xcodebuild <<'EOF'
 # records its arguments; creates an archive and an exported pkg the way Xcode would, with this process's umask
 echo "$*" >> "$STUB_MARKS/xcodebuild.args"
 [ -z "${STUB_XCODE_FAIL:-}" ] || { echo "stub xcodebuild failure"; exit 1; }
-for a in "$@"; do case "$a" in -archivePath) next=arch ;; -exportPath) next=exp ;; *) case "${next:-}" in arch) mkdir -p "$a"; next= ;; exp) mkdir -p "$a"; : > "$a/Hidden Bar.pkg"; [ -z "${STUB_PKG_MODE:-}" ] || chmod "$STUB_PKG_MODE" "$a/Hidden Bar.pkg"; next= ;; esac ;; esac; done
+for a in "$@"; do case "$a" in -archivePath) next=arch ;; -exportPath) next=exp ;; *) case "${next:-}" in arch) mkdir -p "$a/Products/Applications/Hidden Bar.app/Contents"; : > "$a/Products/Applications/Hidden Bar.app/Contents/Info.plist"; [ -z "${STUB_PAYLOAD_MODE:-}" ] || chmod "$STUB_PAYLOAD_MODE" "$a/Products/Applications/Hidden Bar.app/Contents/Info.plist"; next= ;; exp) mkdir -p "$a"; : > "$a/Hidden Bar.pkg"; [ -z "${STUB_PKG_MODE:-}" ] || chmod "$STUB_PKG_MODE" "$a/Hidden Bar.pkg"; next= ;; esac ;; esac; done
 echo "** ARCHIVE SUCCEEDED **"
 EOF
 stub pkgutil <<'EOF'
@@ -158,6 +158,12 @@ root_only_pkg() { # negative control for the umask lesson: a root-only pkg stops
   [ $rc = 1 ] && printf '%s' "$o" | grep -q '90255'
 }
 t root-only-pkg-refused-with-90255 root_only_pkg
+root_only_payload() { # the file Apple actually rejects: an app file only root can read, caught before export
+  local d o rc; d="$(fixture rootpayload)"
+  o="$(EXTRA_ENV=STUB_PAYLOAD_MODE=600 mas "$d" 2>&1)"; rc=$?
+  [ $rc = 1 ] && printf '%s' "$o" | grep -q '90255' && printf '%s' "$o" | grep -q 'Info.plist' && ! grep -q -- '-exportArchive' "$d.marks/xcodebuild.args"
+}
+t root-only-app-file-refused-before-export root_only_payload
 xcode_failure() { local d o rc; d="$(fixture xfail)"; o="$(EXTRA_ENV=STUB_XCODE_FAIL=1 mas "$d" 2>&1)"; rc=$?; [ $rc = 1 ] && printf '%s' "$o" | grep -q 'stub xcodebuild failure'; }
 t build-failure-exits-1 xcode_failure
 bad_signature() { local d o rc; d="$(fixture badsig)"; o="$(EXTRA_ENV=STUB_PKGUTIL_RC=1 mas "$d" 2>&1)"; rc=$?; [ $rc = 1 ] && printf '%s' "$o" | grep -q 'check-signature failed'; }

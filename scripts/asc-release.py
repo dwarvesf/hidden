@@ -22,7 +22,8 @@ Environment (docs/RUNBOOK.md, "App Store release"):
 Lessons this script encodes (App Store 1.13.1 run):
   - Export compliance: the build is marked "no non-exempt encryption" (usesNonExemptEncryption=false).
   - Release type is automatic after approval (AFTER_APPROVAL).
-  - The pkg must be world-readable; Apple rejects a root-only pkg with error 90255 (a umask 077 build).
+  - The pkg must be world-readable. A umask 077 build leaves files only root can read, which Apple
+    rejects (error 90255); release-mas.sh checks the archived app, this script checks the pkg.
 """
 import argparse
 import base64
@@ -271,14 +272,14 @@ def find_build(c, aid, ver, num):
 # ---- the pkg and the listing (offline) -------------------------------------------------------
 
 def check_pkg(path):
-    """The pkg exists and is world-readable; a root-only pkg is rejected by Apple (error 90255)."""
+    """The pkg exists and is world-readable (the umask 077 lesson; Apple error 90255)."""
     if not path.endswith(".pkg") or not os.path.isfile(path):
         raise ToolError(f"{path} is not a .pkg file")
     if not os.stat(path).st_mode & stat.S_IROTH:
-        raise ToolError(f"{path} is not world-readable; Apple rejects that with error 90255 (a umask 077 build causes it)")
+        raise ToolError(f"{path} is not world-readable; a umask 077 build causes it (Apple error 90255)")
     parent = os.path.dirname(os.path.abspath(path))
     if os.stat(parent).st_mode & (stat.S_IROTH | stat.S_IXOTH) != (stat.S_IROTH | stat.S_IXOTH):
-        raise ToolError(f"{parent} is not world-readable; Apple rejects that with error 90255")
+        raise ToolError(f"{parent} is not world-readable (Apple error 90255)")
 
 
 def read_listing(path):
