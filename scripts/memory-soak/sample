@@ -5,7 +5,12 @@
 #
 #   sample [END_EPOCH]    END_EPOCH: unix seconds. Past it, boot the LaunchAgent out and exit.
 #
-# Env: HB_SOAK_LOG (default ~/Library/Logs/hiddenbar-memory-soak.log), HB_SOAK_APP, HB_SOAK_LABEL.
+# Env: HB_SOAK_LOG (default ~/Library/Logs/hiddenbar-memory-soak.log), HB_SOAK_APP, HB_SOAK_LABEL,
+#      HB_SOAK_HB_FILE and HB_SOAK_PING (the vps-mon heartbeat URL file and the hb-ping helper).
+#
+# Liveness: each completed sample (app running or not, but not one with footprint=NA) pings the mini.hiddenbar-memory-soak heartbeat.
+# No URL file or a failed ping never changes the exit code. The end-epoch branch does NOT ping, so the
+# heartbeat goes silent after the soak by design: retire it with vps-mon bin/retire-heartbeat then.
 # Line: TS pid=N up=ETIME footprint=B peak=B nodes=N heap_bytes=B version=SHORT+BUILD
 set -u
 
@@ -13,10 +18,17 @@ LOG="${HB_SOAK_LOG:-$HOME/Library/Logs/hiddenbar-memory-soak.log}"
 APP="${HB_SOAK_APP:-/Applications/Hidden Bar.app}"
 LABEL="${HB_SOAK_LABEL:-mini.hiddenbar-memory-soak}"
 END_EPOCH="${1:-}"
+HB_FILE="${HB_SOAK_HB_FILE:-$HOME/.config/vps-mon/hiddenbar-memory-soak-heartbeat-url}"
+HB_PING="${HB_SOAK_PING:-$HOME/workspace/dwarvesf/vps-mon/bin/hb-ping}"
 
 mkdir -p "$(dirname "$LOG")"
 ts() { date +%Y-%m-%dT%H:%M:%S%z; }
 log() { printf '%s %s\n' "$(ts)" "$*" >> "$LOG"; }
+heartbeat() {
+    if [ -r "$HB_FILE" ] && [ -x "$HB_PING" ]; then
+        "$HB_PING" "$HB_FILE" || log "heartbeat ping failed"
+    fi
+}
 
 if [ -n "$END_EPOCH" ] && [ "$(date +%s)" -ge "$END_EPOCH" ]; then
     log "state=soak-ended (end date reached, booting out $LABEL)"
@@ -36,6 +48,7 @@ version="$short+$build"
 pid="$(pgrep -f "$APP/Contents/MacOS/Hidden Bar" | head -n 1)"
 if [ -z "$pid" ]; then
     log "pid=- state=not-running version=$version"
+    heartbeat
     exit 0
 fi
 
@@ -59,3 +72,5 @@ if [ -z "$nodes" ]; then
 fi
 
 log "pid=$pid up=$up footprint=$footprint peak=$peak nodes=$nodes heap_bytes=$heap_bytes version=$version$note"
+# A sample without a footprint reading did not measure anything: stay silent so a broken sampler alerts.
+[ "$footprint" = NA ] || heartbeat
