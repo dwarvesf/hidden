@@ -262,7 +262,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
             return completion(.unavailable)
         }
         guard runsFromApplicationsFolder() else {
-            logUnavailableOnce("macOS 27 would also hide Hidden Bar's own arrow: it hides only apps it knows by bundle id, and Hidden Bar runs from outside an Applications folder (\(Bundle.main.bundlePath))")
+            logUnavailableOnce("macOS 27 would also hide Hidden Bar's own arrow: it hides only apps it knows by bundle id, and Hidden Bar runs from outside an Applications folder (\((Bundle.main.bundlePath as NSString).abbreviatingWithTildeInPath))")
             state = .unavailable
             return completion(.unavailable)
         }
