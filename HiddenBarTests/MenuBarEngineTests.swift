@@ -1047,8 +1047,8 @@ final class NativeVisibilityEngineTests: XCTestCase {
 
     func testClockClickAreaIsShortTowardTheNeighbourInLeftToRight() {
         XCTAssertTrue(onClock(797, isLTR: true), "3 pt left")
-        XCTAssertTrue(onClock(796, isLTR: true), "4 pt left, the last point")
-        XCTAssertFalse(onClock(795, isLTR: true), "5 pt left")
+        XCTAssertTrue(onClock(794, isLTR: true), "6 pt left, the last point")
+        XCTAssertFalse(onClock(793, isLTR: true), "7 pt left")
         XCTAssertFalse(onClock(792, isLTR: true), "8 pt left")
     }
 
@@ -1065,8 +1065,8 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertTrue(onClock(776, isLTR: false), "24 pt left, the last point")
         XCTAssertFalse(onClock(775, isLTR: false), "25 pt left")
         XCTAssertTrue(onClock(942, isLTR: false), "3 pt right, toward the neighbour")
-        XCTAssertTrue(onClock(943, isLTR: false), "4 pt right, the last point")
-        XCTAssertFalse(onClock(944, isLTR: false), "5 pt right")
+        XCTAssertTrue(onClock(945, isLTR: false), "6 pt right, the last point")
+        XCTAssertFalse(onClock(946, isLTR: false), "7 pt right")
         XCTAssertFalse(onClock(947, isLTR: false), "8 pt right")
     }
 
@@ -1090,6 +1090,14 @@ final class NativeVisibilityEngineTests: XCTestCase {
         let edge = CGPoint(x: 947, y: 12)
         XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: edge, clockFrame: paddedClock, isLTR: true), edge)
         XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: edge, clockFrame: paddedClock, isLTR: false), centre)
+        let lastNear = CGPoint(x: 794, y: 12)
+        let pastNear = CGPoint(x: 793, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: lastNear, clockFrame: paddedClock, isLTR: true), lastNear)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: pastNear, clockFrame: paddedClock, isLTR: true), centre)
+        let mirroredLastNear = CGPoint(x: 945, y: 12)
+        let mirroredPastNear = CGPoint(x: 946, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: mirroredLastNear, clockFrame: paddedClock, isLTR: false), mirroredLastNear)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: mirroredPastNear, clockFrame: paddedClock, isLTR: false), centre)
         let farEdge = CGPoint(x: 959, y: 12)
         let beyondEdge = CGPoint(x: 964, y: 12)
         XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: farEdge, clockFrame: paddedClock, isLTR: true), farEdge)

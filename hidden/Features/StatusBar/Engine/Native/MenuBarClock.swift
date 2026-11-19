@@ -374,11 +374,12 @@ final class SystemMenuBarClock: MenuBarClockProviding {
 
     // macOS highlights and accepts clicks a little beyond the clock's Accessibility
     // frame and ignores them while a restriction is held, so every click test uses
-    // this wider area. Measured on 27.2.1: toward the neighbouring item clicks 1 to 4 pt
-    // out open Notification Center and 8 pt out does not; toward the screen edge clicks
-    // up to 13 pt out do. The clock is the last item, so the whole strip to the screen
-    // edge is its own: 24 pt covers the usual 20 pt margin. Both side edges count.
-    static let clickPaddingTowardNeighbour: CGFloat = 4
+    // this wider area. Measured on 27.2.1 with Hidden Bar quit: toward the neighbouring
+    // item clicks up to 6 pt out open Notification Center and 8 pt out does not (7 pt not
+    // measured); toward the screen edge clicks up to 13 pt out do. The clock is the last
+    // item, so the whole strip to the screen edge is its own: 24 pt covers the usual 20 pt
+    // margin. Both side edges count. The frame moves when the date text changes.
+    static let clickPaddingTowardNeighbour: CGFloat = 6
     static let clickPaddingTowardScreenEdge: CGFloat = 24
 
     // The clock is the last item before the screen edge: on the right in a
