@@ -305,3 +305,8 @@ Jak wyświetlić ikony „Zawsze ukryte”:
 "macOS 27: get the working version..." = "macOS 27: pobierz działającą wersję...";
 "Or install it with Homebrew:" = "Lub zainstaluj przez Homebrew:";
 "Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "Najpierw zakończ tę wersję z App Store i przenieś ją do kosza. Homebrew nie instaluje się nad nią.";
+"Hiding is paused" = "Ukrywanie jest wstrzymane";
+"macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there." = "macOS ukrywa te ikony niezależnie od tego, na co pozwala Hidden Bar: %@. Są na prawo od strzałki, więc przełącznik wstrzymywania w Zaawansowanych zachowuje widoczność wszystkiego, dopóki tam są.";
+"icons with no name" = "ikony bez nazwy";
+"Nothing to hide" = "Nie ma czego ukryć";
+"Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Wszystkie ikony są na prawo od strzałki, więc nie ma czego ukryć. Przytrzymaj Command i przeciągnij strzałkę na prawo od ikon, które chcesz ukryć.";

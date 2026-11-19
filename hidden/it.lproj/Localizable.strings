@@ -307,3 +307,8 @@ Passi per mostrare le icone sempre nascoste:
 "macOS 27: get the working version..." = "macOS 27: scarica la versione funzionante...";
 "Or install it with Homebrew:" = "Oppure installala con Homebrew:";
 "Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "Prima chiudi questa versione dell’App Store e spostala nel Cestino. Homebrew non si installa sopra di essa.";
+"Hiding is paused" = "Nascondimento in pausa";
+"macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there." = "macOS nasconde queste icone qualunque cosa consenta Hidden Bar: %@. Si trovano a destra della freccia, quindi l’interruttore di pausa in Avanzate mantiene tutto visibile finché sono lì.";
+"icons with no name" = "icone senza nome";
+"Nothing to hide" = "Niente da nascondere";
+"Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Tutte le icone sono a destra della freccia, quindi non c’è nulla da nascondere. Tieni premuto il tasto Comando e trascina la freccia a destra delle icone che vuoi nascondere.";

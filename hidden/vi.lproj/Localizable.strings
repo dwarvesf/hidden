@@ -305,3 +305,8 @@ Các bước xem biểu tượng luôn ẩn:
 "macOS 27: get the working version..." = "macOS 27: tải phiên bản hoạt động được...";
 "Or install it with Homebrew:" = "Hoặc cài bằng Homebrew:";
 "Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "Hãy thoát phiên bản App Store này và chuyển nó vào Thùng rác trước. Homebrew không cài đè lên nó.";
+"Hiding is paused" = "Đã tạm dừng ẩn";
+"macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there." = "macOS ẩn các biểu tượng này dù Hidden Bar cho phép: %@. Chúng nằm bên phải mũi tên, nên công tắc tạm dừng trong Nâng cao giữ mọi thứ hiển thị khi chúng còn ở đó.";
+"icons with no name" = "biểu tượng không có tên";
+"Nothing to hide" = "Không có gì để ẩn";
+"Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Mọi biểu tượng đều nằm bên phải mũi tên nên không có gì để ẩn. Giữ Command và kéo mũi tên sang bên phải các biểu tượng bạn muốn ẩn.";

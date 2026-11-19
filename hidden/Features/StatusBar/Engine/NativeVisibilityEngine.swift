@@ -268,7 +268,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
             logUnavailableOnce("NativeVisibility: hiding unavailable: Hidden Bar runs from outside an Applications folder, so macOS 27 would also hide its arrow",
                                detail: "macOS 27 would also hide Hidden Bar's own arrow: it hides only apps it knows by bundle id, and Hidden Bar runs from outside an Applications folder (\((Bundle.main.bundlePath as NSString).abbreviatingWithTildeInPath))")
             state = .unavailable
-            return completion(.unavailable)
+            return completion(.refused(.outsideApplications))
         }
         guard inventory.isAuthorized else {
             // The strict presentation list names no app from a read, so it holds
@@ -281,7 +281,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
             // the permission is granted.
             inventory.requestAuthorization()
             logUnavailableOnce("NativeVisibility: hiding unavailable: Accessibility permission is needed to read the menu-bar sections")
-            return completion(.unavailable)
+            return completion(.refused(.accessibilityNeeded))
         }
         state = .calibrating
         startCollapseTimeout(completion)
@@ -297,10 +297,10 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 return completion(.unavailable)
             }
             if !self.holdsPresentationList, self.pausesHidingForUnkeepableItems(),
-               let reason = layout.reasonToKeepBarWhole(unkeepableSystemItems: self.unkeepableSystemItems) {
-                self.logUnavailableOnce("NativeVisibility: hiding unavailable: an icon right of the arrow cannot be kept visible, so the bar stays whole", detail: reason)
+               let blocker = layout.keepWholeBlocker(unkeepableSystemItems: self.unkeepableSystemItems) {
+                self.logUnavailableOnce("NativeVisibility: hiding unavailable: an icon right of the arrow cannot be kept visible, so the bar stays whole", detail: blocker.reason)
                 self.state = .expanded
-                return completion(.unavailable)
+                return completion(.refused(.unkeepableIcons(names: blocker.names)))
             }
             guard let wanted = self.hold(whenBar: .collapsed, layout: layout) else {
                 self.state = .expanded
@@ -312,13 +312,21 @@ final class NativeVisibilityEngine: MenuBarEngine {
                     self.state = .expanded
                     return completion(.unavailable)
                 }
-                self.checkStillShown(self.holdsPresentationList ? [] : layout.unprovenVisibleSystemItems) { [weak self] shown in
+                self.checkStillShown(self.holdsPresentationList ? [] : layout.unprovenVisibleSystemItems) { [weak self] shown, hiddenByMacOS in
                     guard let self = self else { return }
                     self.state = shown ? .collapsed : .expanded
                     if shown {
                         self.setSeparatorsVisible(false)
                     }
-                    completion(shown ? .collapsed : .unavailable)
+                    // The strict presentation list hides every app whatever the sections say.
+                    let hidesNothing = !self.holdsPresentationList && layout.hasNothingToHide
+                    if shown {
+                        completion(hidesNothing ? .collapsedNothingHidden : .collapsed)
+                    } else if hiddenByMacOS.isEmpty {
+                        completion(.unavailable)
+                    } else {
+                        completion(.refused(.unkeepableIcons(names: hiddenByMacOS.map(Self.displayName(ofSystemItem:)))))
+                    }
                     if shown {
                         self.settleHold()
                     }
@@ -1073,9 +1081,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private func collapseFinished(_ result: CollapseResult) {
         guard presentation.isOn else { return }
         switch result {
-        case .collapsed:
+        case .collapsed, .collapsedNothingHidden:
             presentation.hideDidSucceed()
-        case .unavailable:
+        case .unavailable, .refused:
             if holdsPresentationList { presentation.hideDidFail() }
         }
         notePhaseChange()
@@ -1120,12 +1128,13 @@ final class NativeVisibilityEngine: MenuBarEngine {
     // and the check only feeds the Preferences note. With the opt-in, the
     // restriction is dropped and later collapses keep the bar whole while such an
     // extra is right of the arrow, instead of flashing it hidden.
-    private func checkStillShown(_ expected: [String], completion: @escaping (Bool) -> Void) {
+    // `completion` also names the extras macOS hid when it fails open for them.
+    private func checkStillShown(_ expected: [String], completion: @escaping (Bool, [String]) -> Void) {
         let unchecked = expected.filter { !unkeepableSystemItems.contains($0) }
-        guard !unchecked.isEmpty else { return completion(true) }
+        guard !unchecked.isEmpty else { return completion(true, []) }
         let pauses = pausesHidingForUnkeepableItems()
         if !pauses {
-            completion(true)
+            completion(true, [])
         }
         let generation = self.generation
         scheduleVisibilityCheck { [weak self] in
@@ -1145,9 +1154,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 guard missing.isEmpty else {
                     NSLog("NativeVisibility: macOS hid \(missing) although they sit right of the arrow; keeping the bar whole while they are there")
                     self.releaseAssertion()
-                    return completion(false)
+                    return completion(false, missing)
                 }
-                completion(true)
+                completion(true, [])
             }
         }
     }

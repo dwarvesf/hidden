@@ -320,3 +320,8 @@
 "macOS 27: get the working version..." = "macOS 27：取得可用版本...";
 "Or install it with Homebrew:" = "或使用 Homebrew 安裝：";
 "Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "請先結束此 App Store 版並將其移到垃圾桶。Homebrew 無法覆蓋安裝。";
+"Hiding is paused" = "已暫停隱藏";
+"macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there." = "無論 Hidden Bar 是否允許，macOS 都會隱藏這些圖示：%@。它們位於箭頭右側，因此只要它們還在那裡，「進階」中的暫停開關就會讓所有圖示保持可見。";
+"icons with no name" = "沒有名稱的圖示";
+"Nothing to hide" = "沒有可隱藏的項目";
+"Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "所有圖示都在箭頭右側，因此沒有可隱藏的項目。按住 Command 鍵並將箭頭拖到想隱藏的圖示右側。";

@@ -88,9 +88,46 @@ enum MenuBarEngineState {
     case unavailable
 }
 
-enum CollapseResult {
+// Why a click left nothing hidden, in a form the controller can show without
+// reading the engine's log lines. Names are the ones the user sees.
+enum NoHideReason: Equatable {
+    case outsideApplications
+    case unkeepableIcons(names: [String])
+    case accessibilityNeeded
+    // Every icon sits right of the arrow, so the hidden sections are empty.
+    case everythingRightOfArrow
+
+    // What "once per reason" counts: the names may differ between attempts.
+    enum Kind: Hashable {
+        case outsideApplications, unkeepableIcons, accessibilityNeeded, everythingRightOfArrow
+    }
+
+    var kind: Kind {
+        switch self {
+        case .outsideApplications: return .outsideApplications
+        case .unkeepableIcons: return .unkeepableIcons
+        case .accessibilityNeeded: return .accessibilityNeeded
+        case .everythingRightOfArrow: return .everythingRightOfArrow
+        }
+    }
+}
+
+enum CollapseResult: Equatable {
     case collapsed
+    // Nothing hidden and no reason the user can act on (transient or unknown).
     case unavailable
+    // Nothing hidden, the bar stays expanded, and the user can change why.
+    case refused(NoHideReason)
+    // The bar collapsed, but there was nothing left of the arrow to hide.
+    case collapsedNothingHidden
+
+    var noHideReason: NoHideReason? {
+        switch self {
+        case .refused(let reason): return reason
+        case .collapsedNothingHidden: return .everythingRightOfArrow
+        case .collapsed, .unavailable: return nil
+        }
+    }
 }
 
 enum MenuBarOrder {

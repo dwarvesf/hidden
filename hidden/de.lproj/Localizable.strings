@@ -305,3 +305,8 @@ Zum Anzeigen der permanent ausgeblendeten Symbole:
 "macOS 27: get the working version..." = "macOS 27: Funktionierende Version laden...";
 "Or install it with Homebrew:" = "Oder installiere sie mit Homebrew:";
 "Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "Beende zuerst diese App-Store-Version und lege sie in den Papierkorb. Homebrew installiert nicht darüber.";
+"Hiding is paused" = "Ausblenden pausiert";
+"macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there." = "macOS blendet diese Symbole aus, was auch immer Hidden Bar erlaubt: %@. Sie liegen rechts vom Pfeil, daher hält der Schalter zum Pausieren unter „Erweitert“ alles sichtbar, solange sie dort sind.";
+"icons with no name" = "Symbole ohne Namen";
+"Nothing to hide" = "Nichts zum Ausblenden";
+"Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Alle Symbole liegen rechts vom Pfeil, daher gibt es nichts auszublenden. Halte die Befehlstaste gedrückt und ziehe den Pfeil rechts neben die Symbole, die du ausblenden möchtest.";

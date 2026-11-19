@@ -304,3 +304,8 @@
 "macOS 27: get the working version..." = "macOS 27: 動作するバージョンを入手...";
 "Or install it with Homebrew:" = "または Homebrew でインストール:";
 "Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "先にこの App Store 版を終了し、ゴミ箱に入れてください。Homebrew では上書きインストールできません。";
+"Hiding is paused" = "非表示は一時停止中です";
+"macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there." = "Hidden Bar が許可していても、macOS は次のアイコンを非表示にします：%@。これらは矢印の右側にあるため、「詳細設定」の一時停止スイッチにより、それらがある間はすべてが表示されたままになります。";
+"icons with no name" = "名前のないアイコン";
+"Nothing to hide" = "非表示にするものがありません";
+"Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "すべてのアイコンが矢印の右側にあるため、非表示にするものがありません。Command キーを押しながら、矢印を非表示にしたいアイコンの右側にドラッグしてください。";

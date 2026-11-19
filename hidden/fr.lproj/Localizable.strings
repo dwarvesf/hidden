@@ -307,3 +307,8 @@ Utilisez la fonction de section toujours cachée pour garder vos icônes bien ra
 "macOS 27: get the working version..." = "macOS 27 : obtenir la version compatible...";
 "Or install it with Homebrew:" = "Ou installez-la avec Homebrew :";
 "Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "Quittez d’abord cette version de l’App Store et placez-la dans la Corbeille. Homebrew ne s’installe pas par-dessus.";
+"Hiding is paused" = "Masquage suspendu";
+"macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there." = "macOS masque ces icônes quoi que Hidden Bar autorise : %@. Elles se trouvent à droite de la flèche, donc le réglage de pause dans Avancé garde tout visible tant qu’elles y sont.";
+"icons with no name" = "icônes sans nom";
+"Nothing to hide" = "Rien à masquer";
+"Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Toutes les icônes sont à droite de la flèche, il n’y a donc rien à masquer. Maintenez la touche Commande enfoncée et faites glisser la flèche à droite des icônes que vous voulez masquer.";

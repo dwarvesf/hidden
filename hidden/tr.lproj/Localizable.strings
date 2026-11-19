@@ -306,3 +306,8 @@ Her zaman gizli simgeleri görüntüleme adımları:
 "macOS 27: get the working version..." = "macOS 27: çalışan sürümü edinin...";
 "Or install it with Homebrew:" = "Veya Homebrew ile yükleyin:";
 "Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "Önce bu App Store sürümünden çıkın ve Çöp Sepeti’ne taşıyın. Homebrew bunun üzerine yüklenmez.";
+"Hiding is paused" = "Gizleme duraklatıldı";
+"macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there." = "macOS, Hidden Bar izin verse bile şu simgeleri gizler: %@. Bunlar okun sağında olduğundan, Gelişmiş’teki duraklatma anahtarı onlar orada durdukça her şeyi görünür tutar.";
+"icons with no name" = "adsız simgeler";
+"Nothing to hide" = "Gizlenecek bir şey yok";
+"Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Tüm simgeler okun sağında olduğundan gizlenecek bir şey yok. Command tuşunu basılı tutup oku, gizlemek istediğiniz simgelerin sağına sürükleyin.";
