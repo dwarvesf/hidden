@@ -1839,14 +1839,50 @@ final class AppsLaunchedWhileHidingTests: XCTestCase {
         XCTAssertEqual(visibility.requests.count, 1)
     }
 
-    func testAFailedSwapFailsOpen() {
+    // Given a collapsed bar and an app that launches
+    // When macOS refuses the swapped list
+    // Then the old list stays active, the bar stays collapsed, and a later launch swaps again
+    func testAFailedSwapKeepsTheHeldAppsHidden() {
         let engine = makeEngine()
-        _ = collapsed(engine)
+        let first = collapsed(engine)
         engine.applicationLaunched("com.new")
         XCTAssertEqual(visibility.requests.count, 2)
         guard visibility.requests.count == 2 else { return }
         visibility.fail(1)
-        XCTAssertEqual(engine.state, .expanded)
+
+        XCTAssertEqual(engine.state, .collapsed, "the apps already held stay hidden")
+        XCTAssertFalse(first.isInvalidated, "the old restriction is not dropped for one that never landed")
+        XCTAssertEqual(engine.currentHold?.bundles, ["com.visible"])
+
+        engine.applicationLaunched("com.other")
+        XCTAssertEqual(visibility.requests.count, 3, "the held restriction is still current, so the next launch swaps")
+        let second = visibility.succeed(2)
+        XCTAssertTrue(first.isInvalidated, "one restriction at a time: no leak")
+        XCTAssertFalse(second.isInvalidated)
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertEqual(engine.currentHold?.bundles, ["com.new", "com.other", "com.visible"])
+
+        engine.expand()
+        XCTAssertTrue(second.isInvalidated)
+        XCTAssertNil(engine.currentHold)
+    }
+
+    // Given a swap that failed and kept the old list
+    // When the user expands and collapses again
+    // Then the collapse activates a fresh list and lands collapsed
+    func testACollapseAfterAFailedSwapStillWorks() {
+        let engine = makeEngine()
+        let first = collapsed(engine)
+        engine.applicationLaunched("com.new")
+        visibility.fail(1)
+        engine.expand()
+        XCTAssertTrue(first.isInvalidated)
+
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(results, [.collapsed])
+        XCTAssertEqual(engine.state, .collapsed)
     }
 
     func testUserDefaultsMemoryRoundTrips() throws {
@@ -3135,18 +3171,19 @@ final class PaletteAllowTests: XCTestCase {
 
     // Given an activation that fails
     // When the palette allows an app
-    // Then the engine fails open (nothing hidden), says unavailable, and a later collapse hides again
-    func testAFailedLiftFailsOpen() {
+    // Then nothing changes: the old list stays held, the lift says unavailable
+    func testAFailedLiftKeepsTheOldList() {
         let engine = makeEngine()
-        _ = collapsed(engine)
+        let held = collapsed(engine)
         var lift: PaletteLift?
         engine.allowTemporarily("com.hidden") { lift = $0 }
         visibility.fail(1)
         XCTAssertEqual(lift, .unavailable)
-        XCTAssertEqual(engine.state, .expanded, "nothing is hidden after a failed activation")
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertFalse(held.isInvalidated)
 
-        engine.collapse { _ in }
-        XCTAssertEqual(visibility.requests.count, 3, "collapse runs again instead of believing it is collapsed")
+        engine.allowTemporarily("com.hidden") { lift = $0 }
+        XCTAssertEqual(visibility.requests.count, 3, "the palette can try again")
     }
 
     // Given a user-changed bar
@@ -3505,6 +3542,32 @@ final class PresentationModeEngineTests: XCTestCase {
         XCTAssertTrue(held.isInvalidated)
         XCTAssertEqual(engine.state, .expanded)
         XCTAssertEqual(phases.last, .couldNotHide)
+    }
+
+    // Given a collapsed bar and a strict list that macOS refuses
+    // When the failure leaves nothing held
+    // Then the controller hears an expand (arrow, auto-hide timer) and a normal collapse works
+    func testRefusedStrictListTellsTheController() {
+        let engine = makeEngine()
+        var heard = 0
+        engine.expandBarForCapture = { [unowned engine] in
+            heard += 1
+            XCTAssertEqual(engine.state, .collapsed, "the controller expands a bar it still sees as collapsed")
+            engine.expand()
+        }
+        collapsed(engine)
+        engine.startPresentation()
+        visibility.fail(visibility.requests.count - 1)
+
+        XCTAssertEqual(heard, 1)
+        XCTAssertNil(engine.currentHold)
+        XCTAssertEqual(engine.state, .expanded)
+
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
+        visibility.succeed(visibility.requests.count - 1)
+        XCTAssertEqual(results, [.collapsed])
+        XCTAssertEqual(engine.state, .collapsed)
     }
 
     // Given the strict list held
