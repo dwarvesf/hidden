@@ -22,6 +22,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
     private let ownPID: pid_t = 1
     private let netMonitor: pid_t = 42
     private let notificationCenter: pid_t = 50
+    private let controlCenter: pid_t = 70
     private let documentApp: pid_t = 60
 
     private var list: FakeWindowList!
@@ -35,7 +36,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
 
     // A 1600 x 900 display with a 24 pt menu bar, and a 900 x 1600 one to its
     // right, raised so its menu bar sits higher.
-    private let displays = [
+    private var displays = [
         PopupGuardDisplay(menuBarBand: CGRect(x: 0, y: 0, width: 1600, height: 24), height: 900),
         PopupGuardDisplay(menuBarBand: CGRect(x: 1600, y: -358, width: 900, height: 24), height: 1600),
     ]
@@ -58,6 +59,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
             netMonitor: "com.example.netmon",
             notificationCenter: AutoCollapsePopupGuard.notificationCenterBundleIdentifier,
             documentApp: "com.example.editor",
+            controlCenter: "com.apple.controlcenter",
         ]
         return AutoCollapsePopupGuard(windows: list,
                                       displays: { [unowned self] in displays },
@@ -297,11 +299,38 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         XCTAssertFalse(popupGuard.defersCollapse(), "an app with a menu bar icon, but no popup")
     }
 
-    func testScreenTallSidePanelDoesNotDeferAtAnyLayer() {
+    func testScreenTallSidePanelDoesNotDeferAtNormalLayers() {
         let popupGuard = makeGuard()
-        for layer in [3, 24, status, popUpMenu] {
+        for layer in [3, 24] {
             list.windows = [window(netMonitor, layer: layer, CGRect(x: 1200, y: 0, width: 400, height: 900))]
             XCTAssertFalse(popupGuard.defersCollapse(), "layer \(layer)")
+        }
+    }
+
+    // Measured on macOS 27.2.1, 960 x 600 pt display: the open Control Center
+    // panel is a pop-up menu level window from the display top, taller than the display.
+    func testScreenTallControlCenterPanelDefers() {
+        displays = [PopupGuardDisplay(menuBarBand: CGRect(x: 0, y: 0, width: 960, height: 24), height: 600)]
+        let popupGuard = makeGuard()
+        list.windows = [window(controlCenter, layer: popUpMenu, CGRect(x: 480, y: 0, width: 656, height: 964))]
+        XCTAssertTrue(popupGuard.defersCollapse())
+    }
+
+    func testScreenTallStatusLevelWindowDefers() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: status, CGRect(x: 1200, y: 0, width: 400, height: 900))]
+        XCTAssertTrue(popupGuard.defersCollapse())
+    }
+
+    // A side-notes app on the same 600 pt display: a 10 pt strip and its 400 pt panel.
+    func testSideNotesStripAndPanelOnA600PointDisplayDoNotDefer() {
+        displays = [PopupGuardDisplay(menuBarBand: CGRect(x: 0, y: 0, width: 960, height: 24), height: 600)]
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: 3, CGRect(x: 950, y: 0, width: 10, height: 600))]
+        XCTAssertFalse(popupGuard.defersCollapse(), "strip")
+        for layer in [3, 24] {
+            list.windows = [window(netMonitor, layer: layer, CGRect(x: 560, y: 0, width: 400, height: 600))]
+            XCTAssertFalse(popupGuard.defersCollapse(), "panel at layer \(layer)")
         }
     }
 

@@ -163,17 +163,17 @@ final class AutoCollapsePopupGuard {
                 guard notificationCenterPanelIsOpen() else { continue }
                 return window
             }
-            // A window as tall as its display is a side panel or an overlay, not a
-            // popup hanging from the menu bar, whatever its level.
-            if displays.contains(where: { Self.spansFullHeight(window.frame, of: $0) }) { continue }
             guard let band = bands.first(where: { Self.hangs(window.frame, from: $0) }) else { continue }
             if window.layer == Self.popUpMenuLayer || window.layer == Self.statusLayer {
                 return window
             }
             // A menu-bar app's own window under the band, at any level. Wide
             // windows are an app's document windows touching the top of the
-            // screen, not popovers.
+            // screen, not popovers. A window as tall as its display is a side
+            // panel, not a popover; only this branch skips it, as Control Center's
+            // open panel is screen-tall too (964 pt on a 600 pt display) and counts.
             guard window.layer >= 0, window.frame.width <= band.width / 2 else { continue }
+            if displays.contains(where: { Self.spansFullHeight(window.frame, of: $0) }) { continue }
             if statusItemOwners.contains(window.ownerPID) { return window }
             if itemOwnerBundles == nil { itemOwnerBundles = menuBarItemOwners() }
             if let id = bundle(of: window.ownerPID), itemOwnerBundles?.contains(id) == true {
