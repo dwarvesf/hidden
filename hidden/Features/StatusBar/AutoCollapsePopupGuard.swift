@@ -163,6 +163,9 @@ final class AutoCollapsePopupGuard {
                 guard notificationCenterPanelIsOpen() else { continue }
                 return window
             }
+            // A window as tall as its display is a side panel or an overlay, not a
+            // popup hanging from the menu bar, whatever its level.
+            if displays.contains(where: { Self.spansFullHeight(window.frame, of: $0) }) { continue }
             guard let band = bands.first(where: { Self.hangs(window.frame, from: $0) }) else { continue }
             if window.layer == Self.popUpMenuLayer || window.layer == Self.statusLayer {
                 return window
@@ -190,6 +193,17 @@ final class AutoCollapsePopupGuard {
         guard frame.width >= minPopupThickness, frame.height >= minPopupThickness else { return false }
         let reach = CGRect(x: band.minX, y: band.minY, width: band.width, height: band.height + bandTolerance)
         return frame.intersects(reach) && frame.maxY > band.maxY + 1
+    }
+
+    static let fullHeightTolerance: CGFloat = 1
+
+    // From the display's top to its bottom, within a point, over the display's width.
+    // A popup starts at the menu bar's bottom edge, so it never reaches the top.
+    static func spansFullHeight(_ frame: CGRect, of display: PopupGuardDisplay) -> Bool {
+        let band = display.menuBarBand
+        return frame.minX < band.maxX && frame.maxX > band.minX
+            && frame.minY <= band.minY + fullHeightTolerance
+            && frame.maxY >= band.minY + display.height - fullHeightTolerance
     }
 
     // Same band as the clock's menu-bar hit test.

@@ -337,7 +337,7 @@ final class SystemMenuBarClock: MenuBarClockProviding {
         queue.asyncAfter(deadline: .now() + Self.liftDelay) {
             let clocks = Self.clocks()
             // Never replay on a different display if its clock cannot be found.
-            guard let clock = clocks.first(where: { $0.frame.contains(location) }),
+            guard let clock = clocks.first(where: { Self.isOnClock(location, frame: $0.frame) }),
                   let events = Self.clickEvents(at: Self.replayPoint(pointer: pointerLocation(), clockFrame: clock.frame)) else {
                 return onMain(.noClock)
             }
@@ -372,10 +372,21 @@ final class SystemMenuBarClock: MenuBarClockProviding {
         }
     }
 
+    // macOS highlights and accepts clicks a little beyond the clock's Accessibility
+    // frame (measured about 10 pt on each side on 27.2), and ignores them while a
+    // restriction is held, so every click test uses this wider area. Both side
+    // edges count, as the pointer can sit exactly on the last point macOS accepts.
+    static let clickPadding: CGFloat = 9
+
+    static func isOnClock(_ point: CGPoint, frame: CGRect) -> Bool {
+        return point.x >= frame.minX - clickPadding && point.x <= frame.maxX + clickPadding
+            && point.y >= frame.minY && point.y < frame.maxY
+    }
+
     // The replayed click lands on the pointer when it is already on the clock, so
     // the pointer stays put; otherwise on the clock's centre.
     static func replayPoint(pointer: CGPoint?, clockFrame: CGRect) -> CGPoint {
-        if let pointer, clockFrame.contains(pointer) { return pointer }
+        if let pointer, isOnClock(pointer, frame: clockFrame) { return pointer }
         return CGPoint(x: clockFrame.midX, y: clockFrame.midY)
     }
 
@@ -416,7 +427,7 @@ final class SystemMenuBarClock: MenuBarClockProviding {
             // ⌘-drag rearranges the bar and ⌃-click is a right click.
             guard event.modifierFlags.isDisjoint(with: [.command, .control]),
                   Self.isInMenuBar(location),
-                  let clock = Self.clocks().first(where: { $0.frame.contains(location) }),
+                  let clock = Self.clocks().first(where: { Self.isOnClock(location, frame: $0.frame) }),
                   !Self.isNotificationCenterOpen else {
                 clickedClockFrame = nil
                 return
@@ -424,7 +435,7 @@ final class SystemMenuBarClock: MenuBarClockProviding {
             clickedClockFrame = clock.frame
         case .leftMouseUp:
             defer { clickedClockFrame = nil }
-            if clickedClockFrame?.contains(location) == true {
+            if let frame = clickedClockFrame, Self.isOnClock(location, frame: frame) {
                 onClick?(location)
             }
         default:
