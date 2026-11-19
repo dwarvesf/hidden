@@ -1036,6 +1036,35 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: nil, clockFrame: clock), centre)
     }
 
+    // macOS accepts clicks a few points beyond the clock's Accessibility frame, so
+    // those count as on the clock and are replayed where they landed.
+    func testClockClickAreaReachesBeyondTheFrameSides() {
+        let clock = CGRect(x: 809, y: 0, width: 131, height: 24)
+        for x in [807, 808, 941, 942, 949] as [CGFloat] {
+            let point = CGPoint(x: x, y: 12)
+            XCTAssertTrue(SystemMenuBarClock.isOnClock(point, frame: clock), "\(point)")
+            XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: point, clockFrame: clock), point)
+        }
+    }
+
+    func testClockClickAreaStopsShortOfTwelvePointsOut() {
+        let clock = CGRect(x: 809, y: 0, width: 131, height: 24)
+        let centre = CGPoint(x: clock.midX, y: clock.midY)
+        for x in [797, 952] as [CGFloat] {
+            let point = CGPoint(x: x, y: 12)
+            XCTAssertFalse(SystemMenuBarClock.isOnClock(point, frame: clock), "\(point)")
+            XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: point, clockFrame: clock), centre)
+        }
+    }
+
+    func testClockClickAreaIsNotWidenedVertically() {
+        let clock = CGRect(x: 809, y: 0, width: 131, height: 24)
+        XCTAssertTrue(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: 23), frame: clock))
+        XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: 26), frame: clock))
+        XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: -2), frame: clock))
+        XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 807, y: 26), frame: clock), "a corner stays outside")
+    }
+
     func testClockIsWatchedOnlyWhileARestrictionIsHeld() {
         let engine = makeEngine()
         XCTAssertNil(clock.onClick)
