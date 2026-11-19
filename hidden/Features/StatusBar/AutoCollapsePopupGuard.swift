@@ -13,6 +13,15 @@ struct OnScreenWindow: Equatable {
     let ownerPID: pid_t
     let layer: Int
     let frame: CGRect
+    // kCGWindowNumber: stays the same for the life of the window.
+    let number: Int
+
+    init(ownerPID: pid_t, layer: Int, frame: CGRect, number: Int = 0) {
+        self.ownerPID = ownerPID
+        self.layer = layer
+        self.frame = frame
+        self.number = number
+    }
 }
 
 // One display's menu bar strip (same coordinates as OnScreenWindow) and the
@@ -34,22 +43,25 @@ final class CGOnScreenWindowList: OnScreenWindowListing {
         return windows.compactMap { window in
             guard let pid = window[kCGWindowOwnerPID as String] as? pid_t,
                   let layer = window[kCGWindowLayer as String] as? Int,
+                  let number = window[kCGWindowNumber as String] as? Int,
                   let bounds = window[kCGWindowBounds as String] as? NSDictionary,
                   let frame = CGRect(dictionaryRepresentation: bounds) else { return nil }
-            return OnScreenWindow(ownerPID: pid, layer: layer, frame: frame)
+            return OnScreenWindow(ownerPID: pid, layer: layer, frame: frame, number: number)
         }
     }
 }
 
 // Keeps auto-collapse from closing the bar under a popup that hangs from the
 // menu bar (#319): a menu-bar app's popover or menu, or Notification Center,
-// whoever expanded the bar. Read only when the auto-hide timer fires, never
-// polled. After `cap` of deferring for popups the bar collapses anyway.
+// whoever expanded the bar. Read when the auto-hide timer fires, never polled,
+// plus once when the bar expands (the baseline). After `cap` of deferring for
+// popups the bar collapses anyway.
 final class AutoCollapsePopupGuard {
     static let popUpMenuLayer = Int(CGWindowLevelForKey(.popUpMenuWindow))
     static let statusLayer = Int(CGWindowLevelForKey(.statusWindow))
     static let notificationCenterBundleIdentifier = "com.apple.notificationcenterui"
     static let defaultCap: TimeInterval = 600
+    static let systemBundlePrefix = "com.apple."
     // A popover's arrow can leave a small gap under the menu bar.
     static let bandTolerance: CGFloat = 8
 
@@ -64,6 +76,11 @@ final class AutoCollapsePopupGuard {
     private let log: (String) -> Void
     private let logPublic: (StaticString) -> Void
     private var deferringSince: TimeInterval?
+    // Windows already on screen when the bar last expanded. An app that keeps a
+    // window near the top all the time (a notch app, a side strip, a KVM border)
+    // is furniture: no geometry or level tells it from a popup, but a popup
+    // appears after the expansion. Nil until the first reset: no exclusion.
+    private var baseline: Set<Int>?
 
     // menuBarItemOwners: bundles the engine read in the menu bar. On macOS 27 the
     // menu bar draws every app's items itself, so the window list has no
@@ -124,9 +141,11 @@ final class AutoCollapsePopupGuard {
         return true
     }
 
-    // The bar was expanded again: the cap starts over.
+    // The bar was expanded: the cap starts over and the windows on screen now
+    // become the baseline. One window-list read per expansion, none per timer fire.
     func reset() {
         deferringSince = nil
+        baseline = Set(windows.onScreenWindows().map(\.number))
     }
 
     func isPopupOpen() -> Bool {
@@ -164,6 +183,11 @@ final class AutoCollapsePopupGuard {
                 return window
             }
             guard let band = bands.first(where: { Self.hangs(window.frame, from: $0) }) else { continue }
+            // An app's own window already there at the expansion is furniture. Apple's
+            // windows are exempt: macOS may reuse one for Control Center and similar
+            // panels, so an expansion with a panel up must not hide it.
+            if baseline?.contains(window.number) == true,
+               bundle(of: window.ownerPID)?.hasPrefix(Self.systemBundlePrefix) != true { continue }
             if window.layer == Self.popUpMenuLayer || window.layer == Self.statusLayer {
                 return window
             }

@@ -31,6 +31,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
     private var ownerReads = 0
     private var panelOpen = true
     private var panelReads = 0
+    private var nextWindowNumber = 10_000
     private var logged: [String] = []
     private var loggedPublic: [String] = []
 
@@ -49,6 +50,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         ownerReads = 0
         panelOpen = true
         panelReads = 0
+        nextWindowNumber = 10_000
         logged = []
         loggedPublic = []
     }
@@ -72,8 +74,10 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
                                       logPublic: { [unowned self] in loggedPublic.append("\($0)") })
     }
 
-    private func window(_ pid: pid_t, layer: Int, _ frame: CGRect) -> OnScreenWindow {
-        return OnScreenWindow(ownerPID: pid, layer: layer, frame: frame)
+    // Unnumbered windows get unique numbers, so they cannot collide in the baseline.
+    private func window(_ pid: pid_t, layer: Int, _ frame: CGRect, number: Int? = nil) -> OnScreenWindow {
+        defer { nextWindowNumber += 1 }
+        return OnScreenWindow(ownerPID: pid, layer: layer, frame: frame, number: number ?? nextWindowNumber)
     }
 
     private var popUpMenu: Int { AutoCollapsePopupGuard.popUpMenuLayer }
@@ -161,7 +165,9 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         time = 5 + 610
         XCTAssertFalse(popupGuard.defersCollapse(), "until the bar is expanded again")
 
+        list.windows = []
         popupGuard.reset()
+        list.windows = [window(netMonitor, layer: popUpMenu, CGRect(x: 1200, y: 24, width: 300, height: 400))]
         time = 700
         XCTAssertTrue(popupGuard.defersCollapse(), "a new expansion starts the cap over")
     }
@@ -373,5 +379,143 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         XCTAssertTrue(popupGuard.defersCollapse())
         list.windows = [window(netMonitor, layer: popUpMenu, CGRect(x: 1200, y: 60, width: 300, height: 400))]
         XCTAssertFalse(popupGuard.defersCollapse(), "too far below the bar")
+    }
+
+    // MARK: - Baseline: a window already on screen when the bar expands is furniture
+
+    // A notch app keeps one status-level window at the top: same number at rest,
+    // on hover and for the whole run.
+    private let notchWindow = CGRect(x: 0, y: -1, width: 960, height: 400)
+    private let notchDisplay = PopupGuardDisplay(menuBarBand: CGRect(x: 0, y: 0, width: 960, height: 24), height: 600)
+
+    func testWindowPresentAtResetIsFurnitureNotAPopup() {
+        displays = [notchDisplay]
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: status, notchWindow, number: 500)]
+        popupGuard.reset()
+        XCTAssertFalse(popupGuard.defersCollapse())
+        time = 10
+        XCTAssertFalse(popupGuard.defersCollapse(), "still the same window on the next fire")
+        XCTAssertTrue(logged.isEmpty)
+        XCTAssertTrue(loggedPublic.isEmpty)
+    }
+
+    func testSameWindowAbsentFromTheBaselineDefersAsBefore() {
+        displays = [notchDisplay]
+        let popupGuard = makeGuard()
+        list.windows = []
+        popupGuard.reset()
+        list.windows = [window(netMonitor, layer: status, notchWindow, number: 500)]
+        XCTAssertTrue(popupGuard.defersCollapse(), "it appeared after the bar expanded")
+    }
+
+    func testPopupMenuAppearingAfterResetDefers() {
+        let popupGuard = makeGuard()
+        list.windows = []
+        popupGuard.reset()
+        list.windows = [window(netMonitor, layer: popUpMenu, CGRect(x: 1200, y: 24, width: 300, height: 400), number: 601)]
+        XCTAssertTrue(popupGuard.defersCollapse())
+    }
+
+    func testStatusLevelPopoverAppearingAfterResetDefers() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: status, CGRect(x: 1300, y: 0, width: 22, height: 24), number: 600)]
+        popupGuard.reset()
+        list.windows.append(window(netMonitor, layer: status, CGRect(x: 823, y: 26, width: 315, height: 93), number: 601))
+        XCTAssertTrue(popupGuard.defersCollapse())
+    }
+
+    func testBaselineCoversTheGenericBranchToo() {
+        let popupGuard = makeGuard()
+        let panel = window(netMonitor, layer: 3, CGRect(x: 1250, y: 28, width: 320, height: 480), number: 700)
+        list.windows = [panel]
+        popupGuard.reset()
+        XCTAssertFalse(popupGuard.defersCollapse())
+    }
+
+    func testFurnitureAndARealPopupTogetherDeferAndTheLogNamesThePopup() {
+        displays = [notchDisplay]
+        let popupGuard = makeGuard()
+        let furniture = window(99, layer: status, notchWindow, number: 500)
+        list.windows = [furniture]
+        popupGuard.reset()
+        list.windows = [furniture, window(netMonitor, layer: popUpMenu, CGRect(x: 600, y: 24, width: 300, height: 300), number: 601)]
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(logged, ["AutoCollapse: holding for a popup from com.example.netmon at layer \(popUpMenu)"])
+    }
+
+    func testStatusItemWindowsInTheBaselineStillNameTheirOwner() {
+        owners = []
+        let popupGuard = makeGuard()
+        let item = window(documentApp, layer: status, CGRect(x: 1300, y: 0, width: 22, height: 24), number: 800)
+        list.windows = [item]
+        popupGuard.reset()
+        list.windows = [item, window(documentApp, layer: 3, CGRect(x: 1180, y: 24, width: 260, height: 300), number: 801)]
+        XCTAssertTrue(popupGuard.defersCollapse(), "the item is furniture but it still names the popup's owner")
+    }
+
+    func testASecondExpansionReadsTheBaselineAgain() {
+        let popupGuard = makeGuard()
+        list.windows = []
+        popupGuard.reset()
+        let late = window(netMonitor, layer: popUpMenu, CGRect(x: 1200, y: 24, width: 300, height: 400), number: 601)
+        list.windows = [late]
+        XCTAssertTrue(popupGuard.defersCollapse(), "new during the first expansion")
+
+        popupGuard.reset()
+        XCTAssertFalse(popupGuard.defersCollapse(), "still on screen when the second expansion began: furniture")
+    }
+
+    func testResetReadsTheWindowListOnceAndTheTimerOnceMore() {
+        let popupGuard = makeGuard()
+        popupGuard.reset()
+        XCTAssertEqual(list.reads, 1)
+        _ = popupGuard.defersCollapse()
+        XCTAssertEqual(list.reads, 2)
+    }
+
+    // The panel and the banner share one long-lived window; the baseline must
+    // not hide the panel.
+    func testTallNotificationCenterWindowPresentAtResetStillFollowsThePanel() {
+        let popupGuard = makeGuard()
+        list.windows = [window(notificationCenter, layer: 23, CGRect(x: 0, y: 0, width: 1600, height: 900), number: 900)]
+        popupGuard.reset()
+        panelOpen = true
+        XCTAssertTrue(popupGuard.defersCollapse())
+        panelOpen = false
+        XCTAssertFalse(popupGuard.defersCollapse())
+    }
+
+    // No reset yet: every window counts, as before the baseline existed.
+    func testWithoutAResetNothingIsExcluded() {
+        displays = [notchDisplay]
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: status, notchWindow, number: 500)]
+        XCTAssertTrue(popupGuard.defersCollapse())
+    }
+
+    // macOS may reuse one window for Control Center's panel, so Apple's windows
+    // never count as furniture.
+    func testAppleWindowPresentAtResetStillDefers() {
+        let popupGuard = makeGuard()
+        list.windows = [window(controlCenter, layer: popUpMenu, CGRect(x: 1200, y: 0, width: 300, height: 400))]
+        popupGuard.reset()
+        XCTAssertTrue(popupGuard.defersCollapse())
+    }
+
+    func testThirdPartyStatusWindowPresentAtResetDoesNotDefer() {
+        displays = [notchDisplay]
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: status, notchWindow)]
+        popupGuard.reset()
+        XCTAssertFalse(popupGuard.defersCollapse())
+    }
+
+    func testWindowWithNoBundleIdentifierPresentAtResetDoesNotDefer() {
+        displays = [notchDisplay]
+        let popupGuard = makeGuard()
+        list.windows = [window(99, layer: status, notchWindow)]
+        popupGuard.reset()
+        XCTAssertFalse(popupGuard.defersCollapse())
     }
 }
