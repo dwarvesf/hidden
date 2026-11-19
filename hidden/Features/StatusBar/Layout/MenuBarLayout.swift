@@ -284,19 +284,31 @@ struct MenuBarLayout: Equatable {
     }
 
     // Why nothing may be hidden with this layout: fail open rather than hide an
-    // item the user put in the visible section.
-    func reasonToKeepBarWhole(unkeepableSystemItems: Set<String>) -> String? {
+    // item the user put in the visible section. `names` are what the user would
+    // recognise; empty when the items have none (no bundle id).
+    func keepWholeBlocker(unkeepableSystemItems: Set<String>) -> (reason: String, names: [String])? {
         if !unnameableVisibleItems.isEmpty {
-            return "items right of the arrow have no bundle id, so macOS cannot be told to keep them: \(unnameableVisibleItems)"
+            return ("items right of the arrow have no bundle id, so macOS cannot be told to keep them: \(unnameableVisibleItems)", [])
         }
         let unkeepable = unprovenVisibleSystemItems.filter(unkeepableSystemItems.contains)
         if !unkeepable.isEmpty {
-            return "macOS hides these system items while hiding anything, and they sit right of the arrow: \(unkeepable)"
+            return ("macOS hides these system items while hiding anything, and they sit right of the arrow: \(unkeepable)",
+                    unkeepable.map(NativeVisibilityEngine.displayName(ofSystemItem:)))
         }
         if !unkeepableVisibleApps.isEmpty {
-            return "macOS hides these apps run from outside an Applications folder although they are allowed, and they sit right of the arrow: \(unkeepableVisibleApps)"
+            return ("macOS hides these apps run from outside an Applications folder although they are allowed, and they sit right of the arrow: \(unkeepableVisibleApps)",
+                    unkeepableVisibleApps)
         }
         return nil
+    }
+
+    func reasonToKeepBarWhole(unkeepableSystemItems: Set<String>) -> String? {
+        return keepWholeBlocker(unkeepableSystemItems: unkeepableSystemItems)?.reason
+    }
+
+    // Apps sit right of the arrow and none left of it: a collapse hides nothing.
+    var hasNothingToHide: Bool {
+        return !bundles(in: [.visible]).isEmpty && bundles(in: [.hidden, .alwaysHidden]).isEmpty
     }
 }
 

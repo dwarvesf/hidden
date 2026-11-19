@@ -51,6 +51,7 @@ section is enabled.
   some helpers) cannot be kept visible on macOS 27. Preferences offers to show
   all icons while one of them sits right of the arrow.
 - macOS's own items (clock, Wi-Fi, Sound, Control Center) always stay visible.
+- **When a click hides nothing,** a small note under the arrow says why, once per reason per launch, and only for a click or the hotkey, never for auto-hide. The reasons: Hidden Bar runs outside Applications (button: Move to Applications); an icon right of the arrow that macOS would hide anyway, with the pause switch on (the note names the apps; button: Settings › Advanced); Accessibility is off (button: Settings); or every icon sits right of the arrow, so nothing is left to hide (⌘-drag the arrow right of the icons you want hidden). If the arrow's position cannot be read yet, nothing shows.
 - Run Hidden Bar from `/Applications`; macOS only recognizes that copy as
   Hidden Bar, and a copy elsewhere hides its own arrow.
 - Native hiding blocks Notification Center, so clicking the clock while the bar is collapsed expands it, opens Notification Center, and collapses it again when the panel closes, unless you expand or collapse it yourself meanwhile.

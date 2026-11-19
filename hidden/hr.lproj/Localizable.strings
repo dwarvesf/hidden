@@ -305,3 +305,8 @@
 "macOS 27: get the working version..." = "macOS 27: preuzmi verziju koja radi...";
 "Or install it with Homebrew:" = "Ili ga instaliraj pomoću alata Homebrew:";
 "Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "Prvo zatvori ovu App Store verziju i premjesti je u smeće. Homebrew se ne instalira preko nje.";
+"Hiding is paused" = "Skrivanje je pauzirano";
+"macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there." = "macOS skriva ove ikone bez obzira na to što Hidden Bar dopušta: %@. Nalaze se desno od strelice, pa prekidač za pauziranje u kartici Napredno sve drži vidljivim dok su ondje.";
+"icons with no name" = "ikone bez imena";
+"Nothing to hide" = "Nema što sakriti";
+"Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Sve su ikone desno od strelice pa nema što sakriti. Drži Command i povuci strelicu desno od ikona koje želiš sakriti.";

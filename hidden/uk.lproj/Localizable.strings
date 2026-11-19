@@ -305,3 +305,8 @@
 "macOS 27: get the working version..." = "macOS 27: отримати робочу версію...";
 "Or install it with Homebrew:" = "Або встановіть через Homebrew:";
 "Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "Спершу вийдіть із цієї версії з App Store і перемістіть її до Смітника. Homebrew не встановлюється поверх неї.";
+"Hiding is paused" = "Приховування призупинено";
+"macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there." = "macOS приховує ці піктограми, навіть якщо Hidden Bar їх дозволяє: %@. Вони розташовані праворуч від стрілки, тому перемикач призупинення в розділі «Додатково» залишає все видимим, поки вони там.";
+"icons with no name" = "піктограми без назви";
+"Nothing to hide" = "Нічого приховувати";
+"Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Усі піктограми розташовані праворуч від стрілки, тому приховувати нічого. Утримуючи Command, перетягніть стрілку праворуч від піктограм, які потрібно приховати.";

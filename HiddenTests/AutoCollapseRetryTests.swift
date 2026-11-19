@@ -19,7 +19,7 @@ private final class RetryTestEngine: MenuBarEngine {
     }
 
     func finish(_ result: CollapseResult) {
-        state = result == .collapsed ? .collapsed : .expanded
+        state = result == .collapsed || result == .collapsedNothingHidden ? .collapsed : .expanded
         let report = completion
         completion = nil
         report?(result)
@@ -28,6 +28,22 @@ private final class RetryTestEngine: MenuBarEngine {
     func expand() { state = .expanded }
     func updateAlwaysHiddenSection(enabled: Bool, separatorHidden: Bool) {}
     func invalidateLayout() {}
+}
+
+// Stands in for the popover under the arrow: records what would have been said.
+private final class RetryTestNotice: NoHideNoticePresenting {
+    var isShown = false
+    var canShow = true
+    private(set) var shown: [NoHideReason] = []
+
+    func show(_ reason: NoHideReason, from button: NSStatusBarButton?) -> Bool {
+        guard canShow else { return false }
+        shown.append(reason)
+        isShown = true
+        return true
+    }
+
+    func close() { isShown = false }
 }
 
 private final class RetryTestClock {
@@ -60,6 +76,7 @@ final class AutoCollapseRetryTests: XCTestCase {
     private var controller: StatusBarController!
     private var engine: RetryTestEngine!
     private var clock: RetryTestClock!
+    private var notice: RetryTestNotice!
     private var defersAutoHide = false
     private var preferencesWereVisible = false
     private var saved: [String: Any] = [:]
@@ -79,11 +96,13 @@ final class AutoCollapseRetryTests: XCTestCase {
         preferencesWereVisible = PreferencesWindowController.isVisible
         engine = RetryTestEngine()
         clock = RetryTestClock()
+        notice = RetryTestNotice()
         let engine = self.engine!
         let clock = self.clock!
         controller = StatusBarController(engineFactory: { _ in engine },
                                          scheduleAutoHide: { clock.schedule(after: $0, fire: $1) },
-                                         autoHideDeferral: { [unowned self] in defersAutoHide })
+                                         autoHideDeferral: { [unowned self] in defersAutoHide },
+                                         noHideNotice: notice)
     }
 
     override func tearDown() {
@@ -261,5 +280,82 @@ final class AutoCollapseRetryTests: XCTestCase {
         clock.advance(by: 100)
         XCTAssertEqual(engine.requests, 1)
         XCTAssertEqual(clock.pending, 0)
+    }
+
+    // MARK: notice at the arrow
+
+    // The click guard holds for 0.3 s; a second click needs the run loop to pass it.
+    private func letTheClickGuardPass() {
+        RunLoop.current.run(until: Date().addingTimeInterval(0.4))
+    }
+
+    func testManualClickThatHidNothingSaysWhyOncePerReason() {
+        engine.nextResult = .refused(.outsideApplications)
+        controller.expandCollapseIfNeeded()
+        XCTAssertEqual(notice.shown, [.outsideApplications])
+
+        notice.close()
+        letTheClickGuardPass()
+        controller.expandCollapseIfNeeded()
+        XCTAssertEqual(notice.shown, [.outsideApplications], "the same reason does not repeat in one launch")
+
+        engine.nextResult = .refused(.accessibilityNeeded)
+        letTheClickGuardPass()
+        controller.expandCollapseIfNeeded()
+        XCTAssertEqual(notice.shown, [.outsideApplications, .accessibilityNeeded], "another reason still speaks")
+    }
+
+    func testTimerAttemptNeverShowsANotice() {
+        engine.nextResult = .refused(.accessibilityNeeded)
+        enableAutoHide()
+        clock.advance(by: 100)
+        XCTAssertEqual(engine.requests, 3)
+        XCTAssertTrue(notice.shown.isEmpty, "only a click or the hotkey asked for hiding")
+    }
+
+    func testTimerAttemptThatHidNothingStaysQuietToo() {
+        engine.nextResult = .collapsedNothingHidden
+        enableAutoHide()
+        clock.advance(by: 100)
+        XCTAssertEqual(engine.requests, 1)
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertTrue(notice.shown.isEmpty)
+    }
+
+    func testManualCollapseWithNothingLeftOfTheArrowCollapsesAndExplains() {
+        engine.nextResult = .collapsedNothingHidden
+        controller.expandCollapseIfNeeded()
+        XCTAssertEqual(engine.state, .collapsed)
+        XCTAssertEqual(notice.shown, [.everythingRightOfArrow])
+    }
+
+    func testAnUnreadableArrowIsTransientAndStaysSilent() {
+        engine.nextResult = .unavailable
+        controller.expandCollapseIfNeeded()
+        XCTAssertTrue(notice.shown.isEmpty)
+    }
+
+    func testNoSecondNoticeWhileOneIsUp() {
+        notice.isShown = true
+        engine.nextResult = .refused(.outsideApplications)
+        controller.expandCollapseIfNeeded()
+        XCTAssertTrue(notice.shown.isEmpty)
+
+        notice.isShown = false
+        letTheClickGuardPass()
+        controller.expandCollapseIfNeeded()
+        XCTAssertEqual(notice.shown, [.outsideApplications], "a notice that never showed does not use up its reason")
+    }
+
+    func testNoticeThatCouldNotBePutUpKeepsItsTurn() {
+        notice.canShow = false
+        engine.nextResult = .refused(.unkeepableIcons(names: ["JamfDaemon"]))
+        controller.expandCollapseIfNeeded()
+        XCTAssertTrue(notice.shown.isEmpty)
+
+        notice.canShow = true
+        letTheClickGuardPass()
+        controller.expandCollapseIfNeeded()
+        XCTAssertEqual(notice.shown, [.unkeepableIcons(names: ["JamfDaemon"])])
     }
 }

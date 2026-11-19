@@ -18,6 +18,8 @@ class StatusBarController: MenuBarItemProvider {
     private let engineFactory: (MenuBarItemProvider) -> MenuBarEngine
     private let scheduleAutoHide: (TimeInterval, @escaping () -> Void) -> Timer
     private let autoHideDeferral: (() -> Bool)?
+    private let noHideNotice: NoHideNoticePresenting?
+    private var noHidePolicy = NoHideNoticePolicy()
 
     //MARK: - BarItems
 
@@ -147,10 +149,16 @@ class StatusBarController: MenuBarItemProvider {
          scheduleAutoHide: @escaping (TimeInterval, @escaping () -> Void) -> Timer = { delay, fire in
              Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { _ in fire() }
          },
-         autoHideDeferral: (() -> Bool)? = nil) {
+         autoHideDeferral: (() -> Bool)? = nil,
+         noHideNotice: NoHideNoticePresenting? = nil) {
         self.engineFactory = engineFactory
         self.scheduleAutoHide = scheduleAutoHide
         self.autoHideDeferral = autoHideDeferral
+        #if HIDDENBAR_NATIVE_VISIBILITY
+        self.noHideNotice = noHideNotice ?? ArrowNoticePresenter()
+        #else
+        self.noHideNotice = noHideNotice
+        #endif
         setupUI()
         restoreRemovedStatusItems()
         setupAlwayHideStatusBar()
@@ -453,13 +461,23 @@ class StatusBarController: MenuBarItemProvider {
         menuBarEngine.collapse { [weak self] result in
             guard let self = self else { return }
             switch result {
-            case .collapsed:
+            case .collapsed, .collapsedNothingHidden:
                 self.didCollapseMenuBar(userInitiated: userInitiated)
-            case .unavailable:
+            case .unavailable, .refused:
                 self.didFailToCollapseMenuBar()
                 if automatic { self.autoCollapseIfNeeded() }
             }
+            self.explainNothingHidden(result, userInitiated: userInitiated)
         }
+    }
+
+    // A click that hid nothing says why, once per reason. A timer attempt stays
+    // quiet: it retries by itself and the user did not ask.
+    private func explainNothingHidden(_ result: CollapseResult, userInitiated: Bool) {
+        guard let reason = result.noHideReason, let notice = noHideNotice,
+              noHidePolicy.shouldShow(reason, userInitiated: userInitiated, isNoticeShowing: notice.isShown),
+              notice.show(reason, from: btnExpandCollapse.button) else { return }
+        noHidePolicy.recordShown(reason)
     }
 
     // Nothing was hidden (the engine cannot hide on this system, or is waiting for
@@ -1129,6 +1147,7 @@ extension StatusBarController {
 
     // The arrivals prompt and the presentation note hang from the arrow.
     fileprivate func closeArrowPopovers() {
+        noHideNotice?.close()
         #if HIDDENBAR_NATIVE_VISIBILITY
         arrivalsPresenter.close()
         presentationController?.closeNote()

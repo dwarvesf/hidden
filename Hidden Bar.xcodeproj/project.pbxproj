@@ -97,6 +97,9 @@
 		A0C0F1E5D3B2470A9C1E2011 /* AutoCollapsePopupGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C0F1E5D3B2470A9C1E2001 /* AutoCollapsePopupGuard.swift */; };
 		A0C0F1E5D3B2470A9C1E2012 /* AutoCollapsePopupGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C0F1E5D3B2470A9C1E2001 /* AutoCollapsePopupGuard.swift */; };
 		A0C0F1E5D3B2470A9C1E2013 /* AutoCollapsePopupGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C0F1E5D3B2470A9C1E2001 /* AutoCollapsePopupGuard.swift */; };
+		A0C0F1E5D3B2470A9C1E3011 /* NoHideNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C0F1E5D3B2470A9C1E3001 /* NoHideNotice.swift */; };
+		A0C0F1E5D3B2470A9C1E3012 /* NoHideNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C0F1E5D3B2470A9C1E3001 /* NoHideNotice.swift */; };
+		A0C0F1E5D3B2470A9C1E3021 /* NoHideNoticeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C0F1E5D3B2470A9C1E3002 /* NoHideNoticeTests.swift */; };
 		A0C0F1E5D3B2470A9C1E2014 /* AutoCollapsePopupGuardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C0F1E5D3B2470A9C1E2002 /* AutoCollapsePopupGuardTests.swift */; };
 		A27C0DE00000000000000002 /* MacOS27Notice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A27C0DE00000000000000001 /* MacOS27Notice.swift */; };
 		A27C0DE00000000000000003 /* MacOS27Notice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A27C0DE00000000000000001 /* MacOS27Notice.swift */; };
@@ -361,6 +364,8 @@
 		B350A2CC23AAFB47003A04AC /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 		B6B0DE00000000000000B002 /* PreferencesSmallFixesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesSmallFixesTests.swift; sourceTree = "<group>"; };
 		A0C011A95E7F4D6F8A83B002 /* AutoCollapseRetryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoCollapseRetryTests.swift; sourceTree = "<group>"; };
+		A0C0F1E5D3B2470A9C1E3001 /* NoHideNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoHideNotice.swift; sourceTree = "<group>"; };
+		A0C0F1E5D3B2470A9C1E3002 /* NoHideNoticeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoHideNoticeTests.swift; sourceTree = "<group>"; };
 		A9D0DE00000000000000D010 /* PrefsIsolationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrefsIsolationTests.swift; sourceTree = "<group>"; };
 		B6BFE1451DECE8B6052608CE /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Main.strings; sourceTree = "<group>"; };
 		B8404C9A24041A4300E6DBF8 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
@@ -511,6 +516,7 @@
 				92C97B9022018C1F0007559C /* StatusBarController.swift */,
 				6171C0428FE84918BC3FBD91 /* ExpandCollapseAction.swift */,
 				A0C0F1E5D3B2470A9C1E2001 /* AutoCollapsePopupGuard.swift */,
+				A0C0F1E5D3B2470A9C1E3001 /* NoHideNotice.swift */,
 				F51314A736131BE28182E378 /* AccessibilityPermission.swift */,
 			);
 			path = StatusBar;
@@ -600,6 +606,7 @@
 				C0CA1E00000000000000A002 /* LocaleCoverageTests.swift */,
 				B6B0DE00000000000000B002 /* PreferencesSmallFixesTests.swift */,
 				A0C011A95E7F4D6F8A83B002 /* AutoCollapseRetryTests.swift */,
+				A0C0F1E5D3B2470A9C1E3002 /* NoHideNoticeTests.swift */,
 				A9D0DE00000000000000D010 /* PrefsIsolationTests.swift */,
 				A57E0DE0000000000000C004 /* AppStoreMigrationTests.swift */,
 				1218DDCA0B5E85481E4F8F3B /* SettingsWindowTests.swift */,
@@ -1015,6 +1022,7 @@
 				EC07CF0F0A4B2AA2A420B7B9 /* StatusBarController.swift in Sources */,
 				121C4AE8ED80A49E75101000 /* ExpandCollapseAction.swift in Sources */,
 				A0C0F1E5D3B2470A9C1E2011 /* AutoCollapsePopupGuard.swift in Sources */,
+				A0C0F1E5D3B2470A9C1E3011 /* NoHideNotice.swift in Sources */,
 				36A203B556E81ED914E4CDCC /* HBNativeVisibilityShim.m in Sources */,
 				5528B600394938A906E441AC /* NativeVisibilityBridge.swift in Sources */,
 				53112AB85A7A9139678DE8A5 /* MenuBarClock.swift in Sources */,
@@ -1102,6 +1110,7 @@
 				C0CA1E00000000000000A001 /* LocaleCoverageTests.swift in Sources */,
 				B6B0DE00000000000000B001 /* PreferencesSmallFixesTests.swift in Sources */,
 				A0C011A95E7F4D6F8A83B001 /* AutoCollapseRetryTests.swift in Sources */,
+				A0C0F1E5D3B2470A9C1E3021 /* NoHideNoticeTests.swift in Sources */,
 				A9D0DE00000000000000D011 /* PrefsIsolationTests.swift in Sources */,
 				A57E0DE0000000000000C003 /* AppStoreMigrationTests.swift in Sources */,
 				F1B66A86232AE9B22A7B54FF /* SettingsWindowTests.swift in Sources */,
@@ -1128,6 +1137,7 @@
 				92C97B9122018C1F0007559C /* StatusBarController.swift in Sources */,
 				62C8B44F0D264D96B75FF0FC /* ExpandCollapseAction.swift in Sources */,
 				A0C0F1E5D3B2470A9C1E2012 /* AutoCollapsePopupGuard.swift in Sources */,
+				A0C0F1E5D3B2470A9C1E3012 /* NoHideNotice.swift in Sources */,
 				51977397CC1141721E72D40E /* HBNativeVisibilityShim.m in Sources */,
 				09B2F44606065391084C0231 /* NativeVisibilityBridge.swift in Sources */,
 				AFF0E4924C046CE3BEA62474 /* MenuBarClock.swift in Sources */,

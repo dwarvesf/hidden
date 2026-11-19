@@ -304,3 +304,8 @@ Steps to view always hidden icons:
 "Drag it to the Trash in Finder instead:\n%@" = "Drag it to the Trash in Finder instead:\n%@";
 "a temporary folder" = "a temporary folder";
 "Quit this App Store version and move it to the Trash first. Homebrew does not install over it." = "Quit this App Store version and move it to the Trash first. Homebrew does not install over it.";
+"Hiding is paused" = "Hiding is paused";
+"macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there." = "macOS hides these icons whatever Hidden Bar allows: %@. They sit right of the arrow, so the pause switch in Advanced keeps everything visible while they are there.";
+"icons with no name" = "icons with no name";
+"Nothing to hide" = "Nothing to hide";
+"Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide.";
