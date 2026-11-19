@@ -13,6 +13,7 @@ class StatusBarController: MenuBarItemProvider {
     //MARK: - Variables
     private var timer:Timer? = nil
     private var autoCollapseAttempts = 0
+    private var wasAutoHideEnabled = false
     private static let autoCollapseAttemptLimit = 3
     private let engineFactory: (MenuBarItemProvider) -> MenuBarEngine
     private let scheduleAutoHide: (TimeInterval, @escaping () -> Void) -> Timer
@@ -439,7 +440,7 @@ class StatusBarController: MenuBarItemProvider {
             return
         }
         if automatic {
-            guard autoCollapseAttempts < Self.autoCollapseAttemptLimit else { return }
+            guard syncAutoHideState(), autoCollapseAttempts < Self.autoCollapseAttemptLimit else { return }
             autoCollapseAttempts += 1
             timer?.invalidate()
             timer = nil
@@ -554,8 +555,15 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
 
+    private func syncAutoHideState() -> Bool {
+        let enabled = Preferences.isAutoHide
+        if enabled && !wasAutoHideEnabled { autoCollapseAttempts = 0 }
+        wasAutoHideEnabled = enabled
+        return enabled
+    }
+
     private func autoCollapseIfNeeded() {
-        guard Preferences.isAutoHide, !isCollapsed,
+        guard syncAutoHideState(), !isCollapsed,
               autoCollapseAttempts < Self.autoCollapseAttemptLimit else {
             timer?.invalidate()
             timer = nil

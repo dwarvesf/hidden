@@ -700,9 +700,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
     var menuBarItemOwners: Set<String> {
         let read = layout?.sections.keys.map { $0 } ?? []
         let complete = lastCompleteLayout?.sections.keys.map { $0 } ?? []
-        // Overflow allows other running apps too; only observed owners can
-        // defer auto-collapse for a menu-bar popup.
-        return Set(read + complete).intersection(sectionMemory.sections.keys)
+        // Overflow allows other running apps too; observed owners and apps
+        // reported by launch notifications can hold auto-hide for a popup.
+        return Set(read + complete).intersection(sectionMemory.sections.keys).union(launchedSinceRead)
     }
 
     var hiddenSectionBundles: Set<String> {

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- macOS 27 (direct build): icons can hide even when Hidden Bar starts with an already overflowing menu bar. Failed automatic hides stop after three attempts; turning auto-hide off and on allows another three attempts, and popups from newly launched apps hold auto-hide immediately ([#549](https://github.com/consolelabs/hidden/pull/549)).
 - Auto-hide no longer waits on a screen-edge window one or two points wide, such as the hot border a KVM switch draws, and it now sees a menu bar popup that starts a few points above the bar ([#548](https://github.com/dwarvesf/hidden/issues/548)).
 - macOS 27 (direct build): clicking the clock while the bar is collapsed no longer moves the pointer to the middle of the clock. Hidden Bar now repeats the click where the pointer already is ([#547](https://github.com/dwarvesf/hidden/issues/547)).
 - macOS 27 (direct build): clicks just beside the clock, in the padding macOS also treats as the clock, now open Notification Center while the bar is collapsed. They used to highlight the clock and do nothing ([#547](https://github.com/dwarvesf/hidden/issues/547)).

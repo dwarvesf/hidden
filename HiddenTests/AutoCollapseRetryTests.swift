@@ -107,9 +107,39 @@ final class AutoCollapseRetryTests: XCTestCase {
         XCTAssertEqual(engine.requests, 3)
         XCTAssertEqual(engine.state, .expanded)
         XCTAssertEqual(clock.pending, 0)
+        AppDefaults.store.set(10.0, forKey: UserDefaults.Key.numberOfSecondForAutoHide)
         controller.updateAutoHide()
         clock.advance(by: 100)
         XCTAssertEqual(engine.requests, 3, "a preference refresh cannot replenish the exhausted budget")
+    }
+
+    func testDisablingAndReenablingAutoHideRestartsTheAttemptBudget() {
+        enableAutoHide()
+        clock.advance(by: 100)
+        XCTAssertEqual(engine.requests, 3)
+        AppDefaults.store.set(false, forKey: UserDefaults.Key.isAutoHide)
+        controller.updateAutoHide()
+        clock.advance(by: 100)
+        XCTAssertEqual(engine.requests, 3)
+        enableAutoHide()
+        clock.advance(by: 100)
+        XCTAssertEqual(engine.requests, 6)
+        XCTAssertEqual(clock.pending, 0)
+    }
+
+    func testReenablingDuringAPendingRequestGivesTheNewCycleThreeAttempts() {
+        engine.nextResult = nil
+        enableAutoHide()
+        clock.advance(by: 5)
+        XCTAssertEqual(engine.requests, 1)
+        AppDefaults.store.set(false, forKey: UserDefaults.Key.isAutoHide)
+        controller.updateAutoHide()
+        enableAutoHide()
+        engine.finish(.unavailable)
+        engine.nextResult = .unavailable
+        clock.advance(by: 100)
+        XCTAssertEqual(engine.requests, 4, "the old pending request does not consume the new cycle's budget")
+        XCTAssertEqual(clock.pending, 0)
     }
 
     func testDeferredTimerFiringsDoNotConsumeAttempts() {

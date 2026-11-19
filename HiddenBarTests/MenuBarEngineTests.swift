@@ -1627,6 +1627,28 @@ final class AppsLaunchedWhileHidingTests: XCTestCase {
         return visibility.succeed(visibility.requests.count - 1)
     }
 
+    func testANewlyLaunchedAppsPopupHoldsAutoHideBeforeItsFirstRead() {
+        struct PopupWindows: OnScreenWindowListing {
+            func onScreenWindows() -> [OnScreenWindow] {
+                [OnScreenWindow(ownerPID: 42, layer: 0,
+                                frame: CGRect(x: 1300, y: 24, width: 300, height: 400))]
+            }
+        }
+
+        let engine = makeEngine()
+        let guardDisplay = PopupGuardDisplay(menuBarBand: CGRect(x: 0, y: 0, width: 2000, height: 24), height: 1000)
+        let popupGuard = AutoCollapsePopupGuard(windows: PopupWindows(), displays: { [guardDisplay] },
+                                              bundleIdentifier: { _ in "com.new" },
+                                              menuBarItemOwners: { engine.menuBarItemOwners }, ownPID: 1)
+        XCTAssertFalse(popupGuard.defersCollapse())
+        engine.applicationLaunched("com.new")
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(inventory.snapshots, 0, "the popup is protected without an Accessibility read")
+        XCTAssertTrue(memory.sections.isEmpty)
+        engine.applicationTerminated("com.new")
+        XCTAssertFalse(popupGuard.defersCollapse(), "a terminated app leaves the pending owner set")
+    }
+
     func testAnAppNeverReadIsShownUntilTheNextReadPlacesIt() {
         let engine = makeEngine()
         let first = collapsed(engine)
