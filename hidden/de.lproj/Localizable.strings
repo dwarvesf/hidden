@@ -310,3 +310,12 @@ Zum Anzeigen der permanent ausgeblendeten Symbole:
 "icons with no name" = "Symbole ohne Namen";
 "Nothing to hide" = "Nichts zum Ausblenden";
 "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Alle Symbole liegen rechts vom Pfeil, daher gibt es nichts auszublenden. Halte die Befehlstaste gedrückt und ziehe den Pfeil rechts neben die Symbole, die du ausblenden möchtest.";
+
+/* Language */
+"Language" = "Sprache";
+"App language" = "App-Sprache";
+"System (follow macOS)" = "System (macOS folgen)";
+"Takes effect after Hidden Bar restarts." = "Wird nach einem Neustart von Hidden Bar wirksam.";
+"Restart Hidden Bar to apply the new language." = "Starten Sie Hidden Bar neu, um die neue Sprache anzuwenden.";
+"Restart Now" = "Jetzt neu starten";
+"Later" = "Später";

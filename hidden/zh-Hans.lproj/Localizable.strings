@@ -312,3 +312,12 @@
 "icons with no name" = "没有名称的图标";
 "Nothing to hide" = "没有可隐藏的内容";
 "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "所有图标都在箭头右侧，因此没有可隐藏的内容。按住 Command 并将箭头拖到要隐藏的图标右侧。";
+
+/* Language */
+"Language" = "语言";
+"App language" = "应用语言";
+"System (follow macOS)" = "跟随系统";
+"Takes effect after Hidden Bar restarts." = "重启后生效。";
+"Restart Hidden Bar to apply the new language." = "重启 Hidden Bar 后新语言才会生效。";
+"Restart Now" = "立即重启";
+"Later" = "稍后";

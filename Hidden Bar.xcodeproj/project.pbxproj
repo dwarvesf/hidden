@@ -143,6 +143,9 @@
 		A1D0E1D0000000000000F011 /* MenuBarAppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0E1D0000000000000F001 /* MenuBarAppIdentity.swift */; };
 		A1D0E1D0000000000000F012 /* MenuBarAppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0E1D0000000000000F001 /* MenuBarAppIdentity.swift */; };
 		A1D0E1D0000000000000F013 /* MenuBarAppIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0E1D0000000000000F002 /* MenuBarAppIdentityTests.swift */; };
+		A1B2C3D4E5F60718293A4B02 /* LanguagePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B01 /* LanguagePreferences.swift */; };
+		A1B2C3D4E5F60718293A4B03 /* LanguagePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B01 /* LanguagePreferences.swift */; };
+		A1B2C3D4E5F60718293A4B05 /* LanguagePreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B04 /* LanguagePreferencesTests.swift */; };
 		837108CD16BDBEB2B6A4B064 /* MenuBarAppsSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FFC448CD0476AF4799FA5DA /* MenuBarAppsSettingsViewController.swift */; };
 		142B73DAE4B1D30D0775D310 /* MenuBarAppsSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FFC448CD0476AF4799FA5DA /* MenuBarAppsSettingsViewController.swift */; };
 		D62C67552025B67BCCE48642 /* SettingsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60AFBE8D4C25548192E7D135 /* SettingsModelTests.swift */; };
@@ -296,6 +299,8 @@
 		A1D0E1D0000000000000F002 /* MenuBarAppIdentityTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarAppIdentityTests.swift; sourceTree = "<group>"; };
 		9FFC448CD0476AF4799FA5DA /* MenuBarAppsSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarAppsSettingsViewController.swift; sourceTree = "<group>"; };
 		13F6B1FCE2F0F29887382BF5 /* AdvancedSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsViewController.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B01 /* LanguagePreferences.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LanguagePreferences.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B04 /* LanguagePreferencesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LanguagePreferencesTests.swift; sourceTree = "<group>"; };
 		15C9D233ED7802C9AB5C7240 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
 		1AE90FC41D6BE7A8B6C61303 /* SettingsViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsViews.swift; sourceTree = "<group>"; };
 		1FBC806D51AA2E70183A5308 /* AppearanceSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppearanceSettingsViewController.swift; sourceTree = "<group>"; };
@@ -619,6 +624,7 @@
 				34333589A6CF719498CC15C8 /* PaletteSettingsTests.swift */,
 				0CE1FB4D0D15FD197F34845F /* PalettePanelTests.swift */,
 				7769322508212ABCDA3E0A72 /* PresentationViewsTests.swift */,
+				A1B2C3D4E5F60718293A4B04 /* LanguagePreferencesTests.swift */,
 			);
 			name = HiddenTests;
 			path = HiddenTests;
@@ -675,6 +681,7 @@
 				08A5F86023AA085B00981CA5 /* Preferences.swift */,
 				9A329E615845473D946DA3C2 /* AutoStart.swift */,
 				A9D0DE00000000000000D001 /* AppDefaults.swift */,
+				A1B2C3D4E5F60718293A4B01 /* LanguagePreferences.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -1061,6 +1068,7 @@
 				CD55D62C6EB16728FDE6E311 /* SettingsViews.swift in Sources */,
 				0BDB4054A4822D299F534B34 /* AppearanceSettingsViewController.swift in Sources */,
 				FEDF14D1A5762D05124A8462 /* AdvancedSettingsViewController.swift in Sources */,
+				A1B2C3D4E5F60718293A4B02 /* LanguagePreferences.swift in Sources */,
 				837108CD16BDBEB2B6A4B064 /* MenuBarAppsSettingsViewController.swift in Sources */,
 				A1D0E1D0000000000000F011 /* MenuBarAppIdentity.swift in Sources */,
 				E200010F880C7CE35022B50A /* SettingsSnapshot.swift in Sources */,
@@ -1114,6 +1122,7 @@
 				A9D0DE00000000000000D011 /* PrefsIsolationTests.swift in Sources */,
 				A57E0DE0000000000000C003 /* AppStoreMigrationTests.swift in Sources */,
 				F1B66A86232AE9B22A7B54FF /* SettingsWindowTests.swift in Sources */,
+				A1B2C3D4E5F60718293A4B05 /* LanguagePreferencesTests.swift in Sources */,
 				A1D0E1D0000000000000F013 /* MenuBarAppIdentityTests.swift in Sources */,
 				FFDA98BB7A1B238575886EE9 /* SystemOverflowTests.swift in Sources */,
 				E6D398FD9277C7ACB911BBB3 /* RevealSettingsTests.swift in Sources */,
@@ -1175,6 +1184,7 @@
 				1E55107E50681D0C905D60F6 /* SettingsViews.swift in Sources */,
 				7C149D7BC182147B87C08982 /* AppearanceSettingsViewController.swift in Sources */,
 				D61D23037A1EB8F7DD848EA4 /* AdvancedSettingsViewController.swift in Sources */,
+				A1B2C3D4E5F60718293A4B03 /* LanguagePreferences.swift in Sources */,
 				142B73DAE4B1D30D0775D310 /* MenuBarAppsSettingsViewController.swift in Sources */,
 				A1D0E1D0000000000000F012 /* MenuBarAppIdentity.swift in Sources */,
 				A3B15C1FDF934AFBADF438B6 /* SettingsSnapshot.swift in Sources */,

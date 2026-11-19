@@ -312,3 +312,12 @@ Utilisez la fonction de section toujours cachée pour garder vos icônes bien ra
 "icons with no name" = "icônes sans nom";
 "Nothing to hide" = "Rien à masquer";
 "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Toutes les icônes sont à droite de la flèche, il n’y a donc rien à masquer. Maintenez la touche Commande enfoncée et faites glisser la flèche à droite des icônes que vous voulez masquer.";
+
+/* Language */
+"Language" = "Langue";
+"App language" = "Langue de l’app";
+"System (follow macOS)" = "Système (suivre macOS)";
+"Takes effect after Hidden Bar restarts." = "Prend effet après le redémarrage de Hidden Bar.";
+"Restart Hidden Bar to apply the new language." = "Redémarrez Hidden Bar pour appliquer la nouvelle langue.";
+"Restart Now" = "Redémarrer maintenant";
+"Later" = "Plus tard";

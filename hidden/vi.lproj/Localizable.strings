@@ -310,3 +310,12 @@ Các bước xem biểu tượng luôn ẩn:
 "icons with no name" = "biểu tượng không có tên";
 "Nothing to hide" = "Không có gì để ẩn";
 "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Mọi biểu tượng đều nằm bên phải mũi tên nên không có gì để ẩn. Giữ Command và kéo mũi tên sang bên phải các biểu tượng bạn muốn ẩn.";
+
+/* Language */
+"Language" = "Ngôn ngữ";
+"App language" = "Ngôn ngữ ứng dụng";
+"System (follow macOS)" = "Hệ thống (theo macOS)";
+"Takes effect after Hidden Bar restarts." = "Có hiệu lực sau khi khởi động lại Hidden Bar.";
+"Restart Hidden Bar to apply the new language." = "Khởi động lại Hidden Bar để áp dụng ngôn ngữ mới.";
+"Restart Now" = "Khởi động lại ngay";
+"Later" = "Để sau";
