@@ -57,32 +57,48 @@ final class AutoCollapsePopupGuard {
     private let displays: () -> [PopupGuardDisplay]
     private let bundleIdentifier: (pid_t) -> String?
     private let menuBarItemOwners: () -> Set<String>
+    private let notificationCenterPanelIsOpen: () -> Bool
     private let now: () -> TimeInterval
     private let ownPID: pid_t
     private let cap: TimeInterval
     private let log: (String) -> Void
+    private let logPublic: (StaticString) -> Void
     private var deferringSince: TimeInterval?
 
     // menuBarItemOwners: bundles the engine read in the menu bar. On macOS 27 the
     // menu bar draws every app's items itself, so the window list has no
     // per-item windows to name the owners; before 27 each item is a status
     // window in the band and is picked up from the same read.
+    // notificationCenterPanelIsOpen: a notification on screen keeps a screen-tall
+    // Notification Center window up too, so the window alone does not mean the
+    // panel is open. Asked only when such a window is found.
     init(windows: OnScreenWindowListing = CGOnScreenWindowList(),
          displays: @escaping () -> [PopupGuardDisplay] = AutoCollapsePopupGuard.screenDisplays,
          bundleIdentifier: @escaping (pid_t) -> String? = { NSRunningApplication(processIdentifier: $0)?.bundleIdentifier },
          menuBarItemOwners: @escaping () -> Set<String> = { [] },
+         notificationCenterPanelIsOpen: @escaping () -> Bool = AutoCollapsePopupGuard.systemNotificationCenterPanelIsOpen,
          now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
          ownPID: pid_t = ProcessInfo.processInfo.processIdentifier,
          cap: TimeInterval = AutoCollapsePopupGuard.defaultCap,
-         log: @escaping (String) -> Void = { NSLog("%@", $0) }) {
+         log: @escaping (String) -> Void = { NSLog("%@", $0) },
+         logPublic: @escaping (StaticString) -> Void = { AppLog.publicLine($0) }) {
         self.windows = windows
         self.displays = displays
         self.bundleIdentifier = bundleIdentifier
         self.menuBarItemOwners = menuBarItemOwners
+        self.notificationCenterPanelIsOpen = notificationCenterPanelIsOpen
         self.now = now
         self.ownPID = ownPID
         self.cap = cap
         self.log = log
+        self.logPublic = logPublic
+    }
+
+    // Before macOS 27 a notification keeps no screen-tall window up, so the window
+    // alone means the panel; the panel's own control was only checked on 27.
+    static func systemNotificationCenterPanelIsOpen() -> Bool {
+        guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 else { return true }
+        return SystemMenuBarClock.isNotificationCenterOpen
     }
 
     // Called when the auto-hide timer fires: true to re-arm instead of collapsing.
@@ -93,12 +109,15 @@ final class AutoCollapsePopupGuard {
         }
         let time = now()
         if deferringSince == nil {
-            // Owner and layer only: never a window title or other content.
+            // The public line is static so Console shows the hold; the owner and
+            // layer stay in the private line, never a window title or content.
+            logPublic("AutoCollapse: holding for a menu bar popup")
             log("AutoCollapse: holding for a popup from \(bundleIdentifier(holder.ownerPID) ?? "pid \(holder.ownerPID)") at layer \(holder.layer)")
         }
         let since = deferringSince ?? time
         deferringSince = since
         if time - since >= cap {
+            logPublic("AutoCollapse: a menu bar popup held auto-hide for the full limit; collapsing anyway")
             NSLog("AutoCollapse: a menu-bar popup has been open for %.0f s; collapsing anyway", time - since)
             return false
         }
@@ -141,8 +160,12 @@ final class AutoCollapsePopupGuard {
             // short and widgets sit below the desktop (negative layers).
             if window.layer >= 0, window.frame.height >= panelHeight, panelHeight > 0,
                bundle(of: window.ownerPID) == Self.notificationCenterBundleIdentifier {
+                guard notificationCenterPanelIsOpen() else { continue }
                 return window
             }
+            // A window as tall as its display is a side panel or an overlay, not a
+            // popup hanging from the menu bar, whatever its level.
+            if displays.contains(where: { Self.spansFullHeight(window.frame, of: $0) }) { continue }
             guard let band = bands.first(where: { Self.hangs(window.frame, from: $0) }) else { continue }
             if window.layer == Self.popUpMenuLayer || window.layer == Self.statusLayer {
                 return window
@@ -170,6 +193,17 @@ final class AutoCollapsePopupGuard {
         guard frame.width >= minPopupThickness, frame.height >= minPopupThickness else { return false }
         let reach = CGRect(x: band.minX, y: band.minY, width: band.width, height: band.height + bandTolerance)
         return frame.intersects(reach) && frame.maxY > band.maxY + 1
+    }
+
+    static let fullHeightTolerance: CGFloat = 1
+
+    // From the display's top to its bottom, within a point, over the display's width.
+    // A popup starts at the menu bar's bottom edge, so it never reaches the top.
+    static func spansFullHeight(_ frame: CGRect, of display: PopupGuardDisplay) -> Bool {
+        let band = display.menuBarBand
+        return frame.minX < band.maxX && frame.maxX > band.minX
+            && frame.minY <= band.minY + fullHeightTolerance
+            && frame.maxY >= band.minY + display.height - fullHeightTolerance
     }
 
     // Same band as the clock's menu-bar hit test.

@@ -28,7 +28,10 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
     private var time: TimeInterval = 0
     private var owners: Set<String> = []
     private var ownerReads = 0
+    private var panelOpen = true
+    private var panelReads = 0
     private var logged: [String] = []
+    private var loggedPublic: [String] = []
 
     // A 1600 x 900 display with a 24 pt menu bar, and a 900 x 1600 one to its
     // right, raised so its menu bar sits higher.
@@ -43,7 +46,10 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         time = 0
         owners = ["com.example.netmon"]
         ownerReads = 0
+        panelOpen = true
+        panelReads = 0
         logged = []
+        loggedPublic = []
     }
 
     private func makeGuard() -> AutoCollapsePopupGuard {
@@ -57,9 +63,11 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
                                       displays: { [unowned self] in displays },
                                       bundleIdentifier: { bundles[$0] },
                                       menuBarItemOwners: { [unowned self] in ownerReads += 1; return owners },
+                                      notificationCenterPanelIsOpen: { [unowned self] in panelReads += 1; return panelOpen },
                                       now: { [unowned self] in time },
                                       ownPID: ownPID,
-                                      log: { [unowned self] in logged.append($0) })
+                                      log: { [unowned self] in logged.append($0) },
+                                      logPublic: { [unowned self] in loggedPublic.append("\($0)") })
     }
 
     private func window(_ pid: pid_t, layer: Int, _ frame: CGRect) -> OnScreenWindow {
@@ -104,6 +112,18 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         XCTAssertEqual(logged.count, 2)
     }
 
+    // The public log gets a line that names no app, window or layer; the detail
+    // stays in the private line above.
+    func testPublicLineIsStaticAndLoggedOncePerHold() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: popUpMenu, CGRect(x: 1200, y: 24, width: 300, height: 400))]
+        XCTAssertTrue(popupGuard.defersCollapse())
+        time = 10
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(loggedPublic, ["AutoCollapse: holding for a menu bar popup"])
+        XCTAssertFalse(loggedPublic.joined().contains("netmon"))
+    }
+
     // #319: a network monitor's graph is a status-level panel under its item.
     func testStatusLevelPopoverDefers() {
         let popupGuard = makeGuard()
@@ -135,6 +155,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         XCTAssertTrue(popupGuard.defersCollapse())
         time = 5 + 600
         XCTAssertFalse(popupGuard.defersCollapse(), "the cap wins")
+        XCTAssertEqual(loggedPublic.last, "AutoCollapse: a menu bar popup held auto-hide for the full limit; collapsing anyway")
         time = 5 + 610
         XCTAssertFalse(popupGuard.defersCollapse(), "until the bar is expanded again")
 
@@ -182,6 +203,34 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         XCTAssertTrue(popupGuard.defersCollapse())
         list.windows = []
         XCTAssertFalse(popupGuard.defersCollapse(), "closed")
+    }
+
+    // macOS 27 keeps a screen-tall Notification Center window up under a plain
+    // notification banner; the panel itself is not open, so the bar may collapse.
+    func testTallNotificationCenterWindowWithoutThePanelDoesNotDefer() {
+        let popupGuard = makeGuard()
+        panelOpen = false
+        list.windows = [window(notificationCenter, layer: 23, CGRect(x: 0, y: 0, width: 1600, height: 900))]
+        XCTAssertFalse(popupGuard.defersCollapse())
+        XCTAssertEqual(panelReads, 1)
+    }
+
+    func testTallNotificationCenterWindowWithThePanelOpenDefers() {
+        let popupGuard = makeGuard()
+        panelOpen = true
+        list.windows = [window(notificationCenter, layer: 23, CGRect(x: 0, y: 0, width: 1600, height: 900))]
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(panelReads, 1)
+    }
+
+    func testPanelCheckRunsOnlyWhenANotificationCenterWindowIsFound() {
+        let popupGuard = makeGuard()
+        list.windows = [
+            window(notificationCenter, layer: 23, CGRect(x: 1240, y: 30, width: 350, height: 90)),
+            window(netMonitor, layer: popUpMenu, CGRect(x: 1200, y: 24, width: 300, height: 400)),
+        ]
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(panelReads, 0, "a banner and a menu need no Accessibility read")
     }
 
     func testNotificationBannersAndWidgetsDoNotDefer() {
@@ -238,6 +287,43 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
             window(99, layer: status, CGRect(x: 0, y: 24, width: 1600, height: 4)),
         ]
         XCTAssertFalse(popupGuard.defersCollapse())
+    }
+
+    // A side-notes app keeps a thin strip flush at the screen edge, top to bottom,
+    // and opens a panel of the same height from it.
+    func testScreenTallSideStripDoesNotDefer() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: 3, CGRect(x: 1590, y: 0, width: 10, height: 900))]
+        XCTAssertFalse(popupGuard.defersCollapse(), "an app with a menu bar icon, but no popup")
+    }
+
+    func testScreenTallSidePanelDoesNotDeferAtAnyLayer() {
+        let popupGuard = makeGuard()
+        for layer in [3, 24, status, popUpMenu] {
+            list.windows = [window(netMonitor, layer: layer, CGRect(x: 1200, y: 0, width: 400, height: 900))]
+            XCTAssertFalse(popupGuard.defersCollapse(), "layer \(layer)")
+        }
+    }
+
+    func testScreenTallWindowOnASecondDisplayDoesNotDefer() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: 3, CGRect(x: 2490, y: -358, width: 10, height: 1600))]
+        XCTAssertFalse(popupGuard.defersCollapse())
+    }
+
+    // Starting at the band's bottom edge, it stops a bar short of the display top.
+    func testPopupFromTheBarsBottomToTheDisplayBottomStillDefers() {
+        let popupGuard = makeGuard()
+        for layer in [3, 24, status, popUpMenu] {
+            list.windows = [window(netMonitor, layer: layer, CGRect(x: 1200, y: 24, width: 400, height: 876))]
+            XCTAssertTrue(popupGuard.defersCollapse(), "layer \(layer)")
+        }
+    }
+
+    func testWindowAFewPointsShortOfFullHeightStillDefers() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: 3, CGRect(x: 1590, y: 0, width: 10, height: 897))]
+        XCTAssertTrue(popupGuard.defersCollapse())
     }
 
     func testPopupStartingAboveTheBarDefers() {
