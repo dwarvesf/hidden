@@ -373,20 +373,27 @@ final class SystemMenuBarClock: MenuBarClockProviding {
     }
 
     // macOS highlights and accepts clicks a little beyond the clock's Accessibility
-    // frame (measured about 10 pt on each side on 27.2), and ignores them while a
-    // restriction is held, so every click test uses this wider area. Both side
-    // edges count, as the pointer can sit exactly on the last point macOS accepts.
-    static let clickPadding: CGFloat = 9
+    // frame and ignores them while a restriction is held, so every click test uses
+    // this wider area. Measured on 27.2.1: toward the screen edge clicks 1 to 13 pt
+    // out open Notification Center; toward the neighbouring item only 1 and 2 pt out
+    // do, and 8 pt out opens Control Center. Both side edges count, as the pointer
+    // can sit exactly on the last point macOS accepts.
+    static let clickPaddingTowardNeighbour: CGFloat = 3
+    static let clickPaddingTowardScreenEdge: CGFloat = 9
 
-    static func isOnClock(_ point: CGPoint, frame: CGRect) -> Bool {
-        return point.x >= frame.minX - clickPadding && point.x <= frame.maxX + clickPadding
+    // The clock is the last item before the screen edge: on the right in a
+    // left-to-right layout, on the left in a right-to-left one.
+    static func isOnClock(_ point: CGPoint, frame: CGRect, isLTR: Bool = Constant.isUsingLTRLanguage) -> Bool {
+        let left = isLTR ? clickPaddingTowardNeighbour : clickPaddingTowardScreenEdge
+        let right = isLTR ? clickPaddingTowardScreenEdge : clickPaddingTowardNeighbour
+        return point.x >= frame.minX - left && point.x <= frame.maxX + right
             && point.y >= frame.minY && point.y < frame.maxY
     }
 
     // The replayed click lands on the pointer when it is already on the clock, so
     // the pointer stays put; otherwise on the clock's centre.
-    static func replayPoint(pointer: CGPoint?, clockFrame: CGRect) -> CGPoint {
-        if let pointer, isOnClock(pointer, frame: clockFrame) { return pointer }
+    static func replayPoint(pointer: CGPoint?, clockFrame: CGRect, isLTR: Bool = Constant.isUsingLTRLanguage) -> CGPoint {
+        if let pointer, isOnClock(pointer, frame: clockFrame, isLTR: isLTR) { return pointer }
         return CGPoint(x: clockFrame.midX, y: clockFrame.midY)
     }
 

@@ -1036,33 +1036,60 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: nil, clockFrame: clock), centre)
     }
 
-    // macOS accepts clicks a few points beyond the clock's Accessibility frame, so
-    // those count as on the clock and are replayed where they landed.
-    func testClockClickAreaReachesBeyondTheFrameSides() {
-        let clock = CGRect(x: 809, y: 0, width: 131, height: 24)
-        for x in [807, 808, 941, 942, 949] as [CGFloat] {
-            let point = CGPoint(x: x, y: 12)
-            XCTAssertTrue(SystemMenuBarClock.isOnClock(point, frame: clock), "\(point)")
-            XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: point, clockFrame: clock), point)
-        }
+    // macOS accepts clicks a few points beyond the clock's Accessibility frame, more
+    // toward the screen edge (right in a left-to-right layout) than toward the
+    // neighbouring item, and treats those as clicks on the clock.
+    private let paddedClock = CGRect(x: 800, y: 0, width: 139, height: 24)
+
+    private func onClock(_ x: CGFloat, isLTR: Bool) -> Bool {
+        return SystemMenuBarClock.isOnClock(CGPoint(x: x, y: 12), frame: paddedClock, isLTR: isLTR)
     }
 
-    func testClockClickAreaStopsShortOfTwelvePointsOut() {
-        let clock = CGRect(x: 809, y: 0, width: 131, height: 24)
-        let centre = CGPoint(x: clock.midX, y: clock.midY)
-        for x in [797, 952] as [CGFloat] {
-            let point = CGPoint(x: x, y: 12)
-            XCTAssertFalse(SystemMenuBarClock.isOnClock(point, frame: clock), "\(point)")
-            XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: point, clockFrame: clock), centre)
-        }
+    func testClockClickAreaIsShortTowardTheNeighbourInLeftToRight() {
+        XCTAssertTrue(onClock(798, isLTR: true), "2 pt left")
+        XCTAssertTrue(onClock(797, isLTR: true), "3 pt left, the last point")
+        XCTAssertFalse(onClock(796, isLTR: true), "4 pt left")
+        XCTAssertFalse(onClock(792, isLTR: true), "8 pt left")
+    }
+
+    func testClockClickAreaIsLongTowardTheScreenEdgeInLeftToRight() {
+        XCTAssertTrue(onClock(947, isLTR: true), "8 pt right")
+        XCTAssertTrue(onClock(948, isLTR: true), "9 pt right, the last point")
+        XCTAssertFalse(onClock(949, isLTR: true), "10 pt right")
+        XCTAssertFalse(onClock(951, isLTR: true), "12 pt right")
+    }
+
+    func testClockClickAreaIsMirroredInRightToLeft() {
+        XCTAssertTrue(onClock(792, isLTR: false), "8 pt left, toward the screen edge")
+        XCTAssertTrue(onClock(791, isLTR: false), "9 pt left, the last point")
+        XCTAssertFalse(onClock(790, isLTR: false), "10 pt left")
+        XCTAssertFalse(onClock(788, isLTR: false), "12 pt left")
+        XCTAssertTrue(onClock(941, isLTR: false), "2 pt right, toward the neighbour")
+        XCTAssertTrue(onClock(942, isLTR: false), "3 pt right, the last point")
+        XCTAssertFalse(onClock(943, isLTR: false), "4 pt right")
+        XCTAssertFalse(onClock(947, isLTR: false), "8 pt right")
     }
 
     func testClockClickAreaIsNotWidenedVertically() {
-        let clock = CGRect(x: 809, y: 0, width: 131, height: 24)
-        XCTAssertTrue(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: 23), frame: clock))
-        XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: 26), frame: clock))
-        XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: -2), frame: clock))
-        XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 807, y: 26), frame: clock), "a corner stays outside")
+        for isLTR in [true, false] {
+            XCTAssertTrue(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: 23), frame: paddedClock, isLTR: isLTR))
+            XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: 26), frame: paddedClock, isLTR: isLTR))
+            XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: -2), frame: paddedClock, isLTR: isLTR))
+            XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 798, y: 26), frame: paddedClock, isLTR: isLTR),
+                           "a corner stays outside")
+        }
+    }
+
+    func testReplayKeepsAPointerInThePaddingAndCentresOtherwise() {
+        let centre = CGPoint(x: paddedClock.midX, y: paddedClock.midY)
+        let near = CGPoint(x: 798, y: 12)
+        let far = CGPoint(x: 792, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: near, clockFrame: paddedClock, isLTR: true), near)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: far, clockFrame: paddedClock, isLTR: true), centre)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: far, clockFrame: paddedClock, isLTR: false), far)
+        let edge = CGPoint(x: 947, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: edge, clockFrame: paddedClock, isLTR: true), edge)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: edge, clockFrame: paddedClock, isLTR: false), centre)
     }
 
     func testClockIsWatchedOnlyWhileARestrictionIsHeld() {
