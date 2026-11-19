@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- macOS 27 (direct build): when macOS refuses the updated hide list after an app starts, the icons that were hidden stay hidden. The bar used to show every hidden icon with a collapsed arrow and no auto-hide until you clicked the arrow; now it either stays collapsed or shows the expanded arrow and auto-hide retries.
+
 ## v1.13.2 (2026-11-19)
 
 ### Fixed

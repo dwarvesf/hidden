@@ -509,7 +509,12 @@ final class NativeVisibilityEngine: MenuBarEngine {
 
     // Activates the new restriction before dropping the old one, so switching
     // between collapsed and expanded never flashes the whole bar visible.
-    private func activate(_ hold: NativeHold, completion: @escaping (Bool) -> Void) {
+    // `keepingHeldOnFailure`: a swap that only updates the list (a launch, a lift)
+    // leaves the old restriction in place when macOS refuses the new one, since
+    // that one still hides what the user asked to hide. Not while presenting: the
+    // old list may show an app the presentation must hide, so that fails open.
+    private func activate(_ hold: NativeHold, keepingHeldOnFailure: Bool = false,
+                          completion: @escaping (Bool) -> Void) {
         generation += 1
         let generation = self.generation
         inFlightHold = hold
@@ -538,8 +543,15 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 self.watchClock()
                 completion(true)
             case .failure(let error):
-                // Fail open: never leave icons hidden after an error.
+                AppLog.publicLine("NativeVisibility: macOS refused the new hide list")
                 NSLog("NativeVisibility: activation failed: \(error.localizedDescription)")
+                if keepingHeldOnFailure, self.assertion != nil, !self.presentation.isOn {
+                    // The old restriction is still the newest one, so the guards
+                    // that wait for "nothing newer in flight" keep passing.
+                    self.assertionGeneration = generation
+                    return completion(false)
+                }
+                // Fail open: never leave icons hidden after an error.
                 self.releaseAssertion()
                 self.presentationHideFailed()
                 completion(false)
@@ -662,14 +674,15 @@ final class NativeVisibilityEngine: MenuBarEngine {
         guard !isSensitiveWhilePresenting(bundle) else { return completion(.sensitive) }
         guard !assertionBundles.contains(bundle) else { return completion(.alreadyShown) }
         let before = assertionBundles
-        activate(NativeHold(systemItems: assertionSystemItems, bundles: before + [bundle])) { [weak self] succeeded in
+        activate(NativeHold(systemItems: assertionSystemItems, bundles: before + [bundle]), keepingHeldOnFailure: true) { [weak self] succeeded in
             guard let self = self else { return }
             if succeeded {
                 self.temporaryAllow = (bundle, before)
                 return completion(.lifted)
             }
-            // activate released the restriction: nothing is hidden any more.
-            self.state = .expanded
+            // The old list is still held, so nothing changed; if activate had to
+            // release it, nothing is hidden any more.
+            if self.assertion == nil { self.barOpenedAfterFailedHold() }
             completion(.unavailable)
         }
     }
@@ -777,8 +790,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 ClockFlashTimeline.mark("reapplyEffective")
                 #endif
                 guard let self = self, !succeeded else { return }
-                self.state = .expanded
-                self.setSeparatorsVisible(true)
+                self.barOpenedAfterFailedHold()
             }
         }
         // Never leave the bar unrestricted, even if the press never reports back.
@@ -880,15 +892,26 @@ final class NativeVisibilityEngine: MenuBarEngine {
         guard superseding || generation == assertionGeneration else { return }
         guard let wanted = hold(whenBar: state, layout: layout), wanted != (inFlightHold ?? currentHold) else { return }
         NSLog("NativeVisibility: holding \(wanted.bundles.count) apps (was \(assertionBundles.count)); newly allowed \(Set(wanted.bundles).subtracting(assertionBundles).sorted())")
-        activate(wanted) { [weak self] succeeded in
+        activate(wanted, keepingHeldOnFailure: true) { [weak self] succeeded in
             guard let self = self else { return }
             guard !succeeded else {
                 // What is wanted may have changed while this was in flight.
                 return self.reconcileHold()
             }
-            self.state = .expanded
-            self.setSeparatorsVisible(true)
+            // Kept: the apps already held stay hidden, and the next launch tries again.
+            if self.assertion == nil { self.barOpenedAfterFailedHold() }
         }
+    }
+
+    // A re-activation failed and nothing is held, so the whole bar shows. The
+    // controller hears it as an expand (arrow, auto-hide timer and its retry
+    // budget); changing the state alone would leave a collapsed arrow and no timer.
+    private func barOpenedAfterFailedHold() {
+        if state == .collapsed {
+            if let notify = expandBarForCapture ?? expandBar { notify() } else { expand() }
+        }
+        state = .expanded
+        setSeparatorsVisible(true)
     }
 
     // What a hold in progress or one that has just landed may still owe
