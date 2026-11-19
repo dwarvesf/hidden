@@ -95,6 +95,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private let ownBundleIdentifier: String?
     private let itemFrame: (NSStatusItem) -> CGRect?
     private let displays: () -> [MenuBarDisplay]
+    private let runningBundleIdentifiers: () -> Set<String>
     private let isLTR: () -> Bool
     private let runsFromApplicationsFolder: () -> Bool
 
@@ -180,6 +181,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
          ownBundleIdentifier: String? = Bundle.main.bundleIdentifier,
          itemFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
          displays: @escaping () -> [MenuBarDisplay] = MenuBarDisplay.current,
+         runningBundleIdentifiers: @escaping () -> Set<String> = { [] },
          isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage },
          runsFromApplicationsFolder: @escaping () -> Bool = { true },
          pausesHidingForUnkeepableItems: @escaping () -> Bool = { false },
@@ -208,6 +210,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         self.ownBundleIdentifier = ownBundleIdentifier
         self.itemFrame = itemFrame
         self.displays = displays
+        self.runningBundleIdentifiers = runningBundleIdentifiers
         self.isLTR = isLTR
         self.runsFromApplicationsFolder = runsFromApplicationsFolder
         self.sectionMemory = sectionMemory
@@ -455,14 +458,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
                                                        isLTR: isLTR,
                                                        excludingBundle: self.ownBundleIdentifier)
             if layout.isIncomplete {
-                // Apps macOS left out would be hidden although they may be
-                // right of the arrow; with no complete read to take them from,
-                // nothing may be hidden.
-                guard let complete = self.lastCompleteLayout else {
-                    NSLog("NativeVisibility: the active menu bar overflows and no complete read exists yet; leaving the bar whole")
-                    return body(nil)
+                if let complete = self.lastCompleteLayout {
+                    layout = layout.fillingIn(from: complete)
                 }
-                layout = layout.fillingIn(from: complete)
                 NSLog("NativeVisibility: the active menu bar overflows; apps it does not list keep their last known section")
             } else {
                 self.lastCompleteLayout = layout
@@ -483,8 +481,15 @@ final class NativeVisibilityEngine: MenuBarEngine {
             // What the read listed, before apps that only started are filled in:
             // those may have no menu-bar icon at all.
             self.onUnrestrictedRead?(layout, inventory)
-            for bundle in self.launchedSinceRead {
-                // Started, but its icon was not listed yet.
+            var missing = self.launchedSinceRead
+            if layout.isIncomplete {
+                missing.formUnion(self.runningBundleIdentifiers())
+            }
+            for bundle in missing where layout.sections[bundle] == nil
+                && bundle != self.ownBundleIdentifier
+                && !MenuBarLayoutResolver.systemItemOwners.contains(bundle) {
+                // A launch or overflow can leave an app out of the read. Its
+                // saved section wins; unknown apps stay visible.
                 layout.sections[bundle] = self.rememberedSection(of: bundle)
             }
             NSLog("NativeVisibility: arrow at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
@@ -612,9 +617,6 @@ final class NativeVisibilityEngine: MenuBarEngine {
     var scheduleCollapseTimeout: (TimeInterval, @escaping () -> Void) -> Void = {
         DispatchQueue.main.asyncAfter(deadline: .now() + $0, execute: $1)
     }
-    // Set by the controller to re-arm auto-collapse: its timer fired into the
-    // collapse that timed out.
-    var onCollapseTimedOut: (() -> Void)?
     private var collapseAttempt = 0
 
     // Leaves the bar as an activation failure does: nothing held, expanded. The
@@ -629,7 +631,6 @@ final class NativeVisibilityEngine: MenuBarEngine {
             self.revealAll()
             self.state = .expanded
             completion(.unavailable)
-            self.onCollapseTimedOut?()
         }
     }
     var clockNow: () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }
@@ -699,7 +700,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
     var menuBarItemOwners: Set<String> {
         let read = layout?.sections.keys.map { $0 } ?? []
         let complete = lastCompleteLayout?.sections.keys.map { $0 } ?? []
-        return Set(read + complete)
+        // Overflow allows other running apps too; observed owners and apps
+        // reported by launch notifications can hold auto-hide for a popup.
+        return Set(read + complete).intersection(sectionMemory.sections.keys).union(launchedSinceRead)
     }
 
     var hiddenSectionBundles: Set<String> {

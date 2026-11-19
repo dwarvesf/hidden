@@ -129,7 +129,8 @@ enum PaletteSnapshot {
         wallpaper.frame = backdrop.bounds
         wallpaper.startPoint = CGPoint(x: 0, y: 1)
         wallpaper.endPoint = CGPoint(x: 1, y: 0)
-        wallpaper.colors = (appearance == .darkAqua ? [0x101A30, 0x1D1A36, 0x2E1C2E] : [0xD6E3F5, 0xE3DAF0, 0xF2E2D6]).map { hex in
+        let wallpaperColors: [Int] = appearance == .darkAqua ? [0x101A30, 0x1D1A36, 0x2E1C2E] : [0xD6E3F5, 0xE3DAF0, 0xF2E2D6]
+        wallpaper.colors = wallpaperColors.map { hex in
             NSColor(srgbRed: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255,
                     blue: CGFloat(hex & 0xFF) / 255, alpha: 1).cgColor
         }

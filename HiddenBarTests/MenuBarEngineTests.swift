@@ -313,13 +313,17 @@ final class MultiDisplayLayoutTests: XCTestCase {
                                                 systemIdentifier: "menu-bar-overflow-indicator")
 
     func testOverflowIndicatorMarksTheReadIncompleteAndIsNoItem() {
-        let layout = MenuBarLayoutResolver.resolve(
-            inventory: [overflow, listed("com.visible", on: portrait, fromRight: 150)],
-            separatorFrame: arrow(on: portrait, fromRight: 200), alwaysHiddenSeparatorFrame: nil,
-            displays: bothDisplays, isLTR: true, excludingBundle: nil)
-        XCTAssertTrue(layout.isIncomplete)
-        XCTAssertEqual(layout.sections, ["com.visible": .visible])
-        XCTAssertEqual(layout.unprovenVisibleSystemItems, [], "the chevron is not an item macOS could be asked to keep")
+        for identifier in ["menu-bar-overflow-indicator", "menu-bar-overflow-indicator-expanded"] {
+            var indicator = overflow
+            indicator.systemIdentifier = identifier
+            let layout = MenuBarLayoutResolver.resolve(
+                inventory: [indicator, listed("com.visible", on: portrait, fromRight: 150)],
+                separatorFrame: arrow(on: portrait, fromRight: 200), alwaysHiddenSeparatorFrame: nil,
+                displays: bothDisplays, isLTR: true, excludingBundle: nil)
+            XCTAssertTrue(layout.isIncomplete, identifier)
+            XCTAssertEqual(layout.sections, ["com.visible": .visible])
+            XCTAssertEqual(layout.unprovenVisibleSystemItems, [], "the chevron is not an item macOS could be asked to keep")
+        }
     }
 
     func testIncompleteReadTakesMissingAppsFromAnEarlierRead() {
@@ -330,23 +334,76 @@ final class MultiDisplayLayoutTests: XCTestCase {
                        ["com.kept": .visible, "com.moved": .hidden, "com.hidden": .hidden])
     }
 
-    private func engineOnBothDisplays(_ inventory: FakeInventory, _ visibility: FakeVisibility, arrowOn display: MenuBarDisplay) -> NativeVisibilityEngine {
+    private func engineOnBothDisplays(_ inventory: FakeInventory, _ visibility: FakeVisibility, arrowOn display: MenuBarDisplay,
+                                     running: Set<String> = [],
+                                     memory: MenuBarSectionMemory = InMemorySectionMemory(),
+                                     pinned: MenuBarSectionMemory = InMemorySectionMemory(),
+                                     pins: Bool = false) -> NativeVisibilityEngine {
         let items = FakeItems()
         return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                       ownBundleIdentifier: "com.dwarvesv.minimalbar",
-                                      itemFrame: { _ in arrow(on: display, fromRight: 200) },
-                                      displays: { bothDisplays }, isLTR: { true })
+                                      itemFrame: { $0 === items.toggleItem ? arrow(on: display, fromRight: 200) : nil },
+                                      displays: { bothDisplays }, runningBundleIdentifiers: { running }, isLTR: { true },
+                                      sectionMemory: memory, pinnedSections: pinned, pinsSections: { pins })
     }
 
-    func testOverflowingFirstReadLeavesTheBarWhole() {
+    func testOverflowingFirstReadHidesListedAppsAndKeepsUnlistedAppsVisible() {
+        let inventory = FakeInventory()
+        inventory.items = [overflow, listed("com.visible", on: portrait, fromRight: 150),
+                           listed("com.hidden", on: portrait, fromRight: 300)]
+        let visibility = FakeVisibility()
+        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait,
+                                          running: ["com.unlisted", "com.apple.MenuBarAgent", "com.dwarvesv.minimalbar"])
+        var result: CollapseResult?
+        engine.collapse { result = $0 }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.unlisted", "com.visible"])
+        XCTAssertEqual(engine.menuBarItemOwners, ["com.hidden", "com.visible"], "an unlisted running app is not a known menu-bar owner")
+        guard !visibility.requests.isEmpty else { return }
+        visibility.succeed(0)
+        XCTAssertEqual(result, .collapsed)
+        XCTAssertEqual(engine.state, .collapsed)
+    }
+
+    func testOverflowingFirstReadUsesRememberedSectionsWhenPinsAreOff() {
         let inventory = FakeInventory()
         inventory.items = [overflow, listed("com.visible", on: portrait, fromRight: 150)]
         let visibility = FakeVisibility()
-        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait)
-        var result: CollapseResult?
-        engine.collapse { result = $0 }
-        XCTAssertEqual(result, .unavailable)
-        XCTAssertTrue(visibility.requests.isEmpty)
+        let memory = InMemorySectionMemory()
+        memory.sections = ["com.saved-hidden": .hidden, "com.saved-visible": .visible]
+        let pinned = InMemorySectionMemory()
+        pinned.sections = ["com.saved-hidden": .visible]
+        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait,
+                                          running: ["com.saved-hidden", "com.saved-visible", "com.unknown"],
+                                          memory: memory, pinned: pinned)
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.first?.bundles,
+                       ["com.dwarvesv.minimalbar", "com.saved-visible", "com.unknown", "com.visible"])
+        XCTAssertEqual(engine.layout?.sections["com.saved-hidden"], .hidden)
+    }
+
+    func testOverflowingFirstReadUsesPinnedSectionsWithoutInventingDrags() {
+        let inventory = FakeInventory()
+        inventory.items = [overflow, listed("com.visible", on: portrait, fromRight: 150)]
+        let visibility = FakeVisibility()
+        let memory = InMemorySectionMemory()
+        memory.sections = ["com.saved": .visible]
+        let pinned = InMemorySectionMemory()
+        pinned.sections = ["com.saved": .hidden]
+        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait,
+                                          running: ["com.saved", "com.unknown"],
+                                          memory: memory, pinned: pinned, pins: true)
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.unknown", "com.visible"])
+        XCTAssertEqual(pinned.sections["com.saved"], .hidden)
+        XCTAssertEqual(memory.sections["com.saved"], .visible, "an omitted icon was not observed moving")
+        XCTAssertNil(pinned.sections["com.unknown"], "a running app need not own any menu-bar icon")
+        guard !visibility.requests.isEmpty else { return }
+        visibility.succeed(0)
+        engine.expand()
+        inventory.items = [listed("com.saved", on: portrait, fromRight: 150)]
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.last?.bundles, ["com.dwarvesv.minimalbar"])
+        XCTAssertEqual(pinned.sections["com.saved"], .hidden)
     }
 
     // Collapsed once on the wide display, then again while the narrow one is
@@ -1373,19 +1430,20 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertTrue(visibility.requests.isEmpty)
     }
 
-    // The controller re-arms auto-collapse when told, as the auto-hide timer
-    // that fired into the stuck collapse was used up.
+    // Timeouts report the same failure as other unavailable requests, so the
+    // controller can apply one retry budget to every failure.
     func testAutoCollapseTriesAgainAfterACollapseTimedOut() {
         let engine = makeEngine()
         engine.scheduleCollapseTimeout = { [unowned self] in time.after($0, $1) }
-        var timedOut = 0
-        engine.onCollapseTimedOut = { [unowned self, unowned engine] in
-            timedOut += 1
-            time.after(10) { engine.collapse { _ in } }
+        var results: [CollapseResult] = []
+        engine.collapse { [unowned self, unowned engine] result in
+            results.append(result)
+            if result == .unavailable {
+                time.after(10) { engine.collapse { _ in } }
+            }
         }
-        engine.collapse { _ in }
         time.advance(to: NativeVisibilityEngine.collapseTimeout)
-        XCTAssertEqual(timedOut, 1)
+        XCTAssertEqual(results, [.unavailable])
         XCTAssertEqual(engine.state, .expanded)
 
         time.advance(to: NativeVisibilityEngine.collapseTimeout + 10)
@@ -1398,9 +1456,8 @@ final class NativeVisibilityEngineTests: XCTestCase {
         let engine = makeEngine()
         var timeouts: [() -> Void] = []
         engine.scheduleCollapseTimeout = { timeouts.append($1) }
-        var timedOut = 0
-        engine.onCollapseTimedOut = { timedOut += 1 }
-        engine.collapse { _ in }
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
         let held = visibility.succeed(0)
         timeouts[0]()
         XCTAssertEqual(engine.state, .collapsed)
@@ -1408,13 +1465,13 @@ final class NativeVisibilityEngineTests: XCTestCase {
 
         // A newer collapse in flight is not cut short by the older one's timeout.
         engine.expand()
-        engine.collapse { _ in }
+        engine.collapse { results.append($0) }
         XCTAssertEqual(timeouts.count, 2)
         timeouts[0]()
         XCTAssertEqual(engine.state, .calibrating)
         visibility.succeed(1)
         XCTAssertEqual(engine.state, .collapsed)
-        XCTAssertEqual(timedOut, 0)
+        XCTAssertEqual(results, [.collapsed, .collapsed], "stale timeouts never report another result")
     }
 
     // MARK: Microphone and camera (#432, #437)
@@ -1611,6 +1668,28 @@ final class AppsLaunchedWhileHidingTests: XCTestCase {
     private func collapsed(_ engine: NativeVisibilityEngine) -> FakeAssertion {
         engine.collapse { _ in }
         return visibility.succeed(visibility.requests.count - 1)
+    }
+
+    func testANewlyLaunchedAppsPopupHoldsAutoHideBeforeItsFirstRead() {
+        struct PopupWindows: OnScreenWindowListing {
+            func onScreenWindows() -> [OnScreenWindow] {
+                [OnScreenWindow(ownerPID: 42, layer: 0,
+                                frame: CGRect(x: 1300, y: 24, width: 300, height: 400))]
+            }
+        }
+
+        let engine = makeEngine()
+        let guardDisplay = PopupGuardDisplay(menuBarBand: CGRect(x: 0, y: 0, width: 2000, height: 24), height: 1000)
+        let popupGuard = AutoCollapsePopupGuard(windows: PopupWindows(), displays: { [guardDisplay] },
+                                              bundleIdentifier: { _ in "com.new" },
+                                              menuBarItemOwners: { engine.menuBarItemOwners }, ownPID: 1)
+        XCTAssertFalse(popupGuard.defersCollapse())
+        engine.applicationLaunched("com.new")
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(inventory.snapshots, 0, "the popup is protected without an Accessibility read")
+        XCTAssertTrue(memory.sections.isEmpty)
+        engine.applicationTerminated("com.new")
+        XCTAssertFalse(popupGuard.defersCollapse(), "a terminated app leaves the pending owner set")
     }
 
     func testAnAppNeverReadIsShownUntilTheNextReadPlacesIt() {
