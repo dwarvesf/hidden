@@ -4,6 +4,8 @@
 
 ### Added
 - Direct build on macOS 27: when a click on the arrow or the hotkey hides nothing, a short note under the arrow says why and what to do (running outside Applications, an icon macOS cannot keep visible while the pause switch is on, Accessibility missing, or every icon sitting right of the arrow). It shows once per reason per launch, never for auto-hide.
+### Fixed
+- macOS 27 (direct build): when macOS refuses the updated hide list after an app starts, the icons that were hidden stay hidden. The bar used to show every hidden icon with a collapsed arrow and no auto-hide until you clicked the arrow; now it either stays collapsed or shows the expanded arrow and auto-hide retries.
 
 ## v1.13.2 (2026-11-19)
 
