@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v1.13.2 (2026-11-19)
 
 ### Fixed
 - macOS 27 (direct build): icons can hide even when Hidden Bar starts with an already overflowing menu bar. Failed automatic hides stop after three attempts; turning auto-hide off and on allows another three attempts, and popups from newly launched apps hold auto-hide immediately ([#549](https://github.com/consolelabs/hidden/pull/549)).
