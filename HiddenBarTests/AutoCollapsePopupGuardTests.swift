@@ -289,6 +289,43 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         XCTAssertFalse(popupGuard.defersCollapse())
     }
 
+    // A side-notes app keeps a thin strip flush at the screen edge, top to bottom,
+    // and opens a panel of the same height from it.
+    func testScreenTallSideStripDoesNotDefer() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: 3, CGRect(x: 1590, y: 0, width: 10, height: 900))]
+        XCTAssertFalse(popupGuard.defersCollapse(), "an app with a menu bar icon, but no popup")
+    }
+
+    func testScreenTallSidePanelDoesNotDeferAtAnyLayer() {
+        let popupGuard = makeGuard()
+        for layer in [3, 24, status, popUpMenu] {
+            list.windows = [window(netMonitor, layer: layer, CGRect(x: 1200, y: 0, width: 400, height: 900))]
+            XCTAssertFalse(popupGuard.defersCollapse(), "layer \(layer)")
+        }
+    }
+
+    func testScreenTallWindowOnASecondDisplayDoesNotDefer() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: 3, CGRect(x: 2490, y: -358, width: 10, height: 1600))]
+        XCTAssertFalse(popupGuard.defersCollapse())
+    }
+
+    // Starting at the band's bottom edge, it stops a bar short of the display top.
+    func testPopupFromTheBarsBottomToTheDisplayBottomStillDefers() {
+        let popupGuard = makeGuard()
+        for layer in [3, 24, status, popUpMenu] {
+            list.windows = [window(netMonitor, layer: layer, CGRect(x: 1200, y: 24, width: 400, height: 876))]
+            XCTAssertTrue(popupGuard.defersCollapse(), "layer \(layer)")
+        }
+    }
+
+    func testWindowAFewPointsShortOfFullHeightStillDefers() {
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: 3, CGRect(x: 1590, y: 0, width: 10, height: 897))]
+        XCTAssertTrue(popupGuard.defersCollapse())
+    }
+
     func testPopupStartingAboveTheBarDefers() {
         let popupGuard = makeGuard()
         list.windows = [window(netMonitor, layer: popUpMenu, CGRect(x: 1200, y: -6, width: 300, height: 400))]
