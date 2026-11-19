@@ -103,6 +103,7 @@
 		A27C0DE00000000000000005 /* MacOS27NoticeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A27C0DE00000000000000004 /* MacOS27NoticeTests.swift */; };
 		A27C0DE00000000000000006 /* String+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 967F4B2424169BC800F18D3C /* String+Extension.swift */; };
 		A31C0DE0000000000000A001 /* ArrowStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31C0DE0000000000000A002 /* ArrowStyleTests.swift */; };
+		C0CA1E00000000000000A001 /* LocaleCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CA1E00000000000000A002 /* LocaleCoverageTests.swift */; };
 		A3B15C1FDF934AFBADF438B6 /* SettingsSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22AF1A1AA5ABA4C7881D1682 /* SettingsSnapshot.swift */; };
 		A554D3CDC5D46BD58888E63F /* AccessibilityMenuBarInventory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */; };
 		A57E0DE0000000000000C001 /* AppStoreMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57E0DE0000000000000C002 /* AppStoreMigration.swift */; };
@@ -348,6 +349,7 @@
 		A27C0DE00000000000000001 /* MacOS27Notice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOS27Notice.swift; sourceTree = "<group>"; };
 		A27C0DE00000000000000004 /* MacOS27NoticeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOS27NoticeTests.swift; sourceTree = "<group>"; };
 		A31C0DE0000000000000A002 /* ArrowStyleTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArrowStyleTests.swift; sourceTree = "<group>"; };
+		C0CA1E00000000000000A002 /* LocaleCoverageTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocaleCoverageTests.swift; sourceTree = "<group>"; };
 		A559ED44CB2BAC9DAE646EE7 /* SettingsModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
 		A57E0DE0000000000000C002 /* AppStoreMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreMigration.swift; sourceTree = "<group>"; };
 		A57E0DE0000000000000C004 /* AppStoreMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreMigrationTests.swift; sourceTree = "<group>"; };
@@ -595,6 +597,7 @@
 				06495EE4F823D325A44A357C /* NotchOverflowPreferencesTests.swift */,
 				9EE499C5269FD00BE62A0AC2 /* StealthExpandIconTests.swift */,
 				A31C0DE0000000000000A002 /* ArrowStyleTests.swift */,
+				C0CA1E00000000000000A002 /* LocaleCoverageTests.swift */,
 				B6B0DE00000000000000B002 /* PreferencesSmallFixesTests.swift */,
 				A0C011A95E7F4D6F8A83B002 /* AutoCollapseRetryTests.swift */,
 				A9D0DE00000000000000D010 /* PrefsIsolationTests.swift */,
@@ -1096,6 +1099,7 @@
 				70F996B8AD634F42175AE89C /* NotchOverflowPreferencesTests.swift in Sources */,
 				86075364F9653E69AD4329D6 /* StealthExpandIconTests.swift in Sources */,
 				A31C0DE0000000000000A001 /* ArrowStyleTests.swift in Sources */,
+				C0CA1E00000000000000A001 /* LocaleCoverageTests.swift in Sources */,
 				B6B0DE00000000000000B001 /* PreferencesSmallFixesTests.swift in Sources */,
 				A0C011A95E7F4D6F8A83B001 /* AutoCollapseRetryTests.swift in Sources */,
 				A9D0DE00000000000000D011 /* PrefsIsolationTests.swift in Sources */,

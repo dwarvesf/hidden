@@ -47,6 +47,10 @@ Standard checks before any release:
   the static lines logged with `AppLog.publicLine` are readable there);
 - localization tables stay parseable: `plutil -lint hidden/*.lproj/*.strings`.
 
+### Adding a string
+
+A new `Localizable.strings` key goes into every locale in the same commit, translated, not copied from English. If a translation is truly the same as English (a product name, a cognate), put the key on the allow-list in `HiddenTests/LocaleCoverageTests.swift` with a reason instead. `LocaleCoverageTests` fails the test run on a missing or extra key, a value still equal to its English text, or a changed `%@`, `%d` or `\n` count; its message names the locale and key. Run it with `-only-testing:HiddenTests/LocaleCoverageTests` (the Direct `Hidden Bar` scheme).
+
 ### Debug hooks harness (`scripts/hb-cmd`)
 
 A Debug build listens for the distributed notification
