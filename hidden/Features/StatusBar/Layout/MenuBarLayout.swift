@@ -368,7 +368,8 @@ enum MenuBarLayoutResolver {
                 }
                 continue
             }
-            if systemItemOwners.contains(key), item.systemIdentifier == overflowIndicator {
+            if systemItemOwners.contains(key),
+               item.systemIdentifier == overflowIndicator || item.systemIdentifier == "\(overflowIndicator)-expanded" {
                 layout.isIncomplete = true
                 continue
             }

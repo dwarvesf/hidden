@@ -95,6 +95,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
     private let ownBundleIdentifier: String?
     private let itemFrame: (NSStatusItem) -> CGRect?
     private let displays: () -> [MenuBarDisplay]
+    private let runningBundleIdentifiers: () -> Set<String>
     private let isLTR: () -> Bool
     private let runsFromApplicationsFolder: () -> Bool
 
@@ -180,6 +181,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
          ownBundleIdentifier: String? = Bundle.main.bundleIdentifier,
          itemFrame: @escaping (NSStatusItem) -> CGRect? = { $0.button?.window?.frame },
          displays: @escaping () -> [MenuBarDisplay] = MenuBarDisplay.current,
+         runningBundleIdentifiers: @escaping () -> Set<String> = { [] },
          isLTR: @escaping () -> Bool = { Constant.isUsingLTRLanguage },
          runsFromApplicationsFolder: @escaping () -> Bool = { true },
          pausesHidingForUnkeepableItems: @escaping () -> Bool = { false },
@@ -208,6 +210,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
         self.ownBundleIdentifier = ownBundleIdentifier
         self.itemFrame = itemFrame
         self.displays = displays
+        self.runningBundleIdentifiers = runningBundleIdentifiers
         self.isLTR = isLTR
         self.runsFromApplicationsFolder = runsFromApplicationsFolder
         self.sectionMemory = sectionMemory
@@ -257,12 +260,13 @@ final class NativeVisibilityEngine: MenuBarEngine {
         }
 
         guard visibility.isAvailable else {
-            logUnavailableOnce("the native menu-bar visibility API is not available in this build or on this macOS")
+            logUnavailableOnce("NativeVisibility: hiding unavailable: the native menu-bar visibility API is not available in this build or on this macOS")
             state = .unavailable
             return completion(.unavailable)
         }
         guard runsFromApplicationsFolder() else {
-            logUnavailableOnce("macOS 27 would also hide Hidden Bar's own arrow: it hides only apps it knows by bundle id, and Hidden Bar runs from outside an Applications folder (\(Bundle.main.bundlePath))")
+            logUnavailableOnce("NativeVisibility: hiding unavailable: Hidden Bar runs from outside an Applications folder, so macOS 27 would also hide its arrow",
+                               detail: "macOS 27 would also hide Hidden Bar's own arrow: it hides only apps it knows by bundle id, and Hidden Bar runs from outside an Applications folder (\((Bundle.main.bundlePath as NSString).abbreviatingWithTildeInPath))")
             state = .unavailable
             return completion(.unavailable)
         }
@@ -276,7 +280,7 @@ final class NativeVisibilityEngine: MenuBarEngine {
             // hide icons the user kept visible. Not latched: it works as soon as
             // the permission is granted.
             inventory.requestAuthorization()
-            logUnavailableOnce("Accessibility permission is needed to read the menu-bar sections")
+            logUnavailableOnce("NativeVisibility: hiding unavailable: Accessibility permission is needed to read the menu-bar sections")
             return completion(.unavailable)
         }
         state = .calibrating
@@ -288,13 +292,13 @@ final class NativeVisibilityEngine: MenuBarEngine {
                 if self.holdsPresentationList {
                     return self.holdPresentationListUnread(completion)
                 }
-                self.logUnavailableOnce("the arrow's position cannot be read yet")
+                self.logUnavailableOnce("NativeVisibility: hiding unavailable: the arrow's position cannot be read yet")
                 self.state = .expanded
                 return completion(.unavailable)
             }
             if !self.holdsPresentationList, self.pausesHidingForUnkeepableItems(),
                let reason = layout.reasonToKeepBarWhole(unkeepableSystemItems: self.unkeepableSystemItems) {
-                self.logUnavailableOnce(reason)
+                self.logUnavailableOnce("NativeVisibility: hiding unavailable: an icon right of the arrow cannot be kept visible, so the bar stays whole", detail: reason)
                 self.state = .expanded
                 return completion(.unavailable)
             }
@@ -454,14 +458,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
                                                        isLTR: isLTR,
                                                        excludingBundle: self.ownBundleIdentifier)
             if layout.isIncomplete {
-                // Apps macOS left out would be hidden although they may be
-                // right of the arrow; with no complete read to take them from,
-                // nothing may be hidden.
-                guard let complete = self.lastCompleteLayout else {
-                    NSLog("NativeVisibility: the active menu bar overflows and no complete read exists yet; leaving the bar whole")
-                    return body(nil)
+                if let complete = self.lastCompleteLayout {
+                    layout = layout.fillingIn(from: complete)
                 }
-                layout = layout.fillingIn(from: complete)
                 NSLog("NativeVisibility: the active menu bar overflows; apps it does not list keep their last known section")
             } else {
                 self.lastCompleteLayout = layout
@@ -482,8 +481,15 @@ final class NativeVisibilityEngine: MenuBarEngine {
             // What the read listed, before apps that only started are filled in:
             // those may have no menu-bar icon at all.
             self.onUnrestrictedRead?(layout, inventory)
-            for bundle in self.launchedSinceRead {
-                // Started, but its icon was not listed yet.
+            var missing = self.launchedSinceRead
+            if layout.isIncomplete {
+                missing.formUnion(self.runningBundleIdentifiers())
+            }
+            for bundle in missing where layout.sections[bundle] == nil
+                && bundle != self.ownBundleIdentifier
+                && !MenuBarLayoutResolver.systemItemOwners.contains(bundle) {
+                // A launch or overflow can leave an app out of the read. Its
+                // saved section wins; unknown apps stay visible.
                 layout.sections[bundle] = self.rememberedSection(of: bundle)
             }
             NSLog("NativeVisibility: arrow at x=\(boundary.midX); visible \(layout.bundles(in: [.visible])), hidden \(layout.bundles(in: [.hidden])), always hidden \(layout.bundles(in: [.alwaysHidden]))")
@@ -611,9 +617,6 @@ final class NativeVisibilityEngine: MenuBarEngine {
     var scheduleCollapseTimeout: (TimeInterval, @escaping () -> Void) -> Void = {
         DispatchQueue.main.asyncAfter(deadline: .now() + $0, execute: $1)
     }
-    // Set by the controller to re-arm auto-collapse: its timer fired into the
-    // collapse that timed out.
-    var onCollapseTimedOut: (() -> Void)?
     private var collapseAttempt = 0
 
     // Leaves the bar as an activation failure does: nothing held, expanded. The
@@ -623,11 +626,11 @@ final class NativeVisibilityEngine: MenuBarEngine {
         let attempt = collapseAttempt
         scheduleCollapseTimeout(Self.collapseTimeout) { [weak self] in
             guard let self = self, attempt == self.collapseAttempt, self.state == .calibrating else { return }
+            AppLog.publicLine("NativeVisibility: macOS did not answer the hide request; showing the whole menu bar")
             NSLog("NativeVisibility: macOS did not answer the hide request within \(Int(Self.collapseTimeout)) s; showing the whole menu bar")
             self.revealAll()
             self.state = .expanded
             completion(.unavailable)
-            self.onCollapseTimedOut?()
         }
     }
     var clockNow: () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }
@@ -697,7 +700,9 @@ final class NativeVisibilityEngine: MenuBarEngine {
     var menuBarItemOwners: Set<String> {
         let read = layout?.sections.keys.map { $0 } ?? []
         let complete = lastCompleteLayout?.sections.keys.map { $0 } ?? []
-        return Set(read + complete)
+        // Overflow allows other running apps too; observed owners and apps
+        // reported by launch notifications can hold auto-hide for a popup.
+        return Set(read + complete).intersection(sectionMemory.sections.keys).union(launchedSinceRead)
     }
 
     var hiddenSectionBundles: Set<String> {
@@ -1098,10 +1103,16 @@ final class NativeVisibilityEngine: MenuBarEngine {
     }
 
     // Logged when the reason changes, so a retried collapse does not spam.
-    private func logUnavailableOnce(_ reason: String) {
+    // `line` is the public line (static, so no user data); `detail`, when the
+    // reason carries data such as a path or app names, stays in the private line.
+    private func logUnavailableOnce(_ line: StaticString, detail: String? = nil) {
+        let reason = detail ?? "\(line)"
         guard reason != lastUnavailableReason else { return }
         lastUnavailableReason = reason
-        NSLog("NativeVisibility: hiding unavailable: \(reason)")
+        AppLog.publicLine(line)
+        if let detail {
+            NSLog("NativeVisibility: hiding unavailable: \(detail)")
+        }
     }
 
     // Checks whether macOS hid a system extra the allow-list could only try to

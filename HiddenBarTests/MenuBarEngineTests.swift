@@ -313,13 +313,17 @@ final class MultiDisplayLayoutTests: XCTestCase {
                                                 systemIdentifier: "menu-bar-overflow-indicator")
 
     func testOverflowIndicatorMarksTheReadIncompleteAndIsNoItem() {
-        let layout = MenuBarLayoutResolver.resolve(
-            inventory: [overflow, listed("com.visible", on: portrait, fromRight: 150)],
-            separatorFrame: arrow(on: portrait, fromRight: 200), alwaysHiddenSeparatorFrame: nil,
-            displays: bothDisplays, isLTR: true, excludingBundle: nil)
-        XCTAssertTrue(layout.isIncomplete)
-        XCTAssertEqual(layout.sections, ["com.visible": .visible])
-        XCTAssertEqual(layout.unprovenVisibleSystemItems, [], "the chevron is not an item macOS could be asked to keep")
+        for identifier in ["menu-bar-overflow-indicator", "menu-bar-overflow-indicator-expanded"] {
+            var indicator = overflow
+            indicator.systemIdentifier = identifier
+            let layout = MenuBarLayoutResolver.resolve(
+                inventory: [indicator, listed("com.visible", on: portrait, fromRight: 150)],
+                separatorFrame: arrow(on: portrait, fromRight: 200), alwaysHiddenSeparatorFrame: nil,
+                displays: bothDisplays, isLTR: true, excludingBundle: nil)
+            XCTAssertTrue(layout.isIncomplete, identifier)
+            XCTAssertEqual(layout.sections, ["com.visible": .visible])
+            XCTAssertEqual(layout.unprovenVisibleSystemItems, [], "the chevron is not an item macOS could be asked to keep")
+        }
     }
 
     func testIncompleteReadTakesMissingAppsFromAnEarlierRead() {
@@ -330,23 +334,76 @@ final class MultiDisplayLayoutTests: XCTestCase {
                        ["com.kept": .visible, "com.moved": .hidden, "com.hidden": .hidden])
     }
 
-    private func engineOnBothDisplays(_ inventory: FakeInventory, _ visibility: FakeVisibility, arrowOn display: MenuBarDisplay) -> NativeVisibilityEngine {
+    private func engineOnBothDisplays(_ inventory: FakeInventory, _ visibility: FakeVisibility, arrowOn display: MenuBarDisplay,
+                                     running: Set<String> = [],
+                                     memory: MenuBarSectionMemory = InMemorySectionMemory(),
+                                     pinned: MenuBarSectionMemory = InMemorySectionMemory(),
+                                     pins: Bool = false) -> NativeVisibilityEngine {
         let items = FakeItems()
         return NativeVisibilityEngine(items: items, inventory: inventory, visibility: visibility,
                                       ownBundleIdentifier: "com.dwarvesv.minimalbar",
-                                      itemFrame: { _ in arrow(on: display, fromRight: 200) },
-                                      displays: { bothDisplays }, isLTR: { true })
+                                      itemFrame: { $0 === items.toggleItem ? arrow(on: display, fromRight: 200) : nil },
+                                      displays: { bothDisplays }, runningBundleIdentifiers: { running }, isLTR: { true },
+                                      sectionMemory: memory, pinnedSections: pinned, pinsSections: { pins })
     }
 
-    func testOverflowingFirstReadLeavesTheBarWhole() {
+    func testOverflowingFirstReadHidesListedAppsAndKeepsUnlistedAppsVisible() {
+        let inventory = FakeInventory()
+        inventory.items = [overflow, listed("com.visible", on: portrait, fromRight: 150),
+                           listed("com.hidden", on: portrait, fromRight: 300)]
+        let visibility = FakeVisibility()
+        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait,
+                                          running: ["com.unlisted", "com.apple.MenuBarAgent", "com.dwarvesv.minimalbar"])
+        var result: CollapseResult?
+        engine.collapse { result = $0 }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.unlisted", "com.visible"])
+        XCTAssertEqual(engine.menuBarItemOwners, ["com.hidden", "com.visible"], "an unlisted running app is not a known menu-bar owner")
+        guard !visibility.requests.isEmpty else { return }
+        visibility.succeed(0)
+        XCTAssertEqual(result, .collapsed)
+        XCTAssertEqual(engine.state, .collapsed)
+    }
+
+    func testOverflowingFirstReadUsesRememberedSectionsWhenPinsAreOff() {
         let inventory = FakeInventory()
         inventory.items = [overflow, listed("com.visible", on: portrait, fromRight: 150)]
         let visibility = FakeVisibility()
-        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait)
-        var result: CollapseResult?
-        engine.collapse { result = $0 }
-        XCTAssertEqual(result, .unavailable)
-        XCTAssertTrue(visibility.requests.isEmpty)
+        let memory = InMemorySectionMemory()
+        memory.sections = ["com.saved-hidden": .hidden, "com.saved-visible": .visible]
+        let pinned = InMemorySectionMemory()
+        pinned.sections = ["com.saved-hidden": .visible]
+        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait,
+                                          running: ["com.saved-hidden", "com.saved-visible", "com.unknown"],
+                                          memory: memory, pinned: pinned)
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.first?.bundles,
+                       ["com.dwarvesv.minimalbar", "com.saved-visible", "com.unknown", "com.visible"])
+        XCTAssertEqual(engine.layout?.sections["com.saved-hidden"], .hidden)
+    }
+
+    func testOverflowingFirstReadUsesPinnedSectionsWithoutInventingDrags() {
+        let inventory = FakeInventory()
+        inventory.items = [overflow, listed("com.visible", on: portrait, fromRight: 150)]
+        let visibility = FakeVisibility()
+        let memory = InMemorySectionMemory()
+        memory.sections = ["com.saved": .visible]
+        let pinned = InMemorySectionMemory()
+        pinned.sections = ["com.saved": .hidden]
+        let engine = engineOnBothDisplays(inventory, visibility, arrowOn: portrait,
+                                          running: ["com.saved", "com.unknown"],
+                                          memory: memory, pinned: pinned, pins: true)
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.first?.bundles, ["com.dwarvesv.minimalbar", "com.unknown", "com.visible"])
+        XCTAssertEqual(pinned.sections["com.saved"], .hidden)
+        XCTAssertEqual(memory.sections["com.saved"], .visible, "an omitted icon was not observed moving")
+        XCTAssertNil(pinned.sections["com.unknown"], "a running app need not own any menu-bar icon")
+        guard !visibility.requests.isEmpty else { return }
+        visibility.succeed(0)
+        engine.expand()
+        inventory.items = [listed("com.saved", on: portrait, fromRight: 150)]
+        engine.collapse { _ in }
+        XCTAssertEqual(visibility.requests.last?.bundles, ["com.dwarvesv.minimalbar"])
+        XCTAssertEqual(pinned.sections["com.saved"], .hidden)
     }
 
     // Collapsed once on the wide display, then again while the narrow one is
@@ -1021,6 +1078,93 @@ final class NativeVisibilityEngineTests: XCTestCase {
         }
     }
 
+    // The replay clicks where the pointer already is, so it does not jump to the
+    // clock's centre.
+    func testClockReplayClicksAtThePointerInsideTheClock() {
+        let clock = CGRect(x: 1880, y: 0, width: 60, height: 24)
+        let pointer = CGPoint(x: 1895, y: 6)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: pointer, clockFrame: clock), pointer)
+    }
+
+    func testClockReplayFallsBackToTheCentreWhenThePointerIsOutsideOrUnknown() {
+        let clock = CGRect(x: 1880, y: 0, width: 60, height: 24)
+        let centre = CGPoint(x: 1910, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: CGPoint(x: 600, y: 400), clockFrame: clock), centre)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: nil, clockFrame: clock), centre)
+    }
+
+    // macOS accepts clicks a few points beyond the clock's Accessibility frame, more
+    // toward the screen edge (right in a left-to-right layout) than toward the
+    // neighbouring item, and treats those as clicks on the clock.
+    private let paddedClock = CGRect(x: 800, y: 0, width: 139, height: 24)
+
+    private func onClock(_ x: CGFloat, isLTR: Bool) -> Bool {
+        return SystemMenuBarClock.isOnClock(CGPoint(x: x, y: 12), frame: paddedClock, isLTR: isLTR)
+    }
+
+    func testClockClickAreaIsShortTowardTheNeighbourInLeftToRight() {
+        XCTAssertTrue(onClock(797, isLTR: true), "3 pt left")
+        XCTAssertTrue(onClock(794, isLTR: true), "6 pt left, the last point")
+        XCTAssertFalse(onClock(793, isLTR: true), "7 pt left")
+        XCTAssertFalse(onClock(792, isLTR: true), "8 pt left")
+    }
+
+    func testClockClickAreaIsLongTowardTheScreenEdgeInLeftToRight() {
+        XCTAssertTrue(onClock(951, isLTR: true), "12 pt right")
+        XCTAssertTrue(onClock(959, isLTR: true), "20 pt right")
+        XCTAssertTrue(onClock(963, isLTR: true), "24 pt right, the last point")
+        XCTAssertFalse(onClock(964, isLTR: true), "25 pt right")
+    }
+
+    func testClockClickAreaIsMirroredInRightToLeft() {
+        XCTAssertTrue(onClock(788, isLTR: false), "12 pt left, toward the screen edge")
+        XCTAssertTrue(onClock(780, isLTR: false), "20 pt left")
+        XCTAssertTrue(onClock(776, isLTR: false), "24 pt left, the last point")
+        XCTAssertFalse(onClock(775, isLTR: false), "25 pt left")
+        XCTAssertTrue(onClock(942, isLTR: false), "3 pt right, toward the neighbour")
+        XCTAssertTrue(onClock(945, isLTR: false), "6 pt right, the last point")
+        XCTAssertFalse(onClock(946, isLTR: false), "7 pt right")
+        XCTAssertFalse(onClock(947, isLTR: false), "8 pt right")
+    }
+
+    func testClockClickAreaIsNotWidenedVertically() {
+        for isLTR in [true, false] {
+            XCTAssertTrue(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: 23), frame: paddedClock, isLTR: isLTR))
+            XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: 26), frame: paddedClock, isLTR: isLTR))
+            XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 870, y: -2), frame: paddedClock, isLTR: isLTR))
+            XCTAssertFalse(SystemMenuBarClock.isOnClock(CGPoint(x: 798, y: 26), frame: paddedClock, isLTR: isLTR),
+                           "a corner stays outside")
+        }
+    }
+
+    func testReplayKeepsAPointerInThePaddingAndCentresOtherwise() {
+        let centre = CGPoint(x: paddedClock.midX, y: paddedClock.midY)
+        let near = CGPoint(x: 798, y: 12)
+        let far = CGPoint(x: 792, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: near, clockFrame: paddedClock, isLTR: true), near)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: far, clockFrame: paddedClock, isLTR: true), centre)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: far, clockFrame: paddedClock, isLTR: false), far)
+        let edge = CGPoint(x: 947, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: edge, clockFrame: paddedClock, isLTR: true), edge)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: edge, clockFrame: paddedClock, isLTR: false), centre)
+        let lastNear = CGPoint(x: 794, y: 12)
+        let pastNear = CGPoint(x: 793, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: lastNear, clockFrame: paddedClock, isLTR: true), lastNear)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: pastNear, clockFrame: paddedClock, isLTR: true), centre)
+        let mirroredLastNear = CGPoint(x: 945, y: 12)
+        let mirroredPastNear = CGPoint(x: 946, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: mirroredLastNear, clockFrame: paddedClock, isLTR: false), mirroredLastNear)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: mirroredPastNear, clockFrame: paddedClock, isLTR: false), centre)
+        let farEdge = CGPoint(x: 959, y: 12)
+        let beyondEdge = CGPoint(x: 964, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: farEdge, clockFrame: paddedClock, isLTR: true), farEdge)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: beyondEdge, clockFrame: paddedClock, isLTR: true), centre)
+        let mirroredFarEdge = CGPoint(x: 780, y: 12)
+        let mirroredBeyondEdge = CGPoint(x: 775, y: 12)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: mirroredFarEdge, clockFrame: paddedClock, isLTR: false), mirroredFarEdge)
+        XCTAssertEqual(SystemMenuBarClock.replayPoint(pointer: mirroredBeyondEdge, clockFrame: paddedClock, isLTR: false), centre)
+    }
+
     func testClockIsWatchedOnlyWhileARestrictionIsHeld() {
         let engine = makeEngine()
         XCTAssertNil(clock.onClick)
@@ -1286,19 +1430,20 @@ final class NativeVisibilityEngineTests: XCTestCase {
         XCTAssertTrue(visibility.requests.isEmpty)
     }
 
-    // The controller re-arms auto-collapse when told, as the auto-hide timer
-    // that fired into the stuck collapse was used up.
+    // Timeouts report the same failure as other unavailable requests, so the
+    // controller can apply one retry budget to every failure.
     func testAutoCollapseTriesAgainAfterACollapseTimedOut() {
         let engine = makeEngine()
         engine.scheduleCollapseTimeout = { [unowned self] in time.after($0, $1) }
-        var timedOut = 0
-        engine.onCollapseTimedOut = { [unowned self, unowned engine] in
-            timedOut += 1
-            time.after(10) { engine.collapse { _ in } }
+        var results: [CollapseResult] = []
+        engine.collapse { [unowned self, unowned engine] result in
+            results.append(result)
+            if result == .unavailable {
+                time.after(10) { engine.collapse { _ in } }
+            }
         }
-        engine.collapse { _ in }
         time.advance(to: NativeVisibilityEngine.collapseTimeout)
-        XCTAssertEqual(timedOut, 1)
+        XCTAssertEqual(results, [.unavailable])
         XCTAssertEqual(engine.state, .expanded)
 
         time.advance(to: NativeVisibilityEngine.collapseTimeout + 10)
@@ -1311,9 +1456,8 @@ final class NativeVisibilityEngineTests: XCTestCase {
         let engine = makeEngine()
         var timeouts: [() -> Void] = []
         engine.scheduleCollapseTimeout = { timeouts.append($1) }
-        var timedOut = 0
-        engine.onCollapseTimedOut = { timedOut += 1 }
-        engine.collapse { _ in }
+        var results: [CollapseResult] = []
+        engine.collapse { results.append($0) }
         let held = visibility.succeed(0)
         timeouts[0]()
         XCTAssertEqual(engine.state, .collapsed)
@@ -1321,13 +1465,13 @@ final class NativeVisibilityEngineTests: XCTestCase {
 
         // A newer collapse in flight is not cut short by the older one's timeout.
         engine.expand()
-        engine.collapse { _ in }
+        engine.collapse { results.append($0) }
         XCTAssertEqual(timeouts.count, 2)
         timeouts[0]()
         XCTAssertEqual(engine.state, .calibrating)
         visibility.succeed(1)
         XCTAssertEqual(engine.state, .collapsed)
-        XCTAssertEqual(timedOut, 0)
+        XCTAssertEqual(results, [.collapsed, .collapsed], "stale timeouts never report another result")
     }
 
     // MARK: Microphone and camera (#432, #437)
@@ -1524,6 +1668,28 @@ final class AppsLaunchedWhileHidingTests: XCTestCase {
     private func collapsed(_ engine: NativeVisibilityEngine) -> FakeAssertion {
         engine.collapse { _ in }
         return visibility.succeed(visibility.requests.count - 1)
+    }
+
+    func testANewlyLaunchedAppsPopupHoldsAutoHideBeforeItsFirstRead() {
+        struct PopupWindows: OnScreenWindowListing {
+            func onScreenWindows() -> [OnScreenWindow] {
+                [OnScreenWindow(ownerPID: 42, layer: 0,
+                                frame: CGRect(x: 1300, y: 24, width: 300, height: 400))]
+            }
+        }
+
+        let engine = makeEngine()
+        let guardDisplay = PopupGuardDisplay(menuBarBand: CGRect(x: 0, y: 0, width: 2000, height: 24), height: 1000)
+        let popupGuard = AutoCollapsePopupGuard(windows: PopupWindows(), displays: { [guardDisplay] },
+                                              bundleIdentifier: { _ in "com.new" },
+                                              menuBarItemOwners: { engine.menuBarItemOwners }, ownPID: 1)
+        XCTAssertFalse(popupGuard.defersCollapse())
+        engine.applicationLaunched("com.new")
+        XCTAssertTrue(popupGuard.defersCollapse())
+        XCTAssertEqual(inventory.snapshots, 0, "the popup is protected without an Accessibility read")
+        XCTAssertTrue(memory.sections.isEmpty)
+        engine.applicationTerminated("com.new")
+        XCTAssertFalse(popupGuard.defersCollapse(), "a terminated app leaves the pending owner set")
     }
 
     func testAnAppNeverReadIsShownUntilTheNextReadPlacesIt() {

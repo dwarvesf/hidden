@@ -72,7 +72,7 @@
 "Tba-C7-Zr8.title" = "Слідкуйте за нами в Твіттері";
 
 /* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "Vdr-fp-XzO"; */
-"Vdr-fp-XzO.title" = "Hide Others";
+"Vdr-fp-XzO.title" = "Сховати інші";
 
 /* Class = "NSButtonCell"; title = "Start Hidden Bar when I log in"; ObjectID = "W1G-55-zGo"; */
 "W1G-55-zGo.title" = "Запускати Hidden Bar коли я вхожу";
@@ -108,7 +108,7 @@
 "hCh-Ue-NgH.title" = "Показувати налаштування на запуску";
 
 /* Class = "NSMenu"; title = "Services"; ObjectID = "hz9-B4-Xy5"; */
-"hz9-B4-Xy5.title" = "Services";
+"hz9-B4-Xy5.title" = "Сервіси";
 
 /* Class = "NSTextFieldCell"; title = "Shown"; ObjectID = "iyS-g5-5mk"; */
 "iyS-g5-5mk.title" = "Показано";

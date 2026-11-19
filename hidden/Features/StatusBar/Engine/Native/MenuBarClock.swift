@@ -306,6 +306,9 @@ final class SystemMenuBarClock: MenuBarClockProviding {
     static var debugPressWithAX = false
     #endif
 
+    // Where the pointer is now, in the same global top-left space as the clock's frame.
+    var pointerLocation: () -> CGPoint? = { CGEvent(source: nil)?.location }
+
     private var monitor: Any?
     // The clock's frame when a click on it began with Notification Center closed.
     private var clickedClockFrame: CGRect?
@@ -330,11 +333,12 @@ final class SystemMenuBarClock: MenuBarClockProviding {
         let onMain = { (outcome: ClockPressOutcome) in
             DispatchQueue.main.async { restore(); finished(outcome) }
         }
+        let pointerLocation = self.pointerLocation
         queue.asyncAfter(deadline: .now() + Self.liftDelay) {
             let clocks = Self.clocks()
             // Never replay on a different display if its clock cannot be found.
-            guard let clock = clocks.first(where: { $0.frame.contains(location) }),
-                  let events = Self.clickEvents(at: CGPoint(x: clock.frame.midX, y: clock.frame.midY)) else {
+            guard let clock = clocks.first(where: { Self.isOnClock(location, frame: $0.frame) }),
+                  let events = Self.clickEvents(at: Self.replayPoint(pointer: pointerLocation(), clockFrame: clock.frame)) else {
                 return onMain(.noClock)
             }
             #if DEBUG
@@ -366,6 +370,32 @@ final class SystemMenuBarClock: MenuBarClockProviding {
                                      finished: { outcome in DispatchQueue.main.async { finished(outcome) } })
             replay.pressed()
         }
+    }
+
+    // macOS highlights and accepts clicks a little beyond the clock's Accessibility
+    // frame and ignores them while a restriction is held, so every click test uses
+    // this wider area. Measured on 27.2.1 with Hidden Bar quit: toward the neighbouring
+    // item clicks up to 6 pt out open Notification Center and 8 pt out does not (7 pt not
+    // measured); toward the screen edge clicks up to 13 pt out do. The clock is the last
+    // item, so the whole strip to the screen edge is its own: 24 pt covers the usual 20 pt
+    // margin. Both side edges count. The frame moves when the date text changes.
+    static let clickPaddingTowardNeighbour: CGFloat = 6
+    static let clickPaddingTowardScreenEdge: CGFloat = 24
+
+    // The clock is the last item before the screen edge: on the right in a
+    // left-to-right layout, on the left in a right-to-left one.
+    static func isOnClock(_ point: CGPoint, frame: CGRect, isLTR: Bool = Constant.isUsingLTRLanguage) -> Bool {
+        let left = isLTR ? clickPaddingTowardNeighbour : clickPaddingTowardScreenEdge
+        let right = isLTR ? clickPaddingTowardScreenEdge : clickPaddingTowardNeighbour
+        return point.x >= frame.minX - left && point.x <= frame.maxX + right
+            && point.y >= frame.minY && point.y < frame.maxY
+    }
+
+    // The replayed click lands on the pointer when it is already on the clock, so
+    // the pointer stays put; otherwise on the clock's centre.
+    static func replayPoint(pointer: CGPoint?, clockFrame: CGRect, isLTR: Bool = Constant.isUsingLTRLanguage) -> CGPoint {
+        if let pointer, isOnClock(pointer, frame: clockFrame, isLTR: isLTR) { return pointer }
+        return CGPoint(x: clockFrame.midX, y: clockFrame.midY)
     }
 
     static func clickEvents(at point: CGPoint) -> [CGEvent]? {
@@ -405,7 +435,7 @@ final class SystemMenuBarClock: MenuBarClockProviding {
             // ⌘-drag rearranges the bar and ⌃-click is a right click.
             guard event.modifierFlags.isDisjoint(with: [.command, .control]),
                   Self.isInMenuBar(location),
-                  let clock = Self.clocks().first(where: { $0.frame.contains(location) }),
+                  let clock = Self.clocks().first(where: { Self.isOnClock(location, frame: $0.frame) }),
                   !Self.isNotificationCenterOpen else {
                 clickedClockFrame = nil
                 return
@@ -413,7 +443,7 @@ final class SystemMenuBarClock: MenuBarClockProviding {
             clickedClockFrame = clock.frame
         case .leftMouseUp:
             defer { clickedClockFrame = nil }
-            if clickedClockFrame?.contains(location) == true {
+            if let frame = clickedClockFrame, Self.isOnClock(location, frame: frame) {
                 onClick?(location)
             }
         default:
@@ -457,7 +487,7 @@ final class SystemMenuBarClock: MenuBarClockProviding {
     // The panel is a window as tall as the screen; banners are a few rows tall and
     // desktop widgets sit below the desktop. Owner, layer and bounds need no
     // Screen Recording permission, unlike window names.
-    private static var isNotificationCenterOpen: Bool {
+    static var isNotificationCenterOpen: Bool {
         return notificationCenterIsOpen(minimumHeight: (NSScreen.screens.map(\.frame.height).min() ?? 0) / 2)
     }
 

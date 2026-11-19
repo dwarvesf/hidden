@@ -90,6 +90,7 @@
 		988E6BB58BB0E21724D3421E /* StackView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F3F11C2608925A0054B881 /* StackView+Extension.swift */; };
 		99EA334772E1715B21C424BB /* MenuBarLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 092D9DE26A006349D87B304D /* MenuBarLayout.swift */; };
 		9B1765C0B5634CFABD06A916 /* AutoStartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F013C3E5499B4EA7B816F7A8 /* AutoStartTests.swift */; };
+		A9D0DE00000000000000E002 /* AppLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D0DE00000000000000E001 /* AppLogTests.swift */; };
 		9C79B5D97BC90E0174BC52BE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F2F828CAAE82A4D34BDDCBB /* Cocoa.framework */; };
 		9CD9B70D63B58C9A7A31481A /* NotchOverflowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE73DB4E0664488997EEB6DE /* NotchOverflowController.swift */; };
 		9F3C757469DFAA7965B8380E /* CaptureActivityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C1A7E52B9D04F6A8E21C0D7 /* CaptureActivityMonitor.swift */; };
@@ -117,6 +118,7 @@
 		B12AD86D3E924502860225CC /* ExpandCollapseActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764544B7EDBB41A18087ED6F /* ExpandCollapseActionTests.swift */; };
 		B5435023F0224141B232FCC9 /* ExpandCollapseAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6171C0428FE84918BC3FBD91 /* ExpandCollapseAction.swift */; };
 		B6B0DE00000000000000B001 /* PreferencesSmallFixesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B0DE00000000000000B002 /* PreferencesSmallFixesTests.swift */; };
+		A0C011A95E7F4D6F8A83B001 /* AutoCollapseRetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C011A95E7F4D6F8A83B002 /* AutoCollapseRetryTests.swift */; };
 		A9D0DE00000000000000D011 /* PrefsIsolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D0DE00000000000000D010 /* PrefsIsolationTests.swift */; };
 		B8C8D4DFEF07794386598898 /* AccessibilityMenuBarInventory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */; };
 		BA4A80251E14F6E17741797F /* MacOS27Notice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A27C0DE00000000000000001 /* MacOS27Notice.swift */; };
@@ -356,6 +358,7 @@
 		B1326445261D7E0200319D35 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B350A2CC23AAFB47003A04AC /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 		B6B0DE00000000000000B002 /* PreferencesSmallFixesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesSmallFixesTests.swift; sourceTree = "<group>"; };
+		A0C011A95E7F4D6F8A83B002 /* AutoCollapseRetryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoCollapseRetryTests.swift; sourceTree = "<group>"; };
 		A9D0DE00000000000000D010 /* PrefsIsolationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrefsIsolationTests.swift; sourceTree = "<group>"; };
 		B6BFE1451DECE8B6052608CE /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Main.strings; sourceTree = "<group>"; };
 		B8404C9A24041A4300E6DBF8 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
@@ -369,6 +372,7 @@
 		DEFBDF50E5A67397D95D1946 /* UpdateController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
 		E3BF69BE15B7DE0272612470 /* NotchOverflowMenuBuilderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchOverflowMenuBuilderTests.swift; sourceTree = "<group>"; };
 		F013C3E5499B4EA7B816F7A8 /* AutoStartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoStartTests.swift; sourceTree = "<group>"; };
+		A9D0DE00000000000000E001 /* AppLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogTests.swift; sourceTree = "<group>"; };
 		F248811CF183BD0A4D71C4C6 /* NativeVisibilityEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeVisibilityEngine.swift; sourceTree = "<group>"; };
 		F51314A736131BE28182E378 /* AccessibilityPermission.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityPermission.swift; sourceTree = "<group>"; };
 		FB0B14538BC3AE95D43DE899 /* AccessibilityMenuBarInventory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityMenuBarInventory.swift; sourceTree = "<group>"; };
@@ -560,6 +564,7 @@
 				764544B7EDBB41A18087ED6F /* ExpandCollapseActionTests.swift */,
 				A0C0F1E5D3B2470A9C1E2002 /* AutoCollapsePopupGuardTests.swift */,
 				F013C3E5499B4EA7B816F7A8 /* AutoStartTests.swift */,
+				A9D0DE00000000000000E001 /* AppLogTests.swift */,
 				A27C0DE00000000000000004 /* MacOS27NoticeTests.swift */,
 				CC5FC25336EC320548CF4C87 /* AccessibilityPermissionTests.swift */,
 				60AFBE8D4C25548192E7D135 /* SettingsModelTests.swift */,
@@ -591,6 +596,7 @@
 				9EE499C5269FD00BE62A0AC2 /* StealthExpandIconTests.swift */,
 				A31C0DE0000000000000A002 /* ArrowStyleTests.swift */,
 				B6B0DE00000000000000B002 /* PreferencesSmallFixesTests.swift */,
+				A0C011A95E7F4D6F8A83B002 /* AutoCollapseRetryTests.swift */,
 				A9D0DE00000000000000D010 /* PrefsIsolationTests.swift */,
 				A57E0DE0000000000000C004 /* AppStoreMigrationTests.swift */,
 				1218DDCA0B5E85481E4F8F3B /* SettingsWindowTests.swift */,
@@ -1091,6 +1097,7 @@
 				86075364F9653E69AD4329D6 /* StealthExpandIconTests.swift in Sources */,
 				A31C0DE0000000000000A001 /* ArrowStyleTests.swift in Sources */,
 				B6B0DE00000000000000B001 /* PreferencesSmallFixesTests.swift in Sources */,
+				A0C011A95E7F4D6F8A83B001 /* AutoCollapseRetryTests.swift in Sources */,
 				A9D0DE00000000000000D011 /* PrefsIsolationTests.swift in Sources */,
 				A57E0DE0000000000000C003 /* AppStoreMigrationTests.swift in Sources */,
 				F1B66A86232AE9B22A7B54FF /* SettingsWindowTests.swift in Sources */,
@@ -1210,6 +1217,7 @@
 				B12AD86D3E924502860225CC /* ExpandCollapseActionTests.swift in Sources */,
 				A0C0F1E5D3B2470A9C1E2014 /* AutoCollapsePopupGuardTests.swift in Sources */,
 				9B1765C0B5634CFABD06A916 /* AutoStartTests.swift in Sources */,
+				A9D0DE00000000000000E002 /* AppLogTests.swift in Sources */,
 				A27C0DE00000000000000003 /* MacOS27Notice.swift in Sources */,
 				A27C0DE00000000000000005 /* MacOS27NoticeTests.swift in Sources */,
 				A27C0DE00000000000000006 /* String+Extension.swift in Sources */,
@@ -1354,7 +1362,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = W777S7V8TN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "hidden/Info-Direct.plist";
@@ -1363,7 +1371,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.13.1;
+				MARKETING_VERSION = 1.13.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "Hidden Bar";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1381,7 +1389,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = W777S7V8TN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "hidden/Info-Direct.plist";
@@ -1390,7 +1398,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.13.1;
+				MARKETING_VERSION = 1.13.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "Hidden Bar";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1426,7 +1434,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = W777S7V8TN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "hidden/Info-Direct.plist";
@@ -1435,7 +1443,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.13.1;
+				MARKETING_VERSION = 1.13.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "Hidden Bar (unused)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1471,7 +1479,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = W777S7V8TN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = hidden/Info.plist;
@@ -1480,7 +1488,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.13.1;
+				MARKETING_VERSION = 1.13.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "Hidden Bar (unused)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1632,7 +1640,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = W777S7V8TN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = hidden/Info.plist;
@@ -1641,7 +1649,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.13.1;
+				MARKETING_VERSION = 1.13.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1658,7 +1666,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = W777S7V8TN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = hidden/Info.plist;
@@ -1667,7 +1675,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.13.1;
+				MARKETING_VERSION = 1.13.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1783,7 +1791,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = W777S7V8TN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "hidden/Info-Direct.plist";
@@ -1792,7 +1800,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.13.1;
+				MARKETING_VERSION = 1.13.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "Hidden Bar (unused)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1888,7 +1896,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = W777S7V8TN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = hidden/Info.plist;
@@ -1897,7 +1905,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.13.1;
+				MARKETING_VERSION = 1.13.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dwarvesv.minimalbar;
 				PRODUCT_NAME = "Hidden Bar (unused)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

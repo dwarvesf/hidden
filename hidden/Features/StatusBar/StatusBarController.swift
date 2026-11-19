@@ -12,6 +12,12 @@ class StatusBarController: MenuBarItemProvider {
     
     //MARK: - Variables
     private var timer:Timer? = nil
+    private var autoCollapseAttempts = 0
+    private var wasAutoHideEnabled = false
+    private static let autoCollapseAttemptLimit = 3
+    private let engineFactory: (MenuBarItemProvider) -> MenuBarEngine
+    private let scheduleAutoHide: (TimeInterval, @escaping () -> Void) -> Timer
+    private let autoHideDeferral: (() -> Bool)?
 
     //MARK: - BarItems
 
@@ -28,7 +34,7 @@ class StatusBarController: MenuBarItemProvider {
     
     // How hiding is achieved (separator lengths) lives in the engine; this class
     // owns the items, the UI, and when to collapse or expand.
-    private lazy var menuBarEngine: MenuBarEngine = MenuBarEngineFactory.make(items: self)
+    private lazy var menuBarEngine: MenuBarEngine = engineFactory(self)
 
     // Read only when the auto-hide timer fires.
     private lazy var popupGuard = AutoCollapsePopupGuard(menuBarItemOwners: { [weak self] in
@@ -130,13 +136,21 @@ class StatusBarController: MenuBarItemProvider {
     // expanding" on, an auto-collapse deactivates the app and dismisses this
     // window mid-edit (#170, same family as #66/#151). Defer the collapse while
     // it is on screen, without creating the controller or loading its window
-    // when preferences were never opened.
+    // when preferences were never opened. With the option off nothing is
+    // dismissed, so the window must not hold auto-hide.
     private var isPreferencesWindowVisible: Bool {
-        return PreferencesWindowController.isVisible
+        return wantsFullBar && PreferencesWindowController.isVisible
     }
     
     //MARK: - Methods
-    init() {
+    init(engineFactory: @escaping (MenuBarItemProvider) -> MenuBarEngine = { MenuBarEngineFactory.make(items: $0) },
+         scheduleAutoHide: @escaping (TimeInterval, @escaping () -> Void) -> Timer = { delay, fire in
+             Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { _ in fire() }
+         },
+         autoHideDeferral: (() -> Bool)? = nil) {
+        self.engineFactory = engineFactory
+        self.scheduleAutoHide = scheduleAutoHide
+        self.autoHideDeferral = autoHideDeferral
         setupUI()
         restoreRemovedStatusItems()
         setupAlwayHideStatusBar()
@@ -165,6 +179,7 @@ class StatusBarController: MenuBarItemProvider {
     }
 
     deinit {
+        timer?.invalidate()
         NotificationCenter.default.removeObserver(self)
         pinnedSectionsObserver.map(NotificationCenter.default.removeObserver)
         hoverDwellTimer?.invalidate()
@@ -238,7 +253,6 @@ class StatusBarController: MenuBarItemProvider {
             native.expandBar = { [weak self] in self?.expandMenubar() }
             native.collapseBar = { [weak self] in self?.collapseMenuBar() }
             native.expandBarForCapture = { [weak self] in self?.expandMenubar(activatingApp: false) }
-            native.onCollapseTimedOut = { [weak self] in self?.autoCollapseIfNeeded() }
             pinnedSectionsObserver = NotificationCenter.default.addObserver(forName: .pinnedSectionsChanged, object: nil, queue: .main) { [weak native] _ in
                 native?.pinnedSectionsDidChange()
             }
@@ -268,7 +282,7 @@ class StatusBarController: MenuBarItemProvider {
         // the items are placed, so the first collapse already holds the strict list.
         presentationController?.syncMirror()
         #endif
-        collapseMenuBar()
+        collapseMenuBar(automatic: Preferences.isAutoHide)
     }
 
     // macOS 27: Preferences shows the missing permission, and a grant hides at
@@ -419,10 +433,17 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
     
-    private func collapseMenuBar(userInitiated: Bool = false) {
-        guard menuBarEngine.isArrangementValid && !self.isCollapsed else {
-            autoCollapseIfNeeded()
+    private func collapseMenuBar(userInitiated: Bool = false, automatic: Bool = false) {
+        guard !isCollapsed else { return }
+        guard menuBarEngine.isArrangementValid && menuBarEngine.state != .calibrating else {
+            if automatic { autoCollapseIfNeeded() }
             return
+        }
+        if automatic {
+            guard syncAutoHideState(), autoCollapseAttempts < Self.autoCollapseAttemptLimit else { return }
+            autoCollapseAttempts += 1
+            timer?.invalidate()
+            timer = nil
         }
         if !Preferences.areSeparatorsHidden
             && menuBarEngine.separatorsHiddenForCollapse(current: Preferences.areSeparatorsHidden) {
@@ -436,6 +457,7 @@ class StatusBarController: MenuBarItemProvider {
                 self.didCollapseMenuBar(userInitiated: userInitiated)
             case .unavailable:
                 self.didFailToCollapseMenuBar()
+                if automatic { self.autoCollapseIfNeeded() }
             }
         }
     }
@@ -470,6 +492,9 @@ class StatusBarController: MenuBarItemProvider {
     }
 
     private func didCollapseMenuBar(userInitiated: Bool) {
+        autoCollapseAttempts = 0
+        timer?.invalidate()
+        timer = nil
         if let button = btnExpandCollapse.button {
             button.image = collapsedArrowImage
         }
@@ -494,10 +519,12 @@ class StatusBarController: MenuBarItemProvider {
         let hiddenBundles = userInitiated ? menuBarEngine.hiddenSectionBundles : []
         #endif
         menuBarEngine.expand()
+        autoCollapseAttempts = 0
         if let button = btnExpandCollapse.button {
             button.image = Assets.collapseImage
         }
         popupGuard.reset()
+        loggedCollapseHolds.removeAll()
         autoCollapseIfNeeded()
         
         if activatingApp && wantsFullBar {
@@ -528,9 +555,20 @@ class StatusBarController: MenuBarItemProvider {
         }
     }
 
+    private func syncAutoHideState() -> Bool {
+        let enabled = Preferences.isAutoHide
+        if enabled && !wasAutoHideEnabled { autoCollapseAttempts = 0 }
+        wasAutoHideEnabled = enabled
+        return enabled
+    }
+
     private func autoCollapseIfNeeded() {
-        guard Preferences.isAutoHide else {return}
-        guard !isCollapsed else { return }
+        guard syncAutoHideState(), !isCollapsed,
+              autoCollapseAttempts < Self.autoCollapseAttemptLimit else {
+            timer?.invalidate()
+            timer = nil
+            return
+        }
 
         startTimerToAutoHide()
     }
@@ -539,7 +577,26 @@ class StatusBarController: MenuBarItemProvider {
     // A popup hanging from the menu bar (#319) defers for up to 10 minutes; the
     // window list is read last, only when nothing else defers.
     private var defersCollapseApartFromPointer: Bool {
-        return isPreferencesWindowVisible || arrivalsPromptIsShown || menuBarEngine.defersAutoCollapse || isRevealingForPalette || popupGuard.defersCollapse()
+        return holdsCollapse("AutoCollapse: holding for the Settings window", if: isPreferencesWindowVisible)
+            || holdsCollapse("AutoCollapse: holding for the new-apps prompt", if: arrivalsPromptIsShown)
+            || holdsCollapse("AutoCollapse: holding for Notification Center", if: menuBarEngine.defersAutoCollapse)
+            || holdsCollapse("AutoCollapse: holding for the palette", if: isRevealingForPalette)
+            || popupGuard.defersCollapse()
+    }
+
+    // Holds already logged since the bar last expanded, so a hold that lasts
+    // many timer fires logs once. The line is a StaticString and goes to the
+    // public log: only the reason, never window titles.
+    private var loggedCollapseHolds = Set<String>()
+
+    // The condition is evaluated lazily, so the order and short-circuit of the
+    // callers do not change.
+    private func holdsCollapse(_ line: StaticString, if condition: @autoclosure () -> Bool) -> Bool {
+        guard condition() else { return false }
+        if loggedCollapseHolds.insert("\(line)").inserted {
+            AppLog.publicLine(line)
+        }
+        return true
     }
 
     // The palette has an app's menu open that it allowed for a moment.
@@ -553,7 +610,7 @@ class StatusBarController: MenuBarItemProvider {
 
     private func startTimerToAutoHide() {
         timer?.invalidate()
-        self.timer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] _ in
+        self.timer = scheduleAutoHide(Preferences.numberOfSecondForAutoHide) { [weak self] in
             guard let self = self, Preferences.isAutoHide else { return }
             // Don't yank the bar shut mid-interaction: while the pointer is in the
             // menubar (hovering, clicking, dragging icons), defer and re-arm.
@@ -562,10 +619,13 @@ class StatusBarController: MenuBarItemProvider {
             // from the clock collapses the bar itself once it closes. A popup
             // hanging from the menu bar (#319) defers too, for up to 10 minutes;
             // the window list is read last, only when nothing else defers.
-            if self.isMouseInMenuBar || self.defersCollapseApartFromPointer {
+            let shouldDefer = self.autoHideDeferral?()
+                ?? (self.holdsCollapse("AutoCollapse: holding for the pointer in the menu bar", if: self.isMouseInMenuBar)
+                    || self.defersCollapseApartFromPointer)
+            if shouldDefer {
                 self.startTimerToAutoHide()
             } else {
-                self.collapseMenuBar()
+                self.collapseMenuBar(automatic: true)
             }
         }
     }

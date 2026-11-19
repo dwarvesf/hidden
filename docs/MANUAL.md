@@ -207,6 +207,23 @@ restarts. A ⌘-drag across the arrow still moves it. An app that recreates its
 icon without relaunching (BitBar, SwiftBar) can look like a drag; tick "Ignore
 drags" on its row to keep it where you put it.
 
+### Capture a log
+
+Hidden Bar writes its log lines to stderr, so a log for a bug report is one command:
+
+```sh
+# quit Hidden Bar first, then
+open --stderr ~/Desktop/hiddenbar.log "/Applications/Hidden Bar.app"
+```
+
+Reproduce the problem, then attach `hiddenbar.log`. The file lists the bundle
+identifiers of your menu bar apps (and a Mac's own error texts), so read it
+before you share it. In Console and `log show`, macOS shows those lines as
+`<private>`; only a few fixed lines are readable there, such as the auto-collapse
+hold reasons (`AutoCollapse: holding for ...`) and the "hiding unavailable"
+reasons (`NativeVisibility: hiding unavailable: ...`). Filter with
+`log show --predicate 'process == "Hidden Bar" AND eventMessage BEGINSWITH "AutoCollapse"'`.
+
 ## Requirements
 
 macOS 13 Ventura or later. Pre-Ventura (10.13 - 12.x): use

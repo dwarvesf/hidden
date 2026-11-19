@@ -218,6 +218,43 @@ final class LegacyLoginItemTests: XCTestCase {
         XCTAssertEqual(service.calls, [])
     }
 
+    // 1.11 and 1.11.1 set the old flag even when removing the helper failed, so
+    // it says nothing about the record: the reset must still run once.
+    func testOldFlagFromBrokenBuildsDoesNotSkipTheReset() {
+        let defaults = makeDefaults()
+        defaults.set(true, forKey: "smAppServiceMigrated")
+        let service = RecordingLoginItem(status: .enabled)
+        XCTAssertEqual(LegacyLoginItem.migrate(defaults: defaults, autoStart: true, mayHaveLegacyRecord: true,
+                                               service: service, report: { _ in }), .reset)
+        XCTAssertEqual(service.calls, ["unregister", "register"])
+        XCTAssertTrue(defaults.bool(forKey: LegacyLoginItem.migratedKey))
+
+        XCTAssertEqual(LegacyLoginItem.migrate(defaults: defaults, autoStart: true, mayHaveLegacyRecord: true,
+                                               service: service, report: { _ in }), .none)
+        XCTAssertEqual(service.calls, ["unregister", "register"])
+    }
+
+    func testOldFlagWithNoLegacyContainerOnlyMarksDone() {
+        let defaults = makeDefaults()
+        defaults.set(true, forKey: "smAppServiceMigrated")
+        let service = RecordingLoginItem(status: .enabled)
+        XCTAssertEqual(LegacyLoginItem.migrate(defaults: defaults, autoStart: true, mayHaveLegacyRecord: false,
+                                               service: service, report: { _ in }), .markDone)
+        XCTAssertEqual(service.calls, [])
+        XCTAssertTrue(defaults.bool(forKey: LegacyLoginItem.migratedKey))
+    }
+
+    func testOldFlagWithLaunchAtLoginOffNeverRegisters() {
+        let defaults = makeDefaults()
+        defaults.set(true, forKey: "smAppServiceMigrated")
+        let service = RecordingLoginItem(status: .notRegistered)
+        XCTAssertEqual(LegacyLoginItem.migrate(defaults: defaults, autoStart: false, mayHaveLegacyRecord: true,
+                                               service: service, report: { _ in }), .wait)
+        XCTAssertEqual(service.calls, [])
+        XCTAssertEqual(service.status, .notRegistered)
+        XCTAssertFalse(defaults.bool(forKey: LegacyLoginItem.migratedKey))
+    }
+
     func testLegacyRecordSignalIsTheSandboxContainer() {
         let home = URL(fileURLWithPath: "/Users/someone")
         var asked: [String] = []
