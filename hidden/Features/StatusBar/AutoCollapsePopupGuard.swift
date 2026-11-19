@@ -61,6 +61,7 @@ final class AutoCollapsePopupGuard {
     static let statusLayer = Int(CGWindowLevelForKey(.statusWindow))
     static let notificationCenterBundleIdentifier = "com.apple.notificationcenterui"
     static let defaultCap: TimeInterval = 600
+    static let systemBundlePrefix = "com.apple."
     // A popover's arrow can leave a small gap under the menu bar.
     static let bandTolerance: CGFloat = 8
 
@@ -181,10 +182,12 @@ final class AutoCollapsePopupGuard {
                 guard notificationCenterPanelIsOpen() else { continue }
                 return window
             }
-            // Not the Notification Center branch above: it reuses one long-lived
-            // window for banners and the panel, so the baseline cannot tell them apart.
-            if baseline?.contains(window.number) == true { continue }
             guard let band = bands.first(where: { Self.hangs(window.frame, from: $0) }) else { continue }
+            // An app's own window already there at the expansion is furniture. Apple's
+            // windows are exempt: macOS may reuse one for Control Center and similar
+            // panels, so an expansion with a panel up must not hide it.
+            if baseline?.contains(window.number) == true,
+               bundle(of: window.ownerPID)?.hasPrefix(Self.systemBundlePrefix) != true { continue }
             if window.layer == Self.popUpMenuLayer || window.layer == Self.statusLayer {
                 return window
             }

@@ -31,6 +31,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
     private var ownerReads = 0
     private var panelOpen = true
     private var panelReads = 0
+    private var nextWindowNumber = 10_000
     private var logged: [String] = []
     private var loggedPublic: [String] = []
 
@@ -49,6 +50,7 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         ownerReads = 0
         panelOpen = true
         panelReads = 0
+        nextWindowNumber = 10_000
         logged = []
         loggedPublic = []
     }
@@ -72,8 +74,10 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
                                       logPublic: { [unowned self] in loggedPublic.append("\($0)") })
     }
 
-    private func window(_ pid: pid_t, layer: Int, _ frame: CGRect, number: Int = 0) -> OnScreenWindow {
-        return OnScreenWindow(ownerPID: pid, layer: layer, frame: frame, number: number)
+    // Unnumbered windows get unique numbers, so they cannot collide in the baseline.
+    private func window(_ pid: pid_t, layer: Int, _ frame: CGRect, number: Int? = nil) -> OnScreenWindow {
+        defer { nextWindowNumber += 1 }
+        return OnScreenWindow(ownerPID: pid, layer: layer, frame: frame, number: number ?? nextWindowNumber)
     }
 
     private var popUpMenu: Int { AutoCollapsePopupGuard.popUpMenuLayer }
@@ -488,5 +492,30 @@ final class AutoCollapsePopupGuardTests: XCTestCase {
         let popupGuard = makeGuard()
         list.windows = [window(netMonitor, layer: status, notchWindow, number: 500)]
         XCTAssertTrue(popupGuard.defersCollapse())
+    }
+
+    // macOS may reuse one window for Control Center's panel, so Apple's windows
+    // never count as furniture.
+    func testAppleWindowPresentAtResetStillDefers() {
+        let popupGuard = makeGuard()
+        list.windows = [window(controlCenter, layer: popUpMenu, CGRect(x: 1200, y: 0, width: 300, height: 400))]
+        popupGuard.reset()
+        XCTAssertTrue(popupGuard.defersCollapse())
+    }
+
+    func testThirdPartyStatusWindowPresentAtResetDoesNotDefer() {
+        displays = [notchDisplay]
+        let popupGuard = makeGuard()
+        list.windows = [window(netMonitor, layer: status, notchWindow)]
+        popupGuard.reset()
+        XCTAssertFalse(popupGuard.defersCollapse())
+    }
+
+    func testWindowWithNoBundleIdentifierPresentAtResetDoesNotDefer() {
+        displays = [notchDisplay]
+        let popupGuard = makeGuard()
+        list.windows = [window(99, layer: status, notchWindow)]
+        popupGuard.reset()
+        XCTAssertFalse(popupGuard.defersCollapse())
     }
 }
