@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Direct build on macOS 27: when a click on the arrow or the hotkey hides nothing, a short note under the arrow says why and what to do (running outside Applications, an icon macOS cannot keep visible while the pause switch is on, Accessibility missing, or every icon sitting right of the arrow). It shows once per reason per launch, never for auto-hide.
+
 ## v1.13.2 (2026-11-19)
 
 ### Fixed
