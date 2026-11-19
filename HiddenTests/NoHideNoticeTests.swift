@@ -106,6 +106,32 @@ final class NoHideNoticeTests: XCTestCase {
         XCTAssertTrue(buttons(in: view).isEmpty)
     }
 
+    // The collapse answers before the bar has reflowed, so the popover is
+    // anchored on the next run loop turn, from the arrow's frame then.
+    func testPresenterAnchorsOnTheNextTurnNotDuringTheCollapse() {
+        var anchored = 0
+        let presenter = ArrowNoticePresenter(perform: { _ in }, showPopover: { _, _ in anchored += 1 }, isOnScreen: { _ in true })
+        let button = NSStatusBarButton()
+        XCTAssertTrue(presenter.show(.everythingRightOfArrow, from: button))
+        XCTAssertEqual(anchored, 0, "nothing is placed while the answer is still being delivered")
+        XCTAssertTrue(presenter.isShown, "a second notice must not stack while this one waits")
+        XCTAssertFalse(presenter.show(.accessibilityNeeded, from: button))
+        RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+        XCTAssertEqual(anchored, 1)
+    }
+
+    func testPresenterShowsNothingWhenTheArrowLeftTheScreenMeanwhile() {
+        var anchored = 0
+        var onScreen = true
+        let presenter = ArrowNoticePresenter(perform: { _ in }, showPopover: { _, _ in anchored += 1 }, isOnScreen: { _ in onScreen })
+        let button = NSStatusBarButton()
+        XCTAssertTrue(presenter.show(.everythingRightOfArrow, from: button))
+        onScreen = false
+        RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+        XCTAssertEqual(anchored, 0)
+        XCTAssertFalse(presenter.isShown, "a notice that never appeared must not block the next one")
+    }
+
     func testPresenterDeclinesWithoutAnArrowOnScreen() {
         var popovers = 0
         let presenter = ArrowNoticePresenter(perform: { _ in }, showPopover: { _, _ in popovers += 1 })

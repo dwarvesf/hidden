@@ -143,19 +143,29 @@ final class ArrowNoticePresenter: NSObject, NSPopoverDelegate, NoHideNoticePrese
     private let runningFolder: () -> String
     private let perform: (NoHideNoticeModel.Action) -> Void
     private let showPopover: (NSPopover, NSStatusBarButton) -> Void
+    private let isOnScreen: (NSStatusBarButton) -> Bool
     private var popover: NSPopover?
+    private var moveObserver: NSObjectProtocol?
 
     init(runningFolder: @escaping () -> String = { RunningFolder.displayName(of: Bundle.main.bundleURL) },
          perform: @escaping (NoHideNoticeModel.Action) -> Void = ArrowNoticePresenter.performAction,
          showPopover: @escaping (NSPopover, NSStatusBarButton) -> Void = { popover, button in
              popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-         }) {
+         },
+         isOnScreen: @escaping (NSStatusBarButton) -> Bool = { $0.window?.screen != nil }) {
         self.runningFolder = runningFolder
         self.perform = perform
         self.showPopover = showPopover
+        self.isOnScreen = isOnScreen
     }
 
-    var isShown: Bool { popover?.isShown ?? false }
+    deinit {
+        moveObserver.map(NotificationCenter.default.removeObserver)
+    }
+
+    // Counts from the moment it is asked for, so a second notice cannot stack
+    // while the first waits for the bar to settle.
+    var isShown: Bool { popover != nil }
 
     static func performAction(_ action: NoHideNoticeModel.Action) {
         switch action {
@@ -170,7 +180,7 @@ final class ArrowNoticePresenter: NSObject, NSPopoverDelegate, NoHideNoticePrese
     // An arrow macOS moved into its « button has no screen to hang from; the
     // overflow notice covers that.
     func show(_ reason: NoHideReason, from button: NSStatusBarButton?) -> Bool {
-        guard let button, button.window?.screen != nil, !isShown else { return false }
+        guard let button, isOnScreen(button), !isShown else { return false }
         let model = NoHideNoticeModel.make(reason, runningFolder: runningFolder())
         let view = NoHideNoticeView(model: model)
         let content = NSViewController()
@@ -188,16 +198,45 @@ final class ArrowNoticePresenter: NSObject, NSPopoverDelegate, NoHideNoticePrese
             if let action = model.action { self?.perform(action) }
         }
         self.popover = popover
-        showPopover(popover, button)
+        // The collapse answers before macOS has reflowed the bar, so the arrow's
+        // window is still where it was. Anchor on the next turn, from its frame
+        // then, and follow it if it moves once more while the notice is up.
+        DispatchQueue.main.async { [weak self, weak popover, weak button] in
+            guard let self, let popover, let button, self.popover === popover else { return }
+            guard self.isOnScreen(button) else { return self.forget(popover) }
+            self.showPopover(popover, button)
+            self.followArrow(button, popover: popover)
+        }
         return true
     }
 
+    private func followArrow(_ button: NSStatusBarButton, popover: NSPopover) {
+        moveObserver.map(NotificationCenter.default.removeObserver)
+        moveObserver = NotificationCenter.default.addObserver(forName: NSWindow.didMoveNotification,
+                                                              object: button.window, queue: .main) { [weak popover, weak button] _ in
+            guard let popover, let button, popover.isShown else { return }
+            // Assigning a rect makes a shown popover re-measure against the view's window now.
+            popover.positioningRect = button.bounds.insetBy(dx: 0.5, dy: 0)
+            popover.positioningRect = button.bounds
+        }
+    }
+
+    private func forget(_ popover: NSPopover) {
+        guard self.popover === popover else { return }
+        self.popover = nil
+        moveObserver.map(NotificationCenter.default.removeObserver)
+        moveObserver = nil
+    }
+
     func close() {
-        popover?.close()
+        guard let popover else { return }
+        popover.close()
+        forget(popover)
     }
 
     func popoverDidClose(_ notification: Notification) {
-        popover = nil
+        guard let closed = notification.object as? NSPopover else { return }
+        forget(closed)
     }
 }
 
