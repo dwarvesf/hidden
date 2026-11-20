@@ -312,3 +312,12 @@ Passi per mostrare le icone sempre nascoste:
 "icons with no name" = "icone senza nome";
 "Nothing to hide" = "Niente da nascondere";
 "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Tutte le icone sono a destra della freccia, quindi non c’è nulla da nascondere. Tieni premuto il tasto Comando e trascina la freccia a destra delle icone che vuoi nascondere.";
+
+/* Language */
+"Language" = "Lingua";
+"App language" = "Lingua dell’app";
+"System (follow macOS)" = "Sistema (segui macOS)";
+"Takes effect after Hidden Bar restarts." = "Ha effetto dopo il riavvio di Hidden Bar.";
+"Restart Hidden Bar to apply the new language." = "Riavvia Hidden Bar per applicare la nuova lingua.";
+"Restart Now" = "Riavvia ora";
+"Later" = "Più tardi";

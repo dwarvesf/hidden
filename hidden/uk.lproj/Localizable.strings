@@ -310,3 +310,12 @@
 "icons with no name" = "піктограми без назви";
 "Nothing to hide" = "Нічого приховувати";
 "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Усі піктограми розташовані праворуч від стрілки, тому приховувати нічого. Утримуючи Command, перетягніть стрілку праворуч від піктограм, які потрібно приховати.";
+
+/* Language */
+"Language" = "Мова";
+"App language" = "Мова застосунку";
+"System (follow macOS)" = "Система (як у macOS)";
+"Takes effect after Hidden Bar restarts." = "Діє після перезапуску Hidden Bar.";
+"Restart Hidden Bar to apply the new language." = "Перезапустіть Hidden Bar, щоб застосувати нову мову.";
+"Restart Now" = "Перезапустити зараз";
+"Later" = "Пізніше";

@@ -4,6 +4,8 @@
 
 ### Added
 - Direct build on macOS 27: when a click on the arrow or the hotkey hides nothing, a short note under the arrow says why and what to do (running outside Applications, an icon macOS cannot keep visible while the pause switch is on, Accessibility missing, or every icon sitting right of the arrow). It shows once per reason per launch, never for auto-hide.
+- Settings › General › "App language": follow macOS, or pick any language the build ships. The list uses each language's own name, so 简体中文 is findable while the app is in another language. The choice is stored where macOS keeps an app's own language, so it takes effect after Hidden Bar restarts; macOS's per-app language panel writes the same value. The new row is translated in all 13 languages.
+
 ### Fixed
 - macOS 27 (direct build): when macOS refuses the updated hide list after an app starts, the icons that were hidden stay hidden. The bar used to show every hidden icon with a collapsed arrow and no auto-hide until you clicked the arrow; now it either stays collapsed or shows the expanded arrow and auto-hide retries.
 

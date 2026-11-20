@@ -311,3 +311,12 @@ Her zaman gizli simgeleri görüntüleme adımları:
 "icons with no name" = "adsız simgeler";
 "Nothing to hide" = "Gizlenecek bir şey yok";
 "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Tüm simgeler okun sağında olduğundan gizlenecek bir şey yok. Command tuşunu basılı tutup oku, gizlemek istediğiniz simgelerin sağına sürükleyin.";
+
+/* Language */
+"Language" = "Dil";
+"App language" = "Uygulama dili";
+"System (follow macOS)" = "Sistem (macOS'u izle)";
+"Takes effect after Hidden Bar restarts." = "Hidden Bar yeniden başlatıldıktan sonra etkili olur.";
+"Restart Hidden Bar to apply the new language." = "Yeni dili uygulamak için Hidden Bar'ı yeniden başlatın.";
+"Restart Now" = "Şimdi yeniden başlat";
+"Later" = "Sonra";

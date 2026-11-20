@@ -309,3 +309,12 @@
 "icons with no name" = "名前のないアイコン";
 "Nothing to hide" = "非表示にするものがありません";
 "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "すべてのアイコンが矢印の右側にあるため、非表示にするものがありません。Command キーを押しながら、矢印を非表示にしたいアイコンの右側にドラッグしてください。";
+
+/* Language */
+"Language" = "言語";
+"App language" = "アプリの言語";
+"System (follow macOS)" = "システム（macOS に従う）";
+"Takes effect after Hidden Bar restarts." = "Hidden Bar の再起動後に有効になります。";
+"Restart Hidden Bar to apply the new language." = "新しい言語を適用するには Hidden Bar を再起動してください。";
+"Restart Now" = "今すぐ再起動";
+"Later" = "あとで";

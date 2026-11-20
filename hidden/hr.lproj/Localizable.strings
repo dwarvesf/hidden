@@ -310,3 +310,12 @@
 "icons with no name" = "ikone bez imena";
 "Nothing to hide" = "Nema što sakriti";
 "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Sve su ikone desno od strelice pa nema što sakriti. Drži Command i povuci strelicu desno od ikona koje želiš sakriti.";
+
+/* Language */
+"Language" = "Jezik";
+"App language" = "Jezik aplikacije";
+"System (follow macOS)" = "Sustav (prati macOS)";
+"Takes effect after Hidden Bar restarts." = "Primjenjuje se nakon ponovnog pokretanja programa Hidden Bar.";
+"Restart Hidden Bar to apply the new language." = "Ponovno pokrenite Hidden Bar da biste primijenili novi jezik.";
+"Restart Now" = "Ponovno pokreni";
+"Later" = "Kasnije";

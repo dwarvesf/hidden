@@ -13,6 +13,7 @@ class PreferencesViewController: SettingsPaneController {
 
     static let hoverToExpandCheckBoxIdentifier = NSUserInterfaceItemIdentifier(UserDefaults.Key.hoverToExpand)
     static let autoHidePopupIdentifier = NSUserInterfaceItemIdentifier(UserDefaults.Key.isAutoHide)
+    static let languagePopupIdentifier = NSUserInterfaceItemIdentifier(LanguagePreferences.selectionKey)
 
     let statusCard = StatusCardView()
     let preview = MenuBarPreviewView()
@@ -103,8 +104,54 @@ class PreferencesViewController: SettingsPaneController {
             ])
         }
 
+        addLanguageSection()
         onRefresh { [weak self] in self?.refreshStatus() }
         refreshAll()
+    }
+
+    // macOS follows the system language already; this is the override for the
+    // people it gets wrong, such as a Chinese reader on an English Mac. The
+    // choice is CFBundle's own AppleLanguages key, so it takes a relaunch.
+    private func addLanguageSection() {
+        let popup = NSPopUpButton(frame: .zero, pullsDown: false)
+        popup.controlSize = .small
+        popup.identifier = Self.languagePopupIdentifier
+        popup.addItem(withTitle: "System (follow macOS)".localized)
+        for language in LanguagePreferences.languages() {
+            popup.addItem(withTitle: language.name)
+        }
+        popup.target = self
+        popup.action = #selector(languagePicked(_:))
+        onRefresh { [weak popup] in
+            guard let popup else { return }
+            let languages = LanguagePreferences.languages()
+            if let code = LanguagePreferences.override(),
+               let index = languages.firstIndex(where: { $0.code == code }) {
+                popup.selectItem(at: index + 1)
+            } else {
+                popup.selectItem(at: 0)
+            }
+        }
+        addSection("Language".localized, rows: [
+            SettingsForm.row("App language".localized,
+                             caption: "Takes effect after Hidden Bar restarts.".localized,
+                             control: popup),
+        ])
+    }
+
+    @objc private func languagePicked(_ sender: NSPopUpButton) {
+        let languages = LanguagePreferences.languages()
+        let index = sender.indexOfSelectedItem - 1
+        LanguagePreferences.setOverride(languages.indices.contains(index) ? languages[index].code : nil)
+        guard AppDefaults.allowsHostSideEffects, let window = view.window else { return }
+        let alert = NSAlert()
+        alert.messageText = "Restart Hidden Bar to apply the new language.".localized
+        alert.addButton(withTitle: "Restart Now".localized)
+        alert.addButton(withTitle: "Later".localized)
+        alert.beginSheetModal(for: window) { response in
+            guard response == .alertFirstButtonReturn else { return }
+            AppRelaunch.now()
+        }
     }
 
     // Type-to-find palette: it lists apps from the Accessibility read and opens

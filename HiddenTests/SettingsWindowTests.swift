@@ -537,7 +537,10 @@ final class SettingsWindowTests: XCTestCase {
         let keys = ["Hidden Bar is working", "Hide icons again", "Never", "After %d seconds", "Your menu bar",
                     "This App Store version can't hide icons on macOS 27", "Check for Updates…", "What's new",
                     "Right-click on the arrow", "Show menu", "Show always-hidden icons",
-                    "Option-click the arrow to see always-hidden icons.", "Option-right-click the arrow to open the menu."]
+                    "Option-click the arrow to see always-hidden icons.", "Option-right-click the arrow to open the menu.",
+                    "Language", "App language", "System (follow macOS)",
+                    "Takes effect after Hidden Bar restarts.", "Restart Hidden Bar to apply the new language.",
+                    "Restart Now", "Later"]
         let localizations = Bundle.main.localizations.filter { $0 != "Base" }
         XCTAssertGreaterThan(localizations.count, 5)
         for locale in localizations {

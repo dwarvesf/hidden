@@ -309,3 +309,12 @@ Steps to view always hidden icons:
 "icons with no name" = "icons with no name";
 "Nothing to hide" = "Nothing to hide";
 "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide." = "Every icon is right of the arrow, so there is nothing to hide. Hold Command and drag the arrow to the right of the icons you want to hide.";
+
+/* Language */
+"Language" = "Language";
+"App language" = "App language";
+"System (follow macOS)" = "System (follow macOS)";
+"Takes effect after Hidden Bar restarts." = "Takes effect after Hidden Bar restarts.";
+"Restart Hidden Bar to apply the new language." = "Restart Hidden Bar to apply the new language.";
+"Restart Now" = "Restart Now";
+"Later" = "Later";
