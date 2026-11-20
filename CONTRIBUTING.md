@@ -13,11 +13,19 @@ Please note we have a code of conduct, please follow it in all your interactions
 3. Follow the git-flow workflow. You can see more about git-flow [here](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)
 4. Pull requests must pass CI (both schemes build and test); run `scripts/test.sh` locally first.
 
+### UI proof
+
+A change that users can see (Settings, the arrow, a notice, a menu, any new or changed text) needs screenshots or a short recording from a build of your branch. Show light and dark appearance where the look changes, and one non-English locale where text changes.
+
+Put the images in the pull request description, or commit them as PNG files under `docs/verification/<short-name>/`. If users see no change, tick "This PR changes nothing users see" in the description instead.
+
+A maintainer checks this before a review starts. A new string goes into every locale in the same commit; `LocaleCoverageTests` enforces that.
+
 ### Branch name convention
 
 The branch name meaning should be clear and follow these conventions:
-- Feature branch should be `feature/add-something`
-- Bugfix branch should be `bugfix/fix-something`
+- Use `<type>/<short-slug>`, where the type is `feat`, `fix`, `docs`, `chore` or `test`
+- For example `feat/add-language-picker` or `fix/clock-padding`
 
 ## Code of Conduct
 
