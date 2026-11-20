@@ -19,7 +19,7 @@ A change that users can see (Settings, the arrow, a notice, a menu, any new or c
 
 Put the images in the pull request description, or commit them as PNG files under `docs/verification/<short-name>/`. If users see no change, tick "This PR changes nothing users see" in the description instead.
 
-The `PR proof` check enforces this: it fails when a change touches UI files and the description has no image and no ticked box, and the diff adds no proof. A new string goes into every locale in the same commit; `LocaleCoverageTests` enforces that.
+A maintainer checks this before a review starts. A new string goes into every locale in the same commit; `LocaleCoverageTests` enforces that.
 
 ### Branch name convention
 
